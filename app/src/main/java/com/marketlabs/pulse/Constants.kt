@@ -1,0 +1,15 @@
+package com.marketlabs.pulse
+
+object Constants {
+    // --- NETWORK ---
+    const val FINNHUB_BASE_URL = "https://finnhub.io/api/v1/"
+    const val NETWORK_TIMEOUT_SECONDS = 30L
+
+    // --- FIRESTORE ---
+    const val COLLECTION_MARKET_DATA = "market_data"
+    const val DOC_ANALYSIS = "analysis"
+
+    // --- DATABASE ---
+    const val MARKET_INDEX_TABLE = "market_indices"
+    const val DATABASE_NAME = "market_pulse_db"
+}
