@@ -1,10 +1,9 @@
 package com.marketlabs.pulse.di
 
 import com.marketlabs.pulse.BuildConfig
-import com.marketlabs.pulse.Constants
-import com.marketlabs.pulse.Constants.FINNHUB_BASE_URL
 import com.marketlabs.pulse.network.api.FinnHubService
 import com.marketlabs.pulse.network.interceptor.FinnHubAuthInterceptor
+import com.marketlabs.pulse.utils.Constants.FINNHUB_BASE_URL
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

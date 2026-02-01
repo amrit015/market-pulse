@@ -1,4 +1,4 @@
-package com.marketlabs.pulse.network.data
+package com.marketlabs.pulse.storage.model
 
 /**
  * Represents the technical sentiment of a market index.
