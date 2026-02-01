@@ -1,4 +1,4 @@
-package com.marketlabs.pulse
+package com.marketlabs.pulse.utils
 
 object Constants {
     // --- NETWORK ---
