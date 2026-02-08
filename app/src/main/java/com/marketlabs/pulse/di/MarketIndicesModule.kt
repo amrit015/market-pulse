@@ -1,11 +1,11 @@
 package com.marketlabs.pulse.di
 
-import com.marketlabs.pulse.core.MarketIndexRepository
-import com.marketlabs.pulse.core.MarketIndexRepositoryImpl
-import com.marketlabs.pulse.network.store.RemoteMarketDataSource
-import com.marketlabs.pulse.network.store.RemoteMarketDataSourceImpl
-import com.marketlabs.pulse.storage.repository.LocalMarketDataSource
-import com.marketlabs.pulse.storage.repository.LocalMarketDataSourceImpl
+import com.marketlabs.pulse.core.marketIndex.MarketIndexRepository
+import com.marketlabs.pulse.core.marketIndex.MarketIndexRepositoryImpl
+import com.marketlabs.pulse.network.store.marketIndex.RemoteMarketDataSource
+import com.marketlabs.pulse.network.store.marketIndex.RemoteMarketDataSourceImpl
+import com.marketlabs.pulse.storage.repository.marketIndex.LocalMarketDataSource
+import com.marketlabs.pulse.storage.repository.marketIndex.LocalMarketDataSourceImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

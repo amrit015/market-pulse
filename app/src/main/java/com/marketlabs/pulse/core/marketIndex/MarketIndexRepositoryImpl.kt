@@ -1,9 +1,9 @@
-package com.marketlabs.pulse.core
+package com.marketlabs.pulse.core.marketIndex
 
-import com.marketlabs.pulse.network.store.RemoteMarketDataSource
+import com.marketlabs.pulse.network.store.marketIndex.RemoteMarketDataSource
 import com.marketlabs.pulse.storage.database.entity.MarketIndexEntity
 import com.marketlabs.pulse.storage.model.MarketTrend
-import com.marketlabs.pulse.storage.repository.LocalMarketDataSource
+import com.marketlabs.pulse.storage.repository.marketIndex.LocalMarketDataSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext

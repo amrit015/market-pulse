@@ -1,7 +1,7 @@
-package com.marketlabs.pulse.network.store
+package com.marketlabs.pulse.network.store.marketIndex
 
 import com.google.firebase.firestore.FirebaseFirestore
-import com.marketlabs.pulse.network.api.FinnHubService
+import com.marketlabs.pulse.network.api.finnhub.FinnHubService
 import com.marketlabs.pulse.network.model.finnhub.QuoteResponse
 import com.marketlabs.pulse.network.model.firestore.AnalysisDto
 import com.marketlabs.pulse.utils.Constants.COLLECTION_MARKET_DATA

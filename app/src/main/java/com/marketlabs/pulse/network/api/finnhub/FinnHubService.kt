@@ -1,4 +1,4 @@
-package com.marketlabs.pulse.network.api
+package com.marketlabs.pulse.network.api.finnhub
 
 import com.marketlabs.pulse.network.model.finnhub.QuoteResponse
 import retrofit2.http.GET

@@ -3,11 +3,15 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mobile_navigation"
-    app:startDestination="@+id/fragment_dashboard">
+    app:startDestination="@+id/fragment_summary">
 
     <fragment
         android:id="@+id/fragment_dashboard"
         android:name="com.marketlabs.pulse.ui.dashboard.DashBoardFragment"
         tools:layout="@layout/fragment_dashboard" />
+
+    <fragment
+        android:id="@+id/fragment_summary"
+        android:name="com.marketlabs.pulse.ui.summary.MarketSummaryFragment" />
 
 </navigation>

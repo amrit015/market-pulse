@@ -7,5 +7,5 @@ import com.squareup.moshi.JsonClass
 data class AnalysisDto(
     val symbol: String = "",
     val rsi: Double = 0.0,
-    @param:Json(name = "technical_status") val technicalStatus: String = ""
+    @Json(name = "technical_status") val technicalStatus: String = ""
 )
