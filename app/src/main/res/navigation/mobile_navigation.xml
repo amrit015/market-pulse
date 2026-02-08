@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/fragment_dashboard"
-        android:name="com.marketlabs.pulse.ui.DashBoardFragment"
+        android:name="com.marketlabs.pulse.ui.dashboard.DashBoardFragment"
         tools:layout="@layout/fragment_dashboard" />
 
 </navigation>

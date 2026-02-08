@@ -1,4 +1,4 @@
-package com.marketlabs.pulse.ui.viewmodels
+package com.marketlabs.pulse.ui.dashboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
