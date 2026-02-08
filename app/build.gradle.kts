@@ -91,4 +91,8 @@ dependencies {
     implementation(libs.vico.compose.m3)
     implementation(libs.vico.core)
     implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.firebase.appcheck.playintegrity)
+    // Using debugImplementation ensures this is NOT included in your release APK
+    debugImplementation(libs.firebase.appcheck.debug)
 }

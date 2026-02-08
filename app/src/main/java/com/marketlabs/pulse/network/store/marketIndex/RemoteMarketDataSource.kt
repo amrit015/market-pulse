@@ -1,4 +1,4 @@
-package com.marketlabs.pulse.network.store
+package com.marketlabs.pulse.network.store.marketIndex
 
 import com.marketlabs.pulse.network.model.finnhub.QuoteResponse
 import com.marketlabs.pulse.network.model.firestore.AnalysisDto

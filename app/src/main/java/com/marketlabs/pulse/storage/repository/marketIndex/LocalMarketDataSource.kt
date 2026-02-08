@@ -1,4 +1,4 @@
-package com.marketlabs.pulse.storage.repository
+package com.marketlabs.pulse.storage.repository.marketIndex
 
 import com.marketlabs.pulse.storage.database.entity.MarketIndexEntity
 import kotlinx.coroutines.flow.Flow

@@ -15,19 +15,20 @@ navigationFragmentKtx = "2.9.7"
 navigationUiKtx = "2.9.7"
 navigation = "2.9.7"
 googleServices = "4.4.4"
-hilt = "2.59"
+hilt = "2.59.1"
 ksp = "2.0.21-1.0.27" # Make sure this matches your Kotlin version!
 retrofit = "3.0.0"
 moshi = "1.15.2"
 okhttp = "5.3.2"
-firebaseBom = "34.8.0"
+firebaseBom = "34.9.0"
 room = "2.8.4"
 vico = "2.4.3"
 composeBom = "2026.01.01"
-kotlin = "2.0.21"
+kotlin = "2.3.10"
 composeCompiler = "2.0.21"
 material3 = "1.4.0"
 uiGraphics = "1.10.2"
+hiltNavigationCompose = "1.3.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -69,6 +70,9 @@ androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "u
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
 androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics", version.ref = "uiGraphics" }
+androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
+firebase-appcheck-playintegrity = { group = "com.google.firebase", name = "firebase-appcheck-playintegrity" }
+firebase-appcheck-debug = { group = "com.google.firebase", name = "firebase-appcheck-debug" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

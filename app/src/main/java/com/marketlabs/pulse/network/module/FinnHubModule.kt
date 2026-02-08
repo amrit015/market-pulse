@@ -1,9 +1,9 @@
-package com.marketlabs.pulse.di
+package com.marketlabs.pulse.network.module
 
 import com.marketlabs.pulse.BuildConfig
-import com.marketlabs.pulse.network.api.FinnHubService
+import com.marketlabs.pulse.network.api.finnhub.FinnHubService
 import com.marketlabs.pulse.network.interceptor.FinnHubAuthInterceptor
-import com.marketlabs.pulse.utils.Constants.FINNHUB_BASE_URL
+import com.marketlabs.pulse.utils.Constants
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -37,7 +37,7 @@ object FinnHubModule {
 
         // build retrofit
         return Retrofit.Builder()
-            .baseUrl(FINNHUB_BASE_URL)
+            .baseUrl(Constants.FINNHUB_BASE_URL)
             .client(client)
             .addConverterFactory(
                 MoshiConverterFactory.create()

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.marketlabs.pulse.storage.database.AppDatabase
 import com.marketlabs.pulse.storage.database.dao.MarketIndexDao
+import com.marketlabs.pulse.storage.database.dao.MarketSummaryDao
 import com.marketlabs.pulse.storage.database.migrations.DatabaseMigrations
 import com.marketlabs.pulse.utils.Constants
 import dagger.Module
@@ -32,6 +33,11 @@ object DatabaseModule {
     @Provides
     fun provideMarketIndexDao(database: AppDatabase): MarketIndexDao {
         return database.marketIndexDao()
+    }
+
+    @Provides
+    fun provideMarketSummaryDao(database: AppDatabase): MarketSummaryDao {
+        return database.marketSummaryDao()
     }
 
 }

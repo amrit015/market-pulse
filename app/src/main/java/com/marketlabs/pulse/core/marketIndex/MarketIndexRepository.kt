@@ -1,4 +1,4 @@
-package com.marketlabs.pulse.core
+package com.marketlabs.pulse.core.marketIndex
 
 interface MarketIndexRepository {
 

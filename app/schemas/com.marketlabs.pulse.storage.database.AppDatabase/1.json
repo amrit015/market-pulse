@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "5bea1c0280fcb5709116a667dfaf1831",
+    "identityHash": "08412a07b5eeae5e5522a97f415f4927",
     "entities": [
       {
         "tableName": "market_indices",
@@ -51,11 +51,77 @@
             "symbol"
           ]
         }
+      },
+      {
+        "tableName": "market_pulse",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`dateId` TEXT NOT NULL, `lastSyncedTimestamp` INTEGER NOT NULL, `serverTimestamp` INTEGER NOT NULL, `reportType` TEXT NOT NULL, `verdict` TEXT NOT NULL, `leadStories` TEXT NOT NULL, `macroMix` TEXT NOT NULL, `dominoEffect` TEXT NOT NULL, `marketLookout` TEXT NOT NULL, PRIMARY KEY(`dateId`))",
+        "fields": [
+          {
+            "fieldPath": "dateId",
+            "columnName": "dateId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastSyncedTimestamp",
+            "columnName": "lastSyncedTimestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "serverTimestamp",
+            "columnName": "serverTimestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reportType",
+            "columnName": "reportType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "verdict",
+            "columnName": "verdict",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "leadStories",
+            "columnName": "leadStories",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "macroMix",
+            "columnName": "macroMix",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dominoEffect",
+            "columnName": "dominoEffect",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "marketLookout",
+            "columnName": "marketLookout",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "dateId"
+          ]
+        }
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '5bea1c0280fcb5709116a667dfaf1831')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '08412a07b5eeae5e5522a97f415f4927')"
     ]
   }
 }

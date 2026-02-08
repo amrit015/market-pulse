@@ -2,7 +2,7 @@ package com.marketlabs.pulse.ui.dashboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.marketlabs.pulse.core.MarketIndexRepository
+import com.marketlabs.pulse.core.marketIndex.MarketIndexRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
