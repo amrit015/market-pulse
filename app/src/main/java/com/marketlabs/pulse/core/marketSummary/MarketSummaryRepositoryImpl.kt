@@ -1,5 +1,6 @@
 package com.marketlabs.pulse.core.marketSummary
 
+import android.util.Log
 import com.marketlabs.pulse.network.store.summary.RemoteMarketSummaryDataSource
 import com.marketlabs.pulse.storage.model.summary.MarketPulse
 import com.marketlabs.pulse.storage.repository.summary.LocalMarketSummaryDataSource
@@ -72,6 +73,7 @@ class MarketSummaryRepositoryImpl @Inject constructor(
 
         } catch (e: Exception) {
             // 5. Handle Network/Parsing Failures
+            Log.e("MarketPulse", "Failed to fetch", e)
             Result.failure(e)
         }
     }

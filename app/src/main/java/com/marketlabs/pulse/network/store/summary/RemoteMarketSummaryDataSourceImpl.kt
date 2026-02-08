@@ -1,5 +1,6 @@
 package com.marketlabs.pulse.network.store.summary
 
+import android.util.Log
 import com.marketlabs.pulse.network.api.MarketPulseApi
 import com.marketlabs.pulse.storage.model.summary.MarketPulse
 import com.marketlabs.pulse.storage.model.summary.mappers.toDomain
@@ -29,6 +30,7 @@ class RemoteMarketSummaryDataSourceImpl @Inject constructor(
         } catch (e: Exception) {
             // 5. Catch Network/Parsing errors
             // (e.g., No Internet, 404, or Malformed JSON)
+            Log.e("MarketPulse", "Failed to fetch", e)
             Result.failure(e)
         }
     }

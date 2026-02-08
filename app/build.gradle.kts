@@ -28,8 +28,8 @@ android {
         if (localPropertiesFile.exists()) {
             properties.load(localPropertiesFile.inputStream())
         }
-        // 'BuildConfig.FINNHUB_KEY'
         buildConfigField("String", "FINNHUB_KEY", properties.getProperty("FINNHUB_KEY", "\"\""))
+        buildConfigField("String", "DEBUG_SECRET_UUID", properties.getProperty("DEBUG_SECRET_UUID", "\"\""))
     }
 
     buildTypes {
@@ -42,8 +42,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     buildFeatures {
         viewBinding = true
@@ -55,6 +55,15 @@ android {
 // generate json file of database schema
 ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
+}
+
+kotlin {
+    compilerOptions {
+        // Modern syntax for JVM target
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+        // Modern alternative for latest Gradle/Kotlin versions
+        freeCompilerArgs.add("-Xannotation-default-target=param-property")
+    }
 }
 
 dependencies {

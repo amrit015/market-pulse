@@ -1,7 +1,8 @@
-package com.marketlabs.pulse.network.module
+package com.marketlabs.pulse.network.retrofit
 
 import com.marketlabs.pulse.network.api.MarketPulseApi
 import com.marketlabs.pulse.network.interceptor.AppCheckInterceptor
+import com.marketlabs.pulse.network.interceptor.HeaderLoggingInterceptor
 import com.marketlabs.pulse.utils.Constants.MARKET_PULSE_BASE_URL
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -32,14 +33,18 @@ object MarketPulseModule {
     @Provides
     @Singleton
     @Named("MarketPulseClient") // specific name to avoid conflict with FinnHub client
-    fun provideMarketPulseOkHttpClient(): OkHttpClient {
-        val loggingInterceptor = HttpLoggingInterceptor().apply {
+    fun provideMarketPulseOkHttpClient(
+        appCheckInterceptor: AppCheckInterceptor, // Make sure this is injected
+        headerLoggingInterceptor: HeaderLoggingInterceptor // The one we just added
+    ): OkHttpClient {
+        val httpLoggingInterceptor = HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
         }
 
         return OkHttpClient.Builder()
-            .addInterceptor(loggingInterceptor)
-            .addInterceptor(AppCheckInterceptor()) // Add the Firebase app check interceptor here
+            .addInterceptor(httpLoggingInterceptor)
+            .addInterceptor(headerLoggingInterceptor)
+            .addInterceptor(appCheckInterceptor) // Add the Firebase app check interceptor here
             .build()
     }
 

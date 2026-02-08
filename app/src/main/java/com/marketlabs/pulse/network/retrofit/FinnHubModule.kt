@@ -1,4 +1,4 @@
-package com.marketlabs.pulse.network.module
+package com.marketlabs.pulse.network.retrofit
 
 import com.marketlabs.pulse.BuildConfig
 import com.marketlabs.pulse.network.api.finnhub.FinnHubService
