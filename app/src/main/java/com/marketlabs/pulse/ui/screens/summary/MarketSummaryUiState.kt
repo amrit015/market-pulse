@@ -1,4 +1,4 @@
-package com.marketlabs.pulse.ui.summary
+package com.marketlabs.pulse.ui.screens.summary
 
 import com.marketlabs.pulse.storage.model.summary.MarketPulse
 

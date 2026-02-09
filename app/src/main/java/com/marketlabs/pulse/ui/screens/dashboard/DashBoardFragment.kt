@@ -1,4 +1,4 @@
-package com.marketlabs.pulse.ui.dashboard
+package com.marketlabs.pulse.ui.screens.dashboard
 
 import android.os.Bundle
 import android.view.LayoutInflater

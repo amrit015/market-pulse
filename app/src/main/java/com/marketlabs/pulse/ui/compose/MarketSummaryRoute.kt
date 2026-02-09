@@ -1,4 +1,4 @@
-package com.marketlabs.pulse.ui.summary.compose
+package com.marketlabs.pulse.ui.compose
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,11 +17,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.marketlabs.pulse.ui.summary.MarketSummaryViewModel
+import com.marketlabs.pulse.ui.screens.summary.MarketSummaryViewModel
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.ui.unit.dp
-import com.marketlabs.pulse.ui.summary.MarketSummaryUiState
+import com.marketlabs.pulse.ui.screens.summary.MarketSummaryUiState
 
 /**
  * The Stateful Entry Point (The "Manager") for the Market Summary feature.
@@ -39,6 +39,7 @@ import com.marketlabs.pulse.ui.summary.MarketSummaryUiState
 @OptIn(ExperimentalMaterial3Api::class) // Required for PullToRefreshBox
 @Composable
 fun MarketSummaryRoute(
+    scaffoldPadding: PaddingValues,
     viewModel: MarketSummaryViewModel = hiltViewModel()
 ) {
     // 1. STATE COLLECTION
@@ -59,21 +60,16 @@ fun MarketSummaryRoute(
         }
     }
 
-    // 3. UI SCAFFOLDING
-    Scaffold(
-        // This line connects the logic (snackbarHostState) to the UI (SnackbarHost)
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { padding ->
+    // 3. UI - Box and Snackbar
+    // Action: Use Box instead of Scaffold to avoid redundant padding
+    Box(modifier = Modifier.fillMaxSize()) {
 
         // 4. PULL-TO-REFRESH CONTAINER
         // Wraps the entire screen content. When the user swipes down,
         // it triggers viewModel.refreshData(force = true).
         PullToRefreshBox(
             isRefreshing = isRefreshing,
-            onRefresh = { viewModel.refreshData(force = true) },
-            modifier = Modifier
-                .padding(padding) // Respect Scaffold padding (e.g., if you add a TopBar later)
-                .fillMaxSize()
+            onRefresh = { viewModel.refreshData(force = true) }
         ) {
 
             // 5. CONTENT SWITCHING
@@ -94,7 +90,10 @@ fun MarketSummaryRoute(
                 // Case B: Data Available
                 // We have data (either fresh or cached). We delegate rendering to the stateless screen.
                 is MarketSummaryUiState.Success -> {
-                    MarketSummaryScreen(data = state.data)
+                    MarketSummaryScreen(
+                        data = state.data,
+                        scaffoldPadding = scaffoldPadding
+                    )
                 }
 
                 // Case C: Critical Failure
@@ -121,5 +120,14 @@ fun MarketSummaryRoute(
                 }
             }
         }
+
+        // Manually place the SnackbarHost at the bottom of the Box
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                // Use the scaffoldPadding to ensure it sits above the Bottom Navigation
+                .padding(bottom = scaffoldPadding.calculateBottomPadding())
+        )
     }
 }

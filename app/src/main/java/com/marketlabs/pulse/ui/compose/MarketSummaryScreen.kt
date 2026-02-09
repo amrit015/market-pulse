@@ -1,4 +1,4 @@
-package com.marketlabs.pulse.ui.summary.compose
+package com.marketlabs.pulse.ui.compose
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -35,12 +35,24 @@ import androidx.compose.foundation.lazy.items
  * All fields in this object are nullable.
  */
 @Composable
-fun MarketSummaryScreen(data: MarketPulse) {
+fun MarketSummaryScreen(
+    data: MarketPulse,
+    scaffoldPadding: PaddingValues
+) {
+
+    // Action: Extract the status bar height to use in contentPadding
+    val statusBarHeight = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(16.dp),
+            .background(MaterialTheme.colorScheme.background),
+        contentPadding = PaddingValues(
+            top = statusBarHeight + 16.dp, // Initial offset so first item isn't covered
+            bottom = scaffoldPadding.calculateBottomPadding() + 16.dp,
+            start = 16.dp,
+            end = 16.dp
+        ),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         // 1. HEADER SECTION
@@ -223,7 +235,9 @@ fun NewsCard(story: NewsItem) {
 
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 8.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
@@ -303,7 +317,9 @@ fun MacroCard(item: MacroItem) {
     val headline = item.headline ?: return
 
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
         verticalAlignment = Alignment.Top
     ) {
         // Tag Chip (only if tag exists)
@@ -351,7 +367,9 @@ fun ActionFooter(action: String) {
     Surface(
         color = MaterialTheme.colorScheme.primary,
         shape = RoundedCornerShape(12.dp),
-        modifier = Modifier.fillMaxWidth().padding(top = 20.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 20.dp)
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
