@@ -1,10 +1,9 @@
-package com.marketlabs.pulse.ui.compose
+package com.marketlabs.pulse.ui.compose.summary
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -17,11 +16,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.marketlabs.pulse.ui.screens.summary.MarketSummaryViewModel
+import com.marketlabs.pulse.ui.viewmodels.MarketSummaryViewModel
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.ui.unit.dp
-import com.marketlabs.pulse.ui.screens.summary.MarketSummaryUiState
+import com.marketlabs.pulse.ui.viewmodels.MarketSummaryUiState
 
 /**
  * The Stateful Entry Point (The "Manager") for the Market Summary feature.

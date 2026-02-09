@@ -1,4 +1,4 @@
-package com.marketlabs.pulse.ui.compose
+package com.marketlabs.pulse.ui.compose.summary
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -122,13 +122,12 @@ fun HeaderSection(type: ReportType, timestamp: Long) {
     Column {
         Text(
             text = type.label.uppercase(),
-            style = MaterialTheme.typography.labelSmall,
+            style = MaterialTheme.typography.labelSmall, // Uses Inter Bold + Spacing
             color = MaterialTheme.colorScheme.primary
         )
         Text(
             text = "Market Pulse",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
+            style = MaterialTheme.typography.headlineLarge // Uses Montserrat ExtraBold
         )
         // Convert seconds to milliseconds for Date object
         val date = Date(timestamp * 1000L)
@@ -136,7 +135,7 @@ fun HeaderSection(type: ReportType, timestamp: Long) {
 
         Text(
             text = "Updated: ${format.format(date)}",
-            style = MaterialTheme.typography.bodySmall,
+            style = MaterialTheme.typography.bodySmall, // Uses Inter Regular
             color = Color.Gray
         )
     }
@@ -189,7 +188,7 @@ fun VerdictCard(verdict: Verdict) {
                 Text(
                     text = regime.label,
                     color = textColor,
-                    style = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.labelSmall, // Uses Inter Bold
                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                 )
             }
@@ -197,15 +196,14 @@ fun VerdictCard(verdict: Verdict) {
             // 2. The Main Call (e.g., "ACCUMULATE")
             Text(
                 text = call.label,
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Black,
+                style = MaterialTheme.typography.headlineSmall, // Uses Montserrat Bold
                 color = textColor
             )
 
             // 3. Technical Setup (e.g., "OVERSOLD")
             Text(
                 text = setup.label,
-                style = MaterialTheme.typography.labelMedium,
+                style = MaterialTheme.typography.labelMedium, // Uses Inter Medium
                 color = textColor.copy(alpha = 0.8f),
                 modifier = Modifier.padding(bottom = 12.dp)
             )
@@ -217,7 +215,7 @@ fun VerdictCard(verdict: Verdict) {
             // We use safe call + elvis operator to ensure we never crash on null string
             Text(
                 text = verdict.analysis ?: "",
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyLarge, // Uses Inter Regular for density
                 color = Color.Black.copy(alpha = 0.8f)
             )
         }
@@ -242,13 +240,15 @@ fun NewsCard(story: NewsItem) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text = headline,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                style = MaterialTheme.typography.titleMedium, // Uses Montserrat SemiBold
             )
             // Summary is optional
             story.summary?.let { summary ->
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(text = summary, style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    text = summary,
+                    style = MaterialTheme.typography.bodyMedium // Uses Inter Regular
+                )
             }
         }
     }
@@ -276,7 +276,7 @@ fun DominoCard(domino: DominoEffect) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text = "🧩 THE DOMINO EFFECT",
-                style = MaterialTheme.typography.labelLarge,
+                style = MaterialTheme.typography.labelLarge, // Uses Inter Medium
                 color = MaterialTheme.colorScheme.primary
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -296,13 +296,13 @@ private fun DominoRow(label: String, value: String) {
     Row(verticalAlignment = Alignment.Top) {
         Text(
             text = label,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.width(60.dp),
-            style = MaterialTheme.typography.bodySmall
+            modifier = Modifier.width(64.dp),
+            style = MaterialTheme.typography.bodyMedium, // Uses Inter Bold + Spacing
+            fontWeight = FontWeight.Bold
         )
         Text(
             text = value,
-            style = MaterialTheme.typography.bodySmall
+            style = MaterialTheme.typography.bodyMedium // Uses Inter Regular
         )
     }
 }
@@ -331,7 +331,7 @@ fun MacroCard(item: MacroItem) {
             ) {
                 Text(
                     text = tag.label,
-                    style = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.labelSmall, // Uses Inter Bold
                     color = MaterialTheme.colorScheme.onSecondaryContainer,
                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                 )
@@ -343,13 +343,13 @@ fun MacroCard(item: MacroItem) {
         Column {
             Text(
                 text = headline,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodyLarge, // Uses Inter Regular
                 fontWeight = FontWeight.SemiBold
             )
             item.summary?.let {
                 Text(
                     text = it,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyMedium, // Uses Inter Regular
                     color = Color.Gray
                 )
             }
@@ -380,14 +380,14 @@ fun ActionFooter(action: String) {
             Column {
                 Text(
                     text = "ACTION PLAN",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
+                    style = MaterialTheme.typography.labelSmall, // Uses Inter Bold + Spacing
+                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
                 )
                 Text(
                     text = action,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyLarge, // Uses Inter Regular
                     color = MaterialTheme.colorScheme.onPrimary,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Medium
                 )
             }
         }
@@ -401,8 +401,7 @@ fun ActionFooter(action: String) {
 fun SectionTitle(title: String) {
     Text(
         text = title,
-        style = MaterialTheme.typography.titleLarge,
-        fontWeight = FontWeight.Bold,
+        style = MaterialTheme.typography.titleLarge, // Uses Montserrat Bold
         modifier = Modifier.padding(top = 8.dp)
     )
 }

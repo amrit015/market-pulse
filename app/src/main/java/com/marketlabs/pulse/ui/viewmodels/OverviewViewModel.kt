@@ -1,4 +1,4 @@
-package com.marketlabs.pulse.ui.screens.dashboard
+package com.marketlabs.pulse.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,7 +9,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class DashboardViewModel @Inject constructor(
+class OverviewViewModel @Inject constructor(
     private val marketIndexRepository: MarketIndexRepository
 ) : ViewModel() {
     init {

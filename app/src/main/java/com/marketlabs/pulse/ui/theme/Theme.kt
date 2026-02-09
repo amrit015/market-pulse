@@ -38,7 +38,7 @@ private val PulseDarkColorScheme = darkColorScheme(
 
 /** Light Scheme configuration */
 private val PulseLightColorScheme = lightColorScheme(
-    primary = PulseGold,
+    primary = PulseOrange,
     onPrimary = PulseBlack,
     background = LightBackground,
     onBackground = PulseBlack,
@@ -67,7 +67,8 @@ fun MarketPulseTheme(
 
                 /** * Action: Set icon contrast.
                  * In PulseBlack (Dark), icons must be light (isAppearanceLightStatusBars = false).
-                 * In PulseLight (Light), icons must be dark (isAppearanceLightStatusBars = true).
+                 * In PulseLight (Light), icons must be dark (isAppearanceLightS
+                 * tatusBars = true).
                  */
                 controller.isAppearanceLightStatusBars = !darkTheme
                 controller.isAppearanceLightNavigationBars = !darkTheme
