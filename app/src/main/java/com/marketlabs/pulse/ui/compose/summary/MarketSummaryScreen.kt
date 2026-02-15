@@ -23,6 +23,7 @@ import com.marketlabs.pulse.storage.model.summary.enums.TradingCall
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.compose.foundation.lazy.items
+import com.marketlabs.pulse.storage.model.summary.MarketLookout
 
 /**
  * The main screen for displaying the Market Pulse report.
@@ -91,13 +92,19 @@ fun MarketSummaryScreen(
             item { DominoCard(domino) }
         }
 
-        // 5. VERDICT CARD
+        // 5. Market Outlook
+        // Displays the market outlook
+        data.marketLookout?.let { outlook ->
+            item { OutlookCard(outlook)}
+        }
+
+        // 6. VERDICT CARD
         // The core analysis. If the verdict object is missing, we skip this section entirely.
         data.verdict?.let { verdict ->
             item { VerdictCard(verdict) }
         }
 
-        // 6. ACTION FOOTER
+        // 7. ACTION FOOTER
         // The final "What to do now" advice. Only shown if the action string is not blank.
         data.verdict?.action?.let { action ->
             if (action.isNotBlank()) {
@@ -254,6 +261,29 @@ fun NewsCard(story: NewsItem) {
     }
 }
 
+@Composable
+fun OutlookCard(outlook: MarketLookout) {
+    Card(
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "📈 MARKET OUTLOOK",
+                style = MaterialTheme.typography.labelLarge, // Uses Inter Medium
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = outlook.outlook ?: "",
+                style = MaterialTheme.typography.bodyLarge // Uses Inter Regular for density
+            )
+        }
+
+    }
+}
+
 /**
  * Displays the "Domino Effect" card, showing a causal relationship.
  *
@@ -350,7 +380,7 @@ fun MacroCard(item: MacroItem) {
                 Text(
                     text = it,
                     style = MaterialTheme.typography.bodyMedium, // Uses Inter Regular
-                    color = Color.Gray
+                    color = Color.Black
                 )
             }
         }
@@ -369,7 +399,6 @@ fun ActionFooter(action: String) {
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 20.dp)
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -380,9 +409,12 @@ fun ActionFooter(action: String) {
             Column {
                 Text(
                     text = "ACTION PLAN",
-                    style = MaterialTheme.typography.labelSmall, // Uses Inter Bold + Spacing
+                    style = MaterialTheme.typography.titleMedium, // Uses Inter Bold + Spacing
                     color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
                 )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
                 Text(
                     text = action,
                     style = MaterialTheme.typography.bodyLarge, // Uses Inter Regular
