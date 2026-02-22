@@ -1,17 +1,29 @@
 package com.marketlabs.pulse
 
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
-import com.marketlabs.pulse.databinding.ActivityMainBinding
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import com.marketlabs.pulse.ui.navigation.PulseNavGraph
+import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 import dagger.hilt.android.AndroidEntryPoint
 
+/**
+ * Action: Enable edge-to-edge layout at the activity level.
+ */
 @AndroidEntryPoint
-class MainActivity : AppCompatActivity() {
-    private lateinit var binding: ActivityMainBinding
-
+class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Action: Enable drawing behind system bars for the "Gotham" overlay feel
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+
+        setContent {
+            // Action: Bind the custom PulseTheme to the activity lifecycle
+            MarketPulseTheme {
+                // Action: Initialize the Compose navigation controller
+                PulseNavGraph()
+            }
+        }
     }
 }

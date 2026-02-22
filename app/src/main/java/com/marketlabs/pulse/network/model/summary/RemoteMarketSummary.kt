@@ -11,7 +11,7 @@ data class NetworkMarketPulse(
     @Json(name = "lead_stories") val leadStories: List<NetworkNewsItem>? = null,
     @Json(name = "macro_mix") val macroMix: List<NetworkMacroItem>? = null,
     @Json(name = "domino_effect") val dominoEffect: NetworkDominoEffect? = null,
-    @Json(name = "market_lookout") val marketLookout: NetworkMarketLookout? = null
+    @Json(name = "market_outlook") val marketOutlook: NetworkMarketOutlook? = null
 )
 
 @JsonClass(generateAdapter = true)
@@ -44,6 +44,6 @@ data class NetworkDominoEffect(
 )
 
 @JsonClass(generateAdapter = true)
-data class NetworkMarketLookout(
-    @Json(name = "outlook") val outlook: String? = null
+data class NetworkMarketOutlook(
+    @Json(name = "summary") val summary: String? = null
 )

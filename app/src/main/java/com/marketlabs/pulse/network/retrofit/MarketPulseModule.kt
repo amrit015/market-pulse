@@ -42,9 +42,10 @@ object MarketPulseModule {
         }
 
         return OkHttpClient.Builder()
-            .addInterceptor(httpLoggingInterceptor)
+            // TURN OFF app check for now
+//            .addInterceptor(appCheckInterceptor) // Add the Firebase app check interceptor here
             .addInterceptor(headerLoggingInterceptor)
-            .addInterceptor(appCheckInterceptor) // Add the Firebase app check interceptor here
+            .addInterceptor(httpLoggingInterceptor)
             .build()
     }
 

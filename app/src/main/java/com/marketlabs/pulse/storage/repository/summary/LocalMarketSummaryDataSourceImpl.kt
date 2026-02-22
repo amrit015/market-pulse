@@ -1,8 +1,9 @@
 package com.marketlabs.pulse.storage.repository.summary
 
 import com.marketlabs.pulse.storage.database.dao.MarketSummaryDao
+import com.marketlabs.pulse.storage.database.entity.toDailyPulseEntity
 import com.marketlabs.pulse.storage.database.entity.toDomain
-import com.marketlabs.pulse.storage.database.entity.toEntity
+import com.marketlabs.pulse.storage.database.entity.toMarketPulseEntity
 import com.marketlabs.pulse.storage.model.summary.MarketPulse
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -12,15 +13,26 @@ class LocalMarketSummaryDataSourceImpl @Inject constructor(
     private val dao: MarketSummaryDao
 ) : LocalMarketSummaryDataSource {
 
+    // V3 Stream
     override fun getLatestMarketPulse(): Flow<MarketPulse?> {
-        return dao.getLatestPulse().map { it?.toDomain() }
+        return dao.getLatestMarketPulse().map { it?.toDomain() }
     }
 
     override suspend fun saveMarketPulse(pulse: MarketPulse) {
-        dao.insertPulse(pulse.toEntity())
+        dao.insertMarketPulse(pulse.toMarketPulseEntity())
+    }
+
+    // V2.5 Stream
+    override fun getLatestDailyPulse(): Flow<MarketPulse?> {
+        return dao.getLatestDailyPulse().map { it?.toDomain() }
+    }
+
+    override suspend fun saveDailyPulse(pulse: MarketPulse) {
+        dao.insertDailyPulse(pulse.toDailyPulseEntity())
     }
 
     override suspend fun clearAll() {
-        dao.clearAll()
+        dao.clearMarketPulse()
+        dao.clearDailyPulse()
     }
 }

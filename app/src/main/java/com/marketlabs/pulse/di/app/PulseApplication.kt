@@ -24,25 +24,24 @@ class PulseApplication : Application() {
     }
 
     private fun initializeFirebaseAppCheck() {
+        // 1. SET THE PROPERTY FIRST
+        if (BuildConfig.DEBUG) {
+            val staticDebugSecret = BuildConfig.DEBUG_SECRET_UUID
+            System.setProperty("firebase.appcheck.debug.secret", staticDebugSecret)
+            Log.d("PulseAppCheck", "Mode: Debug Build - Secret Set: $staticDebugSecret")
+        }
+
+        // 2. NOW INITIALIZE FIREBASE
         FirebaseApp.initializeApp(this)
         val firebaseAppCheck = FirebaseAppCheck.getInstance()
 
+        // 3. INSTALL THE PROVIDER
         if (BuildConfig.DEBUG) {
-           Log.d("PulseAppCheck", "Mode: Debug Build (DebugProvider)")
-            // 🛠️ Use Debug Provider for Emulators/Local Dev
-            // 🔒 Define a static secret for local dev environment
-            // Store this in local.properties and access via BuildConfig
-            val staticDebugSecret = BuildConfig.DEBUG_SECRET_UUID
-
-            // This keeps dev environments stable
-            System.setProperty("firebase.appcheck.debug.token", staticDebugSecret)
-
             firebaseAppCheck.installAppCheckProviderFactory(
                 DebugAppCheckProviderFactory.getInstance()
             )
         } else {
             Log.d("PulseAppCheck", "Mode: DEVICE (PlayIntegrity)")
-            // 🚀 Use Play Integrity for Production
             firebaseAppCheck.installAppCheckProviderFactory(
                 PlayIntegrityAppCheckProviderFactory.getInstance()
             )

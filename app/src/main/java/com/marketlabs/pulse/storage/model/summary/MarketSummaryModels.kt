@@ -17,7 +17,7 @@ data class MarketPulse(
     val leadStories: List<NewsItem>? = null,
     val macroMix: List<MacroItem>? = null,
     val dominoEffect: DominoEffect? = null,
-    val marketLookout: MarketLookout? = null
+    val marketOutlook: MarketOutlook? = null
 )
 
 @JsonClass(generateAdapter = true)
@@ -50,6 +50,6 @@ data class DominoEffect(
 )
 
 @JsonClass(generateAdapter = true)
-data class MarketLookout(
-    val outlook: String? = null
+data class MarketOutlook(
+    val summary: String? = null
 )

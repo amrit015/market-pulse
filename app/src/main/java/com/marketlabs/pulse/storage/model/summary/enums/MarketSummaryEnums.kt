@@ -52,6 +52,7 @@ enum class TradingCall(val label: String) {
 enum class ReportType(val label: String) {
     DAILY("Daily"),
     WEEKLY_LOOKAHEAD("Weekly Lookahead"),
+    WEEKEND_UPDATE("Weekend Update"),
     UNKNOWN("Unknown");
 
     companion object {

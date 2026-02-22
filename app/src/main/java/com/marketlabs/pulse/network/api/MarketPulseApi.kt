@@ -6,9 +6,13 @@ import retrofit2.http.Path
 
 interface MarketPulseApi {
 
-    // fetching the latest "Current" pulse
-    @GET("daily_pulse/latest")
-    suspend fun getLatestPulse(): NetworkMarketPulse
+    // Fetches from the 'market_pulse' collection (Gemini 3.1)
+    @GET("pulse/v3/latest") // Replace with your actual Express route
+    suspend fun getLatestMarketPulse(): NetworkMarketPulse
+
+    // Fetches from the 'daily_pulse' collection (Gemini 2.5)
+    @GET("pulse/v2/latest") // Replace with your actual Express route
+    suspend fun getLatestDailyPulse(): NetworkMarketPulse
 
     // fetching by specific date (Optional)
     @GET("daily_pulse/{dateId}")
