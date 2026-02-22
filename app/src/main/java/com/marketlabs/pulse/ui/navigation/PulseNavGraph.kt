@@ -21,6 +21,7 @@ import androidx.navigation.compose.rememberNavController
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.compose.news.NewsRoute
 import com.marketlabs.pulse.ui.compose.overview.MarketOverviewRoute
+import com.marketlabs.pulse.ui.compose.riskRadar.RiskRadarRoute
 import com.marketlabs.pulse.ui.compose.summary.MarketSummaryRoute
 
 /**
@@ -39,13 +40,13 @@ object PulseRoutes {
 
 /** Define the data structure for Bottom Navigation items */
 sealed class BottomNavItem(val route: String, val label: String, val iconRes: Int) {
-    object Overview : BottomNavItem(PulseRoutes.MARKET_OVERVIEW, "Overview", R.drawable.ic_overview)
-    object Indicators :
+    internal object Overview : BottomNavItem(PulseRoutes.MARKET_OVERVIEW, "Overview", R.drawable.ic_overview)
+    internal object Indicators :
         BottomNavItem(PulseRoutes.MARKET_INDICATORS, "Indicators", R.drawable.ic_indicators)
 
-    object Summary : BottomNavItem(PulseRoutes.MARKET_SUMMARY, "Summary", R.drawable.ic_summary)
-    object RiskRadar : BottomNavItem(PulseRoutes.MARKET_RISK, "Risk", R.drawable.ic_risk)
-    object News : BottomNavItem(PulseRoutes.MARKET_NEWS, "News", R.drawable.ic_news)
+    internal object Summary : BottomNavItem(PulseRoutes.MARKET_SUMMARY, "Summary", R.drawable.ic_summary)
+    internal object RiskRadar : BottomNavItem(PulseRoutes.MARKET_RISK, "Risk", R.drawable.ic_risk)
+    internal object News : BottomNavItem(PulseRoutes.MARKET_NEWS, "News", R.drawable.ic_news)
 
 }
 
@@ -105,8 +106,6 @@ fun PulseNavGraph() {
             composable(PulseRoutes.MARKET_SUMMARY) {
                 MarketSummaryRoute(scaffoldPadding = innerPadding)
             }
-
-            /** Placeholder routes for other bottom nav destinations */
             composable(PulseRoutes.MARKET_OVERVIEW) {
                 MarketOverviewRoute(scaffoldPadding = innerPadding)
             }
@@ -114,10 +113,9 @@ fun PulseNavGraph() {
                 // ScreenC()
             }
             composable(PulseRoutes.MARKET_RISK) {
-                // ScreenD()
+                RiskRadarRoute(scaffoldPadding = innerPadding)
             }
             composable(PulseRoutes.MARKET_NEWS) {
-                // ScreenE()
                 NewsRoute(scaffoldPadding = innerPadding)
             }
         }

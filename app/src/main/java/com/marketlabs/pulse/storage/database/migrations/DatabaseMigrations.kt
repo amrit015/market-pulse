@@ -9,10 +9,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase
  */
 object DatabaseMigrations {
 
+    // Migration from Version 1 to Version 2 for Market News
     val MIGRATION_1_2 = object : Migration(1, 2) {
         override fun migrate(db: SupportSQLiteDatabase) {
-
-            // 1. Create the brand new 'market_news' table
             db.execSQL(
                 """
                 CREATE TABLE IF NOT EXISTS `market_news` (
@@ -27,6 +26,27 @@ object DatabaseMigrations {
         }
     }
 
-    // List of all active migrations to easily add to the Room builder
-    val ALL_MIGRATIONS = arrayOf(MIGRATION_1_2)
+    // Migration from Version 2 to Version 3 for Risk Radar
+    val MIGRATION_2_3 = object : Migration(2, 3) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            // Create the brand new 'market_risk' table
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `market_risk` (
+                    `date` TEXT NOT NULL, 
+                    `lastSyncedTimestamp` INTEGER, 
+                    `score` INTEGER, 
+                    `previousScore` INTEGER, 
+                    `trend` TEXT, 
+                    `status` TEXT, 
+                    `gauges` TEXT, 
+                    PRIMARY KEY(`date`)
+                )
+                """.trimIndent()
+            )
+        }
+    }
+
+    // 💡 UPDATED: Add the new migration to the active list
+    val ALL_MIGRATIONS = arrayOf(MIGRATION_1_2, MIGRATION_2_3)
 }
