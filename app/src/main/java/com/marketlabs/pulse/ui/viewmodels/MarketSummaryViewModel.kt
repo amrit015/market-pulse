@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -20,23 +20,23 @@ class MarketSummaryViewModel @Inject constructor(
     private val repository: MarketSummaryRepository
 ) : ViewModel() {
 
-    // stream: single source of truth (SSOT)
-    // Observes DB, survives configuration changes (rotation)
-    val summaryUiState: StateFlow<MarketSummaryUiState> = repository.getMarketSummaryStream()
-        .map { data ->
-            data?.let {
-                MarketSummaryUiState.Success(it)
-            } ?: run {
-                MarketSummaryUiState.Loading
-            }
+    // 👇 COMBINE BOTH STREAMS INTO ONE STATE
+    val summaryUiState: StateFlow<MarketSummaryUiState> = combine(
+        repository.getMarketPulseStream(),
+        repository.getDailyPulseStream()
+    ) { v3Data, v2Data ->
+        // We only consider it "Success" if we have the primary V3 data
+        if (v3Data != null) {
+            MarketSummaryUiState.Success(dataV3 = v3Data, dataV2 = v2Data)
+        } else {
+            MarketSummaryUiState.Loading
         }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = MarketSummaryUiState.Loading
-        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = MarketSummaryUiState.Loading
+    )
 
-    // We use a Channel so errors are consumed once and don't reappear on rotation.
     private val _errorEvents: Channel<String> = Channel()
     val errorEvents = _errorEvents.receiveAsFlow()
 
@@ -44,19 +44,13 @@ class MarketSummaryViewModel @Inject constructor(
     val isRefreshing = _isRefreshing.asStateFlow()
 
     init {
-        // (Fetches if Today's report is missing OR if Yesterday's report is stale)
         refreshData(force = false)
     }
 
-    /**
-     * Triggered by Pull-to-Refresh or User Action.
-     * @param force If true, bypasses the "Midnight Rule" and forces a network fetch.
-     */
     fun refreshData(force: Boolean = false) = viewModelScope.launch {
         _isRefreshing.value = true
         val result = repository.refreshMarketSummary(force)
         result.onFailure { error ->
-            // Send error message to UI
             _errorEvents.send(error.message ?: "Connection failed")
         }
         _isRefreshing.value = false

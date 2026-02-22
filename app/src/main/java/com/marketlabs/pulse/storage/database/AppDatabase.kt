@@ -6,17 +6,18 @@ import androidx.room.TypeConverters
 import com.marketlabs.pulse.storage.database.converters.Converters
 import com.marketlabs.pulse.storage.database.dao.MarketIndexDao
 import com.marketlabs.pulse.storage.database.dao.MarketSummaryDao
+import com.marketlabs.pulse.storage.database.entity.DailyPulseEntity
 import com.marketlabs.pulse.storage.database.entity.MarketIndexEntity
-import com.marketlabs.pulse.storage.database.entity.MarketSummaryEntity
+import com.marketlabs.pulse.storage.database.entity.MarketPulseEntity
 
 @Database(
-    entities = [MarketIndexEntity::class, MarketSummaryEntity::class],
+    // 👇 Ensure both entities are registered here
+    entities = [MarketIndexEntity::class, MarketPulseEntity::class, DailyPulseEntity::class],
     version = 1,
-    exportSchema = true // dumps schema to JSON for version control
+    exportSchema = true
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
-
     abstract fun marketIndexDao(): MarketIndexDao
-    abstract fun marketSummaryDao() : MarketSummaryDao
+    abstract fun marketSummaryDao(): MarketSummaryDao
 }

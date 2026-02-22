@@ -2,28 +2,33 @@ package com.marketlabs.pulse.ui.compose.summary
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.summary.DominoEffect
 import com.marketlabs.pulse.storage.model.summary.MacroItem
 import com.marketlabs.pulse.storage.model.summary.MarketPulse
+import com.marketlabs.pulse.storage.model.summary.MarketOutlook
 import com.marketlabs.pulse.storage.model.summary.NewsItem
 import com.marketlabs.pulse.storage.model.summary.Verdict
 import com.marketlabs.pulse.storage.model.summary.enums.ReportType
 import com.marketlabs.pulse.storage.model.summary.enums.TradingCall
+import com.marketlabs.pulse.ui.theme.* // 💡 ACTION: Imports your new semantic Verdict colors
 import java.text.SimpleDateFormat
 import java.util.*
-import androidx.compose.foundation.lazy.items
-import com.marketlabs.pulse.storage.model.summary.MarketLookout
 
 /**
  * The main screen for displaying the Market Pulse report.
@@ -37,78 +42,72 @@ import com.marketlabs.pulse.storage.model.summary.MarketLookout
  */
 @Composable
 fun MarketSummaryScreen(
-    data: MarketPulse,
+    data: MarketPulse?,
+    isLegacyVersion: Boolean,
+    hasLegacyData: Boolean,
+    onToggleVersion: () -> Unit,
     scaffoldPadding: PaddingValues
 ) {
-
-    // Action: Extract the status bar height to use in contentPadding
+    // 💡 ACTION: Extract dynamic insets and static XML dimensions for cleaner layout code
     val statusBarHeight = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    val paddingLarge = dimensionResource(id = R.dimen.padding_large)
+    val paddingXLarge = dimensionResource(id = R.dimen.padding_xlarge)
 
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background),
         contentPadding = PaddingValues(
-            top = statusBarHeight + 16.dp, // Initial offset so first item isn't covered
-            bottom = scaffoldPadding.calculateBottomPadding() + 16.dp,
-            start = 16.dp,
-            end = 16.dp
+            top = statusBarHeight + paddingLarge,
+            bottom = scaffoldPadding.calculateBottomPadding() + paddingLarge,
+            start = paddingLarge,
+            end = paddingLarge
         ),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
+        verticalArrangement = Arrangement.spacedBy(paddingXLarge)
     ) {
-        // 1. HEADER SECTION
-        // We only show the header if we have a valid Report Type and Timestamp.
-        val type = data.reportType
-        val timestamp = data.timestamp
-        if (type != null && timestamp != null) {
-            item {
-                HeaderSection(type, timestamp)
+        if (hasLegacyData) {
+            item { VersionToggleBanner(isLegacyVersion, onToggleVersion) }
+        }
+
+        data?.let { validData ->
+
+            val type = validData.reportType
+            val timestamp = validData.timestamp
+            if (type != null && timestamp != null) {
+                item { HeaderSection(type, timestamp) }
             }
-        }
 
-        // 2. LEAD STORIES
-        // A list of top news items. We check for null or empty lists to avoid rendering empty headers.
-        val stories = data.leadStories
-        if (!stories.isNullOrEmpty()) {
-            item { SectionTitle("🚨 Lead Stories") }
-            items(stories) { story ->
-                NewsCard(story)
+            val stories = validData.leadStories
+            if (!stories.isNullOrEmpty()) {
+                item {
+                    SectionTitle(
+                        title = stringResource(id = R.string.section_lead_stories),
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                }
+                items(stories) { story -> NewsCard(story) }
             }
-        }
 
-        // 3. MACRO MIX
-        // Broader economic factors. Like stories, we only render if the list is populated.
-        val macros = data.macroMix
-        if (!macros.isNullOrEmpty()) {
-            item { SectionTitle("🌍 Macro Mix") }
-            items(macros) { macro ->
-                MacroCard(macro)
+            val macros = validData.macroMix
+            if (!macros.isNullOrEmpty()) {
+                item { SectionTitle(stringResource(id = R.string.section_macro_mix), color = MaterialTheme.colorScheme.onBackground) }
+                items(macros) { macro -> MacroCard(macro) }
             }
-        }
 
-        // 4. DOMINO EFFECT
-        // Displays the cause-and-effect relationship (Trigger -> Impact).
-        data.dominoEffect?.let { domino ->
-            item { DominoCard(domino) }
-        }
+            validData.dominoEffect?.let { domino ->
+                item { DominoCard(domino) }
+            }
 
-        // 5. Market Outlook
-        // Displays the market outlook
-        data.marketLookout?.let { outlook ->
-            item { OutlookCard(outlook)}
-        }
+            validData.marketOutlook?.let { outlook ->
+                if (!outlook.summary.isNullOrBlank()) item { OutlookCard(outlook) }
+            }
 
-        // 6. VERDICT CARD
-        // The core analysis. If the verdict object is missing, we skip this section entirely.
-        data.verdict?.let { verdict ->
-            item { VerdictCard(verdict) }
-        }
+            validData.verdict?.let { verdict ->
+                item { VerdictCard(verdict) }
+            }
 
-        // 7. ACTION FOOTER
-        // The final "What to do now" advice. Only shown if the action string is not blank.
-        data.verdict?.action?.let { action ->
-            if (action.isNotBlank()) {
-                item { ActionFooter(action) }
+            validData.verdict?.action?.let { action ->
+                if (action.isNotBlank()) item { ActionFooter(action) }
             }
         }
     }
@@ -118,114 +117,65 @@ fun MarketSummaryScreen(
 // COMPONENT LIBRARY
 // ---------------------------------------------------------
 
-/**
- * Displays the report metadata (Title, Type, and Date).
- *
- * @param type The type of report (e.g., DAILY, WEEKLY).
- * @param timestamp The epoch timestamp (in seconds) when the report was generated.
- */
+@Composable
+fun VersionToggleBanner(isLegacyVersion: Boolean, onClick: () -> Unit) {
+    val bgColor = if (isLegacyVersion) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.secondaryContainer
+    val contentColor = if (isLegacyVersion) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onSecondaryContainer
+
+    Card(
+        colors = CardDefaults.cardColors(containerColor = bgColor),
+        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
+        modifier = Modifier.fillMaxWidth().clickable { onClick() }
+    ) {
+        Row(
+            modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(id = if (isLegacyVersion) R.string.banner_emoji_legacy else R.string.banner_emoji_test),
+                style = MaterialTheme.typography.headlineMedium
+            )
+            Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_large)))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(id = if (isLegacyVersion) R.string.banner_viewing_legacy else R.string.banner_viewing_test),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = contentColor.copy(alpha = 0.7f)
+                )
+                Text(
+                    text = stringResource(id = if (isLegacyVersion) R.string.banner_switch_latest else R.string.banner_compare_legacy),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = contentColor,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}
+
 @Composable
 fun HeaderSection(type: ReportType, timestamp: Long) {
     Column {
         Text(
             text = type.label.uppercase(),
-            style = MaterialTheme.typography.labelSmall, // Uses Inter Bold + Spacing
+            style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.primary
         )
         Text(
-            text = "Market Pulse",
-            style = MaterialTheme.typography.headlineLarge // Uses Montserrat ExtraBold
+            text = stringResource(id = R.string.pulse_title),
+            style = MaterialTheme.typography.headlineLarge,
+            color = MaterialTheme.colorScheme.onBackground
         )
-        // Convert seconds to milliseconds for Date object
+
         val date = Date(timestamp * 1000L)
         val format = SimpleDateFormat("MMM dd, h:mm a", Locale.getDefault())
 
         Text(
-            text = "Updated: ${format.format(date)}",
-            style = MaterialTheme.typography.bodySmall, // Uses Inter Regular
-            color = Color.Gray
+            text = stringResource(id = R.string.pulse_updated_at, format.format(date)),
+            style = MaterialTheme.typography.bodySmall,
+            // 💡 ACTION: Replaced hardcoded Color.Gray with Theme's semantic variant text color
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-    }
-}
-
-/**
- * The primary dashboard card showing the Market Regime, Trading Call, and Technical Setup.
- *
- * Visual Logic:
- * - Changes background color based on the [TradingCall] (Green for Buy, Red for Sell, Orange for Neutral).
- * - If essential fields (Regime, Setup, Call) are missing, this composable renders nothing.
- *
- * @param verdict The [Verdict] object containing the analysis.
- */
-@Composable
-fun VerdictCard(verdict: Verdict) {
-    // 🛡️ GUARD CLAUSE: Essential data check
-    // If we don't have the core 3 enums, the card cannot be displayed meaningfully.
-    val call = verdict.call ?: return
-    val regime = verdict.regime ?: return
-    val setup = verdict.setup ?: return
-
-    // 🎨 Dynamic Styling
-    val (bgColor, textColor) = when (call) {
-        TradingCall.CONTRARIAN_BUY,
-        TradingCall.ACCUMULATE ->
-            Pair(Color(0xFFE8F5E9), Color(0xFF2E7D32)) // Soft Green Bg, Dark Green Text
-
-        TradingCall.CONTRARIAN_SELL,
-        TradingCall.SELL_AVOID,
-        TradingCall.HEDGE_PROTECT ->
-            Pair(Color(0xFFFFEBEE), Color(0xFFC62828)) // Soft Red Bg, Dark Red Text
-
-        else ->
-            Pair(Color(0xFFFFF3E0), Color(0xFFEF6C00)) // Soft Orange Bg, Dark Orange Text
-    }
-
-    Card(
-        colors = CardDefaults.cardColors(containerColor = bgColor),
-        shape = RoundedCornerShape(12.dp),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            // 1. Regime Badge (e.g., "HEALTHY UPTREND")
-            Surface(
-                color = textColor.copy(alpha = 0.1f),
-                shape = RoundedCornerShape(4.dp),
-                modifier = Modifier.padding(bottom = 8.dp)
-            ) {
-                Text(
-                    text = regime.label,
-                    color = textColor,
-                    style = MaterialTheme.typography.labelSmall, // Uses Inter Bold
-                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                )
-            }
-
-            // 2. The Main Call (e.g., "ACCUMULATE")
-            Text(
-                text = call.label,
-                style = MaterialTheme.typography.headlineSmall, // Uses Montserrat Bold
-                color = textColor
-            )
-
-            // 3. Technical Setup (e.g., "OVERSOLD")
-            Text(
-                text = setup.label,
-                style = MaterialTheme.typography.labelMedium, // Uses Inter Medium
-                color = textColor.copy(alpha = 0.8f),
-                modifier = Modifier.padding(bottom = 12.dp)
-            )
-
-            HorizontalDivider(color = textColor.copy(alpha = 0.2f))
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // 4. Detailed Analysis Text
-            // We use safe call + elvis operator to ensure we never crash on null string
-            Text(
-                text = verdict.analysis ?: "",
-                style = MaterialTheme.typography.bodyLarge, // Uses Inter Regular for density
-                color = Color.Black.copy(alpha = 0.8f)
-            )
-        }
     }
 }
 
@@ -240,47 +190,87 @@ fun NewsCard(story: NewsItem) {
 
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 8.dp)
+        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
+        modifier = Modifier.fillMaxWidth().padding(bottom = dimensionResource(id = R.dimen.padding_medium))
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
             Text(
                 text = headline,
-                style = MaterialTheme.typography.titleMedium, // Uses Montserrat SemiBold
+                style = MaterialTheme.typography.titleMedium,
+                color = PulseOrange
             )
-            // Summary is optional
             story.summary?.let { summary ->
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
                 Text(
                     text = summary,
-                    style = MaterialTheme.typography.bodyMedium // Uses Inter Regular
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onBackground
                 )
             }
         }
     }
 }
 
+/**
+ * Displays a macro-economic factor with a tag (e.g., "Inflation", "Rates").
+ *
+ * @param item The [MacroItem] to display. Requires a headline to render.
+ */
 @Composable
-fun OutlookCard(outlook: MarketLookout) {
-    Card(
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = "📈 MARKET OUTLOOK",
-                style = MaterialTheme.typography.labelLarge, // Uses Inter Medium
-                color = MaterialTheme.colorScheme.primary
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = outlook.outlook ?: "",
-                style = MaterialTheme.typography.bodyLarge // Uses Inter Regular for density
-            )
-        }
+fun MacroCard(item: MacroItem) {
+    val headline = item.headline ?: return
 
+    Card(
+        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        modifier = Modifier.fillMaxWidth().padding(bottom = dimensionResource(id = R.dimen.padding_medium))
+    ) {
+        Row(modifier = Modifier.height(IntrinsicSize.Min)) {
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .width(dimensionResource(id = R.dimen.border_medium))
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+            )
+
+            Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
+                Row(verticalAlignment = Alignment.Top, modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = headline,
+                        style = MaterialTheme.typography.titleSmall,
+                        color = PulseOrange,
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    item.tag?.let { tag ->
+                        Surface(
+                            color = MaterialTheme.colorScheme.secondaryContainer,
+                            shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_small)),
+                            modifier = Modifier.padding(start = dimensionResource(id = R.dimen.padding_standard), top = dimensionResource(id = R.dimen.padding_tiny))
+                        ) {
+                            Text(
+                                text = tag.label.uppercase(),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                modifier = Modifier.padding(
+                                    horizontal = dimensionResource(id = R.dimen.corner_radius_chip),
+                                    vertical = dimensionResource(id = R.dimen.padding_tiny)
+                                )
+                            )
+                        }
+                    }
+                }
+
+                item.summary?.let {
+                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.border_thick)))
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -297,23 +287,33 @@ fun OutlookCard(outlook: MarketLookout) {
 fun DominoCard(domino: DominoEffect) {
     val trigger = domino.trigger ?: return
     val impact = domino.impact ?: return
+    val outlook = domino.outlook ?: return
 
     Card(
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = "🧩 THE DOMINO EFFECT",
-                style = MaterialTheme.typography.labelLarge, // Uses Inter Medium
-                color = MaterialTheme.colorScheme.primary
-            )
-            Spacer(modifier = Modifier.height(8.dp))
+        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = stringResource(id = R.string.emoji_domino),
+                    style = MaterialTheme.typography.titleLarge
+                )
+                Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_medium)))
+                Text(
+                    text = stringResource(id = R.string.section_domino_effect),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
+                )
+            }
 
-            DominoRow("Trigger:", trigger)
-            Spacer(modifier = Modifier.height(4.dp))
-            DominoRow("Impact:", impact)
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
+
+            DominoTimelineStep(title = stringResource(id = R.string.label_trigger).uppercase(), text = trigger, isLast = false)
+            DominoTimelineStep(title = stringResource(id = R.string.label_impact).uppercase(), text = impact, isLast = false)
+            DominoTimelineStep(title = stringResource(id = R.string.label_outlook).uppercase(), text = outlook, isLast = true)
         }
     }
 }
@@ -322,67 +322,138 @@ fun DominoCard(domino: DominoEffect) {
  * Helper row for the DominoCard to align labels and values.
  */
 @Composable
-private fun DominoRow(label: String, value: String) {
-    Row(verticalAlignment = Alignment.Top) {
-        Text(
-            text = label,
-            modifier = Modifier.width(64.dp),
-            style = MaterialTheme.typography.bodyMedium, // Uses Inter Bold + Spacing
-            fontWeight = FontWeight.Bold
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium // Uses Inter Regular
-        )
-    }
-}
-
-/**
- * Displays a macro-economic factor with a tag (e.g., "Inflation", "Rates").
- *
- * @param item The [MacroItem] to display. Requires a headline to render.
- */
-@Composable
-fun MacroCard(item: MacroItem) {
-    val headline = item.headline ?: return
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.Top
-    ) {
-        // Tag Chip (only if tag exists)
-        item.tag?.let { tag ->
-            Surface(
-                color = MaterialTheme.colorScheme.secondaryContainer,
-                shape = RoundedCornerShape(6.dp),
-                modifier = Modifier.padding(top = 2.dp)
-            ) {
-                Text(
-                    text = tag.label,
-                    style = MaterialTheme.typography.labelSmall, // Uses Inter Bold
-                    color = MaterialTheme.colorScheme.onSecondaryContainer,
-                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+private fun DominoTimelineStep(title: String, text: String, isLast: Boolean) {
+    Row(modifier = Modifier.height(IntrinsicSize.Min)) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.width(dimensionResource(id = R.dimen.timeline_node_width)).fillMaxHeight()
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(dimensionResource(id = R.dimen.timeline_dot_size))
+                    .background(MaterialTheme.colorScheme.primary, CircleShape)
+            )
+            if (!isLast) {
+                Box(
+                    modifier = Modifier
+                        .width(dimensionResource(id = R.dimen.padding_tiny))
+                        .weight(1f)
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
                 )
             }
         }
 
-        Spacer(modifier = Modifier.width(12.dp))
+        Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_standard)))
 
-        Column {
+        Column(modifier = Modifier.padding(bottom = if (isLast) 0.dp else dimensionResource(id = R.dimen.padding_xlarge))) {
             Text(
-                text = headline,
-                style = MaterialTheme.typography.bodyLarge, // Uses Inter Regular
-                fontWeight = FontWeight.SemiBold
+                text = title,
+                style = MaterialTheme.typography.labelLarge,
+                color = PulseOrange
             )
-            item.summary?.let {
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+    }
+}
+
+
+@Composable
+fun OutlookCard(outlook: MarketOutlook) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)),
+        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
+        border = BorderStroke(dimensionResource(id = R.dimen.border_thin), MaterialTheme.colorScheme.secondaryContainer),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
+            // 💡 ACTION: Market Outlook Title upgraded to titleMedium for higher visibility
+            Text(
+                text = stringResource(id = R.string.section_market_outlook),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+            Text(
+                text = outlook.summary ?: "",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+    }
+}
+
+/**
+ * The primary dashboard card showing the Market Regime, Trading Call, and Technical Setup.
+ *
+ * Visual Logic:
+ * - Changes background color based on the [TradingCall] (Green for Buy, Red for Sell, Orange for Neutral).
+ * - If essential fields (Regime, Setup, Call) are missing, this composable renders nothing.
+ *
+ * @param verdict The [Verdict] object containing the analysis.
+ */
+@Composable
+fun VerdictCard(verdict: Verdict) {
+    val call = verdict.call ?: return
+    val regime = verdict.regime ?: return
+    val setup = verdict.setup ?: return
+
+    val (bgColor, textColor) = when (call) {
+        TradingCall.CONTRARIAN_BUY,
+        TradingCall.ACCUMULATE -> Pair(VerdictBuyBackground, VerdictBuyText)
+        TradingCall.CONTRARIAN_SELL,
+        TradingCall.SELL_AVOID,
+        TradingCall.HEDGE_PROTECT -> Pair(VerdictSellBackground, VerdictSellText)
+        else -> Pair(VerdictNeutralBackground, VerdictNeutralText)
+    }
+
+    Card(
+        colors = CardDefaults.cardColors(containerColor = bgColor),
+        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
+            Surface(
+                color = textColor.copy(alpha = 0.1f),
+                shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_small)),
+                modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.padding_medium))
+            ) {
                 Text(
-                    text = it,
-                    style = MaterialTheme.typography.bodyMedium, // Uses Inter Regular
-                    color = Color.Black
+                    text = regime.label,
+                    color = textColor,
+                    style = MaterialTheme.typography.labelSmall,
+                    modifier = Modifier.padding(
+                        horizontal = dimensionResource(id = R.dimen.corner_radius_chip),
+                        vertical = dimensionResource(id = R.dimen.padding_tiny)
+                    )
                 )
             }
+
+            Text(
+                text = call.label,
+                style = MaterialTheme.typography.headlineSmall,
+                color = textColor
+            )
+
+            Text(
+                text = setup.label,
+                style = MaterialTheme.typography.labelMedium,
+                color = textColor.copy(alpha = 0.8f),
+                modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.padding_standard))
+            )
+
+            HorizontalDivider(color = textColor.copy(alpha = 0.2f))
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_standard)))
+
+            Text(
+                text = verdict.analysis ?: "",
+                style = MaterialTheme.typography.bodyMedium,
+                color = textColor
+            )
         }
     }
 }
@@ -394,34 +465,40 @@ fun MacroCard(item: MacroItem) {
  */
 @Composable
 fun ActionFooter(action: String) {
-    Surface(
-        color = MaterialTheme.colorScheme.primary,
-        shape = RoundedCornerShape(12.dp),
-        modifier = Modifier
-            .fillMaxWidth()
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
+        border = BorderStroke(dimensionResource(id = R.dimen.border_thin), MaterialTheme.colorScheme.primary),
+        elevation = CardDefaults.cardElevation(defaultElevation = dimensionResource(id = R.dimen.elevation_small)),
+        modifier = Modifier.fillMaxWidth()
     ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text("⚡", fontSize = 24.sp)
-            Spacer(modifier = Modifier.width(12.dp))
-            Column {
+        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Surface(
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                    shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_small))
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.emoji_action),
+                        modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_small)),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
+                Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_large)))
                 Text(
-                    text = "ACTION PLAN",
-                    style = MaterialTheme.typography.titleMedium, // Uses Inter Bold + Spacing
-                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
-                )
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                Text(
-                    text = action,
-                    style = MaterialTheme.typography.bodyLarge, // Uses Inter Regular
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    fontWeight = FontWeight.Medium
+                    text = stringResource(id = R.string.section_action_plan),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
+
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_standard)))
+
+            Text(
+                text = action,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
         }
     }
 }
@@ -430,10 +507,11 @@ fun ActionFooter(action: String) {
  * A standardized section title for the list.
  */
 @Composable
-fun SectionTitle(title: String) {
+fun SectionTitle(title: String, color: Color = MaterialTheme.colorScheme.onBackground) {
     Text(
         text = title,
-        style = MaterialTheme.typography.titleLarge, // Uses Montserrat Bold
-        modifier = Modifier.padding(top = 8.dp)
+        style = MaterialTheme.typography.titleLarge,
+        color = color,
+        modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_medium))
     )
 }

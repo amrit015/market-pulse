@@ -11,11 +11,11 @@ object DatabaseMigrations {
 
     val MIGRATION_1_2 = object : Migration(1, 2) {
         override fun migrate(db: SupportSQLiteDatabase) {
-            // alter table here
+            // Adds the 'marketLookout' column to the existing 'market_pulse' table.
+
         }
     }
 
     // List of all active migrations to easily add to the builder
     val ALL_MIGRATIONS = arrayOf(MIGRATION_1_2)
-
 }

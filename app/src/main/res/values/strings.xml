@@ -2,24 +2,26 @@
     <string name="app_name">MarketPulse</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="nav_header_title">Android Studio</string>
-    <string name="nav_header_subtitle">android.studio@android.com</string>
-    <string name="nav_header_desc">Navigation header</string>
-    <string name="action_settings">Settings</string>
 
-    <string name="menu_transform">Transform</string>
-    <string name="menu_reflow">Reflow</string>
-    <string name="menu_slideshow">Slideshow</string>
-    <string name="menu_settings">Settings</string>
+    <string name="pulse_title">Market Summary</string>
+    <string name="pulse_updated_at">Updated: %1$s</string>
 
-    <string name="lorem_ipsum_title">Lorem Ipsum"</string>
-    <string name="lorem_ipsum">Lorem Ipsum is simply placeholder text of the printing and
-        typesetting industry. Lorem Ipsum has been the industry\'s standard placeholder text ever
-        since the 1500s, when an unknown printer took a galley of type and scrambled it to make a
-        type specimen book"
-    </string>
-    <string name="fab_content_description">Represents a view to invoke an action</string>
-    <string name="image_view_item_transform_content_description">Represents an image view in the
-        item
-    </string>
+    <string name="section_lead_stories">🚨 Lead Stories</string>
+    <string name="section_macro_mix">🌍 Macro Mix</string>
+    <string name="section_domino_effect">THE DOMINO EFFECT</string>
+    <string name="section_market_outlook">MARKET OUTLOOK</string>
+    <string name="section_action_plan">ACTION PLAN</string>
+
+    <string name="label_trigger">Trigger:</string>
+    <string name="label_impact">Impact:</string>
+    <string name="label_outlook">Outlook:</string>
+    <string name="banner_viewing_legacy">Viewing Gemini 2.5 Pro</string>
+    <string name="banner_viewing_test">Viewing Gemini 3.1 Pro (A/B Test)</string>
+    <string name="banner_switch_latest">Switch to Latest Version</string>
+    <string name="banner_compare_legacy">Compare with Legacy Version</string>
+
+    <string name="emoji_domino">🧩</string>
+    <string name="emoji_action">⚡</string>
+    <string name="banner_emoji_legacy">🕰️</string>
+    <string name="banner_emoji_test">🤖</string>
 </resources>

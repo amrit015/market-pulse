@@ -38,7 +38,7 @@ private val PulseDarkColorScheme = darkColorScheme(
 
 /** Light Scheme configuration */
 private val PulseLightColorScheme = lightColorScheme(
-    primary = PulseOrange,
+    primary = PulseBlue,
     onPrimary = PulseBlack,
     background = LightBackground,
     onBackground = PulseBlack,

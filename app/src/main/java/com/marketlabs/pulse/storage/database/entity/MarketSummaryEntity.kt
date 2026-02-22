@@ -6,74 +6,109 @@ import androidx.room.TypeConverters
 import com.marketlabs.pulse.storage.database.converters.MarketSummaryConverters
 import com.marketlabs.pulse.storage.model.summary.DominoEffect
 import com.marketlabs.pulse.storage.model.summary.MacroItem
-import com.marketlabs.pulse.storage.model.summary.MarketLookout
+import com.marketlabs.pulse.storage.model.summary.MarketOutlook
 import com.marketlabs.pulse.storage.model.summary.MarketPulse
 import com.marketlabs.pulse.storage.model.summary.NewsItem
 import com.marketlabs.pulse.storage.model.summary.Verdict
-import com.marketlabs.pulse.storage.model.summary.enums.MarketRegime
 import com.marketlabs.pulse.storage.model.summary.enums.ReportType
-import com.marketlabs.pulse.storage.model.summary.enums.TechnicalSetup
-import com.marketlabs.pulse.storage.model.summary.enums.TradingCall
-import com.marketlabs.pulse.utils.Constants
 import com.marketlabs.pulse.utils.toDateIdString
 
+// ============================================================================
+// 1. V3 ENTITY (Gemini 3.1 Pro - Main Content)
+// ============================================================================
 @Entity(tableName = "market_pulse")
 @TypeConverters(MarketSummaryConverters::class)
-data class MarketSummaryEntity(
+data class MarketPulseEntity(
     @PrimaryKey(autoGenerate = false)
-    val dateId: String, // "2026-02-04" (Using Date String as ID for easier lookup)
-    val lastSyncedTimestamp: Long, // 💡 NEW: When did we last fetch this from network?
-    val serverTimestamp: Long, // timestamp when the report was generated at the server side
+    val dateId: String,
+    val lastSyncedTimestamp: Long,
+    val serverTimestamp: Long,
     val reportType: String,
-    val verdict: Verdict,
-    val leadStories: List<NewsItem>,
-    val macroMix: List<MacroItem>,
-    val dominoEffect: DominoEffect,
-    val marketLookout: MarketLookout
+    val verdict: Verdict? = null,
+    val leadStories: List<NewsItem>? = null,
+    val macroMix: List<MacroItem>? = null,
+    val dominoEffect: DominoEffect? = null,
+    val marketOutlook: MarketOutlook? = null
 )
 
-// Mapper Extension: Domain -> Entity
-fun MarketPulse.toEntity(
-    // Default to NOW, but allow overriding if needed
-    currentSyncTime: Long = System.currentTimeMillis()
-): MarketSummaryEntity {
-    return MarketSummaryEntity(
-        // Generate ID: Convert Server Timestamp -> "YYYY-MM-DD" (EST Time)
-        dateId = this.timestamp?.toDateIdString() ?: "",
-        // Cache Time: When did the App fetch this?
-        lastSyncedTimestamp = currentSyncTime,
-        // Server Time: When did the AI generate this?
-        serverTimestamp = this.timestamp ?: 0,
-        reportType = this.reportType?.label ?: "",
-        verdict = this.verdict ?: Verdict(
-            regime = MarketRegime.UNKNOWN,
-            setup = TechnicalSetup.UNKNOWN,
-            call = TradingCall.UNKNOWN,
-            analysis = Constants.UNKNOWN,
-            action = Constants.UNKNOWN
-        ),
-        leadStories = this.leadStories ?: emptyList(),
-        macroMix = this.macroMix ?: emptyList(),
-        dominoEffect = this.dominoEffect ?: DominoEffect(
-            trigger = Constants.UNKNOWN,
-            impact = Constants.UNKNOWN,
-            outlook = Constants.UNKNOWN
-        ),
-        marketLookout = this.marketLookout ?: MarketLookout(
-            outlook = Constants.UNKNOWN
-        )
-    )
-}
+// ============================================================================
+// 2. V2.5 ENTITY (Gemini 2.5 Pro - Banner Content)
+// ============================================================================
+@Entity(tableName = "daily_pulse")
+@TypeConverters(MarketSummaryConverters::class)
+data class DailyPulseEntity(
+    @PrimaryKey(autoGenerate = false)
+    val dateId: String,
+    val lastSyncedTimestamp: Long,
+    val serverTimestamp: Long,
+    val reportType: String,
+    val verdict: Verdict? = null,
+    val leadStories: List<NewsItem>? = null,
+    val macroMix: List<MacroItem>? = null,
+    val dominoEffect: DominoEffect? = null,
+    val marketOutlook: MarketOutlook? = null
+)
 
-// 2. Entity -> Domain (Reading from DB)
-fun MarketSummaryEntity.toDomain(): MarketPulse {
-    return MarketPulse(
-        reportType = ReportType.from(this.reportType),
-        timestamp = this.serverTimestamp, // Domain only cares about Server Time
+// ============================================================================
+// MAPPERS: Domain -> Entity (Saving to DB)
+// ============================================================================
+
+fun MarketPulse.toMarketPulseEntity(
+    currentSyncTime: Long = System.currentTimeMillis()
+): MarketPulseEntity {
+    return MarketPulseEntity(
+        dateId = this.timestamp?.toDateIdString() ?: "",
+        lastSyncedTimestamp = currentSyncTime,
+        serverTimestamp = this.timestamp ?: 0L,
+        reportType = this.reportType?.label ?: "",
         verdict = this.verdict,
         leadStories = this.leadStories,
         macroMix = this.macroMix,
         dominoEffect = this.dominoEffect,
-        marketLookout = this.marketLookout
+        marketOutlook = this.marketOutlook
+    )
+}
+
+fun MarketPulse.toDailyPulseEntity(
+    currentSyncTime: Long = System.currentTimeMillis()
+): DailyPulseEntity {
+    return DailyPulseEntity(
+        dateId = this.timestamp?.toDateIdString() ?: "",
+        lastSyncedTimestamp = currentSyncTime,
+        serverTimestamp = this.timestamp ?: 0L,
+        reportType = this.reportType?.label ?: "",
+        verdict = this.verdict,
+        leadStories = this.leadStories,
+        macroMix = this.macroMix,
+        dominoEffect = this.dominoEffect,
+        marketOutlook = this.marketOutlook
+    )
+}
+
+// ============================================================================
+// MAPPERS: Entity -> Domain (Reading from DB to UI)
+// ============================================================================
+
+fun MarketPulseEntity.toDomain(): MarketPulse {
+    return MarketPulse(
+        reportType = ReportType.from(this.reportType),
+        timestamp = this.serverTimestamp,
+        verdict = this.verdict,
+        leadStories = this.leadStories,
+        macroMix = this.macroMix,
+        dominoEffect = this.dominoEffect,
+        marketOutlook = this.marketOutlook
+    )
+}
+
+fun DailyPulseEntity.toDomain(): MarketPulse {
+    return MarketPulse(
+        reportType = ReportType.from(this.reportType),
+        timestamp = this.serverTimestamp,
+        verdict = this.verdict,
+        leadStories = this.leadStories,
+        macroMix = this.macroMix,
+        dominoEffect = this.dominoEffect,
+        marketOutlook = this.marketOutlook
     )
 }
