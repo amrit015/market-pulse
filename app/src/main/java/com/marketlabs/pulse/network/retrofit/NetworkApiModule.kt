@@ -1,6 +1,7 @@
 package com.marketlabs.pulse.network.retrofit
 
 import com.marketlabs.pulse.network.api.MarketPulseApi
+import com.marketlabs.pulse.network.api.NewsApi
 import com.marketlabs.pulse.network.interceptor.AppCheckInterceptor
 import com.marketlabs.pulse.network.interceptor.HeaderLoggingInterceptor
 import com.marketlabs.pulse.utils.Constants.MARKET_PULSE_BASE_URL
@@ -19,7 +20,7 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object MarketPulseModule {
+object NetworkApiModule {
 
     @Provides
     @Singleton
@@ -49,17 +50,37 @@ object MarketPulseModule {
             .build()
     }
 
+    // 💡 NEW: A dedicated Retrofit provider
     @Provides
     @Singleton
-    fun provideMarketPulseApi(
+    @Named("MarketPulseRetrofit") // Separates this from the FinnHub Retrofit
+    fun provideMarketPulseRetrofit(
         @Named("MarketPulseClient") client: OkHttpClient,
         moshi: Moshi
-    ): MarketPulseApi {
+    ): Retrofit {
         return Retrofit.Builder()
             .baseUrl(MARKET_PULSE_BASE_URL)
             .client(client)
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
-            .create(MarketPulseApi::class.java)
+    }
+
+    /**
+     * Different instances of api retrofit for different endpoints
+     */
+    @Provides
+    @Singleton
+    fun provideMarketPulseApi(
+        @Named("MarketPulseRetrofit") retrofit: Retrofit
+    ): MarketPulseApi {
+        return retrofit.create(MarketPulseApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideNewsApi(
+        @Named("MarketPulseRetrofit") retrofit: Retrofit
+    ): NewsApi {
+        return retrofit.create(NewsApi::class.java)
     }
 }

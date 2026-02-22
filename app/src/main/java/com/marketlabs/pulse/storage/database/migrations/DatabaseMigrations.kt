@@ -11,11 +11,22 @@ object DatabaseMigrations {
 
     val MIGRATION_1_2 = object : Migration(1, 2) {
         override fun migrate(db: SupportSQLiteDatabase) {
-            // Adds the 'marketLookout' column to the existing 'market_pulse' table.
 
+            // 1. Create the brand new 'market_news' table
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `market_news` (
+                    `id` TEXT NOT NULL, 
+                    `lastSyncedTimestamp` INTEGER NOT NULL, 
+                    `sourceCount` INTEGER, 
+                    `stories` TEXT, 
+                    PRIMARY KEY(`id`)
+                )
+                """.trimIndent()
+            )
         }
     }
 
-    // List of all active migrations to easily add to the builder
+    // List of all active migrations to easily add to the Room builder
     val ALL_MIGRATIONS = arrayOf(MIGRATION_1_2)
 }

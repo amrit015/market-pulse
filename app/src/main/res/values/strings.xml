@@ -24,4 +24,10 @@
     <string name="emoji_action">⚡</string>
     <string name="banner_emoji_legacy">🕰️</string>
     <string name="banner_emoji_test">🤖</string>
+
+    <string name="news_screen_title">Market News</string>
+    <string name="news_empty_state">No news available yet. Pull to refresh.</string>
+    <string name="sentiment_bullish">BULLISH</string>
+    <string name="sentiment_bearish">BEARISH</string>
+    <string name="sentiment_neutral">NEUTRAL</string>
 </resources>

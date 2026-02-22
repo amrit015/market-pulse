@@ -25,6 +25,7 @@ import androidx.core.view.WindowCompat
 /** Dark Scheme configuration */
 private val PulseDarkColorScheme = darkColorScheme(
     primary = PulseGold,
+    secondary = PulseOrange,
     onPrimary = PulseBlack,
     background = PulseBlack,
     onBackground = DarkOnSurface,
@@ -39,6 +40,7 @@ private val PulseDarkColorScheme = darkColorScheme(
 /** Light Scheme configuration */
 private val PulseLightColorScheme = lightColorScheme(
     primary = PulseBlue,
+    secondary = PulseBlack,
     onPrimary = PulseBlack,
     background = LightBackground,
     onBackground = PulseBlack,

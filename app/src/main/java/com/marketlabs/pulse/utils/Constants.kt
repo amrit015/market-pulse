@@ -13,7 +13,4 @@ object Constants {
     // --- DATABASE ---
     const val MARKET_INDEX_TABLE = "market_indices"
     const val DATABASE_NAME = "market_pulse_db"
-
-    // ---- app constants ---
-    const val UNKNOWN = "Unknown"
 }
