@@ -45,7 +45,7 @@
     <string name="error_prefix">Error:</string>
     <string name="action_retry">Retry</string>
 
-    <string name="radar_raw_value">Raw Value: %1$s</string>
+    <string name="radar_raw_value">Value: %1$s</string>
     <string name="radar_score_out_of_100">%1$d / 100</string>
     <string name="radar_current_status">Current Status:</string>
     <string name="radar_what_it_measures">What it measures</string>
@@ -58,4 +58,9 @@
     <string name="radar_action_stable">Market is experiencing normal background noise. Maintain current positions but increase selectivity.</string>
     <string name="radar_action_caution">Underlying systemic stress detected. Consider tightening stop-losses and shifting towards defensive sectors.</string>
     <string name="radar_action_danger">Severe market plumbing breakdown. Prioritize capital preservation, raise cash, and deploy downside hedges.</string>
+
+    <string name="radar_content_desc_info">Educational Info</string>
+    <string name="radar_title_vulnerability">Vulnerability Score</string>
+    <string name="radar_title_trend">Trend</string>
+    <string name="radar_prev_score">(Previous: %1$s)</string>
 </resources>

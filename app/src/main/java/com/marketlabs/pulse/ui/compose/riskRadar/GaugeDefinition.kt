@@ -67,4 +67,15 @@ object GaugeDictionary {
             "80 to 100 (DANGER)" to "Severe market plumbing breakdown. Prioritize capital preservation, raise cash, and deploy downside hedges."
         )
     )
+
+    // Add this inside your GaugeDictionary object:
+
+    val trend = GaugeDefinition(
+        whatItMeasures = "Trend measures the velocity of systemic risk by comparing today's score to yesterday's. It helps identify if market conditions are actively deteriorating or healing, filtering out minor day-to-day noise.",
+        brackets = listOf(
+            "ACCELERATING" to "Risk is rising rapidly. Conditions are actively deteriorating and stress is building.",
+            "COOLING" to "Risk is falling. Market stress is subsiding and conditions are improving.",
+            "STABLE" to "Risk is holding steady. Fluctuations are minor and there is no significant momentum in either direction."
+        )
+    )
 }
