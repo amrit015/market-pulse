@@ -48,7 +48,6 @@ fun MarketSummaryScreen(
     onToggleVersion: () -> Unit,
     scaffoldPadding: PaddingValues
 ) {
-    // 💡 ACTION: Extract dynamic insets and static XML dimensions for cleaner layout code
     val statusBarHeight = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
     val paddingXLarge = dimensionResource(id = R.dimen.padding_xlarge)
@@ -82,7 +81,7 @@ fun MarketSummaryScreen(
                 item {
                     SectionTitle(
                         title = stringResource(id = R.string.section_lead_stories),
-                        color = MaterialTheme.colorScheme.onBackground
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
                 items(stories) { story -> NewsCard(story) }
@@ -90,7 +89,7 @@ fun MarketSummaryScreen(
 
             val macros = validData.macroMix
             if (!macros.isNullOrEmpty()) {
-                item { SectionTitle(stringResource(id = R.string.section_macro_mix), color = MaterialTheme.colorScheme.onBackground) }
+                item { SectionTitle(stringResource(id = R.string.section_macro_mix), color = MaterialTheme.colorScheme.primary) }
                 items(macros) { macro -> MacroCard(macro) }
             }
 
@@ -117,6 +116,9 @@ fun MarketSummaryScreen(
 // COMPONENT LIBRARY
 // ---------------------------------------------------------
 
+/**
+ * Toggle between v3 and v2
+ */
 @Composable
 fun VersionToggleBanner(isLegacyVersion: Boolean, onClick: () -> Unit) {
     val bgColor = if (isLegacyVersion) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.secondaryContainer
@@ -153,6 +155,9 @@ fun VersionToggleBanner(isLegacyVersion: Boolean, onClick: () -> Unit) {
     }
 }
 
+/**
+ * Header section - Market Summary
+ */
 @Composable
 fun HeaderSection(type: ReportType, timestamp: Long) {
     Column {
@@ -197,7 +202,7 @@ fun NewsCard(story: NewsItem) {
             Text(
                 text = headline,
                 style = MaterialTheme.typography.titleMedium,
-                color = PulseOrange
+                color = MaterialTheme.colorScheme.secondary
             )
             story.summary?.let { summary ->
                 Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
@@ -238,7 +243,7 @@ fun MacroCard(item: MacroItem) {
                     Text(
                         text = headline,
                         style = MaterialTheme.typography.titleSmall,
-                        color = PulseOrange,
+                        color = MaterialTheme.colorScheme.secondary,
                         modifier = Modifier.weight(1f)
                     )
 
@@ -349,7 +354,7 @@ private fun DominoTimelineStep(title: String, text: String, isLast: Boolean) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.labelLarge,
-                color = PulseOrange
+                color = MaterialTheme.colorScheme.secondary
             )
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
             Text(
@@ -361,7 +366,9 @@ private fun DominoTimelineStep(title: String, text: String, isLast: Boolean) {
     }
 }
 
-
+/**
+ * Market Outlook card
+ */
 @Composable
 fun OutlookCard(outlook: MarketOutlook) {
     Card(

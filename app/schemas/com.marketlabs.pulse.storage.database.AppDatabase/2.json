@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 2,
-    "identityHash": "562babac80c8ab3c9553b463661f99ed",
+    "identityHash": "2b3ec7d335560adcc79103c11dda954f",
     "entities": [
       {
         "tableName": "market_indices",
@@ -173,11 +173,45 @@
             "dateId"
           ]
         }
+      },
+      {
+        "tableName": "market_news",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `lastSyncedTimestamp` INTEGER NOT NULL, `sourceCount` INTEGER, `stories` TEXT, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastSyncedTimestamp",
+            "columnName": "lastSyncedTimestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceCount",
+            "columnName": "sourceCount",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "stories",
+            "columnName": "stories",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '562babac80c8ab3c9553b463661f99ed')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '2b3ec7d335560adcc79103c11dda954f')"
     ]
   }
 }

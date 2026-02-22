@@ -19,6 +19,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.ui.compose.news.NewsRoute
 import com.marketlabs.pulse.ui.compose.overview.MarketOverviewRoute
 import com.marketlabs.pulse.ui.compose.summary.MarketSummaryRoute
 
@@ -117,6 +118,7 @@ fun PulseNavGraph() {
             }
             composable(PulseRoutes.MARKET_NEWS) {
                 // ScreenE()
+                NewsRoute(scaffoldPadding = innerPadding)
             }
         }
     }
