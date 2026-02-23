@@ -30,4 +30,37 @@
     <string name="sentiment_bullish">BULLISH</string>
     <string name="sentiment_bearish">BEARISH</string>
     <string name="sentiment_neutral">NEUTRAL</string>
+
+    <string name="radar_title">Risk Radar</string>
+    <string name="radar_vulnerability_score">Vulnerability Score</string>
+    <string name="radar_trend_prev">Trend: %1$s (Prev: %2$s)</string>
+    <string name="radar_systemic_plumbing">Systemic Plumbing</string>
+
+    <string name="gauge_recession">Yield Curve (Recession)</string>
+    <string name="gauge_foundation">Bond Volatility (Foundation)</string>
+    <string name="gauge_credit">High Yield Spreads (Credit)</string>
+    <string name="gauge_rotation">Discretionary/Staples (Rotation)</string>
+    <string name="gauge_growth">Copper/Gold (Growth/Fear)</string>
+
+    <string name="error_prefix">Error:</string>
+    <string name="action_retry">Retry</string>
+
+    <string name="radar_raw_value">Value: %1$s</string>
+    <string name="radar_score_out_of_100">%1$d / 100</string>
+    <string name="radar_current_status">Current Status:</string>
+    <string name="radar_what_it_measures">What it measures</string>
+    <string name="radar_how_to_read_it">How to read it</string>
+    <string name="radar_data_unavailable">Data Unavailable</string>
+    <string name="radar_unknown">Unknown</string>
+
+    <string name="radar_what_this_means">What This Means</string>
+    <string name="radar_action_safe">Market foundation is highly stable. Favorable conditions for broad market exposure and growth assets.</string>
+    <string name="radar_action_stable">Market is experiencing normal background noise. Maintain current positions but increase selectivity.</string>
+    <string name="radar_action_caution">Underlying systemic stress detected. Consider tightening stop-losses and shifting towards defensive sectors.</string>
+    <string name="radar_action_danger">Severe market plumbing breakdown. Prioritize capital preservation, raise cash, and deploy downside hedges.</string>
+
+    <string name="radar_content_desc_info">Educational Info</string>
+    <string name="radar_title_vulnerability">Vulnerability Score</string>
+    <string name="radar_title_trend">Trend</string>
+    <string name="radar_prev_score">(Previous: %1$s)</string>
 </resources>

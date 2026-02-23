@@ -2,6 +2,7 @@ package com.marketlabs.pulse.network.retrofit
 
 import com.marketlabs.pulse.network.api.MarketPulseApi
 import com.marketlabs.pulse.network.api.NewsApi
+import com.marketlabs.pulse.network.api.RiskRadarApi
 import com.marketlabs.pulse.network.interceptor.AppCheckInterceptor
 import com.marketlabs.pulse.network.interceptor.HeaderLoggingInterceptor
 import com.marketlabs.pulse.utils.Constants.MARKET_PULSE_BASE_URL
@@ -82,5 +83,13 @@ object NetworkApiModule {
         @Named("MarketPulseRetrofit") retrofit: Retrofit
     ): NewsApi {
         return retrofit.create(NewsApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideRiskRadarApi(
+        @Named("MarketPulseRetrofit") retrofit: Retrofit
+    ): RiskRadarApi {
+        return retrofit.create(RiskRadarApi::class.java)
     }
 }

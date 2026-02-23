@@ -6,6 +6,7 @@ import com.marketlabs.pulse.storage.database.AppDatabase
 import com.marketlabs.pulse.storage.database.dao.MarketIndexDao
 import com.marketlabs.pulse.storage.database.dao.MarketSummaryDao
 import com.marketlabs.pulse.storage.database.dao.NewsDao
+import com.marketlabs.pulse.storage.database.dao.RiskRadarDao
 import com.marketlabs.pulse.storage.database.migrations.DatabaseMigrations
 import com.marketlabs.pulse.utils.Constants
 import dagger.Module
@@ -45,6 +46,12 @@ object DatabaseModule {
     @Singleton
     fun provideNewsDao(database: AppDatabase): NewsDao {
         return database.marketNewsDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideRiskRadarDao(database: AppDatabase): RiskRadarDao {
+        return database.riskRadarDao()
     }
 
 }

@@ -6,18 +6,22 @@
     <dimen name="padding_large">16dp</dimen>
     <dimen name="padding_xlarge">20dp</dimen>
     <dimen name="padding_xxlarge">24dp</dimen>
-
     <dimen name="corner_radius_small">4dp</dimen>
     <dimen name="corner_radius_chip">6dp</dimen>
     <dimen name="corner_radius_card">12dp</dimen>
-
     <dimen name="border_thin">1dp</dimen>
     <dimen name="border_medium">3dp</dimen>
     <dimen name="border_thick">6dp</dimen>
-
     <dimen name="timeline_dot_size">10dp</dimen>
     <dimen name="timeline_label_width">64dp</dimen>
     <dimen name="timeline_node_width">20dp</dimen>
-
     <dimen name="elevation_small">3dp</dimen>
+    <dimen name="progress_bar_width">80dp</dimen>
+    <dimen name="progress_bar_width_large">120dp</dimen>
+    <dimen name="progress_bar_height">8dp</dimen>
+
+    <dimen name="icon_size_small">16dp</dimen>
+    <dimen name="icon_size_medium">20dp</dimen>
+    <dimen name="icon_size_large">24dp</dimen>
+    <dimen name="bullet_size">6dp</dimen>
 </resources>

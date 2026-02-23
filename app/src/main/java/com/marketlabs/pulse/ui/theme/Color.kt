@@ -16,6 +16,7 @@ val PulseBlue = Color (0xFF083B95)
 val DarkSurface = Color(0xFF121212)
 val DarkOnSurface = Color(0xFFFFFFFF)
 val PulseDeepGray = Color(0xFF2C2C2C)
+val PulseLightGray = Color(0xFF949494)
 
 /** Light Mode Surface Colors */
 val LightBackground = Color(0xFFF5F5F5)
