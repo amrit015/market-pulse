@@ -19,10 +19,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.marketlabs.pulse.R
-import com.marketlabs.pulse.ui.compose.news.NewsRoute
-import com.marketlabs.pulse.ui.compose.overview.MarketOverviewRoute
-import com.marketlabs.pulse.ui.compose.riskRadar.RiskRadarRoute
-import com.marketlabs.pulse.ui.compose.summary.MarketSummaryRoute
+import com.marketlabs.pulse.ui.screens.news.views.NewsRoute
+import com.marketlabs.pulse.ui.screens.overview.views.MarketOverviewRoute
+import com.marketlabs.pulse.ui.screens.riskRadar.views.RiskRadarRoute
+import com.marketlabs.pulse.ui.screens.summary.views.MarketSummaryRoute
 
 /**
  * Centralize and define the navigation structure and logic for MarketLabs Pulse using Compose Navigation.

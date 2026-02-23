@@ -1,8 +1,8 @@
 package com.marketlabs.pulse.network.interceptor
 
+import android.util.Log
 import okhttp3.Interceptor
 import okhttp3.Response
-import android.util.Log
 import javax.inject.Inject
 
 class HeaderLoggingInterceptor @Inject constructor() : Interceptor {

@@ -1,0 +1,137 @@
+package com.marketlabs.pulse.ui.screens.news.views
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.marketlabs.pulse.R
+import com.marketlabs.pulse.ui.screens.news.NewsViewModel
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun NewsRoute(
+    scaffoldPadding: PaddingValues,
+    viewModel: NewsViewModel = hiltViewModel()
+) {
+    // 💡 NEW: Collect the single unified state
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+    // Remember the state so we can pass it to the custom indicator
+    val pullRefreshState = rememberPullToRefreshState()
+
+    // Trigger Snackbar when a soft error is emitted (e.g., failed background refresh)
+    LaunchedEffect(uiState.errorMessage) {
+        uiState.errorMessage?.let { message ->
+            snackbarHostState.showSnackbar(message)
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        PullToRefreshBox(
+            isRefreshing = uiState.isLoading,
+            onRefresh = { viewModel.refreshNews(force = true) },
+            state = pullRefreshState, // Pass the state
+            indicator = {
+                // Override the indicator to add top padding!
+                Indicator(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        // Push the spinner down below the status bar
+                        .padding(top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()),
+                    isRefreshing = uiState.isLoading,
+                    state = pullRefreshState
+                )
+            }
+        ) {
+            when {
+                // Case A: Data Available (Takes top priority)
+                uiState.news != null -> {
+                    NewsScreen(
+                        data = uiState.news!!,
+                        scaffoldPadding = scaffoldPadding
+                    )
+                }
+
+                // Case B: Initial Load / Empty DB
+                // (Compiler knows news is null if it reached here)
+                uiState.isLoading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+
+                // Case C: Critical Failure
+                // (Compiler knows news is null AND isLoading is false if it reached here)
+                uiState.errorMessage != null -> {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "${stringResource(id = R.string.error_prefix)} ${uiState.errorMessage}",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                        Button(
+                            onClick = { viewModel.refreshNews(force = true) },
+                            modifier = Modifier.padding(top = 16.dp)
+                        ) {
+                            Text(stringResource(id = R.string.action_retry))
+                        }
+                    }
+                }
+
+                // Case D: Completely Empty
+                // (No data, not loading, no error. It just gracefully falls into 'else')
+                else -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.news_empty_state),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+        }
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = scaffoldPadding.calculateBottomPadding())
+        )
+    }
+}
