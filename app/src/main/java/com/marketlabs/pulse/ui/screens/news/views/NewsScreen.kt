@@ -29,7 +29,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -47,7 +46,8 @@ import com.marketlabs.pulse.ui.theme.VerdictSellText
 @Composable
 fun NewsScreen(
     data: MarketNews,
-    scaffoldPadding: PaddingValues
+    scaffoldPadding: PaddingValues,
+    onArticleClick: (String) -> Unit
 ) {
     val statusBarHeight = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
@@ -91,22 +91,25 @@ fun NewsScreen(
         } else {
             // Render Articles safely
             items(data.stories) { article ->
-                NewsArticleCard(article = article)
+                NewsArticleCard(
+                    article = article,
+                    onClick = { url -> onArticleClick(url) }
+                )
             }
         }
     }
 }
 
 @Composable
-fun NewsArticleCard(article: NewsArticle) {
+fun NewsArticleCard(
+    article: NewsArticle,
+    onClick: (String) -> Unit
+) {
     val headline = article.headline ?: "Market Update"
     val source = article.source ?: "News"
     val impactSummary = article.impactSummary ?: ""
     val sentiment = article.sentiment?.uppercase() ?: "NEUTRAL"
     val url = article.url ?: ""
-
-    // 💡 ACTION: Grab the Compose URI handler to open web links natively
-    val uriHandler = LocalUriHandler.current
 
     val (sentimentColor, sentimentBgColor) = when (sentiment) {
         "BULLISH" -> Pair(VerdictBuyText, VerdictBuyBackground)
@@ -122,11 +125,7 @@ fun NewsArticleCard(article: NewsArticle) {
             .fillMaxWidth()
             // 💡 ACTION: Make the entire card clickable, firing the URI handler
             .clickable(enabled = url.isNotBlank()) {
-                try {
-                    uriHandler.openUri(url)
-                } catch (e: Exception) {
-                    // Failsafe in case of a malformed URL
-                }
+                onClick(url) // open the webpages on the app webview
             }
     ) {
         Column(modifier = Modifier.fillMaxWidth().padding(top = paddingLarge, bottom = paddingLarge)) {

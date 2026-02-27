@@ -36,7 +36,8 @@ import com.marketlabs.pulse.ui.screens.news.NewsViewModel
 @Composable
 fun NewsRoute(
     scaffoldPadding: PaddingValues,
-    viewModel: NewsViewModel = hiltViewModel()
+    viewModel: NewsViewModel = hiltViewModel(),
+    onNavigateToWebView: (String) -> Unit // webview navigation action
 ) {
     // 💡 NEW: Collect the single unified state
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -73,7 +74,8 @@ fun NewsRoute(
                 uiState.news != null -> {
                     NewsScreen(
                         data = uiState.news!!,
-                        scaffoldPadding = scaffoldPadding
+                        scaffoldPadding = scaffoldPadding,
+                        onArticleClick = onNavigateToWebView
                     )
                 }
 
