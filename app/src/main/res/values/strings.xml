@@ -64,4 +64,23 @@
     <string name="radar_title_trend">Trend</string>
     <string name="radar_prev_score">(Previous: %1$s)</string>
     <string name="close">Close</string>
+
+    <string name="indicators_screen_title">Market Indicators</string>
+    <string name="indicators_score_label">SCORE</string>
+    <string name="indicators_unknown_verdict">UNKNOWN VERDICT</string>
+    <string name="indicators_analyzing_regime">Analyzing Environment</string>
+    <string name="indicators_no_action">No action required.</string>
+    <string name="indicators_unknown_phase">Phase</string>
+    <string name="indicators_unknown_indicator">Unknown Indicator</string>
+    <string name="indicators_empty_value">--</string>
+    <string name="indicators_neutral_signal">NEUTRAL</string>
+    <string name="glossary">Glossary</string>
+
+    <string name="indicators_framework_title">The Framework</string>
+    <string name="indicators_framework_focus">"Focus: "</string>
+    <string name="indicators_framework_indicators">"Indicators: "</string>
+    <string name="indicators_framework_goal">"Goal: "</string>
+    <string name="indicators_detail_what_it_is">What it is:</string>
+    <string name="indicators_detail_how_to_read">How to read it:</string>
+    <string name="indicators_glossary_desc">Glossary</string>
 </resources>

@@ -1,9 +1,9 @@
 package com.marketlabs.pulse.storage.repository.news
 
 import com.marketlabs.pulse.storage.database.dao.NewsDao
-import com.marketlabs.pulse.storage.database.entity.toDomain
-import com.marketlabs.pulse.storage.database.entity.toEntity
 import com.marketlabs.pulse.storage.model.news.MarketNews
+import com.marketlabs.pulse.storage.model.news.mappers.toDomain
+import com.marketlabs.pulse.storage.model.news.mappers.toEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject

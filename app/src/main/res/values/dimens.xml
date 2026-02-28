@@ -8,7 +8,6 @@
     <dimen name="padding_xxlarge">24dp</dimen>
     <dimen name="corner_radius_small">4dp</dimen>
     <dimen name="corner_radius_chip">6dp</dimen>
-    <dimen name="corner_radius_card">12dp</dimen>
     <dimen name="border_thin">1dp</dimen>
     <dimen name="border_medium">3dp</dimen>
     <dimen name="border_thick">6dp</dimen>
@@ -24,4 +23,20 @@
     <dimen name="icon_size_medium">20dp</dimen>
     <dimen name="icon_size_large">24dp</dimen>
     <dimen name="bullet_size">6dp</dimen>
+
+    <dimen name="padding_micro">3dp</dimen>
+    <dimen name="padding_extra_large">24dp</dimen>
+
+    <dimen name="corner_radius_card">12dp</dimen>
+    <dimen name="corner_radius_card_large">16dp</dimen>
+    <dimen name="corner_radius_card_extra_large">24dp</dimen>
+
+    <dimen name="gauge_size">160dp</dimen>
+    <dimen name="gauge_stroke_width">12dp</dimen>
+
+<!--    <dimen name="padding_tiny">4dp</dimen>-->
+<!--    <dimen name="padding_small">8dp</dimen>-->
+<!--    <dimen name="padding_medium">12dp</dimen>-->
+<!--    <dimen name="padding_large">16dp</dimen>-->
+<!--    <dimen name="padding_extra_large">24dp</dimen>-->
 </resources>

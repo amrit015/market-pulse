@@ -1,10 +1,10 @@
 package com.marketlabs.pulse.storage.repository.summary
 
 import com.marketlabs.pulse.storage.database.dao.SummaryDao
-import com.marketlabs.pulse.storage.database.entity.toDailyPulseEntity
-import com.marketlabs.pulse.storage.database.entity.toDomain
-import com.marketlabs.pulse.storage.database.entity.toMarketPulseEntity
 import com.marketlabs.pulse.storage.model.summary.MarketPulse
+import com.marketlabs.pulse.storage.model.summary.mappers.toDailyPulseEntity
+import com.marketlabs.pulse.storage.model.summary.mappers.toDomain
+import com.marketlabs.pulse.storage.model.summary.mappers.toMarketPulseEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
