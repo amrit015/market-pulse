@@ -66,6 +66,50 @@ object DatabaseMigrations {
         }
     }
 
+    // 💡 NEW: Migration from Version 4 to Version 5 for Dashboard
+    val MIGRATION_4_5 = object : Migration(4, 5) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            // Master Market State Table
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `market_state` (
+                    `id` INTEGER NOT NULL, 
+                    `isEquityOpen` INTEGER, 
+                    `isFuturesOpen` INTEGER, 
+                    `lastUpdated` INTEGER, 
+                    PRIMARY KEY(`id`)
+                )
+                """.trimIndent()
+            )
+
+            // Tracked Assets Table
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `dashboard_assets` (
+                    `symbol` TEXT NOT NULL, 
+                    `name` TEXT,
+                    `description` TEXT,
+                    `type` TEXT, 
+                    `isInverted` INTEGER, 
+                    `price` REAL, 
+                    `previousClose` REAL, 
+                    `changePercent` REAL, 
+                    `rsi` REAL, 
+                    `rsiStatus` TEXT, 
+                    `macdSignal` TEXT, 
+                    `technicalStatus` TEXT, 
+                    `aiVerdict` TEXT, 
+                    `lastUpdated` INTEGER, 
+                    `sma20` REAL, 
+                    `sma50` REAL, 
+                    `sma200` REAL,
+                    PRIMARY KEY(`symbol`)
+                )
+                """.trimIndent()
+            )
+        }
+    }
+
     // 💡 UPDATED: Add the new migration to the active list
-    val ALL_MIGRATIONS = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+    val ALL_MIGRATIONS = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
 }

@@ -4,8 +4,8 @@ import com.marketlabs.pulse.core.riskRadar.RiskRadarRepository
 import com.marketlabs.pulse.core.riskRadar.RiskRadarRepositoryImpl
 import com.marketlabs.pulse.network.store.riskRadar.RemoteRiskRadarDataSource
 import com.marketlabs.pulse.network.store.riskRadar.RemoteRiskRadarDataSourceImpl
-import com.marketlabs.pulse.storage.repository.riskRadar.LocalRiskRadarDataSource
-import com.marketlabs.pulse.storage.repository.riskRadar.LocalRiskRadarDataSourceImpl
+import com.marketlabs.pulse.storage.store.riskRadar.LocalRiskRadarDataSource
+import com.marketlabs.pulse.storage.store.riskRadar.LocalRiskRadarDataSourceImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

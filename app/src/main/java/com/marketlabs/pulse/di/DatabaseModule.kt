@@ -3,6 +3,7 @@ package com.marketlabs.pulse.di
 import android.content.Context
 import androidx.room.Room
 import com.marketlabs.pulse.storage.database.AppDatabase
+import com.marketlabs.pulse.storage.database.dao.DashboardDao
 import com.marketlabs.pulse.storage.database.dao.IndicatorsDao
 import com.marketlabs.pulse.storage.database.dao.MarketIndexDao
 import com.marketlabs.pulse.storage.database.dao.NewsDao
@@ -59,5 +60,11 @@ object DatabaseModule {
     @Singleton
     fun provideIndicatorsDao(database: AppDatabase): IndicatorsDao {
         return database.indicatorsDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideDashboardDao(database: AppDatabase): DashboardDao {
+        return database.dashboardDao()
     }
 }

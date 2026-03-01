@@ -3,7 +3,7 @@ package com.marketlabs.pulse.core.summary
 import android.util.Log
 import com.marketlabs.pulse.network.store.summary.RemoteSummaryDataSource
 import com.marketlabs.pulse.storage.model.summary.MarketPulse
-import com.marketlabs.pulse.storage.repository.summary.LocalSummaryDataSource
+import com.marketlabs.pulse.storage.store.summary.LocalSummaryDataSource
 import com.marketlabs.pulse.utils.getMidnightTimestamp
 import com.marketlabs.pulse.utils.getTodayDateString
 import com.marketlabs.pulse.utils.getYesterdayDateString

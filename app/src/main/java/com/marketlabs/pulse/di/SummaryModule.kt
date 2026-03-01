@@ -4,8 +4,8 @@ import com.marketlabs.pulse.core.summary.SummaryRepository
 import com.marketlabs.pulse.core.summary.SummaryRepositoryImpl
 import com.marketlabs.pulse.network.store.summary.RemoteSummaryDataSource
 import com.marketlabs.pulse.network.store.summary.RemoteSummaryDataSourceImpl
-import com.marketlabs.pulse.storage.repository.summary.LocalSummaryDataSource
-import com.marketlabs.pulse.storage.repository.summary.LocalSummaryDataSourceImpl
+import com.marketlabs.pulse.storage.store.summary.LocalSummaryDataSource
+import com.marketlabs.pulse.storage.store.summary.LocalSummaryDataSourceImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

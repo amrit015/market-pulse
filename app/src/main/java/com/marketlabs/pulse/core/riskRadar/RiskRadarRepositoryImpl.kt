@@ -3,7 +3,7 @@ package com.marketlabs.pulse.core.riskRadar
 import android.util.Log
 import com.marketlabs.pulse.network.store.riskRadar.RemoteRiskRadarDataSource
 import com.marketlabs.pulse.storage.model.riskRadar.RiskRadar
-import com.marketlabs.pulse.storage.repository.riskRadar.LocalRiskRadarDataSource
+import com.marketlabs.pulse.storage.store.riskRadar.LocalRiskRadarDataSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import java.text.SimpleDateFormat

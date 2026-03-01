@@ -4,8 +4,8 @@ import com.marketlabs.pulse.core.marketIndex.MarketIndexRepository
 import com.marketlabs.pulse.core.marketIndex.MarketIndexRepositoryImpl
 import com.marketlabs.pulse.network.store.marketIndex.RemoteMarketDataSource
 import com.marketlabs.pulse.network.store.marketIndex.RemoteMarketDataSourceImpl
-import com.marketlabs.pulse.storage.repository.marketIndex.LocalMarketDataSource
-import com.marketlabs.pulse.storage.repository.marketIndex.LocalMarketDataSourceImpl
+import com.marketlabs.pulse.storage.store.marketIndex.LocalMarketDataSource
+import com.marketlabs.pulse.storage.store.marketIndex.LocalMarketDataSourceImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

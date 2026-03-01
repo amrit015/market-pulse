@@ -83,4 +83,38 @@
     <string name="indicators_detail_what_it_is">What it is:</string>
     <string name="indicators_detail_how_to_read">How to read it:</string>
     <string name="indicators_glossary_desc">Glossary</string>
+
+    <string name="dashboard_title">Market Dashboard</string>
+    <string name="dashboard_market_open">MARKET OPEN</string>
+    <string name="dashboard_market_closed">MARKET CLOSED</string>
+    <string name="dashboard_section_sentiment">Sentiment &amp; Fear</string>
+    <string name="dashboard_section_equities">Equities</string>
+    <string name="dashboard_section_futures">Overnight Futures</string>
+    <string name="dashboard_section_crypto">Crypto &amp; Commodities</string>
+    <string name="dashboard_fallback_spy">S&amp;P 500</string>
+    <string name="dashboard_rsi_label">RSI:</string>
+    <string name="dashboard_macd_label">MACD:</string>
+
+    <string name="dashboard_current_price">Current</string>
+    <string name="dashboard_prev_close">Prev Close</string>
+    <string name="dashboard_ai_summary">AI Summary</string>
+    <string name="dashboard_no_analysis">No analysis available.</string>
+    <string name="dashboard_technical_breakdown">Technical Breakdown</string>
+    <string name="dashboard_sma_title">Simple Moving Averages</string>
+    <string name="dashboard_rsi">RSI (14)</string>
+    <string name="dashboard_macd">MACD</string>
+    <string name="dashboard_trend">Trend</string>
+    <string name="dashboard_sma_20">20-Day</string>
+    <string name="dashboard_sma_50">50-Day</string>
+    <string name="dashboard_sma_200">200-Day</string>
+
+    <string name="dashboard_vix_title">Volatility Index (VIX)</string>
+    <string name="fear_greed_title">Fear &amp; Greed</string>
+    <string name="put_call_index_title">Put/Call Ratio</string>
+
+    <string name="dashboard_technical_glossary_title">Technical Glossary</string>
+    <string name="dashboard_glossary_rsi_def">Measures momentum. &gt;70 is Overbought (Bearish), &lt;30 is Oversold (Bullish).</string>
+    <string name="dashboard_glossary_macd_def">Shows trend direction. Bullish crossovers indicate upward momentum.</string>
+    <string name="dashboard_glossary_trend_def">The AI\'s evaluation of the current price action versus historical baselines.</string>
+    <string name="dashboard_glossary_sma_def">The average price over a set period. Acts as a magnet for support and resistance.</string>
 </resources>

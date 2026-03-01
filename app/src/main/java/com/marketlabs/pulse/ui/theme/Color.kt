@@ -30,11 +30,13 @@ val AlertRed = Color(0xFFFF3B30)
  * different styling colors
  */
 val PulseOrange = Color(0xFFFF9800)
-val VerdictBuyBackground = Color(0xFFE8F5E9)
-val VerdictBuyText = Color(0xFF2E7D32)
-val VerdictSellBackground = Color(0xFFFFEBEE)
-val VerdictSellText = Color(0xFFC62828)
-val VerdictNeutralBackground = Color(0xFFFFF3E0)
-val VerdictNeutralText = Color(0xFFCE5A03)
+val ColorBullish = Color(0xFF2E7D32)
+val ColorBearish = Color(0xFFC62828)
+val ColorNeutral = Color(0xFFCE5A03)
+val ColorBullishBackground = Color(0xFFE8F5E9)
+
+val ColorBearishBackground = Color(0xFFFFEBEE)
+
+val ColorNeutralBackground = Color(0xFFFFF3E0)
 
 
