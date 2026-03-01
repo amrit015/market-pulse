@@ -8,7 +8,6 @@ import androidx.compose.ui.graphics.Color
  */
 
 /** Signature Branding Colors */
-val PulseGold = Color(0xFFFFD700)
 val PulseBlack = Color(0xFF000000)
 val PulseBlue = Color (0xFF083B95)
 
@@ -22,14 +21,18 @@ val PulseLightGray = Color(0xFF949494)
 val LightBackground = Color(0xFFF5F5F5)
 val LightSurface = Color(0xFFFAFAFA)
 
+/** Alert and Error Colors */
+val AlertRed = Color(0xFFC62828)
+
 /** Functional Status Colors */
-val SuccessGreen = Color(0xFF4CAF50)
-val AlertRed = Color(0xFFFF3B30)
+val PulseGreen = Color(0xFF2E7D32)  // Material Green 800
+val PulseRed = Color(0xFFC62828)    // Material Red 800
+val PulseOrange = Color(0xFFEF6C00) // Material Orange 800 (Deep, intense orange)
+val PulseGold = Color(0xFFF9A825)   // Material Yellow 800 (Rich mustard/gold)
 
 /**
  * different styling colors
  */
-val PulseOrange = Color(0xFFFF9800)
 val ColorBullish = Color(0xFF2E7D32)
 val ColorBearish = Color(0xFFC62828)
 val ColorNeutral = Color(0xFFCE5A03)

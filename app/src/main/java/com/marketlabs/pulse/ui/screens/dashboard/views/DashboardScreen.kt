@@ -354,7 +354,7 @@ fun AssetCard(
 
     // Calculate the subtle background tint
     val baseColor = if (isGoodEvent) ColorBullish else ColorBearish
-    val backgroundColor = baseColor.copy(alpha = 0.10f)
+    val backgroundColor = baseColor.copy(alpha = 0.20f)
 
     val cardTitle = if (asset.symbol == "FEAR_GREED") {
         stringResource(id = R.string.fear_greed_title)
@@ -384,15 +384,12 @@ fun AssetCard(
                     color = MaterialTheme.colorScheme.onSurface
                 )
 
-                // Optional AI Status Icon (e.g., BULLISH, OVERBOUGHT)
-                if (asset.rsiStatus != null) {
                     Icon(
-                        painter = painterResource(id = R.drawable.ic_info), // PLACEHOLDER: Replace with your actual icon
+                        painter = painterResource(id = R.drawable.ic_chevron_forward), // PLACEHOLDER: Replace with your actual icon
                         contentDescription = asset.rsiStatus,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(dimensionResource(id = R.dimen.icon_size_small))
                     )
-                }
             }
 
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))

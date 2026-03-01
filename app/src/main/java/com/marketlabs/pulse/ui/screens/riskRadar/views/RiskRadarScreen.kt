@@ -1,15 +1,19 @@
 package com.marketlabs.pulse.ui.screens.riskRadar.views
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,15 +25,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,7 +37,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -46,24 +49,22 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.riskRadar.Gauge
+import com.marketlabs.pulse.storage.model.riskRadar.RiskGauges
 import com.marketlabs.pulse.storage.model.riskRadar.RiskRadar
 import com.marketlabs.pulse.storage.model.riskRadar.enums.RiskStatus
 import com.marketlabs.pulse.storage.model.riskRadar.enums.RiskTrend
 import com.marketlabs.pulse.ui.screens.riskRadar.GaugeDefinition
 import com.marketlabs.pulse.ui.screens.riskRadar.GaugeDictionary
-import com.marketlabs.pulse.ui.theme.AlertRed
+import com.marketlabs.pulse.ui.screens.riskRadar.views.widgets.GaugeEducationalBottomSheet
+import com.marketlabs.pulse.ui.theme.PulseRed
 import com.marketlabs.pulse.ui.theme.PulseGold
 import com.marketlabs.pulse.ui.theme.PulseLightGray
 import com.marketlabs.pulse.ui.theme.PulseOrange
-import com.marketlabs.pulse.ui.theme.SuccessGreen
+import com.marketlabs.pulse.ui.theme.PulseGreen
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-/**
- * State holder for the currently selected gauge.
- * This dictates what information the Bottom Sheet displays when opened.
- */
 data class SelectedGaugeState(
     val title: String,
     val gauge: Gauge,
@@ -79,7 +80,6 @@ fun RiskRadarScreen(
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
     val paddingXLarge = dimensionResource(id = R.dimen.padding_xlarge)
 
-    // Tracks which element was clicked to populate the educational bottom sheet
     var selectedGaugeState by remember { mutableStateOf<SelectedGaugeState?>(null) }
 
     LazyColumn(
@@ -94,10 +94,8 @@ fun RiskRadarScreen(
         ),
         verticalArrangement = Arrangement.spacedBy(paddingXLarge)
     ) {
-        // 1. Header showing last updated time
         item { RadarHeaderSection(data.lastSyncedTimestamp) }
 
-        // 2. The Main Dashboard Scoreboard
         item {
             ScoreBoardCard(
                 data = data,
@@ -105,7 +103,6 @@ fun RiskRadarScreen(
             )
         }
 
-        // 3. Section Title for Individual Metrics
         item {
             Text(
                 text = stringResource(id = R.string.radar_systemic_plumbing).uppercase(),
@@ -114,52 +111,16 @@ fun RiskRadarScreen(
             )
         }
 
-        // 4. Render all the individual gauges if data exists
         data.gauges?.let { gauges ->
             item {
-                GaugeCard(
-                    title = stringResource(id = R.string.gauge_recession),
-                    gauge = gauges.recession,
-                    definition = GaugeDictionary.recession,
-                    onClick = { selectedGaugeState = it }
-                )
-            }
-            item {
-                GaugeCard(
-                    title = stringResource(id = R.string.gauge_foundation),
-                    gauge = gauges.foundation,
-                    definition = GaugeDictionary.foundation,
-                    onClick = { selectedGaugeState = it }
-                )
-            }
-            item {
-                GaugeCard(
-                    title = stringResource(id = R.string.gauge_credit),
-                    gauge = gauges.canary,
-                    definition = GaugeDictionary.canary,
-                    onClick = { selectedGaugeState = it }
-                )
-            }
-            item {
-                GaugeCard(
-                    title = stringResource(id = R.string.gauge_rotation),
-                    gauge = gauges.rotation,
-                    definition = GaugeDictionary.rotation,
-                    onClick = { selectedGaugeState = it }
-                )
-            }
-            item {
-                GaugeCard(
-                    title = stringResource(id = R.string.gauge_growth),
-                    gauge = gauges.growthFear,
-                    definition = GaugeDictionary.growthFear,
+                SystemicPlumbingCard(
+                    gauges = gauges,
                     onClick = { selectedGaugeState = it }
                 )
             }
         }
     }
 
-    // Safely render the bottom sheet only when an item has been clicked
     selectedGaugeState?.let { state ->
         GaugeEducationalBottomSheet(
             selectedState = state,
@@ -199,16 +160,14 @@ private fun ScoreBoardCard(
     val vulnerabilityTitle = stringResource(id = R.string.radar_title_vulnerability)
     val trendTitle = stringResource(id = R.string.radar_title_trend)
 
-    // Assign colors based on exact Risk Status
     val statusColor = when (safeStatus) {
-        RiskStatus.SAFE -> SuccessGreen
+        RiskStatus.SAFE -> PulseGreen
         RiskStatus.STABLE -> PulseGold
         RiskStatus.CAUTION -> PulseOrange
-        RiskStatus.DANGER -> AlertRed
+        RiskStatus.DANGER -> PulseRed
         RiskStatus.UNKNOWN -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 
-    // Assign text interpretation based on Risk Status
     val interpretationText = when (safeStatus) {
         RiskStatus.SAFE -> stringResource(id = R.string.radar_action_safe)
         RiskStatus.STABLE -> stringResource(id = R.string.radar_action_stable)
@@ -217,7 +176,6 @@ private fun ScoreBoardCard(
         RiskStatus.UNKNOWN -> stringResource(id = R.string.radar_data_unavailable)
     }
 
-    // Trend Visuals
     val trendIconRes = when (safeTrend) {
         RiskTrend.ACCELERATING -> R.drawable.ic_trending_up
         RiskTrend.COOLING -> R.drawable.ic_trending_down
@@ -225,173 +183,190 @@ private fun ScoreBoardCard(
     }
 
     val trendColor = when (safeTrend) {
-        RiskTrend.ACCELERATING -> AlertRed
-        RiskTrend.COOLING -> SuccessGreen
+        RiskTrend.ACCELERATING -> PulseRed
+        RiskTrend.COOLING -> PulseGreen
         RiskTrend.STABLE -> PulseLightGray
         RiskTrend.UNKNOWN -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 
-    Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
-        modifier = Modifier.fillMaxWidth()
+    // 💡 FIX: Removed the parent wrapper Card so the alpha blends cleanly with the background!
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(
+        // ==========================================
+        // TOP: NESTED CARDS (Mirrors AssetCard Style)
+        // ==========================================
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(dimensionResource(id = R.dimen.padding_xlarge)),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .height(IntrinsicSize.Max),
+            horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_medium))
         ) {
-
-            // ==========================================
-            // TOP: OVERALL SCORE SECTION
-            // ==========================================
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
+            // --- INNER CARD 1: Vulnerability ---
+            Card(
+                // 💡 FIX: Standardized alpha to 0.20f
+                colors = CardDefaults.cardColors(containerColor = statusColor.copy(alpha = 0.20f)),
+                shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card_large)),
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .weight(1f)
+                    .fillMaxHeight()
                     .clickable {
                         val overallDummyGauge = Gauge(null, data.score ?: 0, safeStatus.name)
-                        onClick(
-                            SelectedGaugeState(
-                                title = vulnerabilityTitle,
-                                gauge = overallDummyGauge,
-                                definition = GaugeDictionary.overallScore
-                            )
+                        onClick(SelectedGaugeState(vulnerabilityTitle, overallDummyGauge, GaugeDictionary.overallScore))
+                    }
+            ) {
+                Column(
+                    modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = vulnerabilityTitle,
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_chevron_forward),
+                            contentDescription = "Details",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(dimensionResource(id = R.dimen.icon_size_small))
                         )
                     }
-                    .padding(vertical = dimensionResource(id = R.dimen.padding_tiny))
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.radar_title_vulnerability).uppercase(),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.secondary
-                    )
-                    Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_medium)))
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_info),
-                        contentDescription = stringResource(id = R.string.radar_content_desc_info),
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(dimensionResource(id = R.dimen.icon_size_medium))
-                    )
+
+                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
+
+                    Box(
+                        modifier = Modifier.fillMaxWidth().weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        VulnerabilityScoreChart(
+                            score = data.score ?: 0,
+                            statusText = safeStatus.name,
+                            statusColor = statusColor
+                        )
+                    }
                 }
-
-                Text(
-                    text = data.score?.toString() ?: "--",
-                    style = MaterialTheme.typography.headlineLarge,
-                    color = statusColor
-                )
-
-                Text(
-                    text = safeStatus.name,
-                    style = MaterialTheme.typography.titleLarge,
-                    color = statusColor
-                )
             }
 
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
-            HorizontalDivider(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f))
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
-
-            // ==========================================
-            // MIDDLE: TREND SECTION (Mini-Scoreboard)
-            // ==========================================
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
+            // --- INNER CARD 2: Trend (Momentum Shift) ---
+            Card(
+                // 💡 FIX: Standardized alpha to 0.20f
+                colors = CardDefaults.cardColors(containerColor = trendColor.copy(alpha = 0.20f)),
+                shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card_large)),
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .weight(1f)
+                    .fillMaxHeight()
                     .clickable {
                         val trendDummyGauge = Gauge(null, data.previousScore ?: 0, safeTrend.name)
-                        onClick(
-                            SelectedGaugeState(
-                                title = trendTitle,
-                                gauge = trendDummyGauge,
-                                definition = GaugeDictionary.trend
-                            )
+                        onClick(SelectedGaugeState(trendTitle, trendDummyGauge, GaugeDictionary.trend))
+                    }
+            ) {
+                Column(
+                    modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = trendTitle,
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_chevron_forward),
+                            contentDescription = "Details",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(dimensionResource(id = R.dimen.icon_size_small))
                         )
                     }
-                    .padding(vertical = dimensionResource(id = R.dimen.padding_small))
-            ) {
-                // Trend Header (Matches Vulnerability header but smaller font)
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.radar_title_trend).uppercase(),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.secondary
-                    )
-                    Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_medium)))
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_info),
-                        contentDescription = stringResource(id = R.string.radar_content_desc_info),
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(dimensionResource(id = R.dimen.icon_size_medium))
-                    )
+
+                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
+
+                    Column(
+                        modifier = Modifier.fillMaxWidth().weight(1f),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        val current = data.score ?: 0
+                        val prev = data.previousScore ?: 0
+                        val delta = current - prev
+                        val sign = if (delta > 0) "+" else ""
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                painter = painterResource(id = trendIconRes),
+                                contentDescription = "Trend",
+                                tint = trendColor,
+                                modifier = Modifier.size(36.dp)
+                            )
+                            Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+                            Text(
+                                text = "$sign$delta pts",
+                                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                                color = trendColor
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
+
+                        Text(
+                            text = "Previous: $prev",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+
+                        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
+
+                        Text(
+                            text = safeTrend.name,
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                            color = trendColor
+                        )
+                    }
                 }
-
-                // Trend Value + Arrow Icon
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center,
-                    modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_tiny))
-                ) {
-                    Text(
-                        text = safeTrend.name,
-                        style = MaterialTheme.typography.titleMedium, // Scaled down from the main score
-                        color = trendColor
-                    )
-                    Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
-                    Icon(
-                        painter = painterResource(id = trendIconRes),
-                        contentDescription = "Trend Icon",
-                        tint = trendColor,
-                        modifier = Modifier.size(dimensionResource(id = R.dimen.icon_size_large))
-                    )
-
-                }
-
-                // Previous Score Label
-                val prevScoreText = data.previousScore?.toString() ?: "--"
-                Text(
-                    text = stringResource(id = R.string.radar_prev_score, prevScoreText),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_tiny))
-                )
             }
-
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
-            HorizontalDivider(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f))
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
-
-            // ==========================================
-            // BOTTOM: ACTION PLAN SECTION
-            // ==========================================
-            Text(
-                text = stringResource(id = R.string.radar_what_this_means).uppercase(),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.padding_small))
-            )
-
-            Text(
-                text = interpretationText,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-                textAlign = TextAlign.Center
-            )
         }
+
+        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
+        HorizontalDivider(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f))
+        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
+
+        // ==========================================
+        // BOTTOM: ACTION PLAN SECTION
+        // ==========================================
+        Text(
+            text = stringResource(id = R.string.radar_what_this_means).uppercase(),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.padding_small))
+        )
+
+        Text(
+            text = interpretationText,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
+        HorizontalDivider(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f))
+        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
+
     }
 }
 
 @Composable
-private fun GaugeCard(
+private fun SystemicGaugeRow(
     title: String,
     gauge: Gauge?,
     definition: GaugeDefinition,
@@ -401,86 +376,98 @@ private fun GaugeCard(
 
     val safeScore = gauge.riskScore ?: 0
     val gaugeColor = when {
-        safeScore >= 80 -> AlertRed
+        safeScore >= 80 -> PulseRed
         safeScore >= 60 -> PulseOrange
         safeScore >= 40 -> PulseGold
-        else -> SuccessGreen
+        else -> PulseGreen
     }
 
-    // Format raw value strictly to 2 decimal places to maintain clean UI alignment
     val formattedRawValue = gauge.value?.let {
         String.format(Locale.US, "%.2f", it)
     } ?: "--"
 
     Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
+        colors = CardDefaults.cardColors(containerColor = gaugeColor.copy(alpha = 0.20f)),
+        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card_large)),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = dimensionResource(id = R.dimen.padding_small))
             .clickable { onClick(SelectedGaugeState(title, gauge, definition)) }
     ) {
-        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
-            // Header Row: Contains Gauge Title and Info Icon
+        // 💡 FIX: The outer container is now a Column to stack the Title Row and the Data Row
+        Column(
+            modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))
+        ) {
+
+            // ==========================================
+            // TOP ROW: Title and Chevron
+            // ==========================================
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Start,
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onBackground
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.weight(1f)
                 )
+
                 Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+
                 Icon(
-                    painter = painterResource(id = R.drawable.ic_info),
-                    contentDescription = stringResource(id = R.string.radar_content_desc_info),
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(dimensionResource(id = R.dimen.icon_size_medium))
+                    painter = painterResource(id = R.drawable.ic_chevron_forward),
+                    contentDescription = "Details",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(dimensionResource(id = R.dimen.icon_size_small))
                 )
             }
 
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_tiny)))
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
 
-            // Data Row: Contains status label, raw value, and the visual progress bar
+            // ==========================================
+            // BOTTOM ROW: Stats and Progress Bar
+            // ==========================================
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Bottom
             ) {
-                // Left side: Text Data
+                // Left Side: Raw Value and Label
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = gauge.label ?: stringResource(id = R.string.radar_data_unavailable),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = gaugeColor,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_tiny)))
                     Text(
                         text = stringResource(id = R.string.radar_raw_value, formattedRawValue),
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
+                    Text(
+                        text = gauge.label ?: stringResource(id = R.string.radar_data_unavailable),
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = gaugeColor,
                     )
                 }
 
-                // Right side: Visual Gauge Data
-                Column(horizontalAlignment = Alignment.End) {
+                // Right Side: Score and Progress Bar
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.Bottom
+                ) {
                     Text(
                         text = stringResource(id = R.string.radar_score_out_of_100, safeScore),
                         style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.padding_small))
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+
+                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
 
                     LinearProgressIndicator(
                         progress = { safeScore / 100f },
                         modifier = Modifier
-                            .width(dimensionResource(id = R.dimen.progress_bar_width_large))
+                            .width(100.dp) // 💡 Restored to 100dp since it doesn't fight the title for space!
                             .height(dimensionResource(id = R.dimen.progress_bar_height)),
                         color = gaugeColor,
-                        trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                        trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f),
                         strokeCap = StrokeCap.Round,
                         gapSize = 0.dp,
                         drawStopIndicator = {}
@@ -491,112 +478,79 @@ private fun GaugeCard(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GaugeEducationalBottomSheet(
-    selectedState: SelectedGaugeState,
-    onDismiss: () -> Unit
-) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.surface
-    ) {
-        Column(
+fun VulnerabilityScoreChart(score: Int, statusText: String, statusColor: Color) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(all = dimensionResource(id = R.dimen.padding_large))
+                .fillMaxWidth(0.5f)
+                .aspectRatio(1f),
+            contentAlignment = Alignment.Center
         ) {
-            // Sheet Title
-            Text(
-                text = selectedState.title,
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                val strokeWidth = 24f
+                val sweepAngle = (score / 100f) * 360f
 
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
+                val inset = strokeWidth / 2
+                val arcSize = androidx.compose.ui.geometry.Size(
+                    width = size.width - strokeWidth,
+                    height = size.height - strokeWidth
+                )
 
-            // Highlighted Current Status Banner
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = dimensionResource(id = R.dimen.padding_medium)),
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                shape = RoundedCornerShape(dimensionResource(id = R.dimen.padding_small)),
-            ) {
-                Row(
-                    modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)),
-                    horizontalArrangement = Arrangement.Start,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.radar_current_status),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        modifier = Modifier.padding(start = dimensionResource(id = R.dimen.padding_medium)),
-                        text = selectedState.gauge.label ?: stringResource(id = R.string.radar_unknown),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+                // Faint Background Track
+                drawArc(
+                    color = statusColor.copy(alpha = 0.15f),
+                    startAngle = 0f,
+                    sweepAngle = 360f,
+                    useCenter = false,
+                    topLeft = Offset(inset, inset), // 💡 Applied Inset
+                    size = arcSize,                 // 💡 Applied bounded size
+                    style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
+                )
+
+                // Foreground Progress Arc
+                drawArc(
+                    color = statusColor,
+                    startAngle = 270f,
+                    sweepAngle = sweepAngle,
+                    useCenter = false,
+                    topLeft = Offset(inset, inset), // 💡 Applied Inset
+                    size = arcSize,                 // 💡 Applied bounded size
+                    style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
+                )
             }
 
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_xlarge)))
-
-            // Educational Concept Description
             Text(
-                text = stringResource(id = R.string.radar_what_it_measures),
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.secondary
-            )
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_tiny)))
-            Text(
-                text = selectedState.definition.whatItMeasures,
-                style = MaterialTheme.typography.bodyMedium,
+                text = score.toString(),
+                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.onSurface
             )
-
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_xlarge)))
-
-            // Evaluation Brackets Breakdown
-            Text(
-                text = stringResource(id = R.string.radar_how_to_read_it),
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.secondary
-            )
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
-
-            selectedState.definition.brackets.forEach { (bracketName, description) ->
-                Row(modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.padding_medium))) {
-                    Box(
-                        modifier = Modifier
-                            .padding(top = dimensionResource(id = R.dimen.padding_tiny))
-                            .size(dimensionResource(id = R.dimen.bullet_size))
-                            .background(
-                                MaterialTheme.colorScheme.primary,
-                                shape = RoundedCornerShape(50)
-                            )
-                    )
-                    Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_medium)))
-                    Column {
-                        Text(
-                            text = bracketName,
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(
-                            text = description,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
         }
+
+        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
+
+        Text(
+            text = statusText,
+            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+            color = statusColor
+        )
+    }
+}
+
+@Composable
+fun SystemicPlumbingCard(
+    gauges: RiskGauges,
+    onClick: (SelectedGaugeState) -> Unit
+) {
+    // 💡 FIX: Replaced the outer wrapper Card with a Column to match Dashboard grid layout
+    Column(
+        verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_medium)),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        SystemicGaugeRow(stringResource(id = R.string.gauge_recession), gauges.recession, GaugeDictionary.recession, onClick)
+        SystemicGaugeRow(stringResource(id = R.string.gauge_foundation), gauges.foundation, GaugeDictionary.foundation, onClick)
+        SystemicGaugeRow(stringResource(id = R.string.gauge_credit), gauges.canary, GaugeDictionary.canary, onClick)
+        SystemicGaugeRow(stringResource(id = R.string.gauge_rotation), gauges.rotation, GaugeDictionary.rotation, onClick)
+        SystemicGaugeRow(stringResource(id = R.string.gauge_growth), gauges.growthFear, GaugeDictionary.growthFear, onClick)
     }
 }
