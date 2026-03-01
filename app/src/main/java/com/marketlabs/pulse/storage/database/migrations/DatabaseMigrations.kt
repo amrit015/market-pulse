@@ -47,6 +47,25 @@ object DatabaseMigrations {
         }
     }
 
+    // 💡 NEW: Migration from Version 3 to Version 4 for Market Indicators (Traffic Light)
+    val MIGRATION_3_4 = object : Migration(3, 4) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `market_indicators` (
+                    `dateId` TEXT NOT NULL, 
+                    `lastSyncedTimestamp` INTEGER NOT NULL, 
+                    `summary` TEXT, 
+                    `trendPhase` TEXT, 
+                    `healthPhase` TEXT, 
+                    `riskPhase` TEXT, 
+                    PRIMARY KEY(`dateId`)
+                )
+                """.trimIndent()
+            )
+        }
+    }
+
     // 💡 UPDATED: Add the new migration to the active list
-    val ALL_MIGRATIONS = arrayOf(MIGRATION_1_2, MIGRATION_2_3)
+    val ALL_MIGRATIONS = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
 }
