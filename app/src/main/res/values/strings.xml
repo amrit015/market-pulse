@@ -63,4 +63,5 @@
     <string name="radar_title_vulnerability">Vulnerability Score</string>
     <string name="radar_title_trend">Trend</string>
     <string name="radar_prev_score">(Previous: %1$s)</string>
+    <string name="close">Close</string>
 </resources>

@@ -51,6 +51,8 @@ enum class TradingCall(val label: String) {
 // 4. Report Type (Kept Title Case as per index.ts schema)
 enum class ReportType(val label: String) {
     DAILY("Daily"),
+    DAILY_MARKET_PULSE("Daily Market Pulse"),
+    DAILY_UPDATE("Daily Update"),
     WEEKLY_LOOKAHEAD("Weekly Lookahead"),
     WEEKEND_UPDATE("Weekend Update"),
     UNKNOWN("Unknown");

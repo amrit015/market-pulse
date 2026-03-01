@@ -56,10 +56,9 @@ object GaugeDictionary {
         )
     )
 
-    // Inside GaugeDictionary.kt
-
     val overallScore = GaugeDefinition(
-        whatItMeasures = "The Vulnerability Score is a blended macroeconomic aggregate measuring hidden systemic stress in the financial plumbing. It analyzes bond volatility, yield curve inversions, credit spreads, and institutional asset rotation to detect danger before it hits the stock market.",
+        whatItMeasures = "The Vulnerability Score is a blended macroeconomic aggregate measuring hidden systemic stress. It analyzes bond volatility, yield curve inversions, credit spreads, and institutional asset rotation. \n\n" +
+                "Note: The model includes a 'Contagion Penalty'. If any single gauge flashes extreme danger, the overall score is automatically pushed higher to reflect the risk of market contagion, even if other areas appear calm.",
         brackets = listOf(
             "0 to 39 (SAFE)" to "Market foundation is highly stable. Favorable conditions for broad market exposure and growth assets.",
             "40 to 59 (STABLE)" to "Market is experiencing normal background noise. Maintain current positions but increase selectivity.",
@@ -67,8 +66,6 @@ object GaugeDictionary {
             "80 to 100 (DANGER)" to "Severe market plumbing breakdown. Prioritize capital preservation, raise cash, and deploy downside hedges."
         )
     )
-
-    // Add this inside your GaugeDictionary object:
 
     val trend = GaugeDefinition(
         whatItMeasures = "Trend measures the velocity of systemic risk by comparing today's score to yesterday's. It helps identify if market conditions are actively deteriorating or healing, filtering out minor day-to-day noise.",

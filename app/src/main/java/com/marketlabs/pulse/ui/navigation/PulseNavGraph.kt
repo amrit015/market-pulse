@@ -19,10 +19,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.ui.screens.extra.PulseWebViewScreen
 import com.marketlabs.pulse.ui.screens.news.views.NewsRoute
 import com.marketlabs.pulse.ui.screens.overview.views.MarketOverviewRoute
 import com.marketlabs.pulse.ui.screens.riskRadar.views.RiskRadarRoute
 import com.marketlabs.pulse.ui.screens.summary.views.MarketSummaryRoute
+import java.net.URLDecoder
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 /**
  * Centralize and define the navigation structure and logic for MarketLabs Pulse using Compose Navigation.
@@ -66,8 +70,8 @@ fun PulseNavGraph() {
             NavigationBar(
                 containerColor = MaterialTheme.colorScheme.surface,
                 contentColor = MaterialTheme.colorScheme.primary,
-                // 2. Clear default insets so we control the exact padding
-                windowInsets = WindowInsets(15, 15, 15, 60)
+                // Clear default insets so we control the exact padding
+                windowInsets = WindowInsets(15, 15, 15, 70)
             ) {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentDestination = navBackStackEntry?.destination
@@ -116,7 +120,25 @@ fun PulseNavGraph() {
                 RiskRadarRoute(scaffoldPadding = innerPadding)
             }
             composable(PulseRoutes.MARKET_NEWS) {
-                NewsRoute(scaffoldPadding = innerPadding)
+                NewsRoute(
+                    scaffoldPadding = innerPadding,
+                    // for the webviews
+                    onNavigateToWebView = { url ->
+                        val encodedUrl = URLEncoder.encode(url, StandardCharsets.UTF_8.toString())
+                        navController.navigate("webview/$encodedUrl")
+                    }
+                )
+            }
+            // The WebView Destination
+            composable("webview/{encodedUrl}") { backStackEntry ->
+                val encodedUrl = backStackEntry.arguments?.getString("encodedUrl") ?: ""
+                val decodedUrl = URLDecoder.decode(encodedUrl, StandardCharsets.UTF_8.toString())
+
+                PulseWebViewScreen(
+                    url = decodedUrl,
+                    bottomNavPadding = innerPadding,
+                    onNavigateUp = { navController.popBackStack() }
+                )
             }
         }
     }
