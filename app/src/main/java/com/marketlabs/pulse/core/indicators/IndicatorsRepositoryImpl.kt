@@ -3,7 +3,7 @@ package com.marketlabs.pulse.core.indicators
 import android.util.Log
 import com.marketlabs.pulse.network.store.indicators.RemoteIndicatorsDataSource
 import com.marketlabs.pulse.storage.model.indicators.MarketIndicators
-import com.marketlabs.pulse.storage.repository.indicators.LocalIndicatorsDataSource
+import com.marketlabs.pulse.storage.store.indicators.LocalIndicatorsDataSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import java.text.SimpleDateFormat

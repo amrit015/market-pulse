@@ -4,8 +4,8 @@ import com.marketlabs.pulse.core.news.NewsRepository
 import com.marketlabs.pulse.core.news.NewsRepositoryImpl
 import com.marketlabs.pulse.network.store.news.RemoteNewsDataSource
 import com.marketlabs.pulse.network.store.news.RemoteNewsDataSourceImpl
-import com.marketlabs.pulse.storage.repository.news.LocalNewsDataSource
-import com.marketlabs.pulse.storage.repository.news.LocalNewsDataSourceImpl
+import com.marketlabs.pulse.storage.store.news.LocalNewsDataSource
+import com.marketlabs.pulse.storage.store.news.LocalNewsDataSourceImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

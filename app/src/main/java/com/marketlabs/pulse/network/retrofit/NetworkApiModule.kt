@@ -1,5 +1,6 @@
 package com.marketlabs.pulse.network.retrofit
 
+import com.marketlabs.pulse.network.api.DashboardApi
 import com.marketlabs.pulse.network.api.IndicatorsApi
 import com.marketlabs.pulse.network.api.MarketPulseApi
 import com.marketlabs.pulse.network.api.NewsApi
@@ -94,12 +95,19 @@ object NetworkApiModule {
         return retrofit.create(RiskRadarApi::class.java)
     }
 
-
     @Provides
     @Singleton
     fun provideIndicatorsApi(
         @Named("MarketPulseRetrofit") retrofit: Retrofit
     ): IndicatorsApi {
         return retrofit.create(IndicatorsApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDashboardApi(
+        @Named("MarketPulseRetrofit") retrofit: Retrofit
+    ): DashboardApi {
+        return retrofit.create(DashboardApi::class.java)
     }
 }

@@ -30,13 +30,13 @@
     <dimen name="corner_radius_card">12dp</dimen>
     <dimen name="corner_radius_card_large">16dp</dimen>
     <dimen name="corner_radius_card_extra_large">24dp</dimen>
+    <dimen name="corner_radius_pill">50dp</dimen>
 
     <dimen name="gauge_size">160dp</dimen>
-    <dimen name="gauge_stroke_width">12dp</dimen>
-
-<!--    <dimen name="padding_tiny">4dp</dimen>-->
-<!--    <dimen name="padding_small">8dp</dimen>-->
-<!--    <dimen name="padding_medium">12dp</dimen>-->
-<!--    <dimen name="padding_large">16dp</dimen>-->
-<!--    <dimen name="padding_extra_large">24dp</dimen>-->
+    <dimen name="gauge_stroke_width">10dp</dimen>
+    <dimen name="gauge_needle_width">3dp</dimen>
+    <dimen name="gauge_needle_radius">4dp</dimen>
+    <dimen name="gauge_needle_overhang">6dp</dimen>
+    <dimen name="bar_tick_overhang">4dp</dimen>
+    <dimen name="vix_corner_radius">16dp</dimen>
 </resources>

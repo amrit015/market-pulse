@@ -3,7 +3,7 @@ package com.marketlabs.pulse.core.news
 import android.util.Log
 import com.marketlabs.pulse.network.store.news.RemoteNewsDataSource
 import com.marketlabs.pulse.storage.model.news.MarketNews
-import com.marketlabs.pulse.storage.repository.news.LocalNewsDataSource
+import com.marketlabs.pulse.storage.store.news.LocalNewsDataSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import javax.inject.Inject
