@@ -25,9 +25,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.dashboard.AssetOverview
-import com.marketlabs.pulse.ui.theme.ColorBearish
-import com.marketlabs.pulse.ui.theme.ColorBullish
-import com.marketlabs.pulse.ui.theme.ColorNeutral
+import com.marketlabs.pulse.ui.theme.PulseStatusColors.BearishText
+import com.marketlabs.pulse.ui.theme.PulseStatusColors.BullishText
+import com.marketlabs.pulse.ui.theme.PulseStatusColors.NeutralText
 import com.marketlabs.pulse.utils.verticalScrollbar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -256,9 +256,9 @@ fun ColoredMetricItem(
     statusForColor: String = value
 ) {
     val color = when (statusForColor.uppercase()) {
-        "BULLISH", "EXTREME GREED", "GREED", "OVERSOLD" -> ColorBullish
-        "BEARISH", "EXTREME FEAR", "FEAR", "OVERBOUGHT" -> ColorBearish
-        else -> ColorNeutral
+        "BULLISH", "EXTREME GREED", "GREED", "OVERSOLD" -> BullishText
+        "BEARISH", "EXTREME FEAR", "FEAR", "OVERBOUGHT" -> BearishText
+        else -> NeutralText
     }
 
     Column(modifier = Modifier.padding(end = paddingRight)) {

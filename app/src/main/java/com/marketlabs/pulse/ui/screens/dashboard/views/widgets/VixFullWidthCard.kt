@@ -27,12 +27,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.dashboard.AssetOverview
-import com.marketlabs.pulse.ui.theme.ColorBearish
-import com.marketlabs.pulse.ui.theme.ColorBullish
+import com.marketlabs.pulse.ui.theme.ColorGreen
 import com.marketlabs.pulse.ui.theme.ColorNeutral
-
+import com.marketlabs.pulse.ui.theme.ColorRed
 @Composable
 fun VixFullWidthCard(asset: AssetOverview, onClick: () -> Unit) {
+
+    val colorGreen  = ColorGreen
+    val colorRed = ColorRed
+    val colorNeutral = ColorNeutral
+
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
     val paddingMedium = dimensionResource(id = R.dimen.padding_medium)
 
@@ -91,7 +95,7 @@ fun VixFullWidthCard(asset: AssetOverview, onClick: () -> Unit) {
                         Text(
                             text = "$sign${String.format("%.2f", change)}%",
                             style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                            color = if (change > 0) ColorBearish else ColorBullish,
+                            color = if (change > 0) colorRed else colorGreen,
                             modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.padding_tiny))
                         )
                     }
@@ -115,7 +119,7 @@ fun VixFullWidthCard(asset: AssetOverview, onClick: () -> Unit) {
 
                 drawRoundRect(
                     brush = Brush.horizontalGradient(
-                        listOf(ColorBullish, ColorNeutral, ColorBearish)
+                        listOf(colorGreen, colorNeutral, colorRed)
                     ),
                     size = size,
                     cornerRadius = CornerRadius(cornerRadius, cornerRadius)

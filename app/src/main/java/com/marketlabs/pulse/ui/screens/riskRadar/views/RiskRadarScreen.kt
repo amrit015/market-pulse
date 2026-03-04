@@ -56,11 +56,7 @@ import com.marketlabs.pulse.storage.model.riskRadar.enums.RiskTrend
 import com.marketlabs.pulse.ui.screens.riskRadar.GaugeDefinition
 import com.marketlabs.pulse.ui.screens.riskRadar.GaugeDictionary
 import com.marketlabs.pulse.ui.screens.riskRadar.views.widgets.GaugeEducationalBottomSheet
-import com.marketlabs.pulse.ui.theme.PulseRed
-import com.marketlabs.pulse.ui.theme.PulseGold
-import com.marketlabs.pulse.ui.theme.PulseLightGray
-import com.marketlabs.pulse.ui.theme.PulseOrange
-import com.marketlabs.pulse.ui.theme.PulseGreen
+import com.marketlabs.pulse.ui.theme.PulseStatusColors // 💡 NEW: Imported the centralized colors
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -142,9 +138,10 @@ private fun RadarHeaderSection(timestamp: Long) {
         val format = SimpleDateFormat("MMM dd, h:mm a", Locale.getDefault())
 
         Text(
-            text = stringResource(id = R.string.pulse_updated_at, format.format(date)),
+            text = "Analyzed as of ${format.format(date)}",
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_micro))
         )
     }
 }
@@ -161,11 +158,19 @@ private fun ScoreBoardCard(
     val trendTitle = stringResource(id = R.string.radar_title_trend)
 
     val statusColor = when (safeStatus) {
-        RiskStatus.SAFE -> PulseGreen
-        RiskStatus.STABLE -> PulseGold
-        RiskStatus.CAUTION -> PulseOrange
-        RiskStatus.DANGER -> PulseRed
+        RiskStatus.SAFE -> PulseStatusColors.BullishText
+        RiskStatus.STABLE -> PulseStatusColors.NeutralText
+        RiskStatus.CAUTION -> PulseStatusColors.WarningText
+        RiskStatus.DANGER -> PulseStatusColors.BearishText
         RiskStatus.UNKNOWN -> MaterialTheme.colorScheme.onSurfaceVariant
+    }
+
+    val statusBgColor = when (safeStatus) {
+        RiskStatus.SAFE -> PulseStatusColors.BullishBg
+        RiskStatus.STABLE -> PulseStatusColors.NeutralBg
+        RiskStatus.CAUTION -> PulseStatusColors.WarningBg
+        RiskStatus.DANGER -> PulseStatusColors.BearishBg
+        RiskStatus.UNKNOWN -> MaterialTheme.colorScheme.surfaceVariant
     }
 
     val interpretationText = when (safeStatus) {
@@ -183,20 +188,23 @@ private fun ScoreBoardCard(
     }
 
     val trendColor = when (safeTrend) {
-        RiskTrend.ACCELERATING -> PulseRed
-        RiskTrend.COOLING -> PulseGreen
-        RiskTrend.STABLE -> PulseLightGray
+        RiskTrend.ACCELERATING -> PulseStatusColors.BearishText
+        RiskTrend.COOLING -> PulseStatusColors.BullishText
+        RiskTrend.STABLE -> PulseStatusColors.NeutralText
         RiskTrend.UNKNOWN -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 
-    // 💡 FIX: Removed the parent wrapper Card so the alpha blends cleanly with the background!
+    val trendBgColor = when (safeTrend) {
+        RiskTrend.ACCELERATING -> PulseStatusColors.BearishBg
+        RiskTrend.COOLING -> PulseStatusColors.BullishBg
+        RiskTrend.STABLE -> PulseStatusColors.NeutralBg
+        RiskTrend.UNKNOWN -> MaterialTheme.colorScheme.surfaceVariant
+    }
+
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // ==========================================
-        // TOP: NESTED CARDS (Mirrors AssetCard Style)
-        // ==========================================
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -205,8 +213,7 @@ private fun ScoreBoardCard(
         ) {
             // --- INNER CARD 1: Vulnerability ---
             Card(
-                // 💡 FIX: Standardized alpha to 0.20f
-                colors = CardDefaults.cardColors(containerColor = statusColor.copy(alpha = 0.20f)),
+                colors = CardDefaults.cardColors(containerColor = statusBgColor),
                 shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card_large)),
                 modifier = Modifier
                     .weight(1f)
@@ -255,8 +262,7 @@ private fun ScoreBoardCard(
 
             // --- INNER CARD 2: Trend (Momentum Shift) ---
             Card(
-                // 💡 FIX: Standardized alpha to 0.20f
-                colors = CardDefaults.cardColors(containerColor = trendColor.copy(alpha = 0.20f)),
+                colors = CardDefaults.cardColors(containerColor = trendBgColor),
                 shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card_large)),
                 modifier = Modifier
                     .weight(1f)
@@ -341,9 +347,6 @@ private fun ScoreBoardCard(
         HorizontalDivider(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f))
         Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
 
-        // ==========================================
-        // BOTTOM: ACTION PLAN SECTION
-        // ==========================================
         Text(
             text = stringResource(id = R.string.radar_what_this_means).uppercase(),
             style = MaterialTheme.typography.labelLarge,
@@ -375,11 +378,19 @@ private fun SystemicGaugeRow(
     if (gauge == null) return
 
     val safeScore = gauge.riskScore ?: 0
+
     val gaugeColor = when {
-        safeScore >= 80 -> PulseRed
-        safeScore >= 60 -> PulseOrange
-        safeScore >= 40 -> PulseGold
-        else -> PulseGreen
+        safeScore >= 80 -> PulseStatusColors.BearishText
+        safeScore >= 60 -> PulseStatusColors.WarningText
+        safeScore >= 40 -> PulseStatusColors.NeutralText
+        else -> PulseStatusColors.BullishText
+    }
+
+    val gaugeBgColor = when {
+        safeScore >= 80 -> PulseStatusColors.BearishBg
+        safeScore >= 60 -> PulseStatusColors.WarningBg
+        safeScore >= 40 -> PulseStatusColors.NeutralBg
+        else -> PulseStatusColors.BullishBg
     }
 
     val formattedRawValue = gauge.value?.let {
@@ -387,20 +398,15 @@ private fun SystemicGaugeRow(
     } ?: "--"
 
     Card(
-        colors = CardDefaults.cardColors(containerColor = gaugeColor.copy(alpha = 0.20f)),
+        colors = CardDefaults.cardColors(containerColor = gaugeBgColor),
         shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card_large)),
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick(SelectedGaugeState(title, gauge, definition)) }
     ) {
-        // 💡 FIX: The outer container is now a Column to stack the Title Row and the Data Row
         Column(
             modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))
         ) {
-
-            // ==========================================
-            // TOP ROW: Title and Chevron
-            // ==========================================
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -425,15 +431,11 @@ private fun SystemicGaugeRow(
 
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
 
-            // ==========================================
-            // BOTTOM ROW: Stats and Progress Bar
-            // ==========================================
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Bottom
             ) {
-                // Left Side: Raw Value and Label
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = stringResource(id = R.string.radar_raw_value, formattedRawValue),
@@ -448,7 +450,6 @@ private fun SystemicGaugeRow(
                     )
                 }
 
-                // Right Side: Score and Progress Bar
                 Column(
                     horizontalAlignment = Alignment.End,
                     verticalArrangement = Arrangement.Bottom
@@ -464,7 +465,7 @@ private fun SystemicGaugeRow(
                     LinearProgressIndicator(
                         progress = { safeScore / 100f },
                         modifier = Modifier
-                            .width(100.dp) // 💡 Restored to 100dp since it doesn't fight the title for space!
+                            .width(100.dp)
                             .height(dimensionResource(id = R.dimen.progress_bar_height)),
                         color = gaugeColor,
                         trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f),
@@ -503,8 +504,8 @@ fun VulnerabilityScoreChart(score: Int, statusText: String, statusColor: Color) 
                     startAngle = 0f,
                     sweepAngle = 360f,
                     useCenter = false,
-                    topLeft = Offset(inset, inset), // 💡 Applied Inset
-                    size = arcSize,                 // 💡 Applied bounded size
+                    topLeft = Offset(inset, inset),
+                    size = arcSize,
                     style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
                 )
 
@@ -514,8 +515,8 @@ fun VulnerabilityScoreChart(score: Int, statusText: String, statusColor: Color) 
                     startAngle = 270f,
                     sweepAngle = sweepAngle,
                     useCenter = false,
-                    topLeft = Offset(inset, inset), // 💡 Applied Inset
-                    size = arcSize,                 // 💡 Applied bounded size
+                    topLeft = Offset(inset, inset),
+                    size = arcSize,
                     style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
                 )
             }
@@ -542,7 +543,6 @@ fun SystemicPlumbingCard(
     gauges: RiskGauges,
     onClick: (SelectedGaugeState) -> Unit
 ) {
-    // 💡 FIX: Replaced the outer wrapper Card with a Column to match Dashboard grid layout
     Column(
         verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_medium)),
         modifier = Modifier.fillMaxWidth()

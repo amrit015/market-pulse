@@ -47,12 +47,12 @@ import com.marketlabs.pulse.storage.model.summary.NewsItem
 import com.marketlabs.pulse.storage.model.summary.Verdict
 import com.marketlabs.pulse.storage.model.summary.enums.ReportType
 import com.marketlabs.pulse.storage.model.summary.enums.TradingCall
-import com.marketlabs.pulse.ui.theme.ColorBearish
-import com.marketlabs.pulse.ui.theme.ColorBearishBackground
-import com.marketlabs.pulse.ui.theme.ColorBullish
-import com.marketlabs.pulse.ui.theme.ColorBullishBackground
-import com.marketlabs.pulse.ui.theme.ColorNeutral
-import com.marketlabs.pulse.ui.theme.ColorNeutralBackground
+import com.marketlabs.pulse.ui.theme.PulseStatusColors.BearishBg
+import com.marketlabs.pulse.ui.theme.PulseStatusColors.BearishText
+import com.marketlabs.pulse.ui.theme.PulseStatusColors.BullishBg
+import com.marketlabs.pulse.ui.theme.PulseStatusColors.BullishText
+import com.marketlabs.pulse.ui.theme.PulseStatusColors.NeutralBg
+import com.marketlabs.pulse.ui.theme.PulseStatusColors.NeutralText
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -438,11 +438,11 @@ fun VerdictCard(verdict: Verdict) {
 
     val (bgColor, textColor) = when (call) {
         TradingCall.CONTRARIAN_BUY,
-        TradingCall.ACCUMULATE -> Pair(ColorBullishBackground, ColorBullish)
+        TradingCall.ACCUMULATE -> Pair(BullishBg, BullishText)
         TradingCall.CONTRARIAN_SELL,
         TradingCall.SELL_AVOID,
-        TradingCall.HEDGE_PROTECT -> Pair(ColorBearishBackground, ColorBearish)
-        else -> Pair(ColorNeutralBackground, ColorNeutral)
+        TradingCall.HEDGE_PROTECT -> Pair(BearishBg, BearishText)
+        else -> Pair(NeutralBg, NeutralText)
     }
 
     Card(

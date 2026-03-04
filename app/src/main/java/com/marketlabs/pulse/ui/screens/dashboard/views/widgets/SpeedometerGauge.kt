@@ -21,9 +21,9 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.font.FontWeight
 import com.marketlabs.pulse.R
-import com.marketlabs.pulse.ui.theme.ColorBearish
-import com.marketlabs.pulse.ui.theme.ColorBullish
+import com.marketlabs.pulse.ui.theme.ColorGreen
 import com.marketlabs.pulse.ui.theme.ColorNeutral
+import com.marketlabs.pulse.ui.theme.ColorRed
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -35,6 +35,10 @@ fun SpeedometerGauge(score: Double, change: Double?, status: String?) {
     val strokeWidthDimen = dimensionResource(id = R.dimen.gauge_stroke_width)
     val needleWidthDimen = dimensionResource(id = R.dimen.gauge_needle_width)
     val needleRadiusDimen = dimensionResource(id = R.dimen.gauge_needle_radius)
+
+    val colorGreen  = ColorGreen
+    val colorRed = ColorRed
+    val colorNeutral = ColorNeutral
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -58,7 +62,7 @@ fun SpeedometerGauge(score: Double, change: Double?, status: String?) {
                 val canvasHeight = size.height
 
                 val brush = Brush.horizontalGradient(
-                    colors = listOf(ColorBearish, ColorNeutral, ColorBullish)
+                    colors = listOf(colorGreen, colorNeutral, colorRed)
                 )
 
                 drawArc(
@@ -105,7 +109,7 @@ fun SpeedometerGauge(score: Double, change: Double?, status: String?) {
                     Text(
                         text = "$sign${String.format("%.2f", change)}%",
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                        color = if (change >= 0) ColorBullish else ColorBearish
+                        color = if (change >= 0) colorRed else colorGreen
                     )
                 }
             }
@@ -116,9 +120,9 @@ fun SpeedometerGauge(score: Double, change: Double?, status: String?) {
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
 
             val statusColor = when (status.uppercase()) {
-                "EXTREME GREED", "GREED" -> ColorBullish
-                "EXTREME FEAR", "FEAR" -> ColorBearish
-                else -> ColorNeutral
+                "EXTREME GREED", "GREED" -> colorRed
+                "EXTREME FEAR", "FEAR" -> colorGreen
+                else -> colorNeutral
             }
             Text(
                 text = status,

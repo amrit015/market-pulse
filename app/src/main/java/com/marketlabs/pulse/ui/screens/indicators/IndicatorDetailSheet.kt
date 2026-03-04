@@ -21,7 +21,7 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import com.marketlabs.pulse.R
-import com.marketlabs.pulse.ui.screens.indicators.views.VerdictNeutralText
+import com.marketlabs.pulse.ui.theme.PulseStatusColors.NeutralText
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,7 +55,7 @@ fun IndicatorDetailSheet(
             Text(
                 text = item.subtitle,
                 style = MaterialTheme.typography.titleMedium,
-                color = VerdictNeutralText
+                color = NeutralText
             )
 
             Spacer(modifier = Modifier.height(paddingExtraLarge))

@@ -36,12 +36,12 @@ import androidx.compose.ui.text.font.FontWeight
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.news.MarketNews
 import com.marketlabs.pulse.storage.model.news.NewsArticle
-import com.marketlabs.pulse.ui.theme.ColorBearish
-import com.marketlabs.pulse.ui.theme.ColorBearishBackground
-import com.marketlabs.pulse.ui.theme.ColorBullish
-import com.marketlabs.pulse.ui.theme.ColorBullishBackground
-import com.marketlabs.pulse.ui.theme.ColorNeutral
-import com.marketlabs.pulse.ui.theme.ColorNeutralBackground
+import com.marketlabs.pulse.ui.theme.PulseStatusColors.BearishBg
+import com.marketlabs.pulse.ui.theme.PulseStatusColors.BearishText
+import com.marketlabs.pulse.ui.theme.PulseStatusColors.BullishBg
+import com.marketlabs.pulse.ui.theme.PulseStatusColors.BullishText
+import com.marketlabs.pulse.ui.theme.PulseStatusColors.NeutralBg
+import com.marketlabs.pulse.ui.theme.PulseStatusColors.NeutralText
 
 @Composable
 fun NewsScreen(
@@ -112,9 +112,9 @@ fun NewsArticleCard(
     val url = article.url ?: ""
 
     val (sentimentColor, sentimentBgColor) = when (sentiment) {
-        "BULLISH" -> Pair(ColorBullish, ColorBullishBackground)
-        "BEARISH" -> Pair(ColorBearish, ColorBearishBackground)
-        else -> Pair(ColorNeutral, ColorNeutralBackground)
+        "BULLISH" -> Pair(BullishText, BullishBg)
+        "BEARISH" -> Pair(BearishText, BearishBg)
+        else -> Pair(NeutralText, NeutralBg)
     }
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
 
