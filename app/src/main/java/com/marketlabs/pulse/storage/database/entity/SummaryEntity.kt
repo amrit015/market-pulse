@@ -19,7 +19,7 @@ data class MarketPulseEntity(
     @PrimaryKey(autoGenerate = false)
     val dateId: String,
     val lastSyncedTimestamp: Long,
-    val serverTimestamp: Long,
+    val lastUpdated: Long,
     val reportType: String,
     val verdict: Verdict? = null,
     val leadStories: List<NewsItem>? = null,
@@ -37,7 +37,7 @@ data class DailyPulseEntity(
     @PrimaryKey(autoGenerate = false)
     val dateId: String,
     val lastSyncedTimestamp: Long,
-    val serverTimestamp: Long,
+    val lastUpdated: Long,
     val reportType: String,
     val verdict: Verdict? = null,
     val leadStories: List<NewsItem>? = null,

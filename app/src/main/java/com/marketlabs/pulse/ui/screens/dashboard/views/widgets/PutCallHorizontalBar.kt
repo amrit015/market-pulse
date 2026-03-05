@@ -27,6 +27,7 @@ import com.marketlabs.pulse.ui.theme.ColorNeutral
 import com.marketlabs.pulse.ui.theme.ColorRed
 import com.marketlabs.pulse.ui.theme.PulseStatusColors.BearishText
 import com.marketlabs.pulse.ui.theme.PulseStatusColors.BullishText
+import com.marketlabs.pulse.ui.theme.PulseStatusColors.NeutralText
 
 @Composable
 fun PutCallHorizontalBar(ratio: Double, change: Double?, status: String?) {
@@ -37,6 +38,10 @@ fun PutCallHorizontalBar(ratio: Double, change: Double?, status: String?) {
     val colorGreen  = ColorGreen
     val colorRed = ColorRed
     val colorNeutral = ColorNeutral
+
+    val textBearish = BearishText
+    val textBullish = BullishText
+    val textNeutral = NeutralText
 
     // Load dimens
     val tickOverhang = dimensionResource(id = R.dimen.bar_tick_overhang)
@@ -72,7 +77,7 @@ fun PutCallHorizontalBar(ratio: Double, change: Double?, status: String?) {
                         Text(
                             text = "$sign${String.format("%.2f", change)}%",
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                            color = if (change > 0) BearishText else BullishText // INVERTED: Ratio UP is Bad
+                            color = if (change > 0) textBearish else textBullish // INVERTED: Ratio UP is Bad
                         )
                     }
                 }
@@ -117,9 +122,9 @@ fun PutCallHorizontalBar(ratio: Double, change: Double?, status: String?) {
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
 
             val statusColor = when (status.uppercase()) {
-                "EXTREME GREED", "GREED", "BULLISH" -> colorGreen
-                "EXTREME FEAR", "FEAR", "BEARISH" -> colorRed
-                else -> colorNeutral
+                "EXTREME GREED", "GREED", "BULLISH" -> textBullish
+                "EXTREME FEAR", "FEAR", "BEARISH" -> textBearish
+                else -> textNeutral
             }
             Text(
                 text = status,

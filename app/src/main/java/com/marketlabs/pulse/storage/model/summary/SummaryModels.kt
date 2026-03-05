@@ -9,10 +9,10 @@ import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class MarketPulse(
-    val dateId: String? = null,
-    val lastSyncedTimestamp: Long? = null,
+    val dateId: String,
+    val lastSyncedTimestamp: Long,
+    val lastUpdated: Long,
     val reportType: ReportType? = null,
-    val timestamp: Long? = null,
     val verdict: Verdict? = null,
     val leadStories: List<NewsItem>? = null,
     val macroMix: List<MacroItem>? = null,

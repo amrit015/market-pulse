@@ -52,7 +52,8 @@ fun NetworkIndicatorItem.toDomain(): IndicatorItem {
 fun MarketIndicators.toEntity(): IndicatorsEntity {
     return IndicatorsEntity(
         dateId = dateId,
-        lastSyncedTimestamp = lastSyncedTimestamp ?: System.currentTimeMillis(),
+        lastSyncedTimestamp = lastSyncedTimestamp,
+        lastUpdated = lastUpdated,
         summary = summary,
         trendPhase = trendPhase,
         healthPhase = healthPhase,
@@ -67,6 +68,7 @@ fun IndicatorsEntity.toDomain(): MarketIndicators {
     return MarketIndicators(
         dateId = dateId,
         lastSyncedTimestamp = lastSyncedTimestamp,
+        lastUpdated = lastUpdated,
         summary = summary,
         trendPhase = trendPhase,
         healthPhase = healthPhase,

@@ -61,6 +61,9 @@ import com.marketlabs.pulse.ui.screens.indicators.FrameworkSheet
 import com.marketlabs.pulse.ui.screens.indicators.IndicatorDetailSheet
 import com.marketlabs.pulse.ui.screens.indicators.IndicatorsDictionary
 import com.marketlabs.pulse.ui.theme.PulseStatusColors
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun SignalColor?.toColor(): Color {
@@ -132,12 +135,12 @@ fun IndicatorsScreen(
                     color = MaterialTheme.colorScheme.onBackground
                 )
 
-                data.lastSyncedTimestamp?.let { timestamp ->
-                    val date = java.util.Date(timestamp)
-                    val format = java.text.SimpleDateFormat("MMM dd, h:mm a", java.util.Locale.getDefault())
+                data.lastUpdated.let { timestamp ->
+                    val date = Date(timestamp)
+                    val format = SimpleDateFormat("MMM dd, h:mm a", Locale.getDefault())
 
                     Text(
-                        text = "Analyzed as of ${format.format(date)}",
+                        text = stringResource(id = R.string.analyzed_at, format.format(date)),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_micro))

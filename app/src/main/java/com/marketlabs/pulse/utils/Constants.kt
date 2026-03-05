@@ -9,11 +9,5 @@ object Constants {
     const val MARKET_PULSE_BASE_URL = "https://api-4pnvedu3ma-uc.a.run.app/"
     const val FINNHUB_TOKEN_ENDPOINT = "wss://ws.finnhub.io?token=${BuildConfig.FINNHUB_KEY}"
 
-    // --- FIRESTORE ---
-    const val COLLECTION_MARKET_DATA = "market_data"
-    const val DOC_ANALYSIS = "analysis"
-
-    // --- DATABASE ---
-    const val MARKET_INDEX_TABLE = "market_indices"
     const val DATABASE_NAME = "market_pulse_db"
 }

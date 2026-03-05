@@ -24,6 +24,9 @@ import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.theme.ColorGreen
 import com.marketlabs.pulse.ui.theme.ColorNeutral
 import com.marketlabs.pulse.ui.theme.ColorRed
+import com.marketlabs.pulse.ui.theme.PulseStatusColors.BearishText
+import com.marketlabs.pulse.ui.theme.PulseStatusColors.BullishText
+import com.marketlabs.pulse.ui.theme.PulseStatusColors.NeutralText
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -39,6 +42,10 @@ fun SpeedometerGauge(score: Double, change: Double?, status: String?) {
     val colorGreen  = ColorGreen
     val colorRed = ColorRed
     val colorNeutral = ColorNeutral
+
+    val textBearish = BearishText
+    val textBullish = BullishText
+    val textNeutral = NeutralText
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -109,7 +116,7 @@ fun SpeedometerGauge(score: Double, change: Double?, status: String?) {
                     Text(
                         text = "$sign${String.format("%.2f", change)}%",
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                        color = if (change >= 0) colorRed else colorGreen
+                        color = if (change >= 0) textBearish else textBullish
                     )
                 }
             }
@@ -120,9 +127,9 @@ fun SpeedometerGauge(score: Double, change: Double?, status: String?) {
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
 
             val statusColor = when (status.uppercase()) {
-                "EXTREME GREED", "GREED" -> colorRed
-                "EXTREME FEAR", "FEAR" -> colorGreen
-                else -> colorNeutral
+                "EXTREME GREED", "GREED" -> textBearish
+                "EXTREME FEAR", "FEAR" -> textBullish
+                else -> textNeutral
             }
             Text(
                 text = status,

@@ -6,7 +6,8 @@ import com.squareup.moshi.JsonClass
 @JsonClass(generateAdapter = true)
 data class NetworkMarketNews(
     @Json(name = "source_count") val sourceCount: Int? = null,
-    @Json(name = "stories") val stories: List<NetworkNewsArticle>? = null
+    @Json(name = "stories") val stories: List<NetworkNewsArticle>? = null,
+    @Json(name = "timestamp") val lastUpdated: Long? = null
 )
 
 @JsonClass(generateAdapter = true)

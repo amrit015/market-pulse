@@ -6,6 +6,7 @@ import com.marketlabs.pulse.storage.model.riskRadar.enums.RiskTrend
 data class RiskRadar(
     val date: String,
     val lastSyncedTimestamp: Long,
+    val lastUpdated: Long,
     val score: Int?,
     val previousScore: Int?,
     val trend: RiskTrend?,

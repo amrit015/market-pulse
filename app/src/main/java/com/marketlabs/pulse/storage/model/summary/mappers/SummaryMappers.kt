@@ -25,13 +25,11 @@ import com.marketlabs.pulse.utils.toDateIdString
 // MAPPERS: Domain -> Entity (Saving to DB)
 // ============================================================================
 
-fun MarketPulse.toMarketPulseEntity(
-    currentSyncTime: Long = System.currentTimeMillis()
-): MarketPulseEntity {
+fun MarketPulse.toMarketPulseEntity(): MarketPulseEntity {
     return MarketPulseEntity(
-        dateId = this.timestamp?.toDateIdString() ?: "",
-        lastSyncedTimestamp = currentSyncTime,
-        serverTimestamp = this.timestamp ?: 0L,
+        dateId = this.lastUpdated.toDateIdString(),
+        lastSyncedTimestamp =  System.currentTimeMillis(),
+        lastUpdated = this.lastUpdated,
         reportType = this.reportType?.label ?: "",
         verdict = this.verdict,
         leadStories = this.leadStories,
@@ -41,13 +39,11 @@ fun MarketPulse.toMarketPulseEntity(
     )
 }
 
-fun MarketPulse.toDailyPulseEntity(
-    currentSyncTime: Long = System.currentTimeMillis()
-): DailyPulseEntity {
+fun MarketPulse.toDailyPulseEntity(): DailyPulseEntity {
     return DailyPulseEntity(
-        dateId = this.timestamp?.toDateIdString() ?: "",
-        lastSyncedTimestamp = currentSyncTime,
-        serverTimestamp = this.timestamp ?: 0L,
+        dateId = this.lastUpdated.toDateIdString(),
+        lastSyncedTimestamp = System.currentTimeMillis(),
+        lastUpdated = this.lastUpdated,
         reportType = this.reportType?.label ?: "",
         verdict = this.verdict,
         leadStories = this.leadStories,
@@ -63,8 +59,10 @@ fun MarketPulse.toDailyPulseEntity(
 
 fun MarketPulseEntity.toDomain(): MarketPulse {
     return MarketPulse(
+        dateId = this.dateId,
         reportType = ReportType.from(this.reportType),
-        timestamp = this.serverTimestamp,
+        lastUpdated = this.lastUpdated,
+        lastSyncedTimestamp = this.lastSyncedTimestamp,
         verdict = this.verdict,
         leadStories = this.leadStories,
         macroMix = this.macroMix,
@@ -75,8 +73,10 @@ fun MarketPulseEntity.toDomain(): MarketPulse {
 
 fun DailyPulseEntity.toDomain(): MarketPulse {
     return MarketPulse(
+        dateId = this.dateId,
+        lastSyncedTimestamp = this.lastSyncedTimestamp,
         reportType = ReportType.from(this.reportType),
-        timestamp = this.serverTimestamp,
+        lastUpdated = this.lastUpdated,
         verdict = this.verdict,
         leadStories = this.leadStories,
         macroMix = this.macroMix,
@@ -89,8 +89,10 @@ fun DailyPulseEntity.toDomain(): MarketPulse {
 fun NetworkMarketPulse.toDomain(): MarketPulse {
     return MarketPulse(
         // 1. Convert String -> ReportType Enum
+        dateId = this.lastUpdated?.toDateIdString() ?: "",
+        lastSyncedTimestamp = System.currentTimeMillis(),
         reportType = ReportType.from(this.reportType),
-        timestamp = this.timestamp,
+        lastUpdated = this.lastUpdated ?: 0L,
         verdict = this.verdict?.toDomain(),
         leadStories = this.leadStories?.map { it.toDomain() } ?: emptyList(),
         macroMix = this.macroMix?.map { it.toDomain() } ?: emptyList(),

@@ -12,6 +12,7 @@ import com.marketlabs.pulse.storage.model.indicators.PhaseSummary
 data class IndicatorsEntity(
     @PrimaryKey(autoGenerate = false) val dateId: String,
     val lastSyncedTimestamp: Long,
+    val lastUpdated: Long,
     val summary: PhaseSummary? = null,
     val trendPhase: PhaseDetails? = null,
     val healthPhase: PhaseDetails? = null,

@@ -30,12 +30,18 @@ import com.marketlabs.pulse.storage.model.dashboard.AssetOverview
 import com.marketlabs.pulse.ui.theme.ColorGreen
 import com.marketlabs.pulse.ui.theme.ColorNeutral
 import com.marketlabs.pulse.ui.theme.ColorRed
+import com.marketlabs.pulse.ui.theme.PulseStatusColors.BearishText
+import com.marketlabs.pulse.ui.theme.PulseStatusColors.BullishText
+
 @Composable
 fun VixFullWidthCard(asset: AssetOverview, onClick: () -> Unit) {
 
     val colorGreen  = ColorGreen
     val colorRed = ColorRed
     val colorNeutral = ColorNeutral
+
+    val textBearish = BearishText
+    val textBullish = BullishText
 
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
     val paddingMedium = dimensionResource(id = R.dimen.padding_medium)
@@ -95,7 +101,7 @@ fun VixFullWidthCard(asset: AssetOverview, onClick: () -> Unit) {
                         Text(
                             text = "$sign${String.format("%.2f", change)}%",
                             style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                            color = if (change > 0) colorRed else colorGreen,
+                            color = if (change > 0) textBearish else textBullish,
                             modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.padding_tiny))
                         )
                     }

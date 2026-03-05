@@ -90,7 +90,7 @@ fun RiskRadarScreen(
         ),
         verticalArrangement = Arrangement.spacedBy(paddingXLarge)
     ) {
-        item { RadarHeaderSection(data.lastSyncedTimestamp) }
+        item { RadarHeaderSection(data.lastUpdated) }
 
         item {
             ScoreBoardCard(
@@ -138,7 +138,7 @@ private fun RadarHeaderSection(timestamp: Long) {
         val format = SimpleDateFormat("MMM dd, h:mm a", Locale.getDefault())
 
         Text(
-            text = "Analyzed as of ${format.format(date)}",
+            text = stringResource(id = R.string.analyzed_at, format.format(date)),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_micro))
@@ -220,7 +220,13 @@ private fun ScoreBoardCard(
                     .fillMaxHeight()
                     .clickable {
                         val overallDummyGauge = Gauge(null, data.score ?: 0, safeStatus.name)
-                        onClick(SelectedGaugeState(vulnerabilityTitle, overallDummyGauge, GaugeDictionary.overallScore))
+                        onClick(
+                            SelectedGaugeState(
+                                vulnerabilityTitle,
+                                overallDummyGauge,
+                                GaugeDictionary.overallScore
+                            )
+                        )
                     }
             ) {
                 Column(
@@ -248,7 +254,9 @@ private fun ScoreBoardCard(
                     Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
 
                     Box(
-                        modifier = Modifier.fillMaxWidth().weight(1f),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
                         contentAlignment = Alignment.Center
                     ) {
                         VulnerabilityScoreChart(
@@ -269,7 +277,13 @@ private fun ScoreBoardCard(
                     .fillMaxHeight()
                     .clickable {
                         val trendDummyGauge = Gauge(null, data.previousScore ?: 0, safeTrend.name)
-                        onClick(SelectedGaugeState(trendTitle, trendDummyGauge, GaugeDictionary.trend))
+                        onClick(
+                            SelectedGaugeState(
+                                trendTitle,
+                                trendDummyGauge,
+                                GaugeDictionary.trend
+                            )
+                        )
                     }
             ) {
                 Column(
@@ -296,7 +310,9 @@ private fun ScoreBoardCard(
                     Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
 
                     Column(
-                        modifier = Modifier.fillMaxWidth().weight(1f),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
@@ -547,10 +563,35 @@ fun SystemicPlumbingCard(
         verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_medium)),
         modifier = Modifier.fillMaxWidth()
     ) {
-        SystemicGaugeRow(stringResource(id = R.string.gauge_recession), gauges.recession, GaugeDictionary.recession, onClick)
-        SystemicGaugeRow(stringResource(id = R.string.gauge_foundation), gauges.foundation, GaugeDictionary.foundation, onClick)
-        SystemicGaugeRow(stringResource(id = R.string.gauge_credit), gauges.canary, GaugeDictionary.canary, onClick)
-        SystemicGaugeRow(stringResource(id = R.string.gauge_rotation), gauges.rotation, GaugeDictionary.rotation, onClick)
-        SystemicGaugeRow(stringResource(id = R.string.gauge_growth), gauges.growthFear, GaugeDictionary.growthFear, onClick)
+        SystemicGaugeRow(
+            stringResource(id = R.string.gauge_recession),
+            gauges.recession,
+            GaugeDictionary.recession,
+            onClick
+        )
+        SystemicGaugeRow(
+            stringResource(id = R.string.gauge_foundation),
+            gauges.foundation,
+            GaugeDictionary.foundation,
+            onClick
+        )
+        SystemicGaugeRow(
+            stringResource(id = R.string.gauge_credit),
+            gauges.canary,
+            GaugeDictionary.canary,
+            onClick
+        )
+        SystemicGaugeRow(
+            stringResource(id = R.string.gauge_rotation),
+            gauges.rotation,
+            GaugeDictionary.rotation,
+            onClick
+        )
+        SystemicGaugeRow(
+            stringResource(id = R.string.gauge_growth),
+            gauges.growthFear,
+            GaugeDictionary.growthFear,
+            onClick
+        )
     }
 }

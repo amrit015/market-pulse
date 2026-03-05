@@ -5,7 +5,8 @@ import com.marketlabs.pulse.storage.model.indicators.enums.VerdictCall
 
 data class MarketIndicators(
     val dateId: String,
-    val lastSyncedTimestamp: Long?,
+    val lastSyncedTimestamp: Long,
+    val lastUpdated: Long,
     val summary: PhaseSummary?,
     val trendPhase: PhaseDetails?,
     val healthPhase: PhaseDetails?,

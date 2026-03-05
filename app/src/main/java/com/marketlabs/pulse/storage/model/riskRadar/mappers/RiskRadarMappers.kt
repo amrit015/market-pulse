@@ -13,10 +13,11 @@ import com.marketlabs.pulse.storage.model.riskRadar.enums.RiskTrend
 // ============================================================================
 // 1. NETWORK -> DOMAIN (Used by RemoteRiskRadarDataSource)
 // ============================================================================
-fun NetworkRiskRadar.toDomain(): RiskRadar {
+fun NetworkRiskRadar.toDomain(date: String): RiskRadar {
     return RiskRadar(
-        date = "", // Will be populated by the Repository
-        lastSyncedTimestamp = 0L, // Will be populated by the Repository
+        date = date,
+        lastSyncedTimestamp = System.currentTimeMillis(),
+        lastUpdated = this.lastUpdated ?: 0L,
         score = this.score ?: 0,
         previousScore = this.previousScore ?: 0,
         trend = RiskTrend.fromString(this.trend),
@@ -51,6 +52,7 @@ fun RiskRadar.toEntity(): RiskRadarEntity {
     return RiskRadarEntity(
         date = this.date,
         lastSyncedTimestamp = this.lastSyncedTimestamp,
+        lastUpdated = this.lastUpdated,
         score = this.score,
         previousScore = this.previousScore,
         // Convert strict Enums back to Strings for the Room database
@@ -67,7 +69,8 @@ fun RiskRadar.toEntity(): RiskRadarEntity {
 fun RiskRadarEntity.toDomain(): RiskRadar {
     return RiskRadar(
         date = this.date,
-        lastSyncedTimestamp = this.lastSyncedTimestamp ?: 0L,
+        lastSyncedTimestamp = this.lastSyncedTimestamp,
+        lastUpdated = this.lastUpdated,
         score = this.score,
         previousScore = this.previousScore,
         // Convert Room Strings back into strict Enums for the UI

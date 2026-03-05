@@ -6,7 +6,7 @@ import com.squareup.moshi.JsonClass
 @JsonClass(generateAdapter = true)
 data class NetworkMarketPulse(
     @Json(name = "report_type") val reportType: String? = null,
-    @Json(name = "timestamp") val timestamp: Long? = null,
+    @Json(name = "timestamp") val lastUpdated: Long? = null,
     @Json(name = "verdict") val verdict: NetworkVerdict? = null,
     @Json(name = "lead_stories") val leadStories: List<NetworkNewsItem>? = null,
     @Json(name = "macro_mix") val macroMix: List<NetworkMacroItem>? = null,

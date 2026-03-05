@@ -42,6 +42,9 @@ import com.marketlabs.pulse.ui.theme.PulseStatusColors.BullishBg
 import com.marketlabs.pulse.ui.theme.PulseStatusColors.BullishText
 import com.marketlabs.pulse.ui.theme.PulseStatusColors.NeutralBg
 import com.marketlabs.pulse.ui.theme.PulseStatusColors.NeutralText
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun NewsScreen(
@@ -65,14 +68,7 @@ fun NewsScreen(
         verticalArrangement = Arrangement.spacedBy(paddingLarge)
     ) {
         // Header
-        item {
-            Text(
-                text = stringResource(id = R.string.news_screen_title),
-                style = MaterialTheme.typography.headlineLarge,
-                color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.padding_medium))
-            )
-        }
+        item { HeaderSection(data.lastUpdated) }
 
         // Empty State Check (if the list of stories inside the data object is empty)
         if (data.stories.isNullOrEmpty()) {
@@ -97,6 +93,28 @@ fun NewsScreen(
                 )
             }
         }
+    }
+}
+
+@Composable
+fun HeaderSection(timestamp: Long) {
+    Column {
+        Text(
+            text = stringResource(id = R.string.news_screen_title),
+            style = MaterialTheme.typography.headlineLarge,
+            color = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.padding_medium))
+        )
+
+        val date = Date(timestamp)
+        val format = SimpleDateFormat("MMM dd, h:mm a", Locale.getDefault())
+
+        Text(
+            text = stringResource(id = R.string.analyzed_at, format.format(date)),
+            style = MaterialTheme.typography.bodySmall,
+            // 💡 ACTION: Replaced hardcoded Color.Gray with Theme's semantic variant text color
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 

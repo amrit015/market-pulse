@@ -5,7 +5,6 @@ import androidx.room.Room
 import com.marketlabs.pulse.storage.database.AppDatabase
 import com.marketlabs.pulse.storage.database.dao.DashboardDao
 import com.marketlabs.pulse.storage.database.dao.IndicatorsDao
-import com.marketlabs.pulse.storage.database.dao.MarketIndexDao
 import com.marketlabs.pulse.storage.database.dao.NewsDao
 import com.marketlabs.pulse.storage.database.dao.RiskRadarDao
 import com.marketlabs.pulse.storage.database.dao.SummaryDao
@@ -32,11 +31,6 @@ object DatabaseModule {
             // Attach custom migrations
             .addMigrations(*DatabaseMigrations.ALL_MIGRATIONS)
             .build()
-    }
-
-    @Provides
-    fun provideMarketIndexDao(database: AppDatabase): MarketIndexDao {
-        return database.marketIndexDao()
     }
 
     @Provides

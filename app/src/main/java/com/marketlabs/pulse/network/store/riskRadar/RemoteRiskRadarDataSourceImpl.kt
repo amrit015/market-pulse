@@ -11,7 +11,7 @@ class RemoteRiskRadarDataSourceImpl @Inject constructor(
     private val api: RiskRadarApi
 ) : RemoteRiskRadarDataSource {
 
-    override suspend fun getLatestRisk(): Result<RiskRadar> {
+    override suspend fun getLatestRisk(todayDateString: String): Result<RiskRadar> {
         return try {
             val networkResponse = api.getLatestRisk()
 
@@ -21,7 +21,7 @@ class RemoteRiskRadarDataSourceImpl @Inject constructor(
             }
 
             // Immediately map to the Domain model on success
-            Result.success(networkResponse.toDomain())
+            Result.success(networkResponse.toDomain(todayDateString))
 
         } catch (e: Exception) {
             Log.e("RiskRadar", "Failed to fetch Risk Radar Data", e)

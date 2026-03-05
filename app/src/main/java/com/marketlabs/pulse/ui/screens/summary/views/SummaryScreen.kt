@@ -98,8 +98,8 @@ fun MarketSummaryScreen(
         data?.let { validData ->
 
             val type = validData.reportType
-            val timestamp = validData.timestamp
-            if (type != null && timestamp != null) {
+            val timestamp = validData.lastUpdated
+            if (type != null) {
                 item { HeaderSection(type, timestamp) }
             }
 
@@ -199,11 +199,11 @@ fun HeaderSection(type: ReportType, timestamp: Long) {
             color = MaterialTheme.colorScheme.onBackground
         )
 
-        val date = Date(timestamp * 1000L)
+        val date = Date(timestamp)
         val format = SimpleDateFormat("MMM dd, h:mm a", Locale.getDefault())
 
         Text(
-            text = stringResource(id = R.string.pulse_updated_at, format.format(date)),
+            text = stringResource(id = R.string.analyzed_at, format.format(date)),
             style = MaterialTheme.typography.bodySmall,
             // 💡 ACTION: Replaced hardcoded Color.Gray with Theme's semantic variant text color
             color = MaterialTheme.colorScheme.onSurfaceVariant

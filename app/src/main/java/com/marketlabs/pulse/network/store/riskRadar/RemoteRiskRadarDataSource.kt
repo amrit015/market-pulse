@@ -4,5 +4,5 @@ import com.marketlabs.pulse.storage.model.riskRadar.RiskRadar
 
 interface RemoteRiskRadarDataSource {
 
-    suspend fun getLatestRisk(): Result<RiskRadar>
+    suspend fun getLatestRisk(todayDateString: String): Result<RiskRadar>
 }

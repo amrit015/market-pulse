@@ -5,6 +5,7 @@
 
     <string name="pulse_title">Market Summary</string>
     <string name="pulse_updated_at">Updated: %1$s</string>
+    <string name="analyzed_at">Analyzed as of: %1$s</string>
 
     <string name="section_lead_stories">🚨 Lead Stories</string>
     <string name="section_macro_mix">🌍 Macro Mix</string>
