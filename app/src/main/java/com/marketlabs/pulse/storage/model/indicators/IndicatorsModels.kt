@@ -14,6 +14,7 @@ data class MarketIndicators(
 )
 
 data class PhaseSummary(
+    val previousScore: Int?,
     val score: Int?,
     val call: VerdictCall?,
     val action: String?,
@@ -35,6 +36,6 @@ data class IndicatorItem(
     val value: String?,
     val changePercent: String?,
     val signal: String?,
-    val signalColor: SignalColor?, // 💡 Mapped to Enum for easy UI coloring
+    val signalColor: SignalColor?,
     val description: String?
 )

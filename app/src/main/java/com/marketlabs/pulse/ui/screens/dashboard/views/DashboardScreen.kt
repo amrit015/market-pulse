@@ -44,9 +44,9 @@ import com.marketlabs.pulse.storage.model.dashboard.AssetOverview
 import com.marketlabs.pulse.storage.model.dashboard.MarketState
 import com.marketlabs.pulse.storage.model.dashboard.enums.AssetType
 import com.marketlabs.pulse.ui.screens.dashboard.views.sheet.AssetDetailBottomSheet
-import com.marketlabs.pulse.ui.screens.dashboard.views.widgets.PutCallHorizontalBar
-import com.marketlabs.pulse.ui.screens.dashboard.views.widgets.SpeedometerGauge
-import com.marketlabs.pulse.ui.screens.dashboard.views.widgets.VixFullWidthCard
+import com.marketlabs.pulse.ui.components.widgets.PutCallHorizontalBar
+import com.marketlabs.pulse.ui.components.widgets.SpeedometerGauge
+import com.marketlabs.pulse.ui.components.widgets.VixFullWidthCard
 import com.marketlabs.pulse.ui.theme.PulseStatusColors // 💡 NEW: Imported the centralized colors
 
 @Composable
@@ -109,7 +109,7 @@ fun DashboardScreen(
                 Text(
                     text = stringResource(id = R.string.dashboard_section_sentiment),
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onBackground,
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.padding_medium))
                 )
 
@@ -137,7 +137,7 @@ fun DashboardScreen(
                             customVisual = {
                                 SpeedometerGauge(
                                     score = greedAsset.price ?: 50.0,
-                                    change = greedAsset.changePercent,
+                                    previousScore = greedAsset.previousClose,
                                     status = greedAsset.rsiStatus
                                 )
                             },
@@ -211,25 +211,45 @@ fun MarketStatusBar(isEquityOpen: Boolean, spyAsset: AssetOverview?) {
     val paddingMedium = dimensionResource(id = R.dimen.padding_medium)
     val paddingSmall = dimensionResource(id = R.dimen.padding_small)
 
-    Surface(
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_pill)),
-        modifier = Modifier.fillMaxWidth()
+    val change = spyAsset?.changePercent ?: 0.0
+    val isPositive = change >= 0
+
+    // LEFT BADGE COLORS (Market Status)
+    val leftBgColor = if (isEquityOpen) PulseStatusColors.BullishBg else MaterialTheme.colorScheme.surfaceVariant
+    val leftTextColor = if (isEquityOpen) PulseStatusColors.BullishText else MaterialTheme.colorScheme.onSurfaceVariant
+
+    // RIGHT BADGE COLORS (SPY Performance)
+    val rightBgColor = if (isEquityOpen) {
+        if (isPositive) PulseStatusColors.BullishBg else PulseStatusColors.BearishBg
+    } else {
+        MaterialTheme.colorScheme.surfaceVariant
+    }
+
+    val rightTextColor = if (isEquityOpen) {
+        if (isPositive) PulseStatusColors.BullishText else PulseStatusColors.BearishText
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = paddingMedium, vertical = paddingSmall),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+        // LEFT: Status Badge
+        Surface(
+            color = leftBgColor,
+            shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_pill))
         ) {
-            // LEFT: Status Badge
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier.padding(horizontal = paddingMedium, vertical = paddingSmall),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Box(
                     modifier = Modifier
                         .size(dimensionResource(id = R.dimen.icon_size_small))
                         .background(
-                            color = if (isEquityOpen) PulseStatusColors.BullishText else PulseStatusColors.NeutralText,
+                            color = leftTextColor,
                             shape = CircleShape
                         )
                 )
@@ -237,36 +257,42 @@ fun MarketStatusBar(isEquityOpen: Boolean, spyAsset: AssetOverview?) {
                     text = if (isEquityOpen) stringResource(id = R.string.dashboard_market_open)
                     else stringResource(id = R.string.dashboard_market_closed),
                     style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = leftTextColor,
                     modifier = Modifier.padding(start = paddingSmall)
                 )
             }
+        }
 
-            // RIGHT: SPY Performance
-            Row(verticalAlignment = Alignment.CenterVertically) {
+        // RIGHT: SPY Performance
+        Surface(
+            color = rightBgColor,
+            shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_pill))
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = paddingMedium, vertical = paddingSmall),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(
                     text = spyAsset?.name ?: stringResource(id = R.string.dashboard_fallback_spy),
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    // Slightly fade the ticker name to make the numbers pop more
+                    color = rightTextColor.copy(alpha = 0.8f),
                     modifier = Modifier.padding(end = paddingSmall)
                 )
 
                 if (isEquityOpen) {
-                    val change = spyAsset?.changePercent ?: 0.0
-                    val changeColor = if (change >= 0) PulseStatusColors.BullishText else PulseStatusColors.BearishText
-                    val sign = if (change >= 0) "+" else ""
-
+                    val sign = if (isPositive) "+" else ""
                     Text(
                         text = "$sign${String.format("%.2f", change)}%",
                         style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                        color = changeColor
+                        color = rightTextColor
                     )
                 } else {
-                    val price = spyAsset?.price
+                    val price = spyAsset?.price ?: 0.0
                     Text(
                         text = "$${String.format("%.2f", price)}",
                         style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = rightTextColor
                     )
                 }
             }
@@ -287,7 +313,7 @@ fun AssetSection(
         Text(
             text = title,
             style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colorScheme.onBackground,
+            color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(bottom = paddingMedium)
         )
 

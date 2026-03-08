@@ -77,7 +77,6 @@ fun MarketSummaryScreen(
 ) {
     val statusBarHeight = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
-    val paddingXLarge = dimensionResource(id = R.dimen.padding_xlarge)
 
     LazyColumn(
         modifier = Modifier
@@ -89,7 +88,7 @@ fun MarketSummaryScreen(
             start = paddingLarge,
             end = paddingLarge
         ),
-        verticalArrangement = Arrangement.spacedBy(paddingXLarge)
+        verticalArrangement = Arrangement.spacedBy(paddingLarge)
     ) {
         if (hasLegacyData) {
             item { VersionToggleBanner(isLegacyVersion, onToggleVersion) }
@@ -111,13 +110,25 @@ fun MarketSummaryScreen(
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
-                items(stories) { story -> NewsCard(story) }
+                items(stories) { story -> LeadStoryCard(story) }
             }
 
             val macros = validData.macroMix
             if (!macros.isNullOrEmpty()) {
-                item { SectionTitle(stringResource(id = R.string.section_macro_mix), color = MaterialTheme.colorScheme.primary) }
+                item {
+                    SectionTitle(
+                        stringResource(id = R.string.section_macro_mix),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
                 items(macros) { macro -> MacroCard(macro) }
+            }
+
+            item {
+                SectionTitle(
+                    title = stringResource(id = R.string.section_market_summary),
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
 
             validData.dominoEffect?.let { domino ->
@@ -148,13 +159,17 @@ fun MarketSummaryScreen(
  */
 @Composable
 fun VersionToggleBanner(isLegacyVersion: Boolean, onClick: () -> Unit) {
-    val bgColor = if (isLegacyVersion) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.secondaryContainer
-    val contentColor = if (isLegacyVersion) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onSecondaryContainer
+    val bgColor =
+        if (isLegacyVersion) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.secondaryContainer
+    val contentColor =
+        if (isLegacyVersion) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onSecondaryContainer
 
     Card(
         colors = CardDefaults.cardColors(containerColor = bgColor),
         shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
-        modifier = Modifier.fillMaxWidth().clickable { onClick() }
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
     ) {
         Row(
             modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)),
@@ -189,14 +204,9 @@ fun VersionToggleBanner(isLegacyVersion: Boolean, onClick: () -> Unit) {
 fun HeaderSection(type: ReportType, timestamp: Long) {
     Column {
         Text(
-            text = type.label.uppercase(),
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.primary
-        )
-        Text(
-            text = stringResource(id = R.string.pulse_title),
+            text = type.label,
             style = MaterialTheme.typography.headlineLarge,
-            color = MaterialTheme.colorScheme.onBackground
+            color = MaterialTheme.colorScheme.onSurface
         )
 
         val date = Date(timestamp)
@@ -206,7 +216,8 @@ fun HeaderSection(type: ReportType, timestamp: Long) {
             text = stringResource(id = R.string.analyzed_at, format.format(date)),
             style = MaterialTheme.typography.bodySmall,
             // 💡 ACTION: Replaced hardcoded Color.Gray with Theme's semantic variant text color
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_micro))
         )
     }
 }
@@ -217,26 +228,33 @@ fun HeaderSection(type: ReportType, timestamp: Long) {
  * @param story The [NewsItem] to display. If the headline is missing, nothing is rendered.
  */
 @Composable
-fun NewsCard(story: NewsItem) {
+fun LeadStoryCard(story: NewsItem) {
     val headline = story.headline ?: return
 
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
-        modifier = Modifier.fillMaxWidth().padding(bottom = dimensionResource(id = R.dimen.padding_medium))
+        modifier = Modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
+        Column {
             Text(
+                modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)),
                 text = headline,
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.secondary
             )
+
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                thickness = dimensionResource(id = R.dimen.border_thin)
+            )
+
             story.summary?.let { summary ->
-                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
                 Text(
+                    modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)),
                     text = summary,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onBackground
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
         }
@@ -255,7 +273,7 @@ fun MacroCard(item: MacroItem) {
     Card(
         shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-        modifier = Modifier.fillMaxWidth().padding(bottom = dimensionResource(id = R.dimen.padding_medium))
+        modifier = Modifier.fillMaxWidth()
     ) {
         Row(modifier = Modifier.height(IntrinsicSize.Min)) {
             Box(
@@ -265,8 +283,13 @@ fun MacroCard(item: MacroItem) {
                     .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
             )
 
-            Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
-                Row(verticalAlignment = Alignment.Top, modifier = Modifier.fillMaxWidth()) {
+            Column {
+                Row(
+                    verticalAlignment = Alignment.Top,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(dimensionResource(id = R.dimen.padding_large))
+                ) {
                     Text(
                         text = headline,
                         style = MaterialTheme.typography.titleSmall,
@@ -277,15 +300,14 @@ fun MacroCard(item: MacroItem) {
                     item.tag?.let { tag ->
                         Surface(
                             color = MaterialTheme.colorScheme.secondaryContainer,
-                            shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_small)),
-                            modifier = Modifier.padding(start = dimensionResource(id = R.dimen.padding_standard), top = dimensionResource(id = R.dimen.padding_tiny))
+                            shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_chip))
                         ) {
                             Text(
                                 text = tag.label.uppercase(),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSecondaryContainer,
                                 modifier = Modifier.padding(
-                                    horizontal = dimensionResource(id = R.dimen.corner_radius_chip),
+                                    horizontal = dimensionResource(id = R.dimen.padding_medium),
                                     vertical = dimensionResource(id = R.dimen.padding_tiny)
                                 )
                             )
@@ -293,12 +315,17 @@ fun MacroCard(item: MacroItem) {
                     }
                 }
 
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                    thickness = dimensionResource(id = R.dimen.border_thin)
+                )
+
                 item.summary?.let {
-                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.border_thick)))
                     Text(
+                        modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)),
                         text = it,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onBackground
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
@@ -326,26 +353,41 @@ fun DominoCard(domino: DominoEffect) {
         shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = stringResource(id = R.string.emoji_domino),
-                    style = MaterialTheme.typography.titleLarge
-                )
-                Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_medium)))
+        Column {
+            Row(
+                modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(
                     text = stringResource(id = R.string.section_domino_effect),
                     style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.secondary,
                     fontWeight = FontWeight.Bold
                 )
             }
 
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                thickness = dimensionResource(id = R.dimen.border_thin)
+            )
 
-            DominoTimelineStep(title = stringResource(id = R.string.label_trigger).uppercase(), text = trigger, isLast = false)
-            DominoTimelineStep(title = stringResource(id = R.string.label_impact).uppercase(), text = impact, isLast = false)
-            DominoTimelineStep(title = stringResource(id = R.string.label_outlook).uppercase(), text = outlook, isLast = true)
+            Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
+                DominoTimelineStep(
+                    title = stringResource(id = R.string.label_trigger).uppercase(),
+                    text = trigger,
+                    isLast = false
+                )
+                DominoTimelineStep(
+                    title = stringResource(id = R.string.label_impact).uppercase(),
+                    text = impact,
+                    isLast = false
+                )
+                DominoTimelineStep(
+                    title = stringResource(id = R.string.label_outlook).uppercase(),
+                    text = outlook,
+                    isLast = true
+                )
+            }
         }
     }
 }
@@ -358,7 +400,9 @@ private fun DominoTimelineStep(title: String, text: String, isLast: Boolean) {
     Row(modifier = Modifier.height(IntrinsicSize.Min)) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.width(dimensionResource(id = R.dimen.timeline_node_width)).fillMaxHeight()
+            modifier = Modifier
+                .width(dimensionResource(id = R.dimen.timeline_node_width))
+                .fillMaxHeight()
         ) {
             Box(
                 modifier = Modifier
@@ -399,20 +443,34 @@ private fun DominoTimelineStep(title: String, text: String, isLast: Boolean) {
 @Composable
 fun OutlookCard(outlook: MarketOutlook) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(
+                alpha = 0.4f
+            )
+        ),
         shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
-        border = BorderStroke(dimensionResource(id = R.dimen.border_thin), MaterialTheme.colorScheme.secondaryContainer),
+        border = BorderStroke(
+            dimensionResource(id = R.dimen.border_thin),
+            MaterialTheme.colorScheme.secondaryContainer
+        ),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
+        Column {
             // 💡 ACTION: Market Outlook Title upgraded to titleMedium for higher visibility
             Text(
+                modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)),
                 text = stringResource(id = R.string.section_market_outlook),
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.secondary
             )
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                thickness = dimensionResource(id = R.dimen.border_thin)
+            )
+
             Text(
+                modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)),
                 text = outlook.summary ?: "",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface
@@ -439,9 +497,11 @@ fun VerdictCard(verdict: Verdict) {
     val (bgColor, textColor) = when (call) {
         TradingCall.CONTRARIAN_BUY,
         TradingCall.ACCUMULATE -> Pair(BullishBg, BullishText)
+
         TradingCall.CONTRARIAN_SELL,
         TradingCall.SELL_AVOID,
         TradingCall.HEDGE_PROTECT -> Pair(BearishBg, BearishText)
+
         else -> Pair(NeutralBg, NeutralText)
     }
 
@@ -450,43 +510,46 @@ fun VerdictCard(verdict: Verdict) {
         shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
-            Surface(
-                color = textColor.copy(alpha = 0.1f),
-                shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_small)),
-                modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.padding_medium))
-            ) {
-                Text(
-                    text = regime.label,
-                    color = textColor,
-                    style = MaterialTheme.typography.labelSmall,
-                    modifier = Modifier.padding(
-                        horizontal = dimensionResource(id = R.dimen.corner_radius_chip),
-                        vertical = dimensionResource(id = R.dimen.padding_tiny)
+        Column {
+            Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
+                Surface(
+                    color = textColor.copy(alpha = 0.1f),
+                    shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_chip))
+                ) {
+                    Text(
+                        text = regime.label,
+                        color = textColor,
+                        style = MaterialTheme.typography.labelSmall,
+                        modifier = Modifier.padding(
+                            horizontal = dimensionResource(id = R.dimen.padding_medium),
+                            vertical = dimensionResource(id = R.dimen.padding_tiny)
+                        )
                     )
+                }
+
+                Text(
+                    text = call.label,
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = textColor
+                )
+
+                Text(
+                    text = setup.label,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = textColor.copy(alpha = 0.8f)
                 )
             }
 
-            Text(
-                text = call.label,
-                style = MaterialTheme.typography.headlineSmall,
-                color = textColor
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                thickness = dimensionResource(id = R.dimen.border_thin)
             )
 
             Text(
-                text = setup.label,
-                style = MaterialTheme.typography.labelMedium,
-                color = textColor.copy(alpha = 0.8f),
-                modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.padding_standard))
-            )
-
-            HorizontalDivider(color = textColor.copy(alpha = 0.2f))
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_standard)))
-
-            Text(
+                modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)),
                 text = verdict.analysis ?: "",
                 style = MaterialTheme.typography.bodyMedium,
-                color = textColor
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
     }
@@ -502,33 +565,27 @@ fun ActionFooter(action: String) {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
-        border = BorderStroke(dimensionResource(id = R.dimen.border_thin), MaterialTheme.colorScheme.primary),
+        border = BorderStroke(
+            dimensionResource(id = R.dimen.border_thin),
+            MaterialTheme.colorScheme.primary
+        ),
         elevation = CardDefaults.cardElevation(defaultElevation = dimensionResource(id = R.dimen.elevation_small)),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Surface(
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-                    shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_small))
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.emoji_action),
-                        modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_small)),
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                }
-                Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_large)))
-                Text(
-                    text = stringResource(id = R.string.section_action_plan),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_standard)))
+        Column {
+            Text(
+                text = stringResource(id = R.string.section_action_plan),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.secondary,
+                modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))
+            )
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                thickness = dimensionResource(id = R.dimen.border_thin)
+            )
 
             Text(
+                modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)),
                 text = action,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface
@@ -541,7 +598,7 @@ fun ActionFooter(action: String) {
  * A standardized section title for the list.
  */
 @Composable
-fun SectionTitle(title: String, color: Color = MaterialTheme.colorScheme.onBackground) {
+fun SectionTitle(title: String, color: Color = MaterialTheme.colorScheme.onSurface) {
     Text(
         text = title,
         style = MaterialTheme.typography.titleLarge,

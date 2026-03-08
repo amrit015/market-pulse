@@ -1,12 +1,8 @@
 package com.marketlabs.pulse.ui.screens.indicators.views
 
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -19,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -32,30 +29,26 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.indicators.IndicatorItem
 import com.marketlabs.pulse.storage.model.indicators.MarketIndicators
 import com.marketlabs.pulse.storage.model.indicators.PhaseDetails
 import com.marketlabs.pulse.storage.model.indicators.PhaseSummary
 import com.marketlabs.pulse.storage.model.indicators.enums.SignalColor
+import com.marketlabs.pulse.ui.components.widgets.ScoreGauge
 import com.marketlabs.pulse.ui.screens.indicators.DictionaryItem
 import com.marketlabs.pulse.ui.screens.indicators.FrameworkSheet
 import com.marketlabs.pulse.ui.screens.indicators.IndicatorDetailSheet
@@ -93,8 +86,9 @@ fun IndicatorsScreen(
     val statusBarHeight = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val scrollState = rememberScrollState()
 
-    val paddingExtraLarge = dimensionResource(id = R.dimen.padding_extra_large)
+    // 💡 FIXED: Unified margin spacing identical to RiskRadarScreen
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
+    val paddingXLarge = dimensionResource(id = R.dimen.padding_xlarge)
 
     var showFrameworkSheet by remember { mutableStateOf(false) }
     var selectedIndicator by remember { mutableStateOf<DictionaryItem?>(null) }
@@ -116,12 +110,12 @@ fun IndicatorsScreen(
             .background(MaterialTheme.colorScheme.background)
             .verticalScroll(scrollState)
             .padding(
-                top = statusBarHeight + paddingExtraLarge,
-                bottom = scaffoldPadding.calculateBottomPadding() + paddingExtraLarge,
+                top = statusBarHeight + paddingLarge,
+                bottom = scaffoldPadding.calculateBottomPadding() + paddingLarge,
                 start = paddingLarge,
                 end = paddingLarge
             ),
-        verticalArrangement = Arrangement.spacedBy(paddingExtraLarge)
+        verticalArrangement = Arrangement.spacedBy(paddingXLarge)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -167,26 +161,28 @@ fun IndicatorsScreen(
             IndicatorScoreHeader(summary = summary)
         }
 
-        data.trendPhase?.let { PhaseSection(details = it, onIndicatorClick = { item -> selectedIndicator = item }) }
-        data.healthPhase?.let { PhaseSection(details = it, onIndicatorClick = { item -> selectedIndicator = item }) }
-        data.riskPhase?.let { PhaseSection(details = it, onIndicatorClick = { item -> selectedIndicator = item }) }
+        data.trendPhase?.let {
+            PhaseSection(
+                details = it,
+                onIndicatorClick = { item -> selectedIndicator = item })
+        }
+        data.healthPhase?.let {
+            PhaseSection(
+                details = it,
+                onIndicatorClick = { item -> selectedIndicator = item })
+        }
+        data.riskPhase?.let {
+            PhaseSection(
+                details = it,
+                onIndicatorClick = { item -> selectedIndicator = item })
+        }
     }
 }
 
 @Composable
 fun IndicatorScoreHeader(summary: PhaseSummary) {
     val score = summary.score ?: 0
-    var animationPlayed by remember { mutableFloatStateOf(0f) }
-
-    val currentProgress by animateFloatAsState(
-        targetValue = animationPlayed,
-        animationSpec = tween(durationMillis = 1500),
-        label = "score_animation"
-    )
-
-    LaunchedEffect(score) {
-        animationPlayed = score / 100f
-    }
+    val previousScore = summary.previousScore ?: score
 
     val ringColor = when {
         score >= 65 -> PulseStatusColors.BullishText
@@ -200,10 +196,15 @@ fun IndicatorScoreHeader(summary: PhaseSummary) {
         else -> PulseStatusColors.BearishBg
     }
 
+    var expanded by remember { mutableStateOf(false) }
+    var hasOverflow by remember { mutableStateOf(false) }
+
     Card(
         colors = CardDefaults.cardColors(containerColor = headerBgColor),
         shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card_extra_large)),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { /* TODO: Future Main Header Click */ }
     ) {
         Column(
             modifier = Modifier
@@ -212,100 +213,124 @@ fun IndicatorScoreHeader(summary: PhaseSummary) {
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_large))
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                // LEFT: Custom Canvas Gauge (Matching Risk Radar Style)
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier.size(dimensionResource(id = R.dimen.gauge_size))
+                Text(
+                    text = stringResource(id = R.string.market_score),
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_chevron_forward),
+                    contentDescription = "Details",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(dimensionResource(id = R.dimen.icon_size_small))
+                )
+            }
+
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                ScoreGauge(
+                    score = score,
+                    previousScore = previousScore,
+                    isHigherBetter = true,
+                    statusText = summary.marketRegime,
+                    ringColor = ringColor
+                )
+
+                Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_large)))
+
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface.copy(
+                            alpha = 0.5f
+                        )
+                    ),
+                    shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable { /* TODO: Future Child Card Click */ }
                 ) {
-                    val trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
-                    val strokeWidthDp = dimensionResource(id = R.dimen.gauge_stroke_width)
-                    val density = LocalDensity.current
+                    // 💡 FIXED: Increased internal padding for breathing room
+                    Column(
+                        modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)),
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.market_posture),
+                                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_chevron_forward),
+                                contentDescription = "Details",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
 
-                    // 💡 FIX: Swapped CircularProgressIndicator out for the direct custom Canvas format
-                    Canvas(modifier = Modifier.fillMaxSize()) {
-                        val strokeWidthPx = with(density) { strokeWidthDp.toPx() }
-                        val sweepAngle = currentProgress * 360f
-                        val inset = strokeWidthPx / 2
-                        val arcSize = androidx.compose.ui.geometry.Size(
-                            width = size.width - strokeWidthPx,
-                            height = size.height - strokeWidthPx
-                        )
+                        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
 
-                        // Faint Background Track
-                        drawArc(
-                            color = trackColor,
-                            startAngle = 0f,
-                            sweepAngle = 360f,
-                            useCenter = false,
-                            topLeft = Offset(inset, inset),
-                            size = arcSize,
-                            style = Stroke(width = strokeWidthPx, cap = StrokeCap.Round)
-                        )
-
-                        // Foreground Animated Progress Arc
-                        drawArc(
-                            color = ringColor,
-                            startAngle = 270f, // Starts exactly at the top (12 o'clock)
-                            sweepAngle = sweepAngle,
-                            useCenter = false,
-                            topLeft = Offset(inset, inset),
-                            size = arcSize,
-                            style = Stroke(width = strokeWidthPx, cap = StrokeCap.Round)
+                        Text(
+                            text = summary.call?.name?.replace("_", " ")
+                                ?: stringResource(id = R.string.indicators_unknown_verdict),
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            color = ringColor
                         )
                     }
-
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = score.toString(),
-                            style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(
-                            text = stringResource(id = R.string.indicators_score_label),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-
-                // RIGHT: Verdict and Regime
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = summary.call?.name?.replace("_", " ") ?: stringResource(id = R.string.indicators_unknown_verdict),
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                        color = ringColor
-                    )
-
-                    Text(
-                        text = summary.marketRegime ?: stringResource(id = R.string.indicators_analyzing_regime),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_tiny))
-                    )
                 }
             }
 
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_extra_large)))
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
 
-            // BOTTOM ROW: Action Box
-            Surface(
-                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
-                shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
-                modifier = Modifier.fillMaxWidth()
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    // 💡 Only make it clickable if it overflows or is already expanded
+                    .then(
+                        if (hasOverflow || expanded) {
+                            Modifier.clickable { expanded = !expanded }
+                        } else Modifier
+                    )
+                    .padding(top = dimensionResource(id = R.dimen.padding_medium)),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = summary.action ?: stringResource(id = R.string.indicators_no_action),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))
+                    maxLines = if (expanded) Int.MAX_VALUE else 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f),
+                    onTextLayout = { textLayoutResult ->
+                        // 💡 Check if the text was truncated when it's collapsed
+                        if (!expanded) {
+                            hasOverflow = textLayoutResult.hasVisualOverflow
+                        }
+                    }
                 )
+
+                // 💡 Only show the arrow if it overflows the 2 lines, or if it's currently open
+                if (hasOverflow || expanded) {
+                    Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+                    Icon(
+                        painter = painterResource(id = if (expanded) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down),
+                        contentDescription = if (expanded) "Collapse" else "Expand",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(dimensionResource(id = R.dimen.icon_size_small))
+                    )
+                }
             }
         }
     }
@@ -323,7 +348,7 @@ fun PhaseSection(
         Text(
             text = details.phaseName ?: stringResource(id = R.string.indicators_unknown_phase),
             style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colorScheme.onBackground
+            color = MaterialTheme.colorScheme.primary
         )
         Text(
             text = details.summary ?: "",
@@ -347,7 +372,13 @@ fun PhaseSection(
                         IndicatorCard(
                             item = item,
                             modifier = Modifier.weight(1f),
-                            onCardClick = { onIndicatorClick(IndicatorsDictionary.getDefinitionFor(item.name ?: "")) }
+                            onCardClick = {
+                                onIndicatorClick(
+                                    IndicatorsDictionary.getDefinitionFor(
+                                        item.name ?: ""
+                                    )
+                                )
+                            }
                         )
                     }
                     if (rowItems.size == 1) {
@@ -361,7 +392,13 @@ fun PhaseSection(
                 IndicatorCard(
                     item = item,
                     modifier = Modifier.fillMaxWidth(),
-                    onCardClick = { onIndicatorClick(IndicatorsDictionary.getDefinitionFor(item.name ?: "")) }
+                    onCardClick = {
+                        onIndicatorClick(
+                            IndicatorsDictionary.getDefinitionFor(
+                                item.name ?: ""
+                            )
+                        )
+                    }
                 )
                 Spacer(modifier = Modifier.height(paddingMedium))
             }
@@ -429,11 +466,11 @@ fun IndicatorCard(
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
 
             Surface(
-                color = baseColor.copy(alpha = 0.0f), // Uses the text color at low opacity for a legible chip
+                color = baseColor.copy(alpha = 0.0f),
                 shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_chip))
             ) {
                 Text(
-                    text = item.signal ?: stringResource(id = R.string.indicators_neutral_signal),
+                    text = item.signal ?: stringResource(id = R.string.sentiment_neutral),
                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                     color = baseColor,
                     modifier = Modifier.padding(

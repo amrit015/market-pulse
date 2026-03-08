@@ -16,6 +16,7 @@ import com.marketlabs.pulse.storage.model.indicators.enums.VerdictCall
 // ==========================================
 fun NetworkPhaseSummary.toDomain(): PhaseSummary {
     return PhaseSummary(
+        previousScore = verdict?.previousScore,
         score = verdict?.score,
         call = VerdictCall.fromString(verdict?.call),
         action = verdict?.action,

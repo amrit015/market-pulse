@@ -14,6 +14,7 @@ data class NetworkPhaseSummary(
 
 @JsonClass(generateAdapter = true)
 data class NetworkVerdict(
+    @Json(name = "previous_score") val previousScore: Int? = null,
     @Json(name = "score") val score: Int? = null,
     @Json(name = "call") val call: String? = null,
     @Json(name = "action") val action: String? = null

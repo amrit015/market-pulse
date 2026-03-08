@@ -1,19 +1,14 @@
 package com.marketlabs.pulse.ui.screens.riskRadar.views
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -25,7 +20,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -37,15 +31,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.riskRadar.Gauge
@@ -53,10 +44,11 @@ import com.marketlabs.pulse.storage.model.riskRadar.RiskGauges
 import com.marketlabs.pulse.storage.model.riskRadar.RiskRadar
 import com.marketlabs.pulse.storage.model.riskRadar.enums.RiskStatus
 import com.marketlabs.pulse.storage.model.riskRadar.enums.RiskTrend
+import com.marketlabs.pulse.ui.components.widgets.ScoreGauge
 import com.marketlabs.pulse.ui.screens.riskRadar.GaugeDefinition
 import com.marketlabs.pulse.ui.screens.riskRadar.GaugeDictionary
 import com.marketlabs.pulse.ui.screens.riskRadar.views.widgets.GaugeEducationalBottomSheet
-import com.marketlabs.pulse.ui.theme.PulseStatusColors // 💡 NEW: Imported the centralized colors
+import com.marketlabs.pulse.ui.theme.PulseStatusColors
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -151,8 +143,13 @@ private fun ScoreBoardCard(
     data: RiskRadar,
     onClick: (SelectedGaugeState) -> Unit
 ) {
+    var hasOverflow by remember { mutableStateOf(false) }
+
     val safeStatus = data.status ?: RiskStatus.UNKNOWN
     val safeTrend = data.trend ?: RiskTrend.UNKNOWN
+
+    val score = data.score ?: 0
+    val previousScore = data.previousScore ?: score
 
     val vulnerabilityTitle = stringResource(id = R.string.radar_title_vulnerability)
     val trendTitle = stringResource(id = R.string.radar_title_trend)
@@ -194,193 +191,167 @@ private fun ScoreBoardCard(
         RiskTrend.UNKNOWN -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 
-    val trendBgColor = when (safeTrend) {
-        RiskTrend.ACCELERATING -> PulseStatusColors.BearishBg
-        RiskTrend.COOLING -> PulseStatusColors.BullishBg
-        RiskTrend.STABLE -> PulseStatusColors.NeutralBg
-        RiskTrend.UNKNOWN -> MaterialTheme.colorScheme.surfaceVariant
-    }
+    var expanded by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
+    Card(
+        colors = CardDefaults.cardColors(containerColor = statusBgColor),
+        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card_extra_large)),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+                val overallDummyGauge = Gauge(null, score, safeStatus.name)
+                onClick(
+                    SelectedGaugeState(
+                        vulnerabilityTitle,
+                        overallDummyGauge,
+                        GaugeDictionary.overallScore
+                    )
+                )
+            }
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(IntrinsicSize.Max),
-            horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_medium))
+                .padding(dimensionResource(id = R.dimen.padding_extra_large))
         ) {
-            // --- INNER CARD 1: Vulnerability ---
-            Card(
-                colors = CardDefaults.cardColors(containerColor = statusBgColor),
-                shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card_large)),
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .clickable {
-                        val overallDummyGauge = Gauge(null, data.score ?: 0, safeStatus.name)
-                        onClick(
-                            SelectedGaugeState(
-                                vulnerabilityTitle,
-                                overallDummyGauge,
-                                GaugeDictionary.overallScore
-                            )
-                        )
-                    }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(
-                    modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = vulnerabilityTitle,
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.weight(1f)
-                        )
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_chevron_forward),
-                            contentDescription = "Details",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(dimensionResource(id = R.dimen.icon_size_small))
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        VulnerabilityScoreChart(
-                            score = data.score ?: 0,
-                            statusText = safeStatus.name,
-                            statusColor = statusColor
-                        )
-                    }
-                }
+                Text(
+                    text = vulnerabilityTitle,
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_chevron_forward),
+                    contentDescription = "Details",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(dimensionResource(id = R.dimen.icon_size_small))
+                )
             }
 
-            // --- INNER CARD 2: Trend (Momentum Shift) ---
-            Card(
-                colors = CardDefaults.cardColors(containerColor = trendBgColor),
-                shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card_large)),
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .clickable {
-                        val trendDummyGauge = Gauge(null, data.previousScore ?: 0, safeTrend.name)
-                        onClick(
-                            SelectedGaugeState(
-                                trendTitle,
-                                trendDummyGauge,
-                                GaugeDictionary.trend
-                            )
-                        )
-                    }
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(
-                    modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))
+                ScoreGauge(
+                    score = score,
+                    previousScore = previousScore,
+                    isHigherBetter = false, // Lower is better for Risk
+                    statusText = safeStatus.name,
+                    ringColor = statusColor
+                )
+
+                Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_large)))
+
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface.copy(
+                            alpha = 0.5f
+                        )
+                    ),
+                    shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable {
+                            val trendDummyGauge = Gauge(null, previousScore, safeTrend.name)
+                            onClick(
+                                SelectedGaugeState(
+                                    trendTitle,
+                                    trendDummyGauge,
+                                    GaugeDictionary.trend
+                                )
+                            )
+                        }
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = trendTitle,
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_chevron_forward),
-                            contentDescription = "Details",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(dimensionResource(id = R.dimen.icon_size_small))
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
-
+                    // 💡 FIXED: Increased internal padding for breathing room
                     Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f),
-                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)),
                         verticalArrangement = Arrangement.Center
                     ) {
-                        val current = data.score ?: 0
-                        val prev = data.previousScore ?: 0
-                        val delta = current - prev
-                        val sign = if (delta > 0) "+" else ""
-
                         Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(
-                                painter = painterResource(id = trendIconRes),
-                                contentDescription = "Trend",
-                                tint = trendColor,
-                                modifier = Modifier.size(36.dp)
-                            )
-                            Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
                             Text(
-                                text = "$sign$delta pts",
-                                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                                color = trendColor
+                                text = trendTitle,
+                                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_chevron_forward),
+                                contentDescription = "Details",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(16.dp)
                             )
                         }
 
                         Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
 
-                        Text(
-                            text = "Previous: $prev",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-
-                        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
-
-                        Text(
-                            text = safeTrend.name,
-                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                            color = trendColor
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                painter = painterResource(id = trendIconRes),
+                                contentDescription = "Trend Status",
+                                tint = trendColor,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = safeTrend.name,
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                color = trendColor
+                            )
+                        }
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    // only make it clickable if it overflows or is already expanded
+                    .then(
+                        if (hasOverflow || expanded) {
+                            Modifier.clickable { expanded = !expanded }
+                        } else Modifier
+                    )
+                    .padding(top = dimensionResource(R.dimen.padding_medium)),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = interpretationText,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = if (expanded) Int.MAX_VALUE else 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f),
+                    onTextLayout = { textLayoutResult ->
+                        // Check if the text was truncated when it's collapsed
+                        if (!expanded) {
+                            hasOverflow = textLayoutResult.hasVisualOverflow
+                        }
+                    }
+                )
+                // Only show the arrow if it overflows the 2 lines, or if it's currently open
+                if (hasOverflow || expanded) {
+                    Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+                    Icon(
+                        painter = painterResource(id = if (expanded) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down),
+                        contentDescription = if (expanded) "Collapse" else "Expand",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(dimensionResource(id = R.dimen.icon_size_small))
+                    )
+                }
+            }
         }
-
-        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
-        HorizontalDivider(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f))
-        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
-
-        Text(
-            text = stringResource(id = R.string.radar_what_this_means).uppercase(),
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.padding_small))
-        )
-
-        Text(
-            text = interpretationText,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface,
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
-        HorizontalDivider(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f))
-        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
-
     }
 }
 
@@ -492,65 +463,6 @@ private fun SystemicGaugeRow(
                 }
             }
         }
-    }
-}
-
-@Composable
-fun VulnerabilityScoreChart(score: Int, statusText: String, statusColor: Color) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth(0.5f)
-                .aspectRatio(1f),
-            contentAlignment = Alignment.Center
-        ) {
-            Canvas(modifier = Modifier.fillMaxSize()) {
-                val strokeWidth = 24f
-                val sweepAngle = (score / 100f) * 360f
-
-                val inset = strokeWidth / 2
-                val arcSize = androidx.compose.ui.geometry.Size(
-                    width = size.width - strokeWidth,
-                    height = size.height - strokeWidth
-                )
-
-                // Faint Background Track
-                drawArc(
-                    color = statusColor.copy(alpha = 0.15f),
-                    startAngle = 0f,
-                    sweepAngle = 360f,
-                    useCenter = false,
-                    topLeft = Offset(inset, inset),
-                    size = arcSize,
-                    style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
-                )
-
-                // Foreground Progress Arc
-                drawArc(
-                    color = statusColor,
-                    startAngle = 270f,
-                    sweepAngle = sweepAngle,
-                    useCenter = false,
-                    topLeft = Offset(inset, inset),
-                    size = arcSize,
-                    style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
-                )
-            }
-
-            Text(
-                text = score.toString(),
-                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
-
-        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
-
-        Text(
-            text = statusText,
-            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-            color = statusColor
-        )
     }
 }
 

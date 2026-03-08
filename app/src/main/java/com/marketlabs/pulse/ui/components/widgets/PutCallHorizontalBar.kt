@@ -1,4 +1,4 @@
-package com.marketlabs.pulse.ui.screens.dashboard.views.widgets
+package com.marketlabs.pulse.ui.components.widgets
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
