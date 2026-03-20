@@ -117,4 +117,27 @@
 
     <string name="market_score">Market Score</string>
     <string name="market_posture">Market Posture</string>
+
+    <string name="tab_action">Action</string>
+    <string name="tab_phase">Phase</string>
+    <string name="tab_vitals">Vitals</string>
+
+    <string name="tactical_metrics_title">Tactical Metrics</string>
+    <string name="no_market_action_data">No Market Action data available.</string>
+    <string name="metric_fear_greed">Fear &amp; Greed Index</string>
+    <string name="metric_put_call">Put/Call Ratio</string>
+    <string name="metric_rsi">RSI (Momentum)</string>
+    <string name="metric_sma_extension">SMA Extension</string>
+    <string name="buy_score_label">Buy Score</string>
+    <string name="signal_label">Signal</string>
+    <string name="not_available_short">N/A</string>
+
+    <string name="no_market_phase_data">No Market Phase data available.</string>
+
+    <string name="vitals_inflation">Inflation</string>
+    <string name="vitals_labor">Labor Market</string>
+    <string name="vitals_growth">Economic Growth</string>
+    <string name="vitals_policy">Monetary Policy</string>
+    <string name="no_macro_vitals_data">No Macro Vitals data available.</string>
+    <string name="market_action">Market Action</string>
 </resources>

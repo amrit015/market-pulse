@@ -1,5 +1,12 @@
 package com.marketlabs.pulse.ui.screens.indicators
 
+data class PillarGuide(
+    val pillarName: String,
+    val timeframe: String,
+    val purpose: String,
+    val howToUse: String
+)
+
 data class PhaseFramework(
     val phaseTitle: String,
     val focus: String,
@@ -16,9 +23,31 @@ data class DictionaryItem(
 
 object IndicatorsDictionary {
 
-    val DISCLAIMER = "Functional Logic: The Three-Phase Framework\n\nThe dashboard is divided into three distinct phases to help you distinguish between what is happening (Trend), why it’s happening (Health), and what could go wrong (Risk)."
+    val DISCLAIMER = "Functional Logic: The Three-Pillar Framework\n\nThe dashboard is divided into three distinct pillars. Together, they tell you what the economy is doing, how the market is reacting, and exactly when to execute a trade."
 
-    // 💡 THE BIG PICTURE: Matches the actual script logic
+    // 💡 NEW: High-level guide on how the user should utilize the entire dashboard
+    val dashboardPillars = listOf(
+        PillarGuide(
+            pillarName = "Market Action (The \"When\")",
+            timeframe = "Short-Term (Days to Weeks)",
+            purpose = "The 'Sniper' tool. Measures human emotion, panic, and mathematical over-extensions.",
+            howToUse = "Step 1: Look here for immediate entry and exit timing. It answers: 'Has the market moved too far, too fast? Is it time to buy the dip?'"
+        ),
+        PillarGuide(
+            pillarName = "Market Phase (The \"What\")",
+            timeframe = "Medium-Term (Weeks to Months)",
+            purpose = "Synthesizes how the financial markets (Stocks, Bonds, Commodities) are reacting to the economy.",
+            howToUse = "Step 2: Look here for portfolio positioning. If the Phase is BULLISH, hold growth stocks. If DEFENSIVE, rotate to safety. It answers: 'What season are we in?'"
+        ),
+        PillarGuide(
+            pillarName = "Macro Vitals (The \"Why\")",
+            timeframe = "Long-Term (Months to Years)",
+            purpose = "Tracks the foundational bedrock of the economy using raw government data.",
+            howToUse = "Step 3: Look here to understand the structural reality of the world. It answers: 'Are we in an economic expansion or a recession?'"
+        )
+    )
+
+    // 💡 THE BIG PICTURE: Matches the actual Market Phase script logic
     val macroFrameworks = listOf(
         PhaseFramework(
             phaseTitle = "Phase 1: TREND (The \"What\")",
@@ -40,9 +69,58 @@ object IndicatorsDictionary {
         )
     )
 
-    // 💡 INDIVIDUAL DEFINITIONS: Titles and strings now perfectly match trafficLight.ts payloads
+    // 💡 INDIVIDUAL DEFINITIONS: Combined for Vitals, Phase, and Action
     private val indicatorDefinitions = listOf(
-        // --- TREND ---
+
+        // ==========================================
+        // 🌍 MACRO VITALS
+        // ==========================================
+        DictionaryItem(
+            title = "Consumer Price Index (CPI)",
+            subtitle = "The Headline Inflation Rate",
+            definition = "Tracks the average change in prices paid by urban consumers for a basket of goods and services.",
+            howToRead = "High or rising CPI forces the Fed to keep interest rates high (bearish for stocks). Falling CPI allows the Fed to cut rates (bullish)."
+        ),
+        DictionaryItem(
+            title = "Core PCE",
+            subtitle = "The Fed's Preferred Inflation Gauge",
+            definition = "Measures inflation but strips out highly volatile food and energy prices to find the true underlying trend.",
+            howToRead = "If Core PCE is stuck above 2.5%, the Fed is unlikely to cut interest rates, regardless of what headline CPI says."
+        ),
+        DictionaryItem(
+            title = "Unemployment Rate",
+            subtitle = "The Labor Market Health",
+            definition = "The percentage of the total labor force that is actively seeking employment but currently unemployed.",
+            howToRead = "A low, stable rate means a healthy consumer. A rapidly spiking rate usually signals an impending corporate earnings recession."
+        ),
+        DictionaryItem(
+            title = "Nonfarm Payrolls",
+            subtitle = "Monthly Job Creation",
+            definition = "The total number of jobs added or lost in the US economy each month.",
+            howToRead = "A number significantly higher than estimates implies a booming economy. A negative number signals severe economic contraction."
+        ),
+        DictionaryItem(
+            title = "Real GDP",
+            subtitle = "The Ultimate Economic Scorecard",
+            definition = "Gross Domestic Product measures the total monetary value of all finished goods and services produced, adjusted for inflation.",
+            howToRead = "Two consecutive quarters of negative GDP growth is the traditional definition of a recession. Positive GDP confirms expansion."
+        ),
+        DictionaryItem(
+            title = "Retail Sales",
+            subtitle = "Consumer Spending Momentum",
+            definition = "Because consumer spending makes up roughly 70% of the US economy, this acts as a real-time pulse on the average household.",
+            howToRead = "Rising sales mean consumers are confident and spending. Falling sales suggest consumers are tapping out."
+        ),
+        DictionaryItem(
+            title = "Federal Funds Rate",
+            subtitle = "The Master Interest Rate",
+            definition = "The rate at which banks lend money to each other. It dictates the cost of all other debt in the world (mortgages, corporate borrowing).",
+            howToRead = "Lower rates inflate asset prices. Higher rates slow the economy down and compress stock valuations."
+        ),
+
+        // ==========================================
+        // 🚦 MARKET PHASE (Trend, Health, Risk)
+        // ==========================================
         DictionaryItem(
             title = "S&P 500 Direction",
             subtitle = "The Macro Trend",
@@ -62,13 +140,11 @@ object IndicatorsDictionary {
             howToRead = "• CALM (< 20): Normal market conditions.\n• ELEVATED (20–30): Choppy/Nervous market.\n• PANIC (> 30): Extreme fear. Paradoxically, this is often the best time to buy."
         ),
         DictionaryItem(
-            title = "RSI (Momentum)",
+            title = "RSI (Momentum)", // Used by both Market Phase and Market Action
             subtitle = "The Momentum Check",
             definition = "A score from 0 to 100 measuring momentum to see if the price moved too far, too fast.",
             howToRead = "• OVERBOUGHT (> 70): High risk of a pullback.\n• NEUTRAL (30-70): Healthy consolidation or reset.\n• OVERSOLD (< 30): Potential buying opportunity."
         ),
-
-        // --- HEALTH ---
         DictionaryItem(
             title = "10Y Treasury Yield",
             subtitle = "The Gravity",
@@ -93,8 +169,6 @@ object IndicatorsDictionary {
             definition = "The price of Consumer Discretionary Stocks (e.g., Tesla) divided by Consumer Staples Stocks (e.g., Walmart).",
             howToRead = "• RISK ON (Rising): Discretionary is outperforming. Consumers are confident.\n• DEFENSIVE (Falling): Staples are outperforming. Investors are rotating to safety."
         ),
-
-        // --- RISK ---
         DictionaryItem(
             title = "Yield Curve (10Y-2Y)",
             subtitle = "The Recession Radar",
@@ -118,11 +192,33 @@ object IndicatorsDictionary {
             subtitle = "The Consumer Tax",
             definition = "The global price of crude oil, which directly impacts inflation and consumer spending.",
             howToRead = "• INFLATIONARY (> 90): High oil acts as a tax on consumers and handcuffs the Fed.\n• STABLE: Normal economic functioning.\n• DEFLATIONARY (< 60): Too low might indicate severe demand destruction (Recession)."
+        ),
+
+        // ==========================================
+        // 🎯 MARKET ACTION (Tactical Confluence)
+        // ==========================================
+        DictionaryItem(
+            title = "Fear & Greed Index",
+            subtitle = "The Contrarian Trigger",
+            definition = "Calculated by CNN, this blends 7 different indicators into a 0-100 score of immediate market psychology.",
+            howToRead = "Extreme Greed (>80) suggests the market is euphoric and due for a pullback. Extreme Fear (<20) often signals temporary capitulation and a buying opportunity."
+        ),
+        DictionaryItem(
+            title = "Put/Call Ratio",
+            subtitle = "Options Market Panic",
+            definition = "Tracks options volume. Puts are bets the market will fall; Calls are bets it will rise.",
+            howToRead = "A ratio above 1.0 (Panic) is historically a strong buy signal. A ratio below 0.7 (Complacency) suggests the market is dangerously overconfident."
+        ),
+        DictionaryItem(
+            title = "SMA Extension",
+            subtitle = "The Rubber Band Effect",
+            definition = "Measures the percentage difference between the current S&P 500 price and its 200-day Moving Average.",
+            howToRead = "If price is > 10% to 15% above the average, it is highly overextended (caution). If it touches or dips just below the average, it often finds massive institutional support."
         )
     )
 
     /**
-     * Smart lookup: Matches the exact incoming API names from trafficLight.ts.
+     * Smart lookup: Matches the exact incoming API names from backend scripts.
      */
     fun getDefinitionFor(apiName: String): DictionaryItem? {
         val normalizedApiName = apiName.lowercase().trim()
@@ -133,8 +229,18 @@ object IndicatorsDictionary {
             // 1. Direct match
             if (normalizedTitle == normalizedApiName) return@find true
 
-            // 2. Substring matches to catch any slight variations from the backend
+            // 2. Substring matches to catch variations from the backend
             when {
+                // Vitals
+                normalizedApiName.contains("cpi") -> normalizedTitle.contains("cpi")
+                normalizedApiName.contains("pce") -> normalizedTitle.contains("pce")
+                normalizedApiName.contains("unemployment") -> normalizedTitle.contains("unemployment")
+                normalizedApiName.contains("nonfarm") || normalizedApiName.contains("payrolls") -> normalizedTitle.contains("nonfarm")
+                normalizedApiName.contains("gdp") -> normalizedTitle.contains("gdp")
+                normalizedApiName.contains("retail") -> normalizedTitle.contains("retail")
+                normalizedApiName.contains("federal funds") || normalizedApiName.contains("fed rate") -> normalizedTitle.contains("federal funds")
+
+                // Phase & Action
                 normalizedApiName.contains("s&p") -> normalizedTitle.contains("s&p")
                 normalizedApiName.contains("breadth") -> normalizedTitle.contains("breadth")
                 normalizedApiName.contains("vix") -> normalizedTitle.contains("vix")
@@ -147,6 +253,9 @@ object IndicatorsDictionary {
                 normalizedApiName.contains("move") || normalizedApiName.contains("bond vol") -> normalizedTitle.contains("move")
                 normalizedApiName.contains("economic pulse") || normalizedApiName.contains("copper") -> normalizedTitle.contains("economic pulse")
                 normalizedApiName.contains("inflation") || normalizedApiName.contains("oil") -> normalizedTitle.contains("inflation")
+                normalizedApiName.contains("fear") && normalizedApiName.contains("greed") -> normalizedTitle.contains("fear & greed")
+                normalizedApiName.contains("put") && normalizedApiName.contains("call") -> normalizedTitle.contains("put/call")
+                normalizedApiName.contains("sma extension") || normalizedApiName.contains("extension") -> normalizedTitle.contains("sma extension")
                 else -> false
             }
         }

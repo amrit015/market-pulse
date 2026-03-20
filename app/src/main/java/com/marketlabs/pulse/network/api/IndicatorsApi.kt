@@ -1,19 +1,17 @@
 package com.marketlabs.pulse.network.api
 
-import com.marketlabs.pulse.network.model.indicators.NetworkPhaseDetails
-import com.marketlabs.pulse.network.model.indicators.NetworkPhaseSummary
+import com.marketlabs.pulse.network.model.indicators.NetworkMacroVitals
+import com.marketlabs.pulse.network.model.indicators.NetworkMarketAction
+import com.marketlabs.pulse.network.model.indicators.NetworkMarketPhase
 import retrofit2.http.GET
 
 interface IndicatorsApi {
-    @GET("indicators/summary") // Update path based on your exact backend endpoint
-    suspend fun getSummary(): NetworkPhaseSummary
+    @GET("indicators/phase")
+    suspend fun getMarketPhase(): NetworkMarketPhase
 
-    @GET("indicators/trend")
-    suspend fun getTrend(): NetworkPhaseDetails
+    @GET("indicators/vitals")
+    suspend fun getMacroVitals(): NetworkMacroVitals
 
-    @GET("indicators/health")
-    suspend fun getHealth(): NetworkPhaseDetails
-
-    @GET("indicators/risk")
-    suspend fun getRisk(): NetworkPhaseDetails
+    @GET("indicators/action")
+    suspend fun getMarketAction(): NetworkMarketAction
 }

@@ -1,5 +1,6 @@
 package com.marketlabs.pulse.ui.screens.riskRadar.views
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -37,6 +38,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.riskRadar.Gauge
@@ -332,7 +334,7 @@ private fun ScoreBoardCard(
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = if (expanded) Int.MAX_VALUE else 2,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f).animateContentSize(),
                     onTextLayout = { textLayoutResult ->
                         // Check if the text was truncated when it's collapsed
                         if (!expanded) {
