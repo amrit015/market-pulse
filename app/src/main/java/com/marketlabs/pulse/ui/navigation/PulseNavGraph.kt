@@ -19,8 +19,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.marketlabs.pulse.R
-import com.marketlabs.pulse.ui.screens.dashboard.views.DashboardRoute
 import com.marketlabs.pulse.ui.components.PulseWebViewScreen
+import com.marketlabs.pulse.ui.screens.dashboard.views.DashboardRoute
 import com.marketlabs.pulse.ui.screens.indicators.views.IndicatorsRoute
 import com.marketlabs.pulse.ui.screens.news.views.NewsRoute
 import com.marketlabs.pulse.ui.screens.riskRadar.views.RiskRadarRoute

@@ -1,21 +1,37 @@
 package com.marketlabs.pulse.ui.screens.indicators.views.tabs
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import com.marketlabs.pulse.R
-import com.marketlabs.pulse.storage.model.indicators.*
+import com.marketlabs.pulse.storage.model.indicators.DomainMarketPhase
+import com.marketlabs.pulse.storage.model.indicators.PhaseDetails
 import com.marketlabs.pulse.ui.components.widgets.ScoreGauge
 import com.marketlabs.pulse.ui.screens.indicators.DictionaryItem
 import com.marketlabs.pulse.ui.screens.indicators.IndicatorsDictionary
@@ -30,6 +46,11 @@ fun MarketPhaseTab(
     onIndicatorClick: (DictionaryItem?) -> Unit
 ) {
     val guide = IndicatorsDictionary.dashboardPillars[1]
+
+    val trendTitle = stringResource(id = R.string.phase_title_trend)
+    val healthTitle = stringResource(id = R.string.phase_title_health)
+    val riskTitle = stringResource(id = R.string.phase_title_risk)
+    val valTitle = stringResource(id = R.string.phase_title_valuation)
 
     LazyColumn(
         contentPadding = PaddingValues(dimensionResource(id = R.dimen.padding_large)),
@@ -47,16 +68,24 @@ fun MarketPhaseTab(
             }
 
             phaseData.trendDetails?.let {
-                item { PhaseSection("Trend Phase", it, onIndicatorClick) }
+                item { PhaseSection(trendTitle, it, onIndicatorClick) }
             }
             phaseData.healthDetails?.let {
-                item { PhaseSection("Health Phase", it, onIndicatorClick) }
+                item { PhaseSection(healthTitle, it, onIndicatorClick) }
             }
             phaseData.riskDetails?.let {
-                item { PhaseSection("Risk Phase", it, onIndicatorClick) }
+                item { PhaseSection(riskTitle, it, onIndicatorClick) }
+            }
+            phaseData.valuationDetails?.let {
+                item { PhaseSection(valTitle, it, onIndicatorClick) }
             }
         } else {
-            item { Text(stringResource(id = R.string.no_market_phase_data), color = MaterialTheme.colorScheme.onSurfaceVariant) }
+            item {
+                Text(
+                    stringResource(id = R.string.no_market_phase_data),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }
@@ -76,24 +105,34 @@ fun IndicatorScoreHeader(phase: DomainMarketPhase, onIndicatorClick: (Dictionary
         else -> PulseStatusColors.BearishBg
     }
 
+    // 💡 Resolve strings outside the clickable lambda
+    val marketPhaseTitle = stringResource(id = R.string.dict_market_phase_score_title)
+    val calculatedValue = stringResource(id = R.string.dict_calculated_value, score)
+    val formulaFallback = stringResource(id = R.string.dict_formula_fallback)
+    val formulaString = stringResource(id = R.string.dict_formula, phase.verdictFormula ?: formulaFallback)
+    val marketPhaseRead = stringResource(id = R.string.dict_market_phase_read)
+
     Card(
         colors = CardDefaults.cardColors(containerColor = headerBgColor),
         shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card_extra_large)),
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
-                // 💡 DYNAMIC DICTIONARY ITEM for Outer Card (Formula)
                 onIndicatorClick(
                     DictionaryItem(
-                        title = "Market Phase Score",
-                        subtitle = "Calculated Value: $score/100",
-                        definition = "Formula: ${phase.verdictFormula ?: "Weighted average of Trend, Health, and Risk."}",
-                        howToRead = "A score > 65 indicates a confirmed Bull Market. A score < 45 indicates a Bear Market or severe correction."
+                        title = marketPhaseTitle,
+                        subtitle = calculatedValue,
+                        definition = formulaString,
+                        howToRead = marketPhaseRead
                     )
                 )
             }
     ) {
-        Column(modifier = Modifier.fillMaxWidth().padding(dimensionResource(id = R.dimen.padding_extra_large))) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(dimensionResource(id = R.dimen.padding_extra_large))
+        ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -106,7 +145,7 @@ fun IndicatorScoreHeader(phase: DomainMarketPhase, onIndicatorClick: (Dictionary
                 )
                 Icon(
                     painter = painterResource(id = R.drawable.ic_chevron_forward),
-                    contentDescription = "Details",
+                    contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(dimensionResource(R.dimen.padding_large))
                 )
@@ -114,31 +153,41 @@ fun IndicatorScoreHeader(phase: DomainMarketPhase, onIndicatorClick: (Dictionary
 
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
 
-            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 ScoreGauge(
                     score = score,
                     previousScore = previousScore,
                     isHigherBetter = true,
-                    statusText = phase.marketRegime.name.replace("_", " "),
+                    statusText = phase.marketRegime ?: stringResource(id = R.string.phase_analyzing),
                     ringColor = ringColor
                 )
 
                 Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_large)))
 
+                val marketPostureTitle = stringResource(id = R.string.dict_market_posture_title)
+                val defaultPostureDef = stringResource(id = R.string.dict_market_posture_def_fallback)
+                val marketPostureRead = stringResource(id = R.string.dict_market_posture_read)
+
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
+                    ),
                     shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
-                    modifier = Modifier.weight(1f).clickable {
-                        // 💡 DYNAMIC DICTIONARY ITEM for Inner Card (Verdict)
-                        onIndicatorClick(
-                            DictionaryItem(
-                                title = "Market Posture",
-                                subtitle = phase.verdictCall.name.replace("_", " "),
-                                definition = phase.verdictAction ?: "Action not available.",
-                                howToRead = "This is the medium-term positioning strategy based on the current regime."
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable {
+                            onIndicatorClick(
+                                DictionaryItem(
+                                    title = marketPostureTitle,
+                                    subtitle = phase.verdictCall.name.replace("_", " "),
+                                    definition = phase.verdictAction ?: defaultPostureDef,
+                                    howToRead = marketPostureRead
+                                )
                             )
-                        )
-                    }
+                        }
                 ) {
                     Column(
                         modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)),
@@ -156,7 +205,7 @@ fun IndicatorScoreHeader(phase: DomainMarketPhase, onIndicatorClick: (Dictionary
                             )
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_chevron_forward),
-                                contentDescription = "Details",
+                                contentDescription = null,
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(dimensionResource(R.dimen.padding_large))
                             )
@@ -176,7 +225,11 @@ fun IndicatorScoreHeader(phase: DomainMarketPhase, onIndicatorClick: (Dictionary
 }
 
 @Composable
-fun PhaseSection(title: String, details: PhaseDetails, onIndicatorClick: (DictionaryItem?) -> Unit) {
+fun PhaseSection(
+    title: String,
+    details: PhaseDetails,
+    onIndicatorClick: (DictionaryItem?) -> Unit
+) {
     val paddingMedium = dimensionResource(id = R.dimen.padding_medium)
 
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -186,9 +239,8 @@ fun PhaseSection(title: String, details: PhaseDetails, onIndicatorClick: (Dictio
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
-        // 💡 FIX: Removed .name, and safely handle the nullable String
         Text(
-            text = details.overallSignal ?: "UNKNOWN",
+            text = details.overallSignal ?: stringResource(id = R.string.phase_unknown),
             style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
             color = MaterialTheme.colorScheme.primary
         )
@@ -197,12 +249,17 @@ fun PhaseSection(title: String, details: PhaseDetails, onIndicatorClick: (Dictio
             text = details.summary ?: "",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_tiny), bottom = dimensionResource(id = R.dimen.padding_large))
+            modifier = Modifier.padding(
+                top = dimensionResource(id = R.dimen.padding_tiny),
+                bottom = dimensionResource(id = R.dimen.padding_large)
+            )
         )
 
         details.indicators.chunked(2).forEach { rowItems ->
             Row(
-                modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max), // 💡 ADDED
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(IntrinsicSize.Max),
                 horizontalArrangement = Arrangement.spacedBy(paddingMedium)
             ) {
                 rowItems.forEach { item ->
@@ -212,14 +269,23 @@ fun PhaseSection(title: String, details: PhaseDetails, onIndicatorClick: (Dictio
                         changeString = item.changePercent,
                         signalText = item.signal,
                         signalColor = item.signalColor,
-                        modifier = Modifier.weight(1f).fillMaxHeight(), // 💡 ADDED fillMaxHeight
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight(),
                         onClick = { onIndicatorClick(IndicatorsDictionary.getDefinitionFor(item.name)) }
                     )
                 }
-                if (rowItems.size == 1) Spacer(modifier = Modifier.weight(1f).fillMaxHeight()) // 💡 ADDED fillMaxHeight to spacer too
+                if (rowItems.size == 1) Spacer(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                )
             }
             Spacer(modifier = Modifier.height(paddingMedium))
         }
-        HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), modifier = Modifier.padding(vertical = paddingMedium))
+        HorizontalDivider(
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+            modifier = Modifier.padding(vertical = paddingMedium)
+        )
     }
 }

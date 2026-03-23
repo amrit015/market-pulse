@@ -66,6 +66,12 @@ object IndicatorsDictionary {
             focus = "Are the tail-risks spiking?",
             indicators = "Yield Curve (10Y-2Y), Bond Volatility (MOVE), Economic Pulse, and Inflation Proxy (Oil).",
             goal = "Identify systemic threats like recessions or liquidity crises."
+        ),
+        PhaseFramework(
+            phaseTitle = "Phase 4: VALUATION (The \"Price\")",
+            focus = "Are stocks historically expensive or cheap?",
+            indicators = "P/E Ratio, Price-to-Sales, Equity Risk Premium, and Dividend Yield.",
+            goal = "Determine if the fundamental earnings of the market justify the current price."
         )
     )
 
@@ -192,6 +198,30 @@ object IndicatorsDictionary {
             subtitle = "The Consumer Tax",
             definition = "The global price of crude oil, which directly impacts inflation and consumer spending.",
             howToRead = "• INFLATIONARY (> 90): High oil acts as a tax on consumers and handcuffs the Fed.\n• STABLE: Normal economic functioning.\n• DEFLATIONARY (< 60): Too low might indicate severe demand destruction (Recession)."
+        ),
+        DictionaryItem(
+            title = "P/E Ratio (TTM)",
+            subtitle = "The Price Tag of the Market",
+            definition = "Price-to-Earnings measures how much investors are willing to pay for $1 of corporate profit over the trailing twelve months.",
+            howToRead = "• EXPENSIVE (> 20): High risk. The market is priced for perfection.\n• FAIR (15-20): Normal historical valuations.\n• CHEAP (< 15): Severe discount, often seen during crashes."
+        ),
+        DictionaryItem(
+            title = "Price-to-Sales (P/S)",
+            subtitle = "The Top-Line Valuation",
+            definition = "Compares the stock market's total price to total revenue. Unlike earnings, sales are much harder for accountants to manipulate.",
+            howToRead = "A high P/S ratio means investors are paying a massive premium for revenue growth. A drop in P/S often precedes market bottoms."
+        ),
+        DictionaryItem(
+            title = "Equity Risk Premium",
+            subtitle = "Stocks vs. Safe Bonds",
+            definition = "Calculated by taking the S&P 500 Earnings Yield (1 / PE) and subtracting the 10-Year Treasury Yield.",
+            howToRead = "• REWARDING (> 4%): Stocks are cheap relative to bonds. Buy stocks.\n• NEUTRAL (2-4%): Average historical compensation.\n• DANGEROUS (< 2%): You are taking massive stock market risk for almost zero extra yield compared to risk-free government bonds."
+        ),
+        DictionaryItem(
+            title = "Dividend Yield",
+            subtitle = "The Cash Return",
+            definition = "The percentage of the S&P 500's price that is paid out to shareholders as cash dividends annually.",
+            howToRead = "When stock prices fall drastically, the dividend yield spikes, often attracting value investors to establish a market floor."
         ),
 
         // ==========================================

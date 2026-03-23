@@ -1,6 +1,9 @@
 package com.marketlabs.pulse.storage.model.indicators
 
-import com.marketlabs.pulse.storage.model.indicators.enums.*
+import com.marketlabs.pulse.storage.model.indicators.enums.ActionSignal
+import com.marketlabs.pulse.storage.model.indicators.enums.SetupPhase
+import com.marketlabs.pulse.storage.model.indicators.enums.SignalColor
+import com.marketlabs.pulse.storage.model.indicators.enums.VerdictCall
 
 // ============================================================================
 // THE MASTER DOMAIN OBJECT
@@ -32,19 +35,19 @@ data class IndicatorItem(
     val description: String
 )
 
-// 💡 NEW: We also need to add the formula to DomainMarketPhase!
 data class DomainMarketPhase(
     val timestamp: Long,
-    val marketRegime: MarketRegime,
+    val marketRegime: String?,
     val setupPhase: SetupPhase,
     val verdictScore: Int?,
     val previousScore: Int?,
     val verdictCall: VerdictCall,
     val verdictAction: String?,
-    val verdictFormula: String?, // 💡 Added to show the calculation!
+    val verdictFormula: String?,
     val trendDetails: PhaseDetails?,
     val healthDetails: PhaseDetails?,
-    val riskDetails: PhaseDetails?
+    val riskDetails: PhaseDetails?,
+    val valuationDetails: PhaseDetails? // 💡 NEW: Added 4th Phase
 )
 
 // ============================================================================
@@ -87,5 +90,6 @@ data class DomainMarketAction(
 
 data class ActionMetric(
     val value: String?,
+    val change: String?,
     val signalColor: SignalColor
 )

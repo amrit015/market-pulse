@@ -1,12 +1,27 @@
 package com.marketlabs.pulse.ui.screens.indicators.views.tabs
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
@@ -68,7 +83,8 @@ fun MarketActionTab(
                         UniversalMetricCard(
                             title = fearGreedStr,
                             value = actionData.fearAndGreed.value,
-                            signalColor = actionData.fearAndGreed.signalColor, // 💡 ADDED
+                            changeString = actionData.fearAndGreed.change,
+                            signalColor = actionData.fearAndGreed.signalColor,
                             modifier = Modifier.weight(1f).fillMaxHeight()
                         ) {
                             onIndicatorClick(IndicatorsDictionary.getDefinitionFor(fearGreedStr))
@@ -76,7 +92,8 @@ fun MarketActionTab(
                         UniversalMetricCard(
                             title = putCallStr,
                             value = actionData.putCallRatio.value,
-                            signalColor = actionData.putCallRatio.signalColor, // 💡 ADDED
+                            changeString = actionData.putCallRatio.change,
+                            signalColor = actionData.putCallRatio.signalColor,
                             modifier = Modifier.weight(1f).fillMaxHeight()
                         ) {
                             onIndicatorClick(IndicatorsDictionary.getDefinitionFor(putCallStr))
@@ -90,7 +107,8 @@ fun MarketActionTab(
                         UniversalMetricCard(
                             title = rsiStr,
                             value = actionData.sp500Rsi.value,
-                            signalColor = actionData.sp500Rsi.signalColor, // 💡 ADDED
+                            changeString = actionData.sp500Rsi.change,
+                            signalColor = actionData.sp500Rsi.signalColor,
                             modifier = Modifier.weight(1f).fillMaxHeight()
                         ) {
                             onIndicatorClick(IndicatorsDictionary.getDefinitionFor(rsiStr))
@@ -98,7 +116,8 @@ fun MarketActionTab(
                         UniversalMetricCard(
                             title = smaStr,
                             value = actionData.smaExtension.value,
-                            signalColor = actionData.smaExtension.signalColor, // 💡 ADDED
+                            changeString = actionData.smaExtension.change,
+                            signalColor = actionData.smaExtension.signalColor,
                             modifier = Modifier.weight(1f).fillMaxHeight()
                         ) {
                             onIndicatorClick(IndicatorsDictionary.getDefinitionFor(smaStr))
@@ -119,19 +138,24 @@ fun ActionScoreHeader(action: DomainMarketAction, onIndicatorClick: (DictionaryI
     val ringColor = action.colorString.toColor()
     val headerBgColor = action.colorString.toBgColor()
 
+    // 💡 Resolve strings outside the clickable lambda
+    val buyScoreTitle = stringResource(id = R.string.dict_buy_score_title)
+    val calculatedValue = stringResource(id = R.string.dict_calculated_value, score)
+    val buyScoreDef = stringResource(id = R.string.dict_buy_score_def)
+    val buyScoreRead = stringResource(id = R.string.dict_buy_score_read)
+
     Card(
         colors = CardDefaults.cardColors(containerColor = headerBgColor),
         shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card_extra_large)),
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
-                // 💡 DYNAMIC DICTIONARY ITEM for Outer Card (Score)
                 onIndicatorClick(
                     DictionaryItem(
-                        title = "Buy Score",
-                        subtitle = "Calculated Value: $score/100",
-                        definition = "This score aggregates Fear & Greed, Put/Call Ratios, Momentum, and Price extensions into a single 0-100 value.",
-                        howToRead = "The higher the score, the better the buying opportunity (Panic). The lower the score, the higher the risk of a pullback (Euphoria)."
+                        title = buyScoreTitle,
+                        subtitle = calculatedValue,
+                        definition = buyScoreDef,
+                        howToRead = buyScoreRead
                     )
                 )
             }
@@ -149,7 +173,7 @@ fun ActionScoreHeader(action: DomainMarketAction, onIndicatorClick: (DictionaryI
                 )
                 Icon(
                     painter = painterResource(id = R.drawable.ic_chevron_forward),
-                    contentDescription = "Details",
+                    contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(dimensionResource(R.dimen.padding_large))
                 )
@@ -168,17 +192,21 @@ fun ActionScoreHeader(action: DomainMarketAction, onIndicatorClick: (DictionaryI
 
                 Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_large)))
 
+                // 💡 Resolve internal card strings
+                val actionSignalTitle = stringResource(id = R.string.dict_action_signal_title)
+                val defaultActionDef = stringResource(id = R.string.dict_action_signal_def_fallback)
+                val actionSignalRead = stringResource(id = R.string.dict_action_signal_read)
+
                 Card(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)),
                     shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
                     modifier = Modifier.weight(1f).clickable {
-                        // 💡 DYNAMIC DICTIONARY ITEM for Inner Card (Signal)
                         onIndicatorClick(
                             DictionaryItem(
-                                title = "Action Signal",
+                                title = actionSignalTitle,
                                 subtitle = action.signal.name.replace("_", " "),
-                                definition = action.description ?: "Current tactical setup.",
-                                howToRead = "This is the system's recommended short-term action based on current market sentiment and over-extensions."
+                                definition = action.description ?: defaultActionDef,
+                                howToRead = actionSignalRead
                             )
                         )
                     }
@@ -199,7 +227,7 @@ fun ActionScoreHeader(action: DomainMarketAction, onIndicatorClick: (DictionaryI
                             )
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_chevron_forward),
-                                contentDescription = "Details",
+                                contentDescription = null,
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(dimensionResource(R.dimen.padding_large))
                             )
@@ -217,7 +245,7 @@ fun ActionScoreHeader(action: DomainMarketAction, onIndicatorClick: (DictionaryI
                                 val changePrefix = if (change > 0) "+" else ""
                                 Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_micro)))
                                 Text(
-                                    text = "$changePrefix$change pts",
+                                    text = stringResource(id = R.string.score_change_pts, changePrefix, change),
                                     style = MaterialTheme.typography.labelMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )

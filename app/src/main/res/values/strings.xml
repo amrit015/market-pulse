@@ -140,4 +140,30 @@
     <string name="vitals_policy">Monetary Policy</string>
     <string name="no_macro_vitals_data">No Macro Vitals data available.</string>
     <string name="market_action">Market Action</string>
+
+    <string name="dict_buy_score_title">Buy Score</string>
+    <string name="dict_calculated_value">Calculated Value: %1$d/100</string>
+    <string name="dict_buy_score_def">This score aggregates Fear &amp; Greed, Put/Call Ratios, Momentum, and Price extensions into a single 0–100 value.</string>
+    <string name="dict_buy_score_read">The higher the score, the better the buying opportunity (Panic). The lower the score, the higher the risk of a pullback (Euphoria).</string>
+
+    <string name="dict_action_signal_title">Action Signal</string>
+    <string name="dict_action_signal_def_fallback">Current tactical setup.</string>
+    <string name="dict_action_signal_read">This is the system\'s recommended short-term action based on current market sentiment and over-extensions.</string>
+    <string name="score_change_pts">%1$s%2$d pts</string>
+
+    <string name="dict_market_phase_score_title">Market Phase Score</string>
+    <string name="dict_formula">Formula: %1$s</string>
+    <string name="dict_formula_fallback">Weighted average of Trend, Health, and Risk.</string>
+    <string name="dict_market_phase_read">A score &gt; 65 indicates a confirmed Bull Market. A score &lt; 45 indicates a Bear Market or severe correction.</string>
+
+    <string name="dict_market_posture_title">Market Posture</string>
+    <string name="dict_market_posture_def_fallback">Action not available.</string>
+    <string name="dict_market_posture_read">This is the medium-term positioning strategy based on the current regime.</string>
+
+    <string name="phase_analyzing">ANALYZING</string>
+    <string name="phase_unknown">UNKNOWN</string>
+    <string name="phase_title_trend">Trend Phase</string>
+    <string name="phase_title_health">Health Phase</string>
+    <string name="phase_title_risk">Risk Phase</string>
+    <string name="phase_title_valuation">Valuation Phase</string>
 </resources>

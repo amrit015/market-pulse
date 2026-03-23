@@ -29,14 +29,17 @@ data class NetworkPhaseVerdict(
 data class NetworkPhaseSignals(
     @Json(name = "trend") val trend: String? = null,
     @Json(name = "health") val health: String? = null,
-    @Json(name = "risk") val risk: String? = null
+    @Json(name = "risk") val risk: String? = null,
+    @Json(name = "valuation") val valuation: String? = null
+
 )
 
 @JsonClass(generateAdapter = true)
 data class NetworkPhasePillars(
     @Json(name = "trend") val trend: NetworkPhaseDetails? = null,
     @Json(name = "health") val health: NetworkPhaseDetails? = null,
-    @Json(name = "risk") val risk: NetworkPhaseDetails? = null
+    @Json(name = "risk") val risk: NetworkPhaseDetails? = null,
+    @Json(name = "valuation") val valuation: NetworkPhaseDetails? = null
 )
 
 @JsonClass(generateAdapter = true)
@@ -117,6 +120,7 @@ data class NetworkActionMetrics(
 @JsonClass(generateAdapter = true)
 data class NetworkActionMetricItem(
     @Json(name = "value") val value: String? = null,
+    @Json(name = "change") val change: String? = null,
     @Json(name = "buy_score_contribution") val buyScoreContribution: Int? = null,
     @Json(name = "signal_color") val signalColor: String? = null
 )
