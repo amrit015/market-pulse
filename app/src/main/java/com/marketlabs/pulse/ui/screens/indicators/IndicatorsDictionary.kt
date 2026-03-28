@@ -206,10 +206,10 @@ object IndicatorsDictionary {
             howToRead = "• EXPENSIVE (> 20): High risk. The market is priced for perfection.\n• FAIR (15-20): Normal historical valuations.\n• CHEAP (< 15): Severe discount, often seen during crashes."
         ),
         DictionaryItem(
-            title = "Price-to-Sales (P/S)",
-            subtitle = "The Top-Line Valuation",
-            definition = "Compares the stock market's total price to total revenue. Unlike earnings, sales are much harder for accountants to manipulate.",
-            howToRead = "A high P/S ratio means investors are paying a massive premium for revenue growth. A drop in P/S often precedes market bottoms."
+            title = "Price-to-Book (P/B)",
+            subtitle = "The Premium to Net Assets",
+            definition = "Compares the market price of the S&P 500 to the actual accounting book value (assets minus liabilities) of its underlying companies.",
+            howToRead = "A high P/B means investors are willing to pay a massive premium for future growth rather than current hard assets. A P/B ratio falling toward historical baselines often signals a value opportunity."
         ),
         DictionaryItem(
             title = "Equity Risk Premium",

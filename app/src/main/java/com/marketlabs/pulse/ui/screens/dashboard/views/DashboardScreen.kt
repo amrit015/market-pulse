@@ -141,7 +141,7 @@ fun DashboardScreen(
                                     status = greedAsset.rsiStatus
                                 )
                             },
-                            showVerdict = false,
+                            // 💡 REMOVED: showVerdict = false
                             onClick = { selectedAsset = greedAsset }
                         )
                     }
@@ -159,7 +159,7 @@ fun DashboardScreen(
                                     status = putCallAsset.rsiStatus
                                 )
                             },
-                            showVerdict = false,
+                            // 💡 REMOVED: showVerdict = false
                             onClick = { selectedAsset = putCallAsset }
                         )
                     } else if (greedAsset != null) {
@@ -184,7 +184,8 @@ fun DashboardScreen(
             AssetSection(
                 title = stringResource(id = R.string.dashboard_section_equities),
                 items = equityAssets,
-                onAssetClick = { selectedAsset = it }
+                onAssetClick = { selectedAsset = it },
+                columnNum = 3 // 💡 ADDED: 3-column grid
             )
         }
 
@@ -193,7 +194,8 @@ fun DashboardScreen(
             AssetSection(
                 title = stringResource(id = R.string.dashboard_section_crypto),
                 items = otherAssets,
-                onAssetClick = { selectedAsset = it }
+                onAssetClick = { selectedAsset = it },
+                columnNum = 3 // 💡 ADDED: 3-column grid
             )
         }
     }
@@ -336,12 +338,16 @@ fun AssetSection(
                     }
                 }
 
-                if (rowItems.size == 1) {
-                    Spacer(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                    )
+                // 💡 FIX: Dynamically fill any remaining empty spots in the grid row
+                if (rowItems.size < columnNum) {
+                    val emptySpots = columnNum - rowItems.size
+                    repeat(emptySpots) {
+                        Spacer(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight()
+                        )
+                    }
                 }
             }
             Spacer(modifier = Modifier.height(paddingMedium))
@@ -354,14 +360,12 @@ fun AssetCard(
     asset: AssetOverview,
     modifier: Modifier = Modifier,
     customVisual: @Composable (() -> Unit)? = null,
-    showVerdict: Boolean = true,
     onClick: () -> Unit
 ) {
     val change = asset.changePercent ?: 0.0
     val isMathematicallyPositive = change >= 0
     val isGoodEvent = if (asset.isInverted == true) !isMathematicallyPositive else isMathematicallyPositive
 
-    // 💡 USES CENTRALIZED DYNAMIC COLORS
     val baseColor = if (isGoodEvent) PulseStatusColors.BullishText else PulseStatusColors.BearishText
     val backgroundColor = if (isGoodEvent) PulseStatusColors.BullishBg else PulseStatusColors.BearishBg
 
@@ -373,11 +377,11 @@ fun AssetCard(
         asset.symbol.replace("=F", "")
     }
 
-    val isFutures = asset.type == AssetType.FUTURE
-    val livePriceTextSize = if (isFutures) MaterialTheme.typography.titleSmall else MaterialTheme.typography.headlineSmall
+    // 💡 FIX: Standardized to titleSmall for all assets to match the Futures look
+    val livePriceTextSize = MaterialTheme.typography.titleSmall
 
     Card(
-        colors = CardDefaults.cardColors(containerColor = backgroundColor), // 👈 Dynamic BG applied directly
+        colors = CardDefaults.cardColors(containerColor = backgroundColor),
         shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card_large)),
         modifier = modifier.clickable { onClick() }
     ) {
@@ -420,17 +424,6 @@ fun AssetCard(
                     text = "$sign${String.format("%.2f", change)}%",
                     style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                     color = baseColor
-                )
-            }
-
-            if (showVerdict && !isFutures) {
-                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
-
-                Text(
-                    text = asset.aiVerdict ?: "",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 3
                 )
             }
         }

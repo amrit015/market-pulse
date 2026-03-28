@@ -71,31 +71,31 @@ val AppTypography = Typography(
         letterSpacing = 0.1.sp
     ),
 
-    // --- BODY (Inter) ---
+    // --- BODY (Montserrat) ---
     // Used for the AI-generated summary content
     bodyLarge = TextStyle(
-        fontFamily = Inter,
+        fontFamily = Montserrat,
         fontWeight = FontWeight.Normal,
-        fontSize = 16.sp,
+        fontSize = 15.sp,
         lineHeight = 24.sp,
         letterSpacing = 0.5.sp
     ),
     bodyMedium = TextStyle(
-        fontFamily = Inter,
+        fontFamily = Montserrat,
         fontWeight = FontWeight.Normal,
-        fontSize = 15.sp,
+        fontSize = 14.sp,
         lineHeight = 20.sp,
         letterSpacing = 0.25.sp
     ),
     bodySmall = TextStyle(
-        fontFamily = Inter,
+        fontFamily = Montserrat,
         fontWeight = FontWeight.Normal,
-        fontSize = 13.sp,
+        fontSize = 12.sp,
         lineHeight = 16.sp,
         letterSpacing = 0.4.sp
     ),
 
-    // --- LABELS (Inter/Terminal Style) ---
+    // --- LABELS (Montserrat/Terminal Style) ---
     // Used for small labels (e.g., "ACTION PLAN" or "LAST UPDATED")
     labelLarge = TextStyle(
         fontFamily = Inter,
