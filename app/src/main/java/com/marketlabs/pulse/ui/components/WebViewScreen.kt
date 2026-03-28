@@ -1,4 +1,4 @@
-package com.marketlabs.pulse.ui.screens.extra
+package com.marketlabs.pulse.ui.components
 
 import android.annotation.SuppressLint
 import android.graphics.Bitmap

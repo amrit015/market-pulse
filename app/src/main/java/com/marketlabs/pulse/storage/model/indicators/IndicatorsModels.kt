@@ -5,7 +5,8 @@ import com.marketlabs.pulse.storage.model.indicators.enums.VerdictCall
 
 data class MarketIndicators(
     val dateId: String,
-    val lastSyncedTimestamp: Long?,
+    val lastSyncedTimestamp: Long,
+    val lastUpdated: Long,
     val summary: PhaseSummary?,
     val trendPhase: PhaseDetails?,
     val healthPhase: PhaseDetails?,
@@ -13,6 +14,7 @@ data class MarketIndicators(
 )
 
 data class PhaseSummary(
+    val previousScore: Int?,
     val score: Int?,
     val call: VerdictCall?,
     val action: String?,
@@ -34,6 +36,6 @@ data class IndicatorItem(
     val value: String?,
     val changePercent: String?,
     val signal: String?,
-    val signalColor: SignalColor?, // 💡 Mapped to Enum for easy UI coloring
+    val signalColor: SignalColor?,
     val description: String?
 )

@@ -31,7 +31,6 @@ private val PulseDarkColorScheme = darkColorScheme(
     onBackground = DarkOnSurface,
     surface = DarkSurface,
     onSurface = DarkOnSurface,
-    // Action: Use named constant to avoid blueish tints and ensure consistency
     surfaceVariant = PulseDeepGray,
     onSurfaceVariant = DarkOnSurface,
     error = AlertRed

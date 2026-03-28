@@ -12,7 +12,7 @@ class RemoteIndicatorsDataSourceImpl @Inject constructor(
     private val api: IndicatorsApi
 ) : RemoteIndicatorsDataSource {
 
-    override suspend fun getLatestIndicators(dateId: String, timestamp: Long): Result<MarketIndicators> {
+    override suspend fun getLatestIndicators(dateId: String): Result<MarketIndicators> {
         return try {
             coroutineScope {
                 // Fetch all 4 documents concurrently
@@ -33,7 +33,8 @@ class RemoteIndicatorsDataSourceImpl @Inject constructor(
                 // Map the 4 network responses into a single Domain object
                 val domainModel = MarketIndicators(
                     dateId = dateId,
-                    lastSyncedTimestamp = timestamp,
+                    lastSyncedTimestamp = System.currentTimeMillis(),
+                    lastUpdated = summaryRes.lastUpdated ?: 0L,
                     summary = summaryRes.toDomain(),
                     trendPhase = trendRes.toDomain(),
                     healthPhase = healthRes.toDomain(),

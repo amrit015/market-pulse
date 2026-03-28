@@ -5,6 +5,7 @@ import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class NetworkRiskRadar(
+    @Json(name = "timestamp") val lastUpdated: Long? = null,
     @Json(name = "vulnerability_score") val score: Int? = null,
     @Json(name = "previous_score") val previousScore: Int? = null,
     @Json(name = "trend") val trend: String? = null,

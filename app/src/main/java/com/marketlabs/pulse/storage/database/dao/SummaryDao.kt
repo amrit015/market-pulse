@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.Flow
 interface SummaryDao {
 
     // --- V3 (Gemini 3.1 Pro - Main Content) ---
-    @Query("SELECT * FROM market_pulse ORDER BY serverTimestamp DESC LIMIT 1")
+    @Query("SELECT * FROM market_pulse ORDER BY lastUpdated DESC LIMIT 1")
     fun getLatestMarketPulse(): Flow<MarketPulseEntity?>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -23,7 +23,7 @@ interface SummaryDao {
 
 
     // --- V2.5 (Gemini 2.5 Pro - Banner Content) ---
-    @Query("SELECT * FROM daily_pulse ORDER BY serverTimestamp DESC LIMIT 1")
+    @Query("SELECT * FROM daily_pulse ORDER BY lastUpdated DESC LIMIT 1")
     fun getLatestDailyPulse(): Flow<DailyPulseEntity?>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

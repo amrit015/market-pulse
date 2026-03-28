@@ -3,11 +3,11 @@
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
-    <string name="pulse_title">Market Summary</string>
-    <string name="pulse_updated_at">Updated: %1$s</string>
-
+    <string name="analyzed_at">Analyzed as of: %1$s</string>
     <string name="section_lead_stories">🚨 Lead Stories</string>
     <string name="section_macro_mix">🌍 Macro Mix</string>
+    <string name="section_market_summary">🧠 Market Summary</string>
+
     <string name="section_domino_effect">THE DOMINO EFFECT</string>
     <string name="section_market_outlook">MARKET OUTLOOK</string>
     <string name="section_action_plan">ACTION PLAN</string>
@@ -20,8 +20,6 @@
     <string name="banner_switch_latest">Switch to Latest Version</string>
     <string name="banner_compare_legacy">Compare with Legacy Version</string>
 
-    <string name="emoji_domino">🧩</string>
-    <string name="emoji_action">⚡</string>
     <string name="banner_emoji_legacy">🕰️</string>
     <string name="banner_emoji_test">🤖</string>
 
@@ -73,7 +71,6 @@
     <string name="indicators_unknown_phase">Phase</string>
     <string name="indicators_unknown_indicator">Unknown Indicator</string>
     <string name="indicators_empty_value">--</string>
-    <string name="indicators_neutral_signal">NEUTRAL</string>
     <string name="glossary">Glossary</string>
 
     <string name="indicators_framework_title">The Framework</string>
@@ -117,4 +114,7 @@
     <string name="dashboard_glossary_macd_def">Shows trend direction. Bullish crossovers indicate upward momentum.</string>
     <string name="dashboard_glossary_trend_def">The AI\'s evaluation of the current price action versus historical baselines.</string>
     <string name="dashboard_glossary_sma_def">The average price over a set period. Acts as a magnet for support and resistance.</string>
+
+    <string name="market_score">Market Score</string>
+    <string name="market_posture">Market Posture</string>
 </resources>

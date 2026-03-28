@@ -4,10 +4,10 @@ import android.util.Log
 import com.marketlabs.pulse.network.store.indicators.RemoteIndicatorsDataSource
 import com.marketlabs.pulse.storage.model.indicators.MarketIndicators
 import com.marketlabs.pulse.storage.store.indicators.LocalIndicatorsDataSource
+import com.marketlabs.pulse.utils.CachePolicy
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
@@ -18,7 +18,8 @@ class IndicatorsRepositoryImpl @Inject constructor(
     private val remoteDataSource: RemoteIndicatorsDataSource
 ) : IndicatorsRepository {
 
-    override fun getIndicatorsStream(): Flow<MarketIndicators?> = localDataSource.getLatestCachedIndicators()
+    override fun getIndicatorsStream(): Flow<MarketIndicators?> =
+        localDataSource.getLatestCachedIndicators()
 
     override suspend fun refreshIndicators(force: Boolean): Result<Unit> {
         return try {
@@ -29,37 +30,30 @@ class IndicatorsRepositoryImpl @Inject constructor(
             val localData = localDataSource.getIndicatorsByDate(todayDateString).firstOrNull()
             val currentTime = System.currentTimeMillis()
 
-            val calendar = Calendar.getInstance(TimeZone.getTimeZone("America/New_York"))
-            val isWeekend = calendar.get(Calendar.DAY_OF_WEEK) == Calendar.SATURDAY ||
-                    calendar.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY
-
+            // caching logic
             val shouldFetch = when {
                 force -> true
-                localData == null -> true
-                isWeekend -> false
-                else -> {
-                    val lastSync = localData.lastSyncedTimestamp ?: 0L
-                    val timeSinceLastSync = currentTime - lastSync
-                    timeSinceLastSync > (60 * 60 * 1000) // 60 minutes TTL
-                }
+                localData?.lastSyncedTimestamp == null -> true
+                else -> CachePolicy.isHourlyExpired(localData.lastSyncedTimestamp, currentTime)
             }
 
             if (!shouldFetch) {
-                Log.d("MarketIndicators", "✅ Indicators cache is fresh (or weekend). Skipping network.")
+                Log.d(
+                    "MarketIndicators",
+                    "✅ Indicators cache is fresh (Current 15-min block). Skipping network."
+                )
                 return Result.success(Unit)
             }
 
             Log.d("MarketIndicators", "🌐 Fetching latest Traffic Light Indicators from Firebase...")
 
             // Fetch the combined Domain object from the Remote Data Source
-            remoteDataSource.getLatestIndicators(
-                dateId = todayDateString,
-                timestamp = currentTime
-            ).onSuccess { freshData ->
-                localDataSource.saveIndicators(freshData)
-            }.onFailure {
-                throw it
-            }
+            remoteDataSource.getLatestIndicators(dateId = todayDateString)
+                .onSuccess { freshData ->
+                    localDataSource.saveIndicators(freshData)
+                }.onFailure {
+                    throw it
+                }
 
             Result.success(Unit)
         } catch (e: Exception) {

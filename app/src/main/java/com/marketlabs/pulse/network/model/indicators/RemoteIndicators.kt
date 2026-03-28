@@ -5,6 +5,7 @@ import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class NetworkPhaseSummary(
+    @Json(name = "timestamp") val lastUpdated: Long? = null,
     @Json(name = "market_regime") val marketRegime: String? = null,
     @Json(name = "setup_phase") val setupPhase: String? = null,
     @Json(name = "verdict") val verdict: NetworkVerdict? = null,
@@ -13,6 +14,7 @@ data class NetworkPhaseSummary(
 
 @JsonClass(generateAdapter = true)
 data class NetworkVerdict(
+    @Json(name = "previous_score") val previousScore: Int? = null,
     @Json(name = "score") val score: Int? = null,
     @Json(name = "call") val call: String? = null,
     @Json(name = "action") val action: String? = null

@@ -14,9 +14,10 @@ class RemoteNewsDataSourceImpl @Inject constructor(
         return try {
             val response = api.getLatestNews()
 
-            // Map Network Model -> Domain Model (Cleaned up!)
+            // todo: move to mapper
             val domainNews = MarketNews(
                 lastSyncedTimestamp = System.currentTimeMillis(),
+                lastUpdated = response.lastUpdated ?: 0L,
                 sourceCount = response.sourceCount,
                 stories = response.stories?.map { story ->
                     NewsArticle(

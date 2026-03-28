@@ -1,4 +1,4 @@
-package com.marketlabs.pulse.ui.screens.dashboard.views.widgets
+package com.marketlabs.pulse.ui.components.widgets
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
@@ -22,9 +22,12 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.font.FontWeight
 import com.marketlabs.pulse.R
-import com.marketlabs.pulse.ui.theme.ColorBearish
-import com.marketlabs.pulse.ui.theme.ColorBullish
+import com.marketlabs.pulse.ui.theme.ColorGreen
 import com.marketlabs.pulse.ui.theme.ColorNeutral
+import com.marketlabs.pulse.ui.theme.ColorRed
+import com.marketlabs.pulse.ui.theme.PulseStatusColors.BearishText
+import com.marketlabs.pulse.ui.theme.PulseStatusColors.BullishText
+import com.marketlabs.pulse.ui.theme.PulseStatusColors.NeutralText
 
 @Composable
 fun PutCallHorizontalBar(ratio: Double, change: Double?, status: String?) {
@@ -32,6 +35,13 @@ fun PutCallHorizontalBar(ratio: Double, change: Double?, status: String?) {
     val putPercentage = (ratio / totalOptions).toFloat()
 
     val drawLineColor = MaterialTheme.colorScheme.onSurface
+    val colorGreen  = ColorGreen
+    val colorRed = ColorRed
+    val colorNeutral = ColorNeutral
+
+    val textBearish = BearishText
+    val textBullish = BullishText
+    val textNeutral = NeutralText
 
     // Load dimens
     val tickOverhang = dimensionResource(id = R.dimen.bar_tick_overhang)
@@ -67,7 +77,7 @@ fun PutCallHorizontalBar(ratio: Double, change: Double?, status: String?) {
                         Text(
                             text = "$sign${String.format("%.2f", change)}%",
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                            color = if (change > 0) ColorBearish else ColorBullish // INVERTED: Ratio UP is Bad
+                            color = if (change > 0) textBearish else textBullish // INVERTED: Ratio UP is Bad
                         )
                     }
                 }
@@ -81,10 +91,10 @@ fun PutCallHorizontalBar(ratio: Double, change: Double?, status: String?) {
                         .height(dimensionResource(id = R.dimen.padding_large))
                 ) {
                     val splitBrush = Brush.horizontalGradient(
-                        0.0f to ColorBearish,
-                        putPercentage to ColorBearish,
-                        putPercentage to ColorBullish,
-                        1.0f to ColorBullish
+                        0.0f to colorRed,
+                        putPercentage to colorRed,
+                        putPercentage to colorGreen,
+                        1.0f to colorGreen
                     )
 
                     drawRoundRect(
@@ -112,9 +122,9 @@ fun PutCallHorizontalBar(ratio: Double, change: Double?, status: String?) {
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
 
             val statusColor = when (status.uppercase()) {
-                "EXTREME GREED", "GREED", "BULLISH" -> ColorBullish
-                "EXTREME FEAR", "FEAR", "BEARISH" -> ColorBearish
-                else -> ColorNeutral
+                "EXTREME GREED", "GREED", "BULLISH" -> textBullish
+                "EXTREME FEAR", "FEAR", "BEARISH" -> textBearish
+                else -> textNeutral
             }
             Text(
                 text = status,

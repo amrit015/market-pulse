@@ -12,6 +12,7 @@ data class NewsEntity(
     @PrimaryKey(autoGenerate = false)
     val id: String = "latest",
     val lastSyncedTimestamp: Long,
+    val lastUpdated: Long,
     val sourceCount: Int? = null,
     val stories: List<NewsArticle>? = null
 )

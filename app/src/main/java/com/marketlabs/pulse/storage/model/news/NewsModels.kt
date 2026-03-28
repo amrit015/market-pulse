@@ -2,6 +2,7 @@ package com.marketlabs.pulse.storage.model.news
 
 data class MarketNews(
     val lastSyncedTimestamp: Long,
+    val lastUpdated: Long,
     val sourceCount: Int? = null,
     val stories: List<NewsArticle>? = null
 )

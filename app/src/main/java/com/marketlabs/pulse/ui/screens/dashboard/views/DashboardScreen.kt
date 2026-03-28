@@ -44,12 +44,10 @@ import com.marketlabs.pulse.storage.model.dashboard.AssetOverview
 import com.marketlabs.pulse.storage.model.dashboard.MarketState
 import com.marketlabs.pulse.storage.model.dashboard.enums.AssetType
 import com.marketlabs.pulse.ui.screens.dashboard.views.sheet.AssetDetailBottomSheet
-import com.marketlabs.pulse.ui.screens.dashboard.views.widgets.PutCallHorizontalBar
-import com.marketlabs.pulse.ui.screens.dashboard.views.widgets.SpeedometerGauge
-import com.marketlabs.pulse.ui.screens.dashboard.views.widgets.VixFullWidthCard
-import com.marketlabs.pulse.ui.theme.ColorBearish
-import com.marketlabs.pulse.ui.theme.ColorBullish
-import com.marketlabs.pulse.ui.theme.ColorNeutral
+import com.marketlabs.pulse.ui.components.widgets.PutCallHorizontalBar
+import com.marketlabs.pulse.ui.components.widgets.SpeedometerGauge
+import com.marketlabs.pulse.ui.components.widgets.VixFullWidthCard
+import com.marketlabs.pulse.ui.theme.PulseStatusColors // 💡 NEW: Imported the centralized colors
 
 @Composable
 fun DashboardScreen(
@@ -63,37 +61,31 @@ fun DashboardScreen(
     val paddingExtraLarge = dimensionResource(id = R.dimen.padding_extra_large)
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
 
-    // Group the assets based on UI logic
     val spyAsset = assets.find { it?.symbol == "SPY" }
     val isEquityOpen = marketState?.isEquityOpen == true
     val isFuturesOpen = marketState?.isFuturesOpen == true
 
-    // Categorize everything
     val sentimentAssets =
         assets.filter { it?.symbol == "^VIX" || it?.symbol == "FEAR_GREED" || it?.symbol == "PUT_CALL" }
     val futureAssets = assets.filter { it?.type == AssetType.FUTURE }
 
-    // 💡 NEW: Define strict sorting orders
     val equitySortOrder = listOf("SPY", "RSP", "DIA", "QQQ", "IWM", "MAGS")
     val cryptoCommoditySortOrder = listOf("BTC-USD", "ETH-USD", "GC=F", "SI=F")
 
-    // 💡 NEW: Extract AND Sort Equities
     val equityAssets = assets
         .filter { it?.type == AssetType.EQUITY }
         .sortedBy { asset ->
             val index = equitySortOrder.indexOf(asset?.symbol)
-            if (index == -1) Int.MAX_VALUE else index // Put unlisted items at the bottom
+            if (index == -1) Int.MAX_VALUE else index
         }
 
-    // 💡 NEW: Extract AND Sort Crypto & Commodities
     val otherAssets = assets
         .filter { it?.type == AssetType.COMMODITY || it?.type == AssetType.CRYPTO }
         .sortedBy { asset ->
             val index = cryptoCommoditySortOrder.indexOf(asset?.symbol)
-            if (index == -1) Int.MAX_VALUE else index // Put unlisted items at the bottom
+            if (index == -1) Int.MAX_VALUE else index
         }
 
-    // 💡 NEW: State to track which asset is currently selected for the Bottom Sheet
     var selectedAsset by remember { mutableStateOf<AssetOverview?>(null) }
 
     Column(
@@ -117,25 +109,23 @@ fun DashboardScreen(
                 Text(
                     text = stringResource(id = R.string.dashboard_section_sentiment),
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onBackground,
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.padding_medium))
                 )
 
-                // 1. Full-Width VIX Card
                 val vixAsset = sentimentAssets.find { it?.symbol == "^VIX" }
                 if (vixAsset != null) {
                     VixFullWidthCard(asset = vixAsset, onClick = { selectedAsset = vixAsset })
                     Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
                 }
 
-                // 2. 2x2 Grid placement for Fear & Greed AND Put/Call
                 val greedAsset = sentimentAssets.find { it?.symbol == "FEAR_GREED" }
                 val putCallAsset = sentimentAssets.find { it?.symbol == "PUT_CALL" }
 
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(IntrinsicSize.Max), // 💡 1. Forces Row to find the tallest child
+                        .height(IntrinsicSize.Max),
                     horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_medium))
                 ) {
                     if (greedAsset != null) {
@@ -143,11 +133,11 @@ fun DashboardScreen(
                             asset = greedAsset,
                             modifier = Modifier
                                 .weight(1f)
-                                .fillMaxHeight(), // 💡 2. Forces this card to stretch to the Row's height
+                                .fillMaxHeight(),
                             customVisual = {
                                 SpeedometerGauge(
                                     score = greedAsset.price ?: 50.0,
-                                    change = greedAsset.changePercent,
+                                    previousScore = greedAsset.previousClose,
                                     status = greedAsset.rsiStatus
                                 )
                             },
@@ -161,7 +151,7 @@ fun DashboardScreen(
                             asset = putCallAsset,
                             modifier = Modifier
                                 .weight(1f)
-                                .fillMaxHeight(), // 💡 2. Forces this card to stretch to the Row's height
+                                .fillMaxHeight(),
                             customVisual = {
                                 PutCallHorizontalBar(
                                     ratio = putCallAsset.price ?: 1.0,
@@ -173,42 +163,41 @@ fun DashboardScreen(
                             onClick = { selectedAsset = putCallAsset }
                         )
                     } else if (greedAsset != null) {
-                        // Invisible slot keeps it 50% width if Put/Call data is still loading
                         Spacer(modifier = Modifier.weight(1f))
                     }
                 }
             }
         }
 
-        // --- SECTION 2: Equities (ALWAYS SHOWN NOW) ---
-        if (equityAssets.isNotEmpty()) {
-            AssetSection(
-                title = stringResource(id = R.string.dashboard_section_equities),
-                items = equityAssets,
-                onAssetClick = { selectedAsset = it } // pass the click action
-            )
-        }
-
-        // --- SECTION 3: Futures ---
+        // --- SECTION 2: Futures ---
         if (!isEquityOpen && isFuturesOpen && futureAssets.isNotEmpty()) {
             AssetSection(
                 title = stringResource(id = R.string.dashboard_section_futures),
                 items = futureAssets,
-                onAssetClick = { selectedAsset = it } // pass the click action
+                onAssetClick = { selectedAsset = it },
+                columnNum = 3
             )
         }
 
-        // --- SECTION 4: Others (Crypto/Commodities) ---
+        // --- SECTION 3: Equities ---
+        if (equityAssets.isNotEmpty()) {
+            AssetSection(
+                title = stringResource(id = R.string.dashboard_section_equities),
+                items = equityAssets,
+                onAssetClick = { selectedAsset = it }
+            )
+        }
+
+        // --- SECTION 4: Others ---
         if (otherAssets.isNotEmpty()) {
             AssetSection(
                 title = stringResource(id = R.string.dashboard_section_crypto),
                 items = otherAssets,
-                onAssetClick = { selectedAsset = it } // pass the click action
+                onAssetClick = { selectedAsset = it }
             )
         }
     }
 
-    // 💡 NEW: Trigger the Bottom Sheet when an asset is selected
     if (selectedAsset != null) {
         AssetDetailBottomSheet(
             asset = selectedAsset!!,
@@ -222,25 +211,45 @@ fun MarketStatusBar(isEquityOpen: Boolean, spyAsset: AssetOverview?) {
     val paddingMedium = dimensionResource(id = R.dimen.padding_medium)
     val paddingSmall = dimensionResource(id = R.dimen.padding_small)
 
-    Surface(
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_pill)),
-        modifier = Modifier.fillMaxWidth()
+    val change = spyAsset?.changePercent ?: 0.0
+    val isPositive = change >= 0
+
+    // LEFT BADGE COLORS (Market Status)
+    val leftBgColor = if (isEquityOpen) PulseStatusColors.BullishBg else MaterialTheme.colorScheme.surfaceVariant
+    val leftTextColor = if (isEquityOpen) PulseStatusColors.BullishText else MaterialTheme.colorScheme.onSurfaceVariant
+
+    // RIGHT BADGE COLORS (SPY Performance)
+    val rightBgColor = if (isEquityOpen) {
+        if (isPositive) PulseStatusColors.BullishBg else PulseStatusColors.BearishBg
+    } else {
+        MaterialTheme.colorScheme.surfaceVariant
+    }
+
+    val rightTextColor = if (isEquityOpen) {
+        if (isPositive) PulseStatusColors.BullishText else PulseStatusColors.BearishText
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = paddingMedium, vertical = paddingSmall),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+        // LEFT: Status Badge
+        Surface(
+            color = leftBgColor,
+            shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_pill))
         ) {
-            // LEFT: Status Badge
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier.padding(horizontal = paddingMedium, vertical = paddingSmall),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Box(
                     modifier = Modifier
                         .size(dimensionResource(id = R.dimen.icon_size_small))
                         .background(
-                            color = if (isEquityOpen) ColorBullish else ColorNeutral,
+                            color = leftTextColor,
                             shape = CircleShape
                         )
                 )
@@ -248,37 +257,42 @@ fun MarketStatusBar(isEquityOpen: Boolean, spyAsset: AssetOverview?) {
                     text = if (isEquityOpen) stringResource(id = R.string.dashboard_market_open)
                     else stringResource(id = R.string.dashboard_market_closed),
                     style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = leftTextColor,
                     modifier = Modifier.padding(start = paddingSmall)
                 )
             }
+        }
 
-            // RIGHT: SPY Performance
-            Row(verticalAlignment = Alignment.CenterVertically) {
+        // RIGHT: SPY Performance
+        Surface(
+            color = rightBgColor,
+            shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_pill))
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = paddingMedium, vertical = paddingSmall),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(
                     text = spyAsset?.name ?: stringResource(id = R.string.dashboard_fallback_spy),
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    // Slightly fade the ticker name to make the numbers pop more
+                    color = rightTextColor.copy(alpha = 0.8f),
                     modifier = Modifier.padding(end = paddingSmall)
                 )
 
-                // 💡 NEW: Toggle between showing Percentage vs Absolute Price based on market state
                 if (isEquityOpen) {
-                    val change = spyAsset?.changePercent ?: 0.0
-                    val changeColor = if (change >= 0) ColorBullish else ColorBearish
-                    val sign = if (change >= 0) "+" else ""
-
+                    val sign = if (isPositive) "+" else ""
                     Text(
                         text = "$sign${String.format("%.2f", change)}%",
                         style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                        color = changeColor
+                        color = rightTextColor
                     )
                 } else {
-                    val price = spyAsset?.price
+                    val price = spyAsset?.price ?: 0.0
                     Text(
                         text = "$${String.format("%.2f", price)}",
                         style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = rightTextColor
                     )
                 }
             }
@@ -290,7 +304,8 @@ fun MarketStatusBar(isEquityOpen: Boolean, spyAsset: AssetOverview?) {
 fun AssetSection(
     title: String,
     items: List<AssetOverview?>,
-    onAssetClick: (AssetOverview) -> Unit
+    onAssetClick: (AssetOverview) -> Unit,
+    columnNum: Int = 2
 ) {
     val paddingMedium = dimensionResource(id = R.dimen.padding_medium)
 
@@ -298,16 +313,15 @@ fun AssetSection(
         Text(
             text = title,
             style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colorScheme.onBackground,
+            color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(bottom = paddingMedium)
         )
 
-        // Chunk into pairs of 2 for a nice grid look
-        items.chunked(2).forEach { rowItems ->
+        items.chunked(columnNum).forEach { rowItems ->
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(IntrinsicSize.Max), // Forces Row to find the tallest child
+                    .height(IntrinsicSize.Max),
                 horizontalArrangement = Arrangement.spacedBy(paddingMedium)
             ) {
                 rowItems.forEach { item ->
@@ -316,13 +330,12 @@ fun AssetSection(
                             asset = it,
                             modifier = Modifier
                                 .weight(1f)
-                                .fillMaxHeight(), // Forces this card to stretch to the Row's height
+                                .fillMaxHeight(),
                             onClick = { onAssetClick(it) }
                         )
                     }
                 }
 
-                // If there's an odd number of items, fill the empty space
                 if (rowItems.size == 1) {
                     Spacer(
                         modifier = Modifier
@@ -340,21 +353,17 @@ fun AssetSection(
 fun AssetCard(
     asset: AssetOverview,
     modifier: Modifier = Modifier,
-    customVisual: @Composable (() -> Unit)? = null, // 💡 NEW: Optional slot for custom charts
-    showVerdict: Boolean = true, // 💡 NEW: Controls the visibility of the AI text
+    customVisual: @Composable (() -> Unit)? = null,
+    showVerdict: Boolean = true,
     onClick: () -> Unit
 ) {
-    // 💡 LOGIC: Determine if the asset's current move is "Good" or "Bad"
     val change = asset.changePercent ?: 0.0
     val isMathematicallyPositive = change >= 0
+    val isGoodEvent = if (asset.isInverted == true) !isMathematicallyPositive else isMathematicallyPositive
 
-    // If the asset is inverted (like VIX), a drop is GOOD (Green) and a rise is BAD (Red).
-    val isGoodEvent =
-        if (asset.isInverted == true) !isMathematicallyPositive else isMathematicallyPositive
-
-    // Calculate the subtle background tint
-    val baseColor = if (isGoodEvent) ColorBullish else ColorBearish
-    val backgroundColor = baseColor.copy(alpha = 0.10f)
+    // 💡 USES CENTRALIZED DYNAMIC COLORS
+    val baseColor = if (isGoodEvent) PulseStatusColors.BullishText else PulseStatusColors.BearishText
+    val backgroundColor = if (isGoodEvent) PulseStatusColors.BullishBg else PulseStatusColors.BearishBg
 
     val cardTitle = if (asset.symbol == "FEAR_GREED") {
         stringResource(id = R.string.fear_greed_title)
@@ -364,15 +373,17 @@ fun AssetCard(
         asset.symbol.replace("=F", "")
     }
 
+    val isFutures = asset.type == AssetType.FUTURE
+    val livePriceTextSize = if (isFutures) MaterialTheme.typography.titleSmall else MaterialTheme.typography.headlineSmall
+
     Card(
-        colors = CardDefaults.cardColors(containerColor = backgroundColor),
+        colors = CardDefaults.cardColors(containerColor = backgroundColor), // 👈 Dynamic BG applied directly
         shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card_large)),
         modifier = modifier.clickable { onClick() }
     ) {
         Column(
             modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))
         ) {
-            // Header: Symbol and AI Status Icon
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -384,33 +395,26 @@ fun AssetCard(
                     color = MaterialTheme.colorScheme.onSurface
                 )
 
-                // Optional AI Status Icon (e.g., BULLISH, OVERBOUGHT)
-                if (asset.rsiStatus != null) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_info), // PLACEHOLDER: Replace with your actual icon
-                        contentDescription = asset.rsiStatus,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(dimensionResource(id = R.dimen.icon_size_small))
-                    )
-                }
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_chevron_forward),
+                    contentDescription = asset.rsiStatus,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(dimensionResource(id = R.dimen.icon_size_small))
+                )
             }
 
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
 
-            // 💡 NEW LOGIC: If a custom visual is passed (like a Donut or Speedometer), show it!
-            // Otherwise, fallback to the standard text-based Live Price and Percentage.
             if (customVisual != null) {
                 customVisual()
                 Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
             } else {
-                // Live Price
                 Text(
                     text = String.format("%.2f", asset.price),
-                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                    style = livePriceTextSize.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onSurface
                 )
 
-                // Live Percentage
                 val sign = if (isMathematicallyPositive) "+" else ""
                 Text(
                     text = "$sign${String.format("%.2f", change)}%",
@@ -419,11 +423,9 @@ fun AssetCard(
                 )
             }
 
-            // 💡 NEW: Wrap the Verdict in the visibility flag
-            if (showVerdict) {
+            if (showVerdict && !isFutures) {
                 Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
 
-                // AI Verdict Snippet
                 Text(
                     text = asset.aiVerdict ?: "",
                     style = MaterialTheme.typography.bodySmall,

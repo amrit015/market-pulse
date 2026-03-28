@@ -28,6 +28,7 @@ class DashboardRepositoryImpl @Inject constructor(
     private val livePriceMap = MutableStateFlow<Map<String, Double>>(emptyMap())
 
     init {
+        // 1. Listen to Finnhub WebSockets for live equity ticks
         scope.launch {
             webSocketClient.livePrices.collect { trade ->
                 val currentMap = livePriceMap.value.toMutableMap()
@@ -45,12 +46,27 @@ class DashboardRepositoryImpl @Inject constructor(
                 livePriceMap.value = currentMap
             }
         }
+
+        // 💡 2. NEW: Listen to Firebase Real-Time Dashboard Updates!
+        scope.launch {
+            remoteDataSource.observeDashboardData().collect { (marketStateEntity, assetEntities) ->
+                val marketState = marketStateEntity.toDomain()
+                val assets = assetEntities.map { it.toDomain() }
+
+                // Automatically save fresh Firebase data to Room.
+                // Because getDashboardAssetsStream() watches Room, the UI updates instantly!
+                localDataSource.saveDashboardData(marketState, assets)
+
+                // Ensure Finnhub is subscribed to the active symbols
+                connectAndSubscribe(assets.map { it.symbol })
+            }
+        }
     }
 
     // 1. Get the Market State (Open/Closed)
     override fun getMarketStateStream(): Flow<MarketState?> = localDataSource.getMarketStateStream()
 
-    // 2. The Magic Merger: Room + WebSockets
+    // 2. The Magic Merger: Room (Firebase updates) + WebSockets (Finnhub live ticks)
     override fun getDashboardAssetsStream(): Flow<List<AssetOverview?>> {
         return combine(
             localDataSource.getDashboardAssetsStream(),
@@ -78,29 +94,10 @@ class DashboardRepositoryImpl @Inject constructor(
 
     // 3. Trigger a network refresh
     override suspend fun refreshDashboard(force: Boolean) {
-        val localState = localDataSource.getMarketStateStream().firstOrNull()
-        val isExpired = localState?.lastUpdated == null ||
-                (System.currentTimeMillis() - localState.lastUpdated) > (15 * 60 * 1000)
-
-        if (!isExpired && !force) {
-            val activeSymbols =
-                localDataSource.getDashboardAssetsStream().firstOrNull()?.map { it.symbol }
-                    ?: emptyList()
-            connectAndSubscribe(activeSymbols)
-            return
-        }
-
-        remoteDataSource.fetchDashboardData().onSuccess { (marketStateEntity, assetEntities) ->
-            // Map the remote entities down to domain models
-            val marketState = marketStateEntity.toDomain()
-            val assets = assetEntities.map { it.toDomain() }
-
-            // Save fresh AI data to Room via the clean Local Data Source
-            localDataSource.saveDashboardData(marketState, assets)
-
-            // Connect WebSocket and Subscribe to the tracked assets
-            connectAndSubscribe(assets.map { it.symbol })
-        }
+        // 💡 Because Firebase is continuously streaming data into Room, we no longer need a manual network fetch here!
+        // We just double-check that our Finnhub socket is successfully connected to the latest symbols.
+        val activeSymbols = localDataSource.getDashboardAssetsStream().firstOrNull()?.map { it.symbol } ?: emptyList()
+        connectAndSubscribe(activeSymbols)
     }
 
     private fun connectAndSubscribe(symbols: List<String>) {
@@ -119,7 +116,7 @@ class DashboardRepositoryImpl @Inject constructor(
                 // 3. Ignore assets Finnhub doesn't support
                 symbol.contains("=") || symbol.contains("^") ||
                         symbol == "FEAR_GREED" || symbol == "PUT_CALL" -> {
-                    // Do nothing. 15-min backend updates handle these.
+                    // Do nothing. Firebase Real-Time Listener automatically handles these now!
                 }
 
                 // 4. Subscribe to standard Equities normally (SPY, QQQ, DIA, MAGS)

@@ -11,7 +11,8 @@ import com.marketlabs.pulse.storage.model.riskRadar.RiskGauges
 data class RiskRadarEntity(
     @PrimaryKey(autoGenerate = false)
     val date: String,
-    val lastSyncedTimestamp: Long? = null,
+    val lastSyncedTimestamp: Long,
+    val lastUpdated: Long,
     val score: Int? = null,
     val previousScore: Int? = null,
     val trend: String? = null,

@@ -11,15 +11,17 @@ fun MarketNews.toEntity(syncTime: Long = System.currentTimeMillis()): NewsEntity
     return NewsEntity(
         id = "latest",
         lastSyncedTimestamp = syncTime,
+        lastUpdated = this.lastUpdated,
         sourceCount = this.sourceCount,
-        stories = this.stories
+        stories = this.stories?.sortedByDescending { it.timestamp }
     )
 }
 
 fun NewsEntity.toDomain(): MarketNews {
     return MarketNews(
         lastSyncedTimestamp = this.lastSyncedTimestamp,
+        lastUpdated = this.lastUpdated,
         sourceCount = this.sourceCount,
-        stories = this.stories
+        stories = this.stories?.sortedByDescending { it.timestamp }
     )
 }
