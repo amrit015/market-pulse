@@ -1,17 +1,22 @@
 package com.marketlabs.pulse.ui.navigation
 
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -29,11 +34,6 @@ import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
-/**
- * Centralize and define the navigation structure and logic for MarketLabs Pulse using Compose Navigation.
- * Action: Replace XML Fragments with Composables and implement a Scaffolding with Bottom Navigation.
- */
-
 /** Store Navigation Route constants */
 object PulseRoutes {
     const val MARKET_SUMMARY = "market_summary"
@@ -43,16 +43,24 @@ object PulseRoutes {
     const val MARKET_NEWS = "market_news"
 }
 
-/** Define the data structure for Bottom Navigation items */
-sealed class BottomNavItem(val route: String, val label: String, val iconRes: Int) {
-    internal object Overview : BottomNavItem(PulseRoutes.MARKET_OVERVIEW, "Overview", R.drawable.ic_overview)
+/** * 💡 UPDATED: Added a second icon resource for the 'selected' filled state
+ * (You will need to ensure you have these filled versions in your res/drawable folder)
+ */
+sealed class BottomNavItem(val route: String, val label: String, val unselectedIconRes: Int, val selectedIconRes: Int) {
+    internal object Overview :
+        BottomNavItem(PulseRoutes.MARKET_OVERVIEW, "Overview", R.drawable.ic_overview, R.drawable.ic_overview_filled)
+
     internal object Indicators :
-        BottomNavItem(PulseRoutes.MARKET_INDICATORS, "Indicators", R.drawable.ic_indicators)
+        BottomNavItem(PulseRoutes.MARKET_INDICATORS, "Indicators", R.drawable.ic_indicators, R.drawable.ic_indicators_filled)
 
-    internal object Summary : BottomNavItem(PulseRoutes.MARKET_SUMMARY, "Summary", R.drawable.ic_summary)
-    internal object RiskRadar : BottomNavItem(PulseRoutes.MARKET_RISK, "Risk", R.drawable.ic_risk)
-    internal object News : BottomNavItem(PulseRoutes.MARKET_NEWS, "News", R.drawable.ic_news)
+    internal object Summary :
+        BottomNavItem(PulseRoutes.MARKET_SUMMARY, "Summary", R.drawable.ic_ai_engine, R.drawable.ic_ai_engine)
 
+    internal object RiskRadar :
+        BottomNavItem(PulseRoutes.MARKET_RISK, "Risk", R.drawable.ic_risk, R.drawable.ic_risk_filled)
+
+    internal object News :
+        BottomNavItem(PulseRoutes.MARKET_NEWS, "News", R.drawable.ic_news, R.drawable.ic_news_filled)
 }
 
 @Composable
@@ -78,9 +86,17 @@ fun PulseNavGraph() {
                 val currentDestination = navBackStackEntry?.destination
 
                 items.forEach { item ->
+                    val isSelected = currentDestination?.hierarchy?.any { it.route == item.route } == true
+
+                    // 💡 NEW: Smoothly animate the icon size from 24dp to 28dp when selected
+                    val iconSize by animateDpAsState(
+                        targetValue = if (isSelected) 28.dp else 24.dp,
+                        label = "BottomNavIconSize"
+                    )
+
                     NavigationBarItem(
                         label = { Text(item.label) },
-                        selected = currentDestination?.hierarchy?.any { it.route == item.route } == true,
+                        selected = isSelected,
                         onClick = {
                             navController.navigate(item.route) {
                                 popUpTo(navController.graph.findStartDestination().id) {
@@ -91,11 +107,21 @@ fun PulseNavGraph() {
                             }
                         },
                         icon = {
+                            // 💡 NEW: Swap between the filled and outlined icons based on state
                             Icon(
-                                painter = painterResource(id = item.iconRes),
-                                contentDescription = item.label
+                                painter = painterResource(id = if (isSelected) item.selectedIconRes else item.unselectedIconRes),
+                                contentDescription = item.label,
+                                modifier = Modifier.size(iconSize) // Apply the animated size
                             )
-                        }
+                        },
+                        // 💡 NEW: Kill the default gray highlight pill
+                        colors = NavigationBarItemDefaults.colors(
+                            indicatorColor = Color.Transparent,
+                            selectedIconColor = MaterialTheme.colorScheme.primary,
+                            selectedTextColor = MaterialTheme.colorScheme.primary,
+                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     )
                 }
             }
@@ -104,10 +130,9 @@ fun PulseNavGraph() {
         NavHost(
             navController = navController,
             startDestination = PulseRoutes.MARKET_OVERVIEW,
-            // Action: Remove padding here to allow the screen to expand using fillMaxSize
             modifier = Modifier.fillMaxSize()
         ) {
-            /** Market Summary Route: Host the AI-generated reports */
+            // ... (Keep all your existing composable routes exactly the same) ...
             composable(PulseRoutes.MARKET_SUMMARY) {
                 MarketSummaryRoute(scaffoldPadding = innerPadding)
             }
@@ -123,14 +148,12 @@ fun PulseNavGraph() {
             composable(PulseRoutes.MARKET_NEWS) {
                 NewsRoute(
                     scaffoldPadding = innerPadding,
-                    // for the webviews
                     onNavigateToWebView = { url ->
                         val encodedUrl = URLEncoder.encode(url, StandardCharsets.UTF_8.toString())
                         navController.navigate("webview/$encodedUrl")
                     }
                 )
             }
-            // The WebView Destination
             composable("webview/{encodedUrl}") { backStackEntry ->
                 val encodedUrl = backStackEntry.arguments?.getString("encodedUrl") ?: ""
                 val decodedUrl = URLDecoder.decode(encodedUrl, StandardCharsets.UTF_8.toString())

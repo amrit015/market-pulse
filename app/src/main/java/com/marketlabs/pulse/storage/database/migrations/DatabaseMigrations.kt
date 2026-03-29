@@ -135,5 +135,39 @@ object DatabaseMigrations {
         }
     }
 
-    val ALL_MIGRATIONS = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
+    // 💡 NEW: Migration from Version 6 to Version 7 (Macro Dashboard Update)
+    val MIGRATION_6_7 = object : Migration(6, 7) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            // 1. Add Summary Fields to Market State
+            db.execSQL("ALTER TABLE `market_state` ADD COLUMN `technicalSummary` TEXT")
+            db.execSQL("ALTER TABLE `market_state` ADD COLUMN `technicalSummaryTimestamp` INTEGER")
+
+            // 2. Safely recreate the assets table to drop the aiVerdict column
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `dashboard_assets_new` (
+                    `symbol` TEXT NOT NULL, `name` TEXT, `type` TEXT, `description` TEXT, 
+                    `isInverted` INTEGER, `price` REAL, `previousClose` REAL, `changePercent` REAL, 
+                    `rsi` REAL, `rsiStatus` TEXT, `macdSignal` TEXT, `technicalStatus` TEXT, 
+                    `lastUpdated` INTEGER, `sma20` REAL, `sma50` REAL, `sma200` REAL, 
+                    PRIMARY KEY(`symbol`)
+                )
+                """.trimIndent()
+            )
+
+            db.execSQL(
+                """
+                INSERT INTO `dashboard_assets_new` 
+                (`symbol`, `name`, `type`, `description`, `isInverted`, `price`, `previousClose`, `changePercent`, `rsi`, `rsiStatus`, `macdSignal`, `technicalStatus`, `lastUpdated`, `sma20`, `sma50`, `sma200`) 
+                SELECT `symbol`, `name`, `type`, `description`, `isInverted`, `price`, `previousClose`, `changePercent`, `rsi`, `rsiStatus`, `macdSignal`, `technicalStatus`, `lastUpdated`, `sma20`, `sma50`, `sma200` 
+                FROM `dashboard_assets`
+                """.trimIndent()
+            )
+
+            db.execSQL("DROP TABLE `dashboard_assets`")
+            db.execSQL("ALTER TABLE `dashboard_assets_new` RENAME TO `dashboard_assets`")
+        }
+    }
+
+    val ALL_MIGRATIONS = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
 }

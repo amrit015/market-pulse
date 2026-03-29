@@ -30,7 +30,7 @@ import com.marketlabs.pulse.storage.database.entity.RiskRadarEntity
         MarketStateEntity::class,
         AssetOverviewEntity::class
     ],
-    version = 6,
+    version = 7,
     exportSchema = true
 )
 @TypeConverters(

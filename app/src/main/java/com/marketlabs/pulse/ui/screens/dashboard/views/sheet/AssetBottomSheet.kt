@@ -128,22 +128,7 @@ fun AssetDetailBottomSheet(
                 }
             }
 
-            Spacer(modifier = Modifier.height(paddingLarge))
-
-            // The AI Verdict
-            Text(
-                text = stringResource(id = R.string.dashboard_ai_summary),
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.primary
-            )
-            Text(
-                text = asset.aiVerdict ?: stringResource(id = R.string.dashboard_no_analysis),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(top = paddingMedium)
-            )
-
-            // 💡 NEW: Hide everything below this point for Sentiment/VIX metrics
+            // Hide everything below this point for Sentiment/VIX metrics
             if (showTechnicals) {
                 Spacer(modifier = Modifier.height(paddingLarge))
 

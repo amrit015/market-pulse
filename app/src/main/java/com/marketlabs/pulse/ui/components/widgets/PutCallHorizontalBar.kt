@@ -35,7 +35,7 @@ fun PutCallHorizontalBar(ratio: Double, change: Double?, status: String?) {
     val putPercentage = (ratio / totalOptions).toFloat()
 
     val drawLineColor = MaterialTheme.colorScheme.onSurface
-    val colorGreen  = ColorGreen
+    val colorGreen = ColorGreen
     val colorRed = ColorRed
     val colorNeutral = ColorNeutral
 
@@ -65,7 +65,8 @@ fun PutCallHorizontalBar(ratio: Double, change: Double?, status: String?) {
                 ) {
                     Text(
                         text = String.format("%.2f", ratio),
-                        style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                        // 💡 FIX: Reduced text size from headlineMedium to headlineSmall
+                        style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onSurface
                     )
 

@@ -10,10 +10,6 @@ data class NetworkDashboardResponse(
     @Json(name = "assets") val assets: List<NetworkAssetOverview>
 )
 
-/**
- * Maps directly to the 'market_state' document in Firestore
- */
-
 @JsonClass(generateAdapter = true)
 data class NetworkMarketState(
     @Json(name = "is_equity_open")
@@ -24,16 +20,22 @@ data class NetworkMarketState(
     @Json(name = "is_futures_open")
     @get:PropertyName("is_futures_open")
     @set:PropertyName("is_futures_open")
-    var isFuturesOpen: Boolean = false
-)
+    var isFuturesOpen: Boolean = false,
 
-/**
- * Maps directly to the individual asset documents in Firestore
- */
+    // 💡 NEW: Summary fields to be populated from the new Firestore doc
+    @Json(name = "summary")
+    @get:PropertyName("summary")
+    @set:PropertyName("summary")
+    var technicalSummary: String? = null,
+
+    @Json(name = "timestamp")
+    @get:PropertyName("timestamp")
+    @set:PropertyName("timestamp")
+    var technicalSummaryTimestamp: Long? = null
+)
 
 @JsonClass(generateAdapter = true)
 data class NetworkAssetOverview(
-    // Fields that match exactly don't need annotations
     var symbol: String = "",
     var name: String = "",
     var type: String = "",
@@ -42,7 +44,6 @@ data class NetworkAssetOverview(
     var rsi: Double? = null,
     var timestamp: Long = 0L,
 
-    // 💡 FIX: Add PropertyName so Firebase knows how to map snake_case to camelCase!
     @Json(name = "is_inverted")
     @get:PropertyName("is_inverted")
     @set:PropertyName("is_inverted")
@@ -91,10 +92,5 @@ data class NetworkAssetOverview(
     @Json(name = "technical_status")
     @get:PropertyName("technical_status")
     @set:PropertyName("technical_status")
-    var technicalStatus: String? = null,
-
-    @Json(name = "ai_verdict")
-    @get:PropertyName("ai_verdict")
-    @set:PropertyName("ai_verdict")
-    var aiVerdict: String? = null
+    var technicalStatus: String? = null
 )
