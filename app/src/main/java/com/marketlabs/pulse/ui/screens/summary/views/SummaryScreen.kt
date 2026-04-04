@@ -232,7 +232,10 @@ fun LeadStoryCard(story: NewsItem) {
     val headline = story.headline ?: return
 
     Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        // 💡 CHANGED: Matches Market Outlook background
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
+        ),
         shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -272,7 +275,10 @@ fun MacroCard(item: MacroItem) {
 
     Card(
         shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        // 💡 CHANGED: Matches Market Outlook background
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
+        ),
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(modifier = Modifier.height(IntrinsicSize.Min)) {
@@ -349,7 +355,10 @@ fun DominoCard(domino: DominoEffect) {
     val outlook = domino.outlook ?: return
 
     Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        // 💡 CHANGED: Matches Market Outlook background
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
+        ),
         shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -563,13 +572,15 @@ fun VerdictCard(verdict: Verdict) {
 @Composable
 fun ActionFooter(action: String) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        // 💡 CHANGED: Matches Market Outlook background
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
+        ),
         shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
         border = BorderStroke(
             dimensionResource(id = R.dimen.border_thin),
             MaterialTheme.colorScheme.primary
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = dimensionResource(id = R.dimen.elevation_small)),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column {

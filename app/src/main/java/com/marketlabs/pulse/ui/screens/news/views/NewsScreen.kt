@@ -137,7 +137,10 @@ fun NewsArticleCard(
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
 
     Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        // 💡 CHANGED: Matches Market Outlook and Summary Screen backgrounds
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
+        ),
         shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
         modifier = Modifier
             .fillMaxWidth()
@@ -146,7 +149,11 @@ fun NewsArticleCard(
                 onClick(url) // open the webpages on the app webview
             }
     ) {
-        Column(modifier = Modifier.fillMaxWidth().padding(top = paddingLarge, bottom = paddingLarge)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = paddingLarge, bottom = paddingLarge)
+        ) {
             // --- ROW 1: Source, Time, and Sentiment Badge ---
             Row(
                 modifier = Modifier
@@ -215,12 +222,12 @@ fun NewsArticleCard(
             }
 
             // 💡 ACTION: Faint line divider between Headline and Content
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
             HorizontalDivider(
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
                 thickness = dimensionResource(id = R.dimen.border_thin)
             )
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
 
             // --- ROW 3: Content Column (Summary and Tags) ---
             Column(
@@ -233,7 +240,7 @@ fun NewsArticleCard(
                     Text(
                         text = impactSummary,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
