@@ -202,4 +202,9 @@
     <string name="action_read_more">Read More</string>
     <string name="action_show_less">Show Less</string>
 
+    <string name="section_weekly_playbook">The Weekly Playbook</string>
+    <string name="label_estimate">Estimate</string>
+    <string name="label_previous">Previous</string>
+    <string name="unknown_event">Economic Event</string>
+
 </resources>

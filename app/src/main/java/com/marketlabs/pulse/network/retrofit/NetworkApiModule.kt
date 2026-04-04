@@ -5,6 +5,7 @@ import com.marketlabs.pulse.network.api.IndicatorsApi
 import com.marketlabs.pulse.network.api.MarketPulseApi
 import com.marketlabs.pulse.network.api.NewsApi
 import com.marketlabs.pulse.network.api.RiskRadarApi
+import com.marketlabs.pulse.network.api.WeeklyPlaybookApi
 import com.marketlabs.pulse.network.interceptor.AppCheckInterceptor
 import com.marketlabs.pulse.network.interceptor.HeaderLoggingInterceptor
 import com.marketlabs.pulse.utils.Constants.MARKET_PULSE_BASE_URL
@@ -109,5 +110,14 @@ object NetworkApiModule {
         @Named("MarketPulseRetrofit") retrofit: Retrofit
     ): DashboardApi {
         return retrofit.create(DashboardApi::class.java)
+    }
+
+
+    @Provides
+    @Singleton
+    fun provideWeeklyPlaybookApi(
+        @Named("MarketPulseRetrofit") retrofit: Retrofit
+    ): WeeklyPlaybookApi {
+        return retrofit.create(WeeklyPlaybookApi::class.java)
     }
 }

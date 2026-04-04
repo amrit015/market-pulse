@@ -79,6 +79,7 @@ fun DashboardRoute(
                     DashboardScreen(
                         marketState = uiState.marketState,
                         assets = uiState.assets,
+                        playbook = uiState.weeklyPlaybook,
                         scaffoldPadding = scaffoldPadding
                     )
                 }
