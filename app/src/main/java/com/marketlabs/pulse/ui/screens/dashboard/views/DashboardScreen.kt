@@ -48,12 +48,13 @@ import androidx.compose.ui.unit.dp
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.dashboard.AssetOverview
 import com.marketlabs.pulse.storage.model.dashboard.MarketState
-import com.marketlabs.pulse.storage.model.dashboard.enums.AssetType
+import com.marketlabs.pulse.ui.components.bottomSheet.AssetDetailBottomSheet
+import com.marketlabs.pulse.ui.components.bottomSheet.MarketGlossaryBottomSheet
 import com.marketlabs.pulse.ui.components.widgets.PutCallHorizontalBar
 import com.marketlabs.pulse.ui.components.widgets.SpeedometerGauge
 import com.marketlabs.pulse.ui.components.widgets.VixFullWidthCard
-import com.marketlabs.pulse.ui.screens.dashboard.views.sheet.AssetDetailBottomSheet
 import com.marketlabs.pulse.ui.theme.PulseStatusColors
+import com.marketlabs.pulse.utils.enums.AssetType
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -96,6 +97,9 @@ fun DashboardScreen(
 
     var selectedAsset by remember { mutableStateOf<AssetOverview?>(null) }
 
+    // 💡 NEW: State to track if the Glossary bottom sheet is open, and what the current regime string is
+    var selectedRegimeForGlossary by remember { mutableStateOf<String?>(null) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -127,7 +131,12 @@ fun DashboardScreen(
                 )
 
                 // 💡 NEW: Inject the calculated Consensus Badge!
-                SentimentConsensusBadge(sentimentAssets = sentimentAssets)
+                SentimentConsensusBadge(
+                    sentimentAssets = sentimentAssets,
+                    onClick = { currentRegimeText ->
+                        selectedRegimeForGlossary = currentRegimeText
+                    }
+                )
                 Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
 
                 val vixAsset = sentimentAssets.find { it?.symbol == "^VIX" }
@@ -221,6 +230,14 @@ fun DashboardScreen(
             onDismiss = { selectedAsset = null }
         )
     }
+
+    // 💡 NEW: Trigger the Glossary Bottom Sheet
+    if (selectedRegimeForGlossary != null) {
+        MarketGlossaryBottomSheet (
+            currentRegime = selectedRegimeForGlossary,
+            onDismiss = { selectedRegimeForGlossary = null }
+        )
+    }
 }
 
 @Composable
@@ -283,12 +300,44 @@ fun AssetCard(
     customVisual: @Composable (() -> Unit)? = null,
     onClick: () -> Unit
 ) {
-    val change = asset.changePercent ?: 0.0
-    val isMathematicallyPositive = change >= 0
-    val isGoodEvent = if (asset.isInverted == true) !isMathematicallyPositive else isMathematicallyPositive
+    val isSentimentAsset = asset.symbol == "FEAR_GREED" || asset.symbol == "PUT_CALL"
 
-    val baseColor = if (isGoodEvent) PulseStatusColors.BullishText else PulseStatusColors.BearishText
-    val backgroundColor = if (isGoodEvent) PulseStatusColors.BullishBg else PulseStatusColors.BearishBg
+    val baseColor: androidx.compose.ui.graphics.Color
+    val backgroundColor: androidx.compose.ui.graphics.Color
+
+    if (isSentimentAsset && asset.rsiStatus != null) {
+        // 💡 NEW: Contrarian Logic for Sentiment Indicators
+        // Extreme Fear = Buying Opportunity (Green Background)
+        // Extreme Greed = Sell Warning (Red Background)
+        when (asset.rsiStatus.uppercase()) {
+            "EXTREME FEAR", "FEAR", "OVERSOLD" -> {
+                baseColor = PulseStatusColors.BullishText
+                backgroundColor = PulseStatusColors.BullishBg
+            }
+            "EXTREME GREED", "GREED", "OVERBOUGHT" -> {
+                baseColor = PulseStatusColors.BearishText
+                backgroundColor = PulseStatusColors.BearishBg
+            }
+            else -> {
+                baseColor = MaterialTheme.colorScheme.onSurfaceVariant
+                backgroundColor = MaterialTheme.colorScheme.surfaceVariant
+            }
+        }
+    } else {
+        // 💡 Standard Logic for Equities, Futures, and Crypto
+        // Uses the daily change percentage and checks if the asset is inverted (like VIX)
+        val change = asset.changePercent ?: 0.0
+        val isMathematicallyPositive = change >= 0
+        val isGoodEvent = if (asset.isInverted == true) !isMathematicallyPositive else isMathematicallyPositive
+
+        if (isGoodEvent) {
+            baseColor = PulseStatusColors.BullishText
+            backgroundColor = PulseStatusColors.BullishBg
+        } else {
+            baseColor = PulseStatusColors.BearishText
+            backgroundColor = PulseStatusColors.BearishBg
+        }
+    }
 
     val cardTitle = if (asset.symbol == "FEAR_GREED") {
         stringResource(id = R.string.fear_greed_title)
@@ -297,6 +346,8 @@ fun AssetCard(
     } else {
         asset.symbol.replace("=F", "")
     }
+
+    // We initialize as null if it's a sentiment asset since they don't use subtitles
     val cardSubTitle = if (asset.symbol != "FEAR_GREED" && asset.symbol != "PUT_CALL") {
         asset.name
     } else {
@@ -352,9 +403,12 @@ fun AssetCard(
                     color = MaterialTheme.colorScheme.onSurface
                 )
 
-                val sign = if (isMathematicallyPositive) "+" else ""
+                val changeForDisplay = asset.changePercent ?: 0.0
+                val isDisplayPositive = changeForDisplay >= 0
+                val sign = if (isDisplayPositive) "+" else ""
+
                 Text(
-                    text = "$sign${String.format("%.2f", change)}%",
+                    text = "$sign${String.format("%.2f", changeForDisplay)}%",
                     style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                     color = baseColor
                 )
@@ -400,7 +454,7 @@ fun TechnicalSummaryCard(summaryText: String?, timestamp: Long?, isEquityOpen: B
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            painter = painterResource(id = R.drawable.ic_ai_engine),
+                            painter = painterResource(id = R.drawable.ic_engine_ai),
                             contentDescription = "Analysis Engine",
                             tint = MaterialTheme.colorScheme.secondary
                         )
@@ -469,7 +523,7 @@ fun TechnicalSummaryCard(summaryText: String?, timestamp: Long?, isEquityOpen: B
 }
 
 @Composable
-fun SentimentConsensusBadge(sentimentAssets: List<AssetOverview?>) {
+fun SentimentConsensusBadge(sentimentAssets: List<AssetOverview?>, onClick: (String) -> Unit) {
     var score = 0
     var validAssets = 0
 
@@ -537,17 +591,17 @@ fun SentimentConsensusBadge(sentimentAssets: List<AssetOverview?>) {
     Surface(
         color = bgColor,
         shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_pill)),
+        modifier = Modifier.clickable { onClick(consensusText) }
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            // 💡 FIX 1: Move padding to the Row so it wraps BOTH the icon and the text!
             modifier = Modifier.padding(
                 horizontal = dimensionResource(id = R.dimen.padding_medium),
                 vertical = dimensionResource(id = R.dimen.padding_small)
             )
         ) {
             Icon(
-                painter = painterResource(id = R.drawable.ic_quant_engine),
+                painter = painterResource(id = R.drawable.ic_engine_quant),
                 contentDescription = "Analysis Engine",
                 tint = textColor,
                 modifier = Modifier.size(dimensionResource(R.dimen.padding_large))
@@ -559,6 +613,15 @@ fun SentimentConsensusBadge(sentimentAssets: List<AssetOverview?>) {
                 text = consensusText,
                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                 color = textColor
+            )
+
+            Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+
+            Icon(
+                painter = painterResource(id = R.drawable.ic_chevron_forward),
+                contentDescription = "View Glossary",
+                tint = textColor,
+                modifier = Modifier.size(dimensionResource(id = R.dimen.icon_size_small))
             )
         }
     }

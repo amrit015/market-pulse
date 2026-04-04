@@ -27,14 +27,20 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -45,14 +51,15 @@ import com.marketlabs.pulse.storage.model.summary.MarketOutlook
 import com.marketlabs.pulse.storage.model.summary.MarketPulse
 import com.marketlabs.pulse.storage.model.summary.NewsItem
 import com.marketlabs.pulse.storage.model.summary.Verdict
-import com.marketlabs.pulse.storage.model.summary.enums.ReportType
-import com.marketlabs.pulse.storage.model.summary.enums.TradingCall
+import com.marketlabs.pulse.ui.components.bottomSheet.MarketGlossaryBottomSheet
 import com.marketlabs.pulse.ui.theme.PulseStatusColors.BearishBg
 import com.marketlabs.pulse.ui.theme.PulseStatusColors.BearishText
 import com.marketlabs.pulse.ui.theme.PulseStatusColors.BullishBg
 import com.marketlabs.pulse.ui.theme.PulseStatusColors.BullishText
 import com.marketlabs.pulse.ui.theme.PulseStatusColors.NeutralBg
 import com.marketlabs.pulse.ui.theme.PulseStatusColors.NeutralText
+import com.marketlabs.pulse.utils.enums.ReportType
+import com.marketlabs.pulse.utils.enums.TradingCall
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -77,6 +84,9 @@ fun MarketSummaryScreen(
 ) {
     val statusBarHeight = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
+
+    // 💡 NEW: State to track if the Verdict Glossary bottom sheet is open
+    var showVerdictGlossary by remember { mutableStateOf(false) }
 
     LazyColumn(
         modifier = Modifier
@@ -140,13 +150,30 @@ fun MarketSummaryScreen(
             }
 
             validData.verdict?.let { verdict ->
-                item { VerdictCard(verdict) }
+                // 💡 UPDATED: Pass the onClick trigger to open the sheet
+                item {
+                    VerdictCard(
+                        verdict = verdict,
+                        onClick = { showVerdictGlossary = true }
+                    )
+                }
             }
 
             validData.verdict?.action?.let { action ->
                 if (action.isNotBlank()) item { ActionFooter(action) }
             }
         }
+    }
+
+    // 💡 NEW: Trigger the Glossary Bottom Sheet
+    if (showVerdictGlossary && data?.verdict != null) {
+        // Assuming VerdictGlossaryBottomSheet is in your common sheets package
+        MarketGlossaryBottomSheet(
+            currentRegime = data.verdict.regime?.label?.uppercase(),
+            currentSetup = data.verdict.setup?.label?.uppercase(),
+            currentCall = data.verdict.call?.label?.uppercase(),
+            onDismiss = { showVerdictGlossary = false }
+        )
     }
 }
 
@@ -498,7 +525,7 @@ fun OutlookCard(outlook: MarketOutlook) {
  * @param verdict The [Verdict] object containing the analysis.
  */
 @Composable
-fun VerdictCard(verdict: Verdict) {
+fun VerdictCard(verdict: Verdict, onClick: () -> Unit) {
     val call = verdict.call ?: return
     val regime = verdict.regime ?: return
     val setup = verdict.setup ?: return
@@ -517,35 +544,55 @@ fun VerdictCard(verdict: Verdict) {
     Card(
         colors = CardDefaults.cardColors(containerColor = bgColor),
         shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() } // 💡 NEW: Made the card clickable
     ) {
         Column {
-            Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
-                Surface(
-                    color = textColor.copy(alpha = 0.1f),
-                    shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_chip))
-                ) {
-                    Text(
-                        text = regime.label,
-                        color = textColor,
-                        style = MaterialTheme.typography.labelSmall,
-                        modifier = Modifier.padding(
-                            horizontal = dimensionResource(id = R.dimen.padding_medium),
-                            vertical = dimensionResource(id = R.dimen.padding_tiny)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(dimensionResource(id = R.dimen.padding_large)),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Surface(
+                        color = textColor.copy(alpha = 0.1f),
+                        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_chip))
+                    ) {
+                        Text(
+                            text = regime.label,
+                            color = textColor,
+                            style = MaterialTheme.typography.labelSmall,
+                            modifier = Modifier.padding(
+                                horizontal = dimensionResource(id = R.dimen.padding_medium),
+                                vertical = dimensionResource(id = R.dimen.padding_tiny)
+                            )
                         )
+                    }
+
+                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
+
+                    Text(
+                        text = call.label,
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = textColor
+                    )
+
+                    Text(
+                        text = setup.label,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = textColor.copy(alpha = 0.8f)
                     )
                 }
 
-                Text(
-                    text = call.label,
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = textColor
-                )
-
-                Text(
-                    text = setup.label,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = textColor.copy(alpha = 0.8f)
+                // 💡 FIXED: Arrow is now properly aligned and themed to match the card text
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_chevron_forward),
+                    contentDescription = "View Glossary",
+                    tint = textColor,
+                    modifier = Modifier.size(dimensionResource(id = R.dimen.padding_large))
                 )
             }
 

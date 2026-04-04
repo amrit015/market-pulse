@@ -1,10 +1,10 @@
 package com.marketlabs.pulse.storage.model.summary
 
-import com.marketlabs.pulse.storage.model.summary.enums.MarketRegime
-import com.marketlabs.pulse.storage.model.summary.enums.NewsTag
-import com.marketlabs.pulse.storage.model.summary.enums.ReportType
-import com.marketlabs.pulse.storage.model.summary.enums.TechnicalSetup
-import com.marketlabs.pulse.storage.model.summary.enums.TradingCall
+import com.marketlabs.pulse.utils.enums.MarketRegime
+import com.marketlabs.pulse.utils.enums.NewsTag
+import com.marketlabs.pulse.utils.enums.ReportType
+import com.marketlabs.pulse.utils.enums.TechnicalSetup
+import com.marketlabs.pulse.utils.enums.TradingCall
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)

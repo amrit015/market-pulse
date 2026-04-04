@@ -10,7 +10,7 @@ import com.squareup.moshi.JsonClass
 data class NetworkMarketPhase(
     @Json(name = "timestamp") val timestamp: Long? = null,
     @Json(name = "market_regime") val marketRegime: String? = null,
-    @Json(name = "setup_phase") val setupPhase: String? = null,
+    @Json(name = "setup_phase") val technicalSetup: String? = null,
     @Json(name = "verdict") val verdict: NetworkPhaseVerdict? = null,
     @Json(name = "signals") val signals: NetworkPhaseSignals? = null,
     @Json(name = "pillars") val pillars: NetworkPhasePillars? = null
@@ -86,6 +86,7 @@ data class NetworkVitalItem(
     @Json(name = "display_value") val displayValue: String? = null,
     @Json(name = "change") val change: String? = null,
     @Json(name = "signal_color") val signalColor: String? = null,
+    @Json(name = "release_date") val releaseDate: String? = null,
     @Json(name = "date") val date: String? = null
 )
 
@@ -122,5 +123,6 @@ data class NetworkActionMetricItem(
     @Json(name = "value") val value: String? = null,
     @Json(name = "change") val change: String? = null,
     @Json(name = "buy_score_contribution") val buyScoreContribution: Int? = null,
+    @Json(name = "signal") val signal: String? = null,
     @Json(name = "signal_color") val signalColor: String? = null
 )

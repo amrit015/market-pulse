@@ -6,7 +6,7 @@ import com.marketlabs.pulse.storage.database.entity.AssetOverviewEntity
 import com.marketlabs.pulse.storage.database.entity.MarketStateEntity
 import com.marketlabs.pulse.storage.model.dashboard.AssetOverview
 import com.marketlabs.pulse.storage.model.dashboard.MarketState
-import com.marketlabs.pulse.storage.model.dashboard.enums.AssetType
+import com.marketlabs.pulse.utils.enums.AssetType
 
 fun MarketStateEntity.toDomain(): MarketState {
     return MarketState(

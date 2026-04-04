@@ -23,11 +23,11 @@ import androidx.compose.ui.text.font.FontWeight
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.indicators.DomainMacroVitals
 import com.marketlabs.pulse.storage.model.indicators.VitalItem
-import com.marketlabs.pulse.ui.screens.indicators.DictionaryItem
-import com.marketlabs.pulse.ui.screens.indicators.IndicatorsDictionary
+import com.marketlabs.pulse.ui.components.UniversalMetricCard
 import com.marketlabs.pulse.ui.screens.indicators.views.AnalyzedAtText
 import com.marketlabs.pulse.ui.screens.indicators.views.ContextHeaderCard
-import com.marketlabs.pulse.ui.screens.indicators.widgets.UniversalMetricCard
+import com.marketlabs.pulse.utils.glossary.DictionaryItem
+import com.marketlabs.pulse.utils.glossary.IndicatorsDictionary
 
 @Composable
 fun MacroVitalsTab(
@@ -87,9 +87,26 @@ fun VitalsSection(title: String, items: List<VitalItem>, onIndicatorClick: (Dict
                         value = item.displayValue,
                         changeString = item.changeString,
                         signalColor = item.signalColor,
-                        observationDate = item.observationDate,
+                        dateString = item.releasedDate, // 💡 Pass the releasedDate here for the card UI
                         modifier = Modifier.weight(1f).fillMaxHeight(), // 💡 ADDED fillMaxHeight
-                        onClick = { onIndicatorClick(IndicatorsDictionary.getDefinitionFor(item.name)) }
+                        onClick = {
+                            val baseDef = IndicatorsDictionary.getDefinitionFor(item.name)
+
+                            // 💡 Cleanly pass the observationDate as its own distinct property
+                            if (baseDef != null) {
+                                onIndicatorClick(
+                                    DictionaryItem(
+                                        title = baseDef.title,
+                                        subtitle = baseDef.subtitle, // Kept completely original
+                                        definition = baseDef.definition,
+                                        howToRead = baseDef.howToRead,
+                                        observationDate = item.observationDate // 💡 Passed explicitly
+                                    )
+                                )
+                            } else {
+                                onIndicatorClick(null)
+                            }
+                        }
                     )
                 }
                 if (rowItems.size == 1) Spacer(modifier = Modifier.weight(1f).fillMaxHeight()) // 💡 ADDED fillMaxHeight

@@ -120,7 +120,7 @@ fun PutCallHorizontalBar(ratio: Double, change: Double?, status: String?) {
 
         // BOTTOM: Optional Status ("FEAR" / "GREED")
         if (!status.isNullOrEmpty()) {
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
 
             val statusColor = when (status.uppercase()) {
                 "EXTREME GREED", "GREED", "BULLISH" -> textBullish

@@ -52,7 +52,7 @@ fun SpeedometerGauge(score: Double, previousScore: Double?, status: String?) {
     val textNeutral = NeutralText
 
     Column(
-        modifier = Modifier.fillMaxWidth().padding(top = dimensionResource(id = R.dimen.padding_medium)),
+        modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
@@ -108,7 +108,7 @@ fun SpeedometerGauge(score: Double, previousScore: Double?, status: String?) {
 
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.padding_large))
+                modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.padding_medium))
             ) {
                 Text(
                     text = "${score.toInt()}",
