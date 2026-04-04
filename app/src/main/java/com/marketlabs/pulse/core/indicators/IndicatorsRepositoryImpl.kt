@@ -30,7 +30,6 @@ class IndicatorsRepositoryImpl @Inject constructor(
             val localData = localDataSource.getIndicatorsByDate(todayDateString).firstOrNull()
             val currentTime = System.currentTimeMillis()
 
-            // caching logic
             val shouldFetch = when {
                 force -> true
                 localData?.lastSyncedTimestamp == null -> true
@@ -38,16 +37,12 @@ class IndicatorsRepositoryImpl @Inject constructor(
             }
 
             if (!shouldFetch) {
-                Log.d(
-                    "MarketIndicators",
-                    "✅ Indicators cache is fresh (Current 15-min block). Skipping network."
-                )
+                Log.d("MarketIndicators", "✅ Three Pillars cache is fresh. Skipping network.")
                 return Result.success(Unit)
             }
 
-            Log.d("MarketIndicators", "🌐 Fetching latest Traffic Light Indicators from Firebase...")
+            Log.d("MarketIndicators", "🌐 Fetching latest Three Pillars from Firebase...")
 
-            // Fetch the combined Domain object from the Remote Data Source
             remoteDataSource.getLatestIndicators(dateId = todayDateString)
                 .onSuccess { freshData ->
                     localDataSource.saveIndicators(freshData)

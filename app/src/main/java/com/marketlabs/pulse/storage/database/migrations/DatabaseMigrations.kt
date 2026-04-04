@@ -110,6 +110,30 @@ object DatabaseMigrations {
         }
     }
 
-    // 💡 UPDATED: Add the new migration to the active list
-    val ALL_MIGRATIONS = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+    // 💡 NEW: Migration from Version 5 to Version 6 (The Three Pillar Architecture)
+    val MIGRATION_5_6 = object : Migration(5, 6) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            // 1. Create the new table matching our updated IndicatorsEntity
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `market_indicators_new` (
+                    `dateId` TEXT NOT NULL, 
+                    `lastSyncedTimestamp` INTEGER NOT NULL, 
+                    `marketPhase` TEXT, 
+                    `macroVitals` TEXT, 
+                    `marketAction` TEXT, 
+                    PRIMARY KEY(`dateId`)
+                )
+                """.trimIndent()
+            )
+
+            // 2. Drop the old table (It's just a cache, so it will seamlessly re-fetch on next launch)
+            db.execSQL("DROP TABLE IF EXISTS `market_indicators`")
+
+            // 3. Rename the new table to the official name
+            db.execSQL("ALTER TABLE `market_indicators_new` RENAME TO `market_indicators`")
+        }
+    }
+
+    val ALL_MIGRATIONS = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
 }

@@ -43,11 +43,11 @@ import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.dashboard.AssetOverview
 import com.marketlabs.pulse.storage.model.dashboard.MarketState
 import com.marketlabs.pulse.storage.model.dashboard.enums.AssetType
-import com.marketlabs.pulse.ui.screens.dashboard.views.sheet.AssetDetailBottomSheet
 import com.marketlabs.pulse.ui.components.widgets.PutCallHorizontalBar
 import com.marketlabs.pulse.ui.components.widgets.SpeedometerGauge
 import com.marketlabs.pulse.ui.components.widgets.VixFullWidthCard
-import com.marketlabs.pulse.ui.theme.PulseStatusColors // 💡 NEW: Imported the centralized colors
+import com.marketlabs.pulse.ui.screens.dashboard.views.sheet.AssetDetailBottomSheet
+import com.marketlabs.pulse.ui.theme.PulseStatusColors
 
 @Composable
 fun DashboardScreen(

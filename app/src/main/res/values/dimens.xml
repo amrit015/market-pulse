@@ -40,4 +40,7 @@
     <dimen name="vix_corner_radius">16dp</dimen>
 
     <dimen name="gauge_size_large">160dp</dimen>
+    <dimen name="tab_indicator_width">40dp</dimen>
+    <dimen name="tab_indicator_height">4dp</dimen>
+    <dimen name="tab_indicator_corner">4dp</dimen>
 </resources>
