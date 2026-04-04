@@ -169,5 +169,25 @@ object DatabaseMigrations {
         }
     }
 
-    val ALL_MIGRATIONS = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
+    // 💡 NEW: Migration from Version 7 to Version 8 for Market Tail Risks
+    // Migration from Version 7 to Version 8 for Market Tail Risks
+    val MIGRATION_7_8 = object : Migration(7, 8) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `market_tail_risks` (
+                    `date` TEXT NOT NULL, 
+                    `lastSyncedTimestamp` INTEGER NOT NULL, 
+                    `lastUpdated` INTEGER, 
+                    `summary` TEXT, 
+                    `risks` TEXT, 
+                    `sourceNarrative` TEXT, 
+                    PRIMARY KEY(`date`)
+                )
+                """.trimIndent()
+            )
+        }
+    }
+
+    val ALL_MIGRATIONS = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8)
 }
