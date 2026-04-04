@@ -57,7 +57,7 @@ fun VixFullWidthCard(asset: AssetOverview, onClick: () -> Unit) {
 
     Card(
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
         ),
         shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card_large)),
         modifier = Modifier
@@ -77,12 +77,18 @@ fun VixFullWidthCard(asset: AssetOverview, onClick: () -> Unit) {
                         color = MaterialTheme.colorScheme.onSurface
                     )
 
-                    // 💡 Null-safe Status
+                    // 💡 Null-safe Status with Dynamic Red/Green Coloring!
                     if (!asset.rsiStatus.isNullOrEmpty()) {
+                        val statusColor = when (asset.rsiStatus.uppercase()) {
+                            "EXTREME GREED", "GREED", "BULLISH" -> textBullish  // VIX is low (Good for market)
+                            "EXTREME FEAR", "FEAR", "BEARISH" -> textBearish // VIX is high (Bad for market)
+                            else -> colorNeutral
+                        }
+
                         Text(
                             text = asset.rsiStatus,
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                            color = statusColor
                         )
                     }
                 }

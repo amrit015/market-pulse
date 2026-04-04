@@ -52,11 +52,12 @@ fun SpeedometerGauge(score: Double, previousScore: Double?, status: String?) {
     val textNeutral = NeutralText
 
     Column(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().padding(top = dimensionResource(id = R.dimen.padding_medium)),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
-            modifier = Modifier.fillMaxWidth(),
+            // Shrunk the width to 85%, which proportionally decreases the height
+            modifier = Modifier.fillMaxWidth(0.85f),
             contentAlignment = Alignment.BottomCenter
         ) {
             Canvas(
@@ -72,8 +73,9 @@ fun SpeedometerGauge(score: Double, previousScore: Double?, status: String?) {
                 val canvasWidth = size.width
                 val canvasHeight = size.height
 
+                // Swapped Red to the left (0-40) and Green to the right (60-100)
                 val brush = Brush.horizontalGradient(
-                    colors = listOf(colorGreen, colorNeutral, colorRed)
+                    colors = listOf(colorRed, colorNeutral, colorGreen)
                 )
 
                 drawArc(
@@ -110,7 +112,8 @@ fun SpeedometerGauge(score: Double, previousScore: Double?, status: String?) {
             ) {
                 Text(
                     text = "${score.toInt()}",
-                    style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                    // Reduced text size from headlineMedium to headlineSmall
+                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onSurface
                 )
 
@@ -119,8 +122,8 @@ fun SpeedometerGauge(score: Double, previousScore: Double?, status: String?) {
                     val delta = score - previousScore
 
                     val (deltaSymbol, deltaColor) = when {
-                        delta > 0 -> "▲" to textBearish // Up = Greed (Bearish)
-                        delta < 0 -> "▼" to textBullish // Down = Fear (Bullish)
+                        delta > 0 -> "▲" to textBullish // Up = Greed (Green)
+                        delta < 0 -> "▼" to textBearish // Down = Fear (Red)
                         else -> "━" to textNeutral
                     }
 
@@ -149,8 +152,8 @@ fun SpeedometerGauge(score: Double, previousScore: Double?, status: String?) {
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
 
             val statusColor = when (status.uppercase()) {
-                "EXTREME GREED", "GREED" -> textBearish
-                "EXTREME FEAR", "FEAR" -> textBullish
+                "EXTREME GREED", "GREED" -> textBullish // Greed = Green
+                "EXTREME FEAR", "FEAR" -> textBearish   // Fear = Red
                 else -> textNeutral
             }
             Text(

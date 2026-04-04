@@ -8,14 +8,12 @@ import com.marketlabs.pulse.storage.model.dashboard.AssetOverview
 import com.marketlabs.pulse.storage.model.dashboard.MarketState
 import com.marketlabs.pulse.storage.model.dashboard.enums.AssetType
 
-// ==========================================
-// 📱 ENTITY <-> DOMAIN (Room <-> UI)
-// ==========================================
-
 fun MarketStateEntity.toDomain(): MarketState {
     return MarketState(
         isEquityOpen = isEquityOpen,
         isFuturesOpen = isFuturesOpen,
+        technicalSummary = technicalSummary, // 💡 NEW
+        technicalSummaryTimestamp = technicalSummaryTimestamp, // 💡 NEW
         lastUpdated = lastUpdated
     )
 }
@@ -25,6 +23,8 @@ fun MarketState.toEntity(): MarketStateEntity {
         id = 1,
         isEquityOpen = isEquityOpen,
         isFuturesOpen = isFuturesOpen,
+        technicalSummary = technicalSummary, // 💡 NEW
+        technicalSummaryTimestamp = technicalSummaryTimestamp, // 💡 NEW
         lastUpdated = lastUpdated
     )
 }
@@ -43,7 +43,6 @@ fun AssetOverviewEntity.toDomain(): AssetOverview {
         rsiStatus = rsiStatus,
         macdSignal = macdSignal,
         technicalStatus = technicalStatus,
-        aiVerdict = aiVerdict,
         lastUpdated = lastUpdated,
         sma20 = sma20,
         sma50 = sma50,
@@ -65,7 +64,6 @@ fun AssetOverview.toEntity(): AssetOverviewEntity {
         rsiStatus = rsiStatus,
         macdSignal = macdSignal,
         technicalStatus = technicalStatus,
-        aiVerdict = aiVerdict,
         lastUpdated = lastUpdated,
         sma20 = sma20,
         sma50 = sma50,
@@ -73,22 +71,20 @@ fun AssetOverview.toEntity(): AssetOverviewEntity {
     )
 }
 
-// ==========================================
-// 🌐 NETWORK -> ENTITY (Retrofit -> Room)
-// ==========================================
-
 fun NetworkMarketState.toEntity(): MarketStateEntity {
     return MarketStateEntity(
         id = 1,
         isEquityOpen = this.isEquityOpen,
         isFuturesOpen = this.isFuturesOpen,
-        lastUpdated = System.currentTimeMillis() // Stamp it locally on arrival
+        technicalSummary = this.technicalSummary, // 💡 NEW
+        technicalSummaryTimestamp = this.technicalSummaryTimestamp, // 💡 NEW
+        lastUpdated = System.currentTimeMillis()
     )
 }
 
 fun NetworkAssetOverview.toEntity(): AssetOverviewEntity {
     return AssetOverviewEntity(
-        symbol = this.symbol ?: "",
+        symbol = this.symbol,
         name = this.name,
         description = this.description,
         type = this.type,
@@ -100,8 +96,7 @@ fun NetworkAssetOverview.toEntity(): AssetOverviewEntity {
         rsiStatus = this.rsiStatus,
         macdSignal = this.macdSignal,
         technicalStatus = this.technicalStatus,
-        aiVerdict = this.aiVerdict,
-        lastUpdated = System.currentTimeMillis(), // Stamp it locally on arrival
+        lastUpdated = System.currentTimeMillis(),
         sma20 = this.sma20,
         sma50 = this.sma50,
         sma200 = this.sma200

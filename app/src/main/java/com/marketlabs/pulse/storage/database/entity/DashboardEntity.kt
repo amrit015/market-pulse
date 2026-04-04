@@ -5,17 +5,19 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "market_state")
 data class MarketStateEntity(
-    @PrimaryKey val id: Int = 1, // Only ever one row, non-nullable
+    @PrimaryKey val id: Int = 1,
     val isEquityOpen: Boolean?,
     val isFuturesOpen: Boolean?,
+    val technicalSummary: String?, // 💡 NEW
+    val technicalSummaryTimestamp: Long?, // 💡 NEW
     val lastUpdated: Long?
 )
 
 @Entity(tableName = "dashboard_assets")
 data class AssetOverviewEntity(
-    @PrimaryKey val symbol: String, // Symbol must be non-nullable as the primary key
+    @PrimaryKey val symbol: String,
     val name: String?,
-    val type: String?, // Maps to AssetType Enum
+    val type: String?,
     val description: String?,
     val isInverted: Boolean?,
 
@@ -27,7 +29,6 @@ data class AssetOverviewEntity(
     val rsiStatus: String?,
     val macdSignal: String?,
     val technicalStatus: String?,
-    val aiVerdict: String?,
     val lastUpdated: Long?,
 
     val sma20: Double?,

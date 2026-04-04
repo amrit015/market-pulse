@@ -3,23 +3,24 @@ package com.marketlabs.pulse.storage.model.dashboard
 import com.marketlabs.pulse.storage.model.dashboard.enums.AssetType
 
 /**
- * Represents the master state of the market (Open/Closed).
+ * Represents the master state of the market (Open/Closed) and the Global Technical Summary.
  */
 data class MarketState(
     val isEquityOpen: Boolean?,
     val isFuturesOpen: Boolean?,
+    val technicalSummary: String?, // 💡 NEW: Macro AI Summary
+    val technicalSummaryTimestamp: Long?, // 💡 NEW: Analyzed at timestamp
     val lastUpdated: Long?
 )
-
 
 /**
  * The clean, UI-ready data class representing a single tracked asset.
  */
 data class AssetOverview(
-    val symbol: String, // Non-nullable as it's our primary identifier
+    val symbol: String,
     val name: String?,
     val description: String?,
-    val type: AssetType, // Mapped to Enum for easy UI filtering
+    val type: AssetType,
     val isInverted: Boolean?,
 
     // Core Price Data
@@ -32,7 +33,6 @@ data class AssetOverview(
     val rsiStatus: String?,
     val macdSignal: String?,
     val technicalStatus: String?,
-    val aiVerdict: String?,
     val lastUpdated: Long?,
 
     // sma

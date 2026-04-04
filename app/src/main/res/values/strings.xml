@@ -166,4 +166,5 @@
     <string name="phase_title_health">Health Phase</string>
     <string name="phase_title_risk">Risk Phase</string>
     <string name="phase_title_valuation">Valuation Phase</string>
+    <string name="dashboard_technical_briefing">Technical Briefing</string>
 </resources>

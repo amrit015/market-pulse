@@ -16,7 +16,6 @@ class RemoteDashboardDataSourceImpl @Inject constructor(
     private val firestore: FirebaseFirestore
 ) : RemoteDashboardDataSource {
 
-    // 💡 Transformed from a 1-time fetch into a continuous real-time stream (web sockets)
     override fun observeDashboardData(): Flow<Pair<MarketStateEntity, List<AssetOverviewEntity>>> = callbackFlow {
         val listener = firestore.collection("market_overview")
             .addSnapshotListener { snapshot, error ->
@@ -27,26 +26,41 @@ class RemoteDashboardDataSourceImpl @Inject constructor(
 
                 if (snapshot != null) {
                     var marketStateEntity: MarketStateEntity? = null
+                    var tempSummary: String? = null
+                    var tempSummaryTimestamp: Long? = null
                     val assetsEntities = mutableListOf<AssetOverviewEntity>()
 
                     for (doc in snapshot.documents) {
-                        if (doc.id == "market_state") {
-                            val state = doc.toObject(NetworkMarketState::class.java)
-                            state?.let { marketStateEntity = it.toEntity() }
-                        } else {
-                            val asset = doc.toObject(NetworkAssetOverview::class.java)
-                            asset?.let { assetsEntities.add(it.toEntity()) }
+                        when (doc.id) {
+                            "market_state" -> {
+                                val state = doc.toObject(NetworkMarketState::class.java)
+                                state?.let { marketStateEntity = it.toEntity() }
+                            }
+                            // 💡 NEW: Intercept the standalone summary document
+                            "technical_summary" -> {
+                                tempSummary = doc.getString("summary")
+                                tempSummaryTimestamp = doc.getLong("timestamp")
+                            }
+                            else -> {
+                                val asset = doc.toObject(NetworkAssetOverview::class.java)
+                                asset?.let { assetsEntities.add(it.toEntity()) }
+                            }
                         }
                     }
 
                     if (marketStateEntity != null) {
-                        // Emit the brand new data into the Flow
-                        trySend(Pair(marketStateEntity!!, assetsEntities))
+                        // 💡 NEW: Merge the summary fields into the MarketState header object
+                        val finalState = marketStateEntity!!.copy(
+                            technicalSummary = tempSummary,
+                            technicalSummaryTimestamp = tempSummaryTimestamp
+                        )
+
+                        // Emit the fully combined data into the Flow
+                        trySend(Pair(finalState, assetsEntities))
                     }
                 }
             }
 
-        // When the coroutine is cancelled, automatically detach the Firestore listener to prevent memory leaks
         awaitClose { listener.remove() }
     }
 }
