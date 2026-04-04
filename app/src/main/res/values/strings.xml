@@ -52,10 +52,10 @@
     <string name="radar_unknown">Unknown</string>
 
     <string name="radar_what_this_means">What This Means</string>
-    <string name="radar_action_safe">Market foundation is highly stable. Favorable conditions for broad market exposure and growth assets.</string>
-    <string name="radar_action_stable">Market is experiencing normal background noise. Maintain current positions but increase selectivity.</string>
-    <string name="radar_action_caution">Underlying systemic stress detected. Consider tightening stop-losses and shifting towards defensive sectors.</string>
-    <string name="radar_action_danger">Severe market plumbing breakdown. Prioritize capital preservation, raise cash, and deploy downside hedges.</string>
+    <string name="radar_action_safe">The macroeconomic foundation is incredibly stable. The plumbing of the financial system is working perfectly, creating a highly favorable environment for aggressive growth assets and broad market exposure.</string>
+    <string name="radar_action_stable">The market is experiencing normal, everyday background noise. You should maintain your current positions but avoid taking on excessive leverage or chasing highly speculative assets.</string>
+    <string name="radar_action_caution">Underlying systemic stress has been detected in the bond or credit markets. The foundation is cracking. You should strongly consider tightening your stop-losses, taking partial profits, and shifting capital towards defensive sectors.</string>
+    <string name="radar_action_danger">A severe market plumbing breakdown is actively occurring. Lenders are terrified and liquidity is vanishing. You must prioritize capital preservation immediately, raise cash, and deploy downside hedges to protect your portfolio.</string>
 
     <string name="radar_content_desc_info">Educational Info</string>
     <string name="radar_title_vulnerability">Vulnerability Score</string>
@@ -86,7 +86,7 @@
     <string name="dashboard_market_closed">MARKET CLOSED</string>
     <string name="dashboard_section_sentiment">Sentiment &amp; Fear</string>
     <string name="dashboard_section_equities">Equities</string>
-    <string name="dashboard_section_futures">Overnight Futures</string>
+    <string name="dashboard_section_futures">Futures</string>
     <string name="dashboard_section_crypto">Crypto &amp; Commodities</string>
     <string name="dashboard_fallback_spy">S&amp;P 500</string>
     <string name="dashboard_rsi_label">RSI:</string>
@@ -110,10 +110,10 @@
     <string name="put_call_index_title">Put/Call Ratio</string>
 
     <string name="dashboard_technical_glossary_title">Technical Glossary</string>
-    <string name="dashboard_glossary_rsi_def">Measures momentum. &gt;70 is Overbought (Bearish), &lt;30 is Oversold (Bullish).</string>
-    <string name="dashboard_glossary_macd_def">Shows trend direction. Bullish crossovers indicate upward momentum.</string>
-    <string name="dashboard_glossary_trend_def">The AI\'s evaluation of the current price action versus historical baselines.</string>
-    <string name="dashboard_glossary_sma_def">The average price over a set period. Acts as a magnet for support and resistance.</string>
+    <string name="dashboard_glossary_rsi_def">A score measuring if an asset moved too far, too fast. &gt;70 means Euphoria (high risk of a drop). &lt;30 means Panic (high probability of a bounce).</string>
+    <string name="dashboard_glossary_macd_def">Shows the momentum of a trend. A Bullish crossover means buyers have taken control. A Bearish crossover means sellers are overwhelming the market.</string>
+    <string name="dashboard_glossary_trend_def">The AI\'s objective evaluation of the current price action versus its historical moving averages, telling you who is currently winning the tug-of-war.</string>
+    <string name="dashboard_glossary_sma_def">The average price over a set number of days. These act as invisible magnets. When price falls to a major SMA, institutional computers automatically buy to defend that level (Support).</string>
 
     <string name="market_score">Market Score</string>
     <string name="market_posture">Market Posture</string>
@@ -143,22 +143,18 @@
 
     <string name="dict_buy_score_title">Buy Score</string>
     <string name="dict_calculated_value">Calculated Value: %1$d/100</string>
-    <string name="dict_buy_score_def">This score aggregates Fear &amp; Greed, Put/Call Ratios, Momentum, and Price extensions into a single 0–100 value.</string>
-    <string name="dict_buy_score_read">The higher the score, the better the buying opportunity (Panic). The lower the score, the higher the risk of a pullback (Euphoria).</string>
+    <string name="dict_buy_score_def">This Trade Score aggregates human emotion (Fear &amp; Greed, Put/Call Ratios) and mathematical over-extensions (RSI, SMA Distance) into a single 0–100 value to detect market capitulation.</string>
+    <string name="dict_buy_score_read">The higher the score, the better the buying opportunity because the crowd is panicking. The lower the score, the higher the risk of a severe pullback because the crowd is euphoric and greedy.</string>
 
     <string name="dict_action_signal_title">Action Signal</string>
     <string name="dict_action_signal_def_fallback">Current tactical setup.</string>
-    <string name="dict_action_signal_read">This is the system\'s recommended short-term action based on current market sentiment and over-extensions.</string>
+    <string name="dict_action_signal_read">This is the algorithmic system\'s direct recommendation on whether you should be buying the dip, holding your ground, or trimming your profits today.</string>
     <string name="score_change_pts">%1$s%2$d pts</string>
 
-    <string name="dict_market_phase_score_title">Market Phase Score</string>
-    <string name="dict_formula">Formula: %1$s</string>
-    <string name="dict_formula_fallback">Weighted average of Trend, Health, and Risk.</string>
-    <string name="dict_market_phase_read">A score &gt; 65 indicates a confirmed Bull Market. A score &lt; 45 indicates a Bear Market or severe correction.</string>
-
+    <string name="dict_market_phase_read">The Investor Score is calculated as a weighted average of Trend, Health, and Risk. A score &gt; 65 indicates a confirmed, healthy Bull Market supported by strong economic plumbing. A score &lt; 45 indicates a Bear Market or a severe, dangerous correction.</string>
     <string name="dict_market_posture_title">Market Posture</string>
     <string name="dict_market_posture_def_fallback">Action not available.</string>
-    <string name="dict_market_posture_read">This is the medium-term positioning strategy based on the current regime.</string>
+    <string name="dict_market_posture_read">This is your medium-term portfolio strategy. It tells you exactly what "season" the market is currently in so you can position your assets accordingly.</string>
 
     <string name="phase_analyzing">ANALYZING</string>
     <string name="phase_unknown">UNKNOWN</string>
@@ -167,4 +163,32 @@
     <string name="phase_title_risk">Risk Phase</string>
     <string name="phase_title_valuation">Valuation Phase</string>
     <string name="dashboard_technical_briefing">Technical Briefing</string>
+    <string name="released_date">Released %1$s</string>
+    <string name="current">Current</string>
+
+    <string name="market_status_and_glossary">Market Status &amp; Glossary</string>
+    <string name="current_verdict">CURRENT VERDICT</string>
+    <string name="market_regime_label">Market Regime:</string>
+    <string name="technical_setup_label">Technical Setup:</string>
+    <string name="action_call_label">Action Call:</string>
+    <string name="regime_glossary_title">REGIME GLOSSARY</string>
+    <string name="setup_glossary_title">SETUP GLOSSARY</string>
+    <string name="action_call_glossary_title">ACTION CALL GLOSSARY</string>
+    <string name="status_current">CURRENT</string>
+
+    <string name="score_label_action">Trade Score</string>
+    <string name="score_label_phase">Invest Score</string>
+    <string name="score_label_risk">Risk Score</string>
+
+    <string name="risk_status_and_glossary">Risk Status &amp; Glossary</string>
+    <string name="risk_status_label">Systemic Risk:</string>
+    <string name="risk_trend_label">Risk Trend:</string>
+    <string name="risk_status_glossary_title">STATUS GLOSSARY</string>
+    <string name="risk_trend_glossary_title">TREND GLOSSARY</string>
+
+    <string name="action_signal_label">Action Signal:</string>
+    <string name="action_glossary_title">ACTION GLOSSARY</string>
+
+    <string name="risk_vulnerability_desc">This Risk Score is a blended macroeconomic aggregate measuring hidden systemic stress. It analyzes bond volatility, yield curve inversions, credit spreads, and institutional asset rotation.</string>
+    <string name="risk_vulnerability_contagion">Note: The model includes a \'Contagion Penalty\'. If any single gauge flashes extreme danger, the overall score is automatically pushed higher to reflect the risk of market contagion, even if other areas appear calm.</string>
 </resources>

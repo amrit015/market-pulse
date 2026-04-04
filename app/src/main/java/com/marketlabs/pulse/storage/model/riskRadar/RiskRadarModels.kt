@@ -1,7 +1,7 @@
 package com.marketlabs.pulse.storage.model.riskRadar
 
-import com.marketlabs.pulse.storage.model.riskRadar.enums.RiskStatus
-import com.marketlabs.pulse.storage.model.riskRadar.enums.RiskTrend
+import com.marketlabs.pulse.utils.enums.RiskStatus
+import com.marketlabs.pulse.utils.enums.RiskTrend
 
 data class RiskRadar(
     val date: String,

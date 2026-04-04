@@ -7,8 +7,8 @@ import com.marketlabs.pulse.storage.database.entity.RiskRadarEntity
 import com.marketlabs.pulse.storage.model.riskRadar.Gauge
 import com.marketlabs.pulse.storage.model.riskRadar.RiskGauges
 import com.marketlabs.pulse.storage.model.riskRadar.RiskRadar
-import com.marketlabs.pulse.storage.model.riskRadar.enums.RiskStatus
-import com.marketlabs.pulse.storage.model.riskRadar.enums.RiskTrend
+import com.marketlabs.pulse.utils.enums.RiskStatus
+import com.marketlabs.pulse.utils.enums.RiskTrend
 
 // ============================================================================
 // 1. NETWORK -> DOMAIN (Used by RemoteRiskRadarDataSource)

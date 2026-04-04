@@ -14,11 +14,11 @@ import com.marketlabs.pulse.storage.model.summary.MarketOutlook
 import com.marketlabs.pulse.storage.model.summary.MarketPulse
 import com.marketlabs.pulse.storage.model.summary.NewsItem
 import com.marketlabs.pulse.storage.model.summary.Verdict
-import com.marketlabs.pulse.storage.model.summary.enums.MarketRegime
-import com.marketlabs.pulse.storage.model.summary.enums.NewsTag
-import com.marketlabs.pulse.storage.model.summary.enums.ReportType
-import com.marketlabs.pulse.storage.model.summary.enums.TechnicalSetup
-import com.marketlabs.pulse.storage.model.summary.enums.TradingCall
+import com.marketlabs.pulse.utils.enums.MarketRegime
+import com.marketlabs.pulse.utils.enums.NewsTag
+import com.marketlabs.pulse.utils.enums.ReportType
+import com.marketlabs.pulse.utils.enums.TechnicalSetup
+import com.marketlabs.pulse.utils.enums.TradingCall
 import com.marketlabs.pulse.utils.toDateIdString
 
 // ============================================================================
@@ -54,13 +54,13 @@ fun MarketPulse.toDailyPulseEntity(): DailyPulseEntity {
 }
 
 // ============================================================================
-// MAPPERS: Entity -> Domain (Reading from DB to UI)
+// MAPPERS: Entity -> Domain (Reading fromString DB to UI)
 // ============================================================================
 
 fun MarketPulseEntity.toDomain(): MarketPulse {
     return MarketPulse(
         dateId = this.dateId,
-        reportType = ReportType.from(this.reportType),
+        reportType = ReportType.fromString(this.reportType),
         lastUpdated = this.lastUpdated,
         lastSyncedTimestamp = this.lastSyncedTimestamp,
         verdict = this.verdict,
@@ -75,7 +75,7 @@ fun DailyPulseEntity.toDomain(): MarketPulse {
     return MarketPulse(
         dateId = this.dateId,
         lastSyncedTimestamp = this.lastSyncedTimestamp,
-        reportType = ReportType.from(this.reportType),
+        reportType = ReportType.fromString(this.reportType),
         lastUpdated = this.lastUpdated,
         verdict = this.verdict,
         leadStories = this.leadStories,
@@ -91,7 +91,7 @@ fun NetworkMarketPulse.toDomain(): MarketPulse {
         // 1. Convert String -> ReportType Enum
         dateId = this.lastUpdated?.toDateIdString() ?: "",
         lastSyncedTimestamp = System.currentTimeMillis(),
-        reportType = ReportType.from(this.reportType),
+        reportType = ReportType.fromString(this.reportType),
         lastUpdated = this.lastUpdated ?: 0L,
         verdict = this.verdict?.toDomain(),
         leadStories = this.leadStories?.map { it.toDomain() } ?: emptyList(),
@@ -104,9 +104,9 @@ fun NetworkMarketPulse.toDomain(): MarketPulse {
 // Helper Converters
 fun NetworkVerdict.toDomain(): Verdict {
     return Verdict(
-        regime = MarketRegime.from(this.regime),
-        setup = TechnicalSetup.from(this.setup),
-        call = TradingCall.from(this.call),
+        regime = MarketRegime.fromString(this.regime),
+        setup = TechnicalSetup.fromString(this.setup),
+        call = TradingCall.fromString(this.call),
         analysis = this.analysis,
         action = this.action
     )
@@ -122,7 +122,7 @@ fun NetworkNewsItem.toDomain(): NewsItem {
 fun NetworkMacroItem.toDomain(): MacroItem {
     return MacroItem(
         headline = this.headline,
-        tag = NewsTag.from(this.tag),
+        tag = NewsTag.fromString(this.tag),
         summary = this.summary
     )
 }

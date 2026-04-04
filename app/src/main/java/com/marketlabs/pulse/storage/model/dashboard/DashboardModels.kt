@@ -1,6 +1,6 @@
 package com.marketlabs.pulse.storage.model.dashboard
 
-import com.marketlabs.pulse.storage.model.dashboard.enums.AssetType
+import com.marketlabs.pulse.utils.enums.AssetType
 
 /**
  * Represents the master state of the market (Open/Closed) and the Global Technical Summary.

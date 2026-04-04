@@ -30,6 +30,7 @@ import com.marketlabs.pulse.storage.model.dashboard.AssetOverview
 import com.marketlabs.pulse.ui.theme.ColorGreen
 import com.marketlabs.pulse.ui.theme.ColorNeutral
 import com.marketlabs.pulse.ui.theme.ColorRed
+import com.marketlabs.pulse.ui.theme.PulseStatusColors
 import com.marketlabs.pulse.ui.theme.PulseStatusColors.BearishText
 import com.marketlabs.pulse.ui.theme.PulseStatusColors.BullishText
 
@@ -55,10 +56,15 @@ fun VixFullWidthCard(asset: AssetOverview, onClick: () -> Unit) {
     val needleOverhangDimen = dimensionResource(id = R.dimen.gauge_needle_overhang)
     val cornerRadiusDimen = dimensionResource(id = R.dimen.vix_corner_radius)
 
+    // 💡 NEW: Contrarian Background Coloring Logic for VIX
+    val statusBgColor = when (asset.rsiStatus?.uppercase()) {
+        "EXTREME FEAR", "FEAR", "BEARISH" -> PulseStatusColors.BullishBg // High VIX = Buy Opportunity
+        "EXTREME GREED", "GREED", "BULLISH" -> PulseStatusColors.BearishBg // Low VIX = Complacency Warning
+        else -> MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
+    }
+
     Card(
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
-        ),
+        colors = CardDefaults.cardColors(containerColor = statusBgColor),
         shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card_large)),
         modifier = Modifier
             .fillMaxWidth()
@@ -80,8 +86,8 @@ fun VixFullWidthCard(asset: AssetOverview, onClick: () -> Unit) {
                     // 💡 Null-safe Status with Dynamic Red/Green Coloring!
                     if (!asset.rsiStatus.isNullOrEmpty()) {
                         val statusColor = when (asset.rsiStatus.uppercase()) {
-                            "EXTREME GREED", "GREED", "BULLISH" -> textBullish  // VIX is low (Good for market)
-                            "EXTREME FEAR", "FEAR", "BEARISH" -> textBearish // VIX is high (Bad for market)
+                            "EXTREME GREED", "GREED", "BULLISH" -> textBullish  // VIX is low (Bad for market/Sell warning)
+                            "EXTREME FEAR", "FEAR", "BEARISH" -> textBearish // VIX is high (Good for market/Buy opp)
                             else -> colorNeutral
                         }
 
@@ -107,6 +113,7 @@ fun VixFullWidthCard(asset: AssetOverview, onClick: () -> Unit) {
                         Text(
                             text = "$sign${String.format("%.2f", change)}%",
                             style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                            // VIX change text color: Up = Red, Down = Green
                             color = if (change > 0) textBearish else textBullish,
                             modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.padding_tiny))
                         )

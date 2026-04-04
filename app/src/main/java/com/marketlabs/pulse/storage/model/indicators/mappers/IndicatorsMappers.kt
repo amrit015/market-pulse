@@ -15,10 +15,10 @@ import com.marketlabs.pulse.storage.model.indicators.IndicatorItem
 import com.marketlabs.pulse.storage.model.indicators.MarketIndicators
 import com.marketlabs.pulse.storage.model.indicators.PhaseDetails
 import com.marketlabs.pulse.storage.model.indicators.VitalItem
-import com.marketlabs.pulse.storage.model.indicators.enums.ActionSignal
-import com.marketlabs.pulse.storage.model.indicators.enums.SetupPhase
-import com.marketlabs.pulse.storage.model.indicators.enums.SignalColor
-import com.marketlabs.pulse.storage.model.indicators.enums.VerdictCall
+import com.marketlabs.pulse.utils.enums.ActionSignal
+import com.marketlabs.pulse.utils.enums.SignalColor
+import com.marketlabs.pulse.utils.enums.TechnicalSetup
+import com.marketlabs.pulse.utils.enums.TradingCall
 
 // ==========================================
 // 🌐 NETWORK TO DOMAIN: MARKET PHASE
@@ -27,10 +27,10 @@ fun NetworkMarketPhase.toDomain(): DomainMarketPhase {
     return DomainMarketPhase(
         timestamp = timestamp ?: 0L,
         marketRegime = marketRegime,
-        setupPhase = SetupPhase.fromString(setupPhase),
+        technicalSetup = TechnicalSetup.fromString(technicalSetup),
         verdictScore = verdict?.score,
         previousScore = verdict?.previousScore,
-        verdictCall = VerdictCall.fromString(verdict?.call),
+        tradingCall = TradingCall.fromString(verdict?.call),
         verdictAction = verdict?.action,
         verdictFormula = verdict?.formula,
 
@@ -82,7 +82,8 @@ fun NetworkVitalItem.toDomain(): VitalItem {
         displayValue = displayValue,
         changeString = change,
         signalColor = SignalColor.fromString(signalColor),
-        observationDate = date
+        observationDate = date,
+        releasedDate = releaseDate
     )
 }
 
@@ -101,21 +102,25 @@ fun NetworkMarketAction.toDomain(): DomainMarketAction {
         fearAndGreed = ActionMetric(
             value = rawMetrics?.fearAndGreed?.value,
             change = rawMetrics?.fearAndGreed?.change,
+            signal = rawMetrics?.fearAndGreed?.signal,
             signalColor = SignalColor.fromString(rawMetrics?.fearAndGreed?.signalColor)
         ),
         putCallRatio = ActionMetric(
             value = rawMetrics?.putCallRatio?.value,
             change = rawMetrics?.putCallRatio?.change,
+            signal = rawMetrics?.putCallRatio?.signal,
             signalColor = SignalColor.fromString(rawMetrics?.putCallRatio?.signalColor)
         ),
         sp500Rsi = ActionMetric(
             value = rawMetrics?.sp500Rsi?.value,
             change = rawMetrics?.sp500Rsi?.change,
+            signal = rawMetrics?.sp500Rsi?.signal,
             signalColor = SignalColor.fromString(rawMetrics?.sp500Rsi?.signalColor)
         ),
         smaExtension = ActionMetric(
             value = rawMetrics?.smaExtension?.value,
             change = rawMetrics?.smaExtension?.change,
+            signal = rawMetrics?.smaExtension?.signal,
             signalColor = SignalColor.fromString(rawMetrics?.smaExtension?.signalColor)
         )
     )

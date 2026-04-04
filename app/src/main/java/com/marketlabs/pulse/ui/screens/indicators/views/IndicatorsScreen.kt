@@ -39,49 +39,23 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.indicators.MarketIndicators
-import com.marketlabs.pulse.storage.model.indicators.enums.SignalColor
-import com.marketlabs.pulse.ui.screens.indicators.DictionaryItem
-import com.marketlabs.pulse.ui.screens.indicators.FrameworkSheet
-import com.marketlabs.pulse.ui.screens.indicators.IndicatorDetailSheet
-import com.marketlabs.pulse.ui.screens.indicators.PillarGuide
+import com.marketlabs.pulse.ui.components.bottomSheet.FrameworkSheet
+import com.marketlabs.pulse.ui.components.bottomSheet.IndicatorDetailSheet
 import com.marketlabs.pulse.ui.screens.indicators.views.tabs.MacroVitalsTab
 import com.marketlabs.pulse.ui.screens.indicators.views.tabs.MarketActionTab
 import com.marketlabs.pulse.ui.screens.indicators.views.tabs.MarketPhaseTab
-import com.marketlabs.pulse.ui.theme.PulseStatusColors
+import com.marketlabs.pulse.utils.glossary.DictionaryItem
+import com.marketlabs.pulse.utils.glossary.PillarGuide
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-
-// ==========================================
-// 🎨 SHARED UI EXTENSIONS & COMPONENTS
-// ==========================================
-@Composable
-fun SignalColor?.toColor(): Color {
-    return when (this) {
-        SignalColor.GREEN -> PulseStatusColors.BullishText
-        SignalColor.YELLOW -> PulseStatusColors.NeutralText
-        SignalColor.RED -> PulseStatusColors.BearishText
-        SignalColor.UNKNOWN, null -> MaterialTheme.colorScheme.onSurfaceVariant
-    }
-}
-
-@Composable
-fun SignalColor?.toBgColor(): Color {
-    return when (this) {
-        SignalColor.GREEN -> PulseStatusColors.BullishBg
-        SignalColor.YELLOW -> PulseStatusColors.NeutralBg
-        SignalColor.RED -> PulseStatusColors.BearishBg
-        SignalColor.UNKNOWN, null -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-    }
-}
 
 @Composable
 fun ContextHeaderCard(guide: PillarGuide) {
@@ -94,7 +68,7 @@ fun ContextHeaderCard(guide: PillarGuide) {
             .fillMaxWidth()
             .clickable { expanded = !expanded }
     ) {
-        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)).animateContentSize()) {
+        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_medium)).animateContentSize()) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -131,8 +105,8 @@ fun ContextHeaderCard(guide: PillarGuide) {
                 Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
                 Text(
                     text = guide.howToUse,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
         }

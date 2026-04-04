@@ -54,7 +54,7 @@ sealed class BottomNavItem(val route: String, val label: String, val unselectedI
         BottomNavItem(PulseRoutes.MARKET_INDICATORS, "Indicators", R.drawable.ic_indicators, R.drawable.ic_indicators_filled)
 
     internal object Summary :
-        BottomNavItem(PulseRoutes.MARKET_SUMMARY, "Summary", R.drawable.ic_ai_engine, R.drawable.ic_ai_engine)
+        BottomNavItem(PulseRoutes.MARKET_SUMMARY, "Summary", R.drawable.ic_engine_ai, R.drawable.ic_engine_ai)
 
     internal object RiskRadar :
         BottomNavItem(PulseRoutes.MARKET_RISK, "Risk", R.drawable.ic_risk, R.drawable.ic_risk_filled)
