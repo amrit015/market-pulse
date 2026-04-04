@@ -81,7 +81,7 @@ fun RiskRadarRoute(
                 // Case B: Data Available
                 uiState.riskRadar != null -> {
                     RiskRadarScreen(
-                        data = uiState.riskRadar!!,
+                        uiState = uiState, // 💡 CHANGED: Passing the full state here
                         scaffoldPadding = scaffoldPadding
                     )
                 }

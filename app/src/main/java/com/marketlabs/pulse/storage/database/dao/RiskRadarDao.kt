@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import com.marketlabs.pulse.storage.database.entity.MarketRiskAssessmentEntity
 import com.marketlabs.pulse.storage.database.entity.RiskRadarEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -19,4 +20,13 @@ interface RiskRadarDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertRisk(risk: RiskRadarEntity)
+
+    @Query("SELECT * FROM market_tail_risks WHERE date = :dateString")
+    fun getTailRisksByDate(dateString: String): Flow<MarketRiskAssessmentEntity?>
+
+    @Query("SELECT * FROM market_tail_risks ORDER BY date DESC LIMIT 1")
+    fun getLatestCachedTailRisks(): Flow<MarketRiskAssessmentEntity?>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertTailRisks(risks: MarketRiskAssessmentEntity)
 }

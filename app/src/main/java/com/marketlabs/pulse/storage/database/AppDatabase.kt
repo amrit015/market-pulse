@@ -16,6 +16,7 @@ import com.marketlabs.pulse.storage.database.entity.AssetOverviewEntity
 import com.marketlabs.pulse.storage.database.entity.DailyPulseEntity
 import com.marketlabs.pulse.storage.database.entity.IndicatorsEntity
 import com.marketlabs.pulse.storage.database.entity.MarketPulseEntity
+import com.marketlabs.pulse.storage.database.entity.MarketRiskAssessmentEntity
 import com.marketlabs.pulse.storage.database.entity.MarketStateEntity
 import com.marketlabs.pulse.storage.database.entity.NewsEntity
 import com.marketlabs.pulse.storage.database.entity.RiskRadarEntity
@@ -28,9 +29,10 @@ import com.marketlabs.pulse.storage.database.entity.RiskRadarEntity
         RiskRadarEntity::class,
         IndicatorsEntity::class,
         MarketStateEntity::class,
-        AssetOverviewEntity::class
+        AssetOverviewEntity::class,
+        MarketRiskAssessmentEntity::class
     ],
-    version = 7,
+    version = 8,
     exportSchema = true
 )
 @TypeConverters(

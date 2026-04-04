@@ -1,6 +1,7 @@
 package com.marketlabs.pulse.storage.store.riskRadar
 
 import com.marketlabs.pulse.storage.database.dao.RiskRadarDao
+import com.marketlabs.pulse.storage.model.riskRadar.MarketRiskAssessment
 import com.marketlabs.pulse.storage.model.riskRadar.RiskRadar
 import com.marketlabs.pulse.storage.model.riskRadar.mappers.toDomain
 import com.marketlabs.pulse.storage.model.riskRadar.mappers.toEntity
@@ -23,5 +24,17 @@ class LocalRiskRadarDataSourceImpl @Inject constructor(
     override suspend fun saveRisk(risk: RiskRadar) {
         // Maps the Domain model down to a Room Entity before saving
         dao.insertRisk(risk.toEntity())
+    }
+
+    override fun getLatestCachedTailRisks(): Flow<MarketRiskAssessment?> {
+        return dao.getLatestCachedTailRisks().map { it?.toDomain() }
+    }
+
+    override fun getTailRisksByDate(dateString: String): Flow<MarketRiskAssessment?> {
+        return dao.getTailRisksByDate(dateString).map { it?.toDomain() }
+    }
+
+    override suspend fun saveTailRisks(assessment: MarketRiskAssessment) {
+        dao.insertTailRisks(assessment.toEntity())
     }
 }
