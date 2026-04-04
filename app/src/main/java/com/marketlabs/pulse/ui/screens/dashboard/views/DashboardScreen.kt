@@ -73,6 +73,7 @@ fun DashboardScreen(
 
     val paddingExtraLarge = dimensionResource(id = R.dimen.padding_extra_large)
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
+    val paddingMedium = dimensionResource(id = R.dimen.padding_medium)
 
     val isEquityOpen = marketState?.isEquityOpen == true
     val isFuturesOpen = marketState?.isFuturesOpen == true
@@ -226,6 +227,8 @@ fun DashboardScreen(
             )
         }
 
+        HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+
         // --- SECTION 5: Weekly Playbook ---
         if (playbook != null && !playbook.events.isNullOrEmpty()) {
             WeeklyPlaybookSection(playbook = playbook)
@@ -239,7 +242,7 @@ fun DashboardScreen(
         )
     }
 
-    // 💡 NEW: Trigger the Glossary Bottom Sheet
+    // Trigger the Glossary Bottom Sheet
     if (selectedRegimeForGlossary != null) {
         MarketGlossaryBottomSheet(
             currentRegime = selectedRegimeForGlossary,
@@ -467,15 +470,14 @@ fun TechnicalSummaryCard(summaryText: String?, timestamp: Long?, isEquityOpen: B
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                    Row (verticalAlignment = Alignment.CenterVertically) {
                         // Dynamically match icon to text size
-                        val textStyle = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                        val textStyle =
+                            MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                         val iconSize = with(LocalDensity.current) { textStyle.fontSize.toDp() }
 
                         Icon(
-                            painter = painterResource(id = R.drawable.ic_engine_ai),
+                            painter = painterResource(id = R.drawable.ic_engine_ai_sparkles),
                             contentDescription = "Analysis Engine",
                             tint = MaterialTheme.colorScheme.secondary,
                             modifier = Modifier.size(iconSize)
@@ -630,7 +632,7 @@ fun SentimentConsensusBadge(sentimentAssets: List<AssetOverview?>, onClick: (Str
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(
                 horizontal = dimensionResource(id = R.dimen.padding_medium),
-                vertical = dimensionResource(id = R.dimen.padding_small)
+                vertical = dimensionResource(id = R.dimen.padding_medium)
             )
         ) {
 

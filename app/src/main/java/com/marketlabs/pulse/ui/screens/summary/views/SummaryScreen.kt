@@ -39,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -230,11 +231,32 @@ fun VersionToggleBanner(isLegacyVersion: Boolean, onClick: () -> Unit) {
 @Composable
 fun HeaderSection(type: ReportType, timestamp: Long) {
     Column {
-        Text(
-            text = type.label,
-            style = MaterialTheme.typography.headlineLarge,
-            color = MaterialTheme.colorScheme.onSurface
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // 1. Extract the exact text style you are using
+            val textStyle = MaterialTheme.typography.headlineMedium
+
+            // 2. Convert its font size (sp) into a Compose dimension (dp)
+            val iconSize = with(LocalDensity.current) { textStyle.fontSize.toDp() }
+
+            Icon(
+                painter = painterResource(id = R.drawable.ic_engine_ai_sparkles),
+                contentDescription = "Analysis Engine",
+                tint = MaterialTheme.colorScheme.onBackground,
+                // 3. Apply the calculated size here
+                modifier = Modifier.size(iconSize)
+            )
+
+            Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+
+            Text(
+                text = type.label,
+                // 4. Use the exact same style reference here
+                style = textStyle,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+        }
 
         val date = Date(timestamp)
         val format = SimpleDateFormat("MMM dd, h:mm a", Locale.getDefault())

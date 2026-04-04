@@ -29,7 +29,6 @@
     <string name="sentiment_bearish">BEARISH</string>
     <string name="sentiment_neutral">NEUTRAL</string>
 
-    <string name="radar_title">Risk Radar</string>
     <string name="radar_vulnerability_score">Vulnerability Score</string>
     <string name="radar_trend_prev">Trend: %1$s (Prev: %2$s)</string>
     <string name="radar_systemic_plumbing">Systemic Plumbing</string>
@@ -192,7 +191,7 @@
     <string name="risk_vulnerability_desc">This Risk Score is a blended macroeconomic aggregate measuring hidden systemic stress. It analyzes bond volatility, yield curve inversions, credit spreads, and institutional asset rotation.</string>
     <string name="risk_vulnerability_contagion">Note: The model includes a \'Contagion Penalty\'. If any single gauge flashes extreme danger, the overall score is automatically pushed higher to reflect the risk of market contagion, even if other areas appear calm.</string>
 
-    <string name="tab_risk_score">Risk Score</string>
+    <string name="tab_risk_radar">Risk Radar</string>
     <string name="tab_tail_risks">Market Risks</string>
     <string name="no_tail_risks_available">No tail risks available.</string>
     <string name="risk_assessment">Risk Assessment</string>

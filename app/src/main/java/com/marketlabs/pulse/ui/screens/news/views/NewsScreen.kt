@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -30,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -100,12 +102,32 @@ fun NewsScreen(
 @Composable
 fun HeaderSection(timestamp: Long) {
     Column {
-        Text(
-            text = stringResource(id = R.string.news_screen_title),
-            style = MaterialTheme.typography.headlineLarge,
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.padding_medium))
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // 1. Extract the exact text style you are using
+            val textStyle = MaterialTheme.typography.headlineMedium
+
+            // 2. Convert its font size (sp) into a Compose dimension (dp)
+            val iconSize = with(LocalDensity.current) { textStyle.fontSize.toDp() }
+
+            Icon(
+                painter = painterResource(id = R.drawable.ic_engine_ai_sparkles),
+                contentDescription = "Analysis Engine",
+                tint = MaterialTheme.colorScheme.onBackground,
+                // 3. Apply the calculated size here
+                modifier = Modifier.size(iconSize)
+            )
+
+            Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+
+            Text(
+                text = stringResource(id = R.string.news_screen_title),
+                // 4. Use the exact same style reference here
+                style = textStyle,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+        }
 
         val date = Date(timestamp)
         val format = SimpleDateFormat("MMM dd, h:mm a", Locale.getDefault())

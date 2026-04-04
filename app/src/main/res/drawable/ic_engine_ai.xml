@@ -4,32 +4,46 @@
     android:viewportWidth="24"
     android:viewportHeight="24">
 
+    <group android:pivotX="12" android:pivotY="12" android:rotation="30">
+        <path
+            android:strokeColor="@color/white"
+            android:strokeWidth="1.2"
+            android:strokeLineCap="round"
+            android:fillColor="#00000000"
+            android:pathData="M 21.84,12.78 A 10,4.5 0 0,1 13.73,16.42 M 10.27,16.42 A 10,4.5 0 0,1 2.16,12.78 M 2.16,11.22 A 10,4.5 0 0,1 10.27,7.58 M 13.73,7.58 A 10,4.5 0 0,1 21.84,11.22" />
+    </group>
+
+    <group android:pivotX="12" android:pivotY="12" android:rotation="90">
+        <path
+            android:strokeColor="@color/white"
+            android:strokeWidth="1.2"
+            android:strokeLineCap="round"
+            android:fillColor="#00000000"
+            android:pathData="M 21.84,12.78 A 10,4.5 0 0,1 13.73,16.42 M 10.27,16.42 A 10,4.5 0 0,1 2.16,12.78 M 2.16,11.22 A 10,4.5 0 0,1 10.27,7.58 M 13.73,7.58 A 10,4.5 0 0,1 21.84,11.22" />
+    </group>
+
+    <group android:pivotX="12" android:pivotY="12" android:rotation="150">
+        <path
+            android:strokeColor="@color/white"
+            android:strokeWidth="1.2"
+            android:strokeLineCap="round"
+            android:fillColor="#00000000"
+            android:pathData="M 21.84,12.78 A 10,4.5 0 0,1 13.73,16.42 M 10.27,16.42 A 10,4.5 0 0,1 2.16,12.78 M 2.16,11.22 A 10,4.5 0 0,1 10.27,7.58 M 13.73,7.58 A 10,4.5 0 0,1 21.84,11.22" />
+    </group>
+
     <path
-        android:strokeColor="#FF000000"
-        android:strokeWidth="1.5"
+        android:strokeColor="@color/white"
+        android:strokeWidth="1.2"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
         android:fillColor="#00000000"
-        android:pathData="
-        M 7,2 H 18 C 20.2,2 22,3.8 22,6 V 18 C 22,20.2 20.2,22 18,22 H 6 C 3.8,22 2,20.2 2,18 V 10" />
+        android:pathData="M 9.5,13.75 L 11,10.25 L 12.5,13.75 M 10.15,12.75 H 11.85" />
 
     <path
-        android:strokeColor="#FF000000"
-        android:strokeWidth="1.5"
+        android:strokeColor="@color/white"
+        android:strokeWidth="1.2"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
         android:fillColor="#00000000"
-        android:pathData="
-        M 10,11 A 3.5,3.5 0 1,0 10,18 A 3.5,3.5 0 0,0 10,11 Z
-        M 13.5,11 L 13.5,18
-        M 17.5,11 L 17.5,18" />
-
-    <path
-        android:fillColor="#FF000000"
-        android:pathData="
-        M 17.5,3.0
-        C 17.5,5.3 16.3,6.5 14.0,6.5
-        C 16.3,6.5 17.5,7.7 17.5,10.0
-        C 17.5,7.7 18.7,6.5 21.0,6.5
-        C 18.7,6.5 17.5,5.3 17.5,3.0 Z" />
+        android:pathData="M 14.5,10.25 V 13.75" />
 </vector>
