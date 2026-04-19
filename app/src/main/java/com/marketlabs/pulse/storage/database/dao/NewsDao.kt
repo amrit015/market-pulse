@@ -17,4 +17,16 @@ interface NewsDao {
 
     @Query("DELETE FROM market_news")
     suspend fun clearNews()
+
+    /**
+     * Fetches only the timestamp to avoid loading the entire news array into memory.
+     */
+    @Query("SELECT lastSyncedTimestamp FROM market_news WHERE id = 'latest'")
+    suspend fun getLastSyncedTimestamp(): Long?
+
+    /**
+     * Updates only the timestamp without overwriting the existing news stories.
+     */
+    @Query("UPDATE market_news SET lastSyncedTimestamp = :timestamp WHERE id = 'latest'")
+    suspend fun updateLastSyncedTimestamp(timestamp: Long)
 }

@@ -5,9 +5,7 @@ import com.marketlabs.pulse.network.store.riskRadar.RemoteRiskRadarDataSource
 import com.marketlabs.pulse.storage.model.riskRadar.MarketRiskAssessment
 import com.marketlabs.pulse.storage.model.riskRadar.RiskRadar
 import com.marketlabs.pulse.storage.store.riskRadar.LocalRiskRadarDataSource
-import com.marketlabs.pulse.utils.CachePolicy
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.firstOrNull
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -26,21 +24,6 @@ class RiskRadarRepositoryImpl @Inject constructor(
             val todayDateString = SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
                 timeZone = TimeZone.getTimeZone("America/New_York")
             }.format(Date())
-
-            val localData = localDataSource.getRiskByDate(todayDateString).firstOrNull()
-            val currentTime = System.currentTimeMillis()
-
-            // caching policy
-            val shouldFetch = when {
-                force -> true
-                localData?.lastSyncedTimestamp == null -> true
-                else -> CachePolicy.isHourlyExpired(localData.lastSyncedTimestamp, currentTime)
-            }
-
-            if (!shouldFetch) {
-                Log.d("RiskRadar", "✅ Risk cache is fresh (Current Hourly block). Skipping network.")
-                return Result.success(Unit)
-            }
 
             Log.d("RiskRadar", "🌐 Fetching latest Risk Radar from Firebase...")
 
@@ -65,21 +48,6 @@ class RiskRadarRepositoryImpl @Inject constructor(
                 timeZone = TimeZone.getTimeZone("America/New_York")
             }.format(Date())
 
-            val localData = localDataSource.getTailRisksByDate(todayDateString).firstOrNull()
-            val currentTime = System.currentTimeMillis()
-
-            // Exact same caching policy as the gauges
-            val shouldFetch = when {
-                force -> true
-                localData?.lastSyncedTimestamp == null -> true
-                else -> CachePolicy.isHourlyExpired(localData.lastSyncedTimestamp, currentTime)
-            }
-
-            if (!shouldFetch) {
-                Log.d("RiskRadar", "✅ Tail Risks cache is fresh. Skipping network.")
-                return Result.success(Unit)
-            }
-
             Log.d("RiskRadar", "🌐 Fetching latest Tail Risks from Firebase...")
 
             remoteDataSource.getLatestTailRisks(todayDateString).onSuccess { freshRisks ->
@@ -94,4 +62,14 @@ class RiskRadarRepositoryImpl @Inject constructor(
             Result.failure(e)
         }
     }
+
+    // ========================================================================
+    // SYNC MANAGER TIMESTAMPS
+    // ========================================================================
+
+    override suspend fun getLastSyncedTimestampRisk(): Long? = localDataSource.getLastSyncedTimestampRisk()
+    override suspend fun updateLastSyncedTimestampRisk(timestamp: Long) = localDataSource.updateLastSyncedTimestampRisk(timestamp)
+
+    override suspend fun getLastSyncedTimestampTailRisks(): Long? = localDataSource.getLastSyncedTimestampTailRisks()
+    override suspend fun updateLastSyncedTimestampTailRisks(timestamp: Long) = localDataSource.updateLastSyncedTimestampTailRisks(timestamp)
 }

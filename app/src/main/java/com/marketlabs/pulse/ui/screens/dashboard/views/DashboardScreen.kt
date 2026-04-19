@@ -80,10 +80,19 @@ fun DashboardScreen(
 
     val sentimentAssets =
         assets.filter { it?.symbol == "^VIX" || it?.symbol == "FEAR_GREED" || it?.symbol == "PUT_CALL" }
-    val futureAssets = assets.filter { it?.type == AssetType.FUTURE }
 
     val equitySortOrder = listOf("SPY", "DIA", "QQQ", "RSP", "IWM", "MAGS")
     val cryptoCommoditySortOrder = listOf("BTC-USD", "ETH-USD", "GC=F", "SI=F", "CL=F", "HG=F")
+    // 💡 NEW: Sort order for Futures
+    val futureSortOrder = listOf("ES=F", "YM=F", "NQ=F")
+
+    // 💡 UPDATED: Added sorting logic for Futures to match Equities and Commodities
+    val futureAssets = assets
+        .filter { it?.type == AssetType.FUTURE }
+        .sortedBy { asset ->
+            val index = futureSortOrder.indexOf(asset?.symbol)
+            if (index == -1) Int.MAX_VALUE else index
+        }
 
     val equityAssets = assets
         .filter { it?.type == AssetType.EQUITY }
@@ -353,12 +362,16 @@ fun AssetCard(
         }
     }
 
-    val cardTitle = if (asset.symbol == "FEAR_GREED") {
-        stringResource(id = R.string.fear_greed_title)
-    } else if (asset.symbol == "PUT_CALL") {
-        stringResource(id = R.string.put_call_index_title)
-    } else {
-        asset.symbol.replace("=F", "")
+    val cardTitle = when (asset.symbol) {
+        "FEAR_GREED" -> {
+            stringResource(id = R.string.fear_greed_title)
+        }
+        "PUT_CALL" -> {
+            stringResource(id = R.string.put_call_index_title)
+        }
+        else -> {
+            asset.symbol.replace("=F", "")
+        }
     }
 
     // We initialize as null if it's a sentiment asset since they don't use subtitles

@@ -35,4 +35,16 @@ class LocalSummaryDataSourceImpl @Inject constructor(
         dao.clearMarketPulse()
         dao.clearDailyPulse()
     }
+
+    // ========================================================================
+    // SYNC MANAGER TIMESTAMPS
+    // ========================================================================
+
+    override suspend fun getLastSyncedTimestamp(): Long? {
+        return dao.getLastSyncedTimestamp()
+    }
+
+    override suspend fun updateLastSyncedTimestamp(timestamp: Long) {
+        dao.updateLastSyncedTimestamp(timestamp)
+    }
 }

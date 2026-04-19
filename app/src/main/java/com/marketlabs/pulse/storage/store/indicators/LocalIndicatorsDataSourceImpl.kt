@@ -23,4 +23,18 @@ class LocalIndicatorsDataSourceImpl @Inject constructor(
     override suspend fun saveIndicators(indicators: MarketIndicators) {
         dao.insertIndicators(indicators.toEntity())
     }
+
+    /**
+     * Retrieves the last synced timestamp. Returns null if no indicators have been saved.
+     */
+    override suspend fun getLastSyncedTimestamp(): Long? {
+        return dao.getLastSyncedTimestamp()
+    }
+
+    /**
+     * Updates the last synced timestamp in the local database.
+     */
+    override suspend fun updateLastSyncedTimestamp(timestamp: Long) {
+        dao.updateLastSyncedTimestamp(timestamp)
+    }
 }

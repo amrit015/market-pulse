@@ -12,4 +12,9 @@ interface RiskRadarRepository {
 
     fun getTailRisksStream(): Flow<MarketRiskAssessment?>
     suspend fun refreshTailRisks(force: Boolean): Result<Unit>
+
+    suspend fun getLastSyncedTimestampRisk(): Long?
+    suspend fun updateLastSyncedTimestampRisk(timestamp: Long)
+    suspend fun getLastSyncedTimestampTailRisks(): Long?
+    suspend fun updateLastSyncedTimestampTailRisks(timestamp: Long)
 }

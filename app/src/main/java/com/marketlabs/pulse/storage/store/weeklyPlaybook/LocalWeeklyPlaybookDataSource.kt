@@ -7,4 +7,6 @@ interface LocalWeeklyPlaybookDataSource {
 
     fun getLatestPlaybookStream(): Flow<WeeklyPlaybook?>
     suspend fun savePlaybook(playbook: WeeklyPlaybook)
+    suspend fun getLastSyncedTimestamp(): Long?
+    suspend fun updateLastSyncedTimestamp(timestamp: Long)
 }

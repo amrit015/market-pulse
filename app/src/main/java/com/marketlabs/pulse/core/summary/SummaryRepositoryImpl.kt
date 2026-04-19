@@ -4,9 +4,7 @@ import android.util.Log
 import com.marketlabs.pulse.network.store.summary.RemoteSummaryDataSource
 import com.marketlabs.pulse.storage.model.summary.MarketPulse
 import com.marketlabs.pulse.storage.store.summary.LocalSummaryDataSource
-import com.marketlabs.pulse.utils.CachePolicy
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.firstOrNull
 import javax.inject.Inject
 
 class SummaryRepositoryImpl @Inject constructor(
@@ -19,22 +17,9 @@ class SummaryRepositoryImpl @Inject constructor(
 
     override suspend fun refreshMarketSummary(force: Boolean): Result<Unit> {
         return try {
-            val localData = localDataSource.getLatestMarketPulse().firstOrNull()
-
-            // caching logic
-            val shouldFetch = when {
-                force -> true
-                localData?.lastSyncedTimestamp == null -> true
-                else -> CachePolicy.isHourlyExpired(localData.lastSyncedTimestamp)
-            }
-
-            if (!shouldFetch) {
-                Log.d("MarketPulse", "✅ Summary cache is fresh (Current Hourly block). Skipping network.")
-                return Result.success(Unit)
-            }
-
             Log.d("MarketPulse", "🌐 Fetching latest Market Summary from Firebase...")
 
+            // Fetch both V3 and V2.5 from the backend when a sync is triggered
             remoteDataSource.getLatestMarketPulse().onSuccess { freshV3 ->
                 localDataSource.saveMarketPulse(freshV3)
             }
@@ -48,5 +33,17 @@ class SummaryRepositoryImpl @Inject constructor(
             Log.e("MarketPulse", "Failed to fetch Market Summary", e)
             Result.failure(e)
         }
+    }
+
+    // ========================================================================
+    // SYNC MANAGER TIMESTAMPS
+    // ========================================================================
+
+    override suspend fun getLastSyncedTimestamp(): Long? {
+        return localDataSource.getLastSyncedTimestamp()
+    }
+
+    override suspend fun updateLastSyncedTimestamp(timestamp: Long) {
+        localDataSource.updateLastSyncedTimestamp(timestamp)
     }
 }

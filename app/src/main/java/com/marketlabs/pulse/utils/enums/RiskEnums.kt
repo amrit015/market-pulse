@@ -47,7 +47,7 @@ enum class RiskImpactLevel(val label: String) {
             return when {
                 normalized in listOf("EXTREME", "CRITICAL", "SEVERE") -> EXTREME
                 normalized in listOf("HIGH", "ELEVATED", "MAJOR", "SIGNIFICANT") -> HIGH
-                normalized in listOf("MEDIUM", "MODERATE", "NEUTRAL") -> MEDIUM
+                normalized in listOf("MEDIUM", "MODERATE", "NEUTRAL", "MODERATE-HIGH") -> MEDIUM
                 normalized in listOf("LOW", "MINOR", "SAFE", "MINIMAL") -> LOW
                 else -> UNKNOWN
             }

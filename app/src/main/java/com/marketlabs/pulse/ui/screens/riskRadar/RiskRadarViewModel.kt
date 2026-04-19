@@ -3,6 +3,7 @@ package com.marketlabs.pulse.ui.screens.riskRadar
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.marketlabs.pulse.core.riskRadar.RiskRadarRepository
+import com.marketlabs.pulse.core.sync.SyncManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,15 +17,13 @@ import javax.inject.Inject
 
 @HiltViewModel
 class RiskRadarViewModel @Inject constructor(
-    private val repository: RiskRadarRepository
+    private val repository: RiskRadarRepository,
+    private val syncManager: SyncManager // 💡 INJECT THE SYNC MANAGER
 ) : ViewModel() {
 
     private val _isLoading = MutableStateFlow(false)
     private val _errorMessage = MutableStateFlow<String?>(null)
 
-    /**
-     * Combines local loading/error states with both Room streams.
-     */
     val uiState: StateFlow<RiskRadarUiState> = combine(
         repository.getRiskStream(),
         repository.getTailRisksStream(),
@@ -40,14 +39,26 @@ class RiskRadarViewModel @Inject constructor(
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
+        // 💡 Prevent Empty State flash on load
         initialValue = RiskRadarUiState(isLoading = true)
     )
 
-    init {
-        refreshRisk(force = false)
+    /**
+     * Wakes up the SyncManager to monitor for backend updates.
+     */
+    fun onStart() {
+        syncManager.startListening()
     }
 
     /**
+     * Puts the listener to sleep to save battery.
+     */
+    fun onStop() {
+        syncManager.stopListening()
+    }
+
+    /**
+     * Explicit User Pull-To-Refresh.
      * Refreshes both Risk Radar and Tail Risks concurrently.
      */
     fun refreshRisk(force: Boolean = true) {
@@ -55,14 +66,11 @@ class RiskRadarViewModel @Inject constructor(
             _isLoading.update { true }
             _errorMessage.update { null }
 
-            // Use async to fetch both simultaneously without blocking each other
             val riskDeferred = async { repository.refreshRisk(force) }
             val tailRisksDeferred = async { repository.refreshTailRisks(force) }
 
-            // Await both results
             val results = listOf(riskDeferred.await(), tailRisksDeferred.await())
 
-            // If either failed, extract the error message
             val firstError = results.firstOrNull { it.isFailure }?.exceptionOrNull()
             if (firstError != null) {
                 _errorMessage.update { firstError.localizedMessage ?: "Failed to fetch risk data" }
