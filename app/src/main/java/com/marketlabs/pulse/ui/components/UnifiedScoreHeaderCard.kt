@@ -93,20 +93,11 @@ fun UnifiedScoreHeaderCard(
                         ) {
                             Row(
                                 modifier = Modifier.padding(
-                                    horizontal = dimensionResource(id = R.dimen.padding_medium),
+                                    horizontal = dimensionResource(id = R.dimen.padding_standard),
                                     vertical = dimensionResource(id = R.dimen.padding_small)
                                 ),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_engine_quant),
-                                    contentDescription = "Analysis Engine",
-                                    tint = pill.textColor,
-                                    modifier = Modifier.size(dimensionResource(R.dimen.padding_large))
-                                )
-
-                                Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_medium)))
 
                                 pill.iconRes?.let { icon ->
                                     Icon(

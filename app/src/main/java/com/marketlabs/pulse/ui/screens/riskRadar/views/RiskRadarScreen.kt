@@ -30,7 +30,7 @@ fun RiskRadarScreen(
     var selectedTabIndex by rememberSaveable { mutableIntStateOf(0) }
 
     val tabs = listOf(
-        stringResource(id = R.string.tab_risk_score),
+        stringResource(id = R.string.tab_risk_radar),
         stringResource(id = R.string.tab_tail_risks)
     )
 

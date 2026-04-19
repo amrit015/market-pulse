@@ -38,6 +38,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -48,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.dashboard.AssetOverview
 import com.marketlabs.pulse.storage.model.dashboard.MarketState
+import com.marketlabs.pulse.storage.model.weeklyPlaybook.WeeklyPlaybook
 import com.marketlabs.pulse.ui.components.bottomSheet.AssetDetailBottomSheet
 import com.marketlabs.pulse.ui.components.bottomSheet.MarketGlossaryBottomSheet
 import com.marketlabs.pulse.ui.components.widgets.PutCallHorizontalBar
@@ -63,6 +65,7 @@ import java.util.Locale
 fun DashboardScreen(
     marketState: MarketState?,
     assets: List<AssetOverview?>,
+    playbook: WeeklyPlaybook? = null,
     scaffoldPadding: PaddingValues
 ) {
     val scrollState = rememberScrollState()
@@ -70,6 +73,7 @@ fun DashboardScreen(
 
     val paddingExtraLarge = dimensionResource(id = R.dimen.padding_extra_large)
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
+    val paddingMedium = dimensionResource(id = R.dimen.padding_medium)
 
     val isEquityOpen = marketState?.isEquityOpen == true
     val isFuturesOpen = marketState?.isFuturesOpen == true
@@ -222,6 +226,13 @@ fun DashboardScreen(
                 columnNum = 3
             )
         }
+
+        HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+
+        // --- SECTION 5: Weekly Playbook ---
+        if (playbook != null && !playbook.events.isNullOrEmpty()) {
+            WeeklyPlaybookSection(playbook = playbook)
+        }
     }
 
     if (selectedAsset != null) {
@@ -231,9 +242,9 @@ fun DashboardScreen(
         )
     }
 
-    // 💡 NEW: Trigger the Glossary Bottom Sheet
+    // Trigger the Glossary Bottom Sheet
     if (selectedRegimeForGlossary != null) {
-        MarketGlossaryBottomSheet (
+        MarketGlossaryBottomSheet(
             currentRegime = selectedRegimeForGlossary,
             onDismiss = { selectedRegimeForGlossary = null }
         )
@@ -314,10 +325,12 @@ fun AssetCard(
                 baseColor = PulseStatusColors.BullishText
                 backgroundColor = PulseStatusColors.BullishBg
             }
+
             "EXTREME GREED", "GREED", "OVERBOUGHT" -> {
                 baseColor = PulseStatusColors.BearishText
                 backgroundColor = PulseStatusColors.BearishBg
             }
+
             else -> {
                 baseColor = MaterialTheme.colorScheme.onSurfaceVariant
                 backgroundColor = MaterialTheme.colorScheme.surfaceVariant
@@ -328,7 +341,8 @@ fun AssetCard(
         // Uses the daily change percentage and checks if the asset is inverted (like VIX)
         val change = asset.changePercent ?: 0.0
         val isMathematicallyPositive = change >= 0
-        val isGoodEvent = if (asset.isInverted == true) !isMathematicallyPositive else isMathematicallyPositive
+        val isGoodEvent =
+            if (asset.isInverted == true) !isMathematicallyPositive else isMathematicallyPositive
 
         if (isGoodEvent) {
             baseColor = PulseStatusColors.BullishText
@@ -430,12 +444,18 @@ fun TechnicalSummaryCard(summaryText: String?, timestamp: Long?, isEquityOpen: B
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
 
     // Market Status Colors
-    val badgeBgColor = if (isEquityOpen) PulseStatusColors.BullishBg else MaterialTheme.colorScheme.surfaceVariant
-    val badgeTextColor = if (isEquityOpen) PulseStatusColors.BullishText else MaterialTheme.colorScheme.onSurfaceVariant
+    val badgeBgColor =
+        if (isEquityOpen) PulseStatusColors.BullishBg else MaterialTheme.colorScheme.surfaceVariant
+    val badgeTextColor =
+        if (isEquityOpen) PulseStatusColors.BullishText else MaterialTheme.colorScheme.onSurfaceVariant
 
     Card(
         // Matches the unified design of the Market Outlook card
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(
+                alpha = 0.4f
+            )
+        ),
         shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
         modifier = Modifier
             .fillMaxWidth()
@@ -450,20 +470,24 @@ fun TechnicalSummaryCard(summaryText: String?, timestamp: Long?, isEquityOpen: B
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                    Row (verticalAlignment = Alignment.CenterVertically) {
+                        // Dynamically match icon to text size
+                        val textStyle =
+                            MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                        val iconSize = with(LocalDensity.current) { textStyle.fontSize.toDp() }
+
                         Icon(
-                            painter = painterResource(id = R.drawable.ic_engine_ai),
+                            painter = painterResource(id = R.drawable.ic_engine_ai_sparkles),
                             contentDescription = "Analysis Engine",
-                            tint = MaterialTheme.colorScheme.secondary
+                            tint = MaterialTheme.colorScheme.secondary,
+                            modifier = Modifier.size(iconSize)
                         )
 
                         Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
 
                         Text(
                             text = stringResource(id = R.string.dashboard_technical_briefing),
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            style = textStyle,
                             color = MaterialTheme.colorScheme.secondary
                         )
                     }
@@ -482,7 +506,10 @@ fun TechnicalSummaryCard(summaryText: String?, timestamp: Long?, isEquityOpen: B
             }
 
             Spacer(modifier = Modifier.height(paddingMedium))
-            HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), thickness = dimensionResource(id = R.dimen.border_thin))
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                thickness = dimensionResource(id = R.dimen.border_thin)
+            )
             Spacer(modifier = Modifier.height(paddingMedium))
 
             // BODY: The Summary Text
@@ -501,7 +528,10 @@ fun TechnicalSummaryCard(summaryText: String?, timestamp: Long?, isEquityOpen: B
                 shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_pill))
             ) {
                 Row(
-                    modifier = Modifier.padding(horizontal = paddingMedium, vertical = paddingSmall),
+                    modifier = Modifier.padding(
+                        horizontal = paddingMedium,
+                        vertical = paddingSmall
+                    ),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(
@@ -556,29 +586,34 @@ fun SentimentConsensusBadge(sentimentAssets: List<AssetOverview?>, onClick: (Str
             bgColor = PulseStatusColors.BearishBg
             textColor = PulseStatusColors.BearishText
         }
+
         score in 1..3 -> {
             consensusText = "HEALTHY UPTREND"
             // Normal, safe momentum.
             bgColor = PulseStatusColors.BullishBg
             textColor = PulseStatusColors.BullishText
         }
+
         score == 0 -> {
             consensusText = "SIDEWAYS RANGE"
             bgColor = MaterialTheme.colorScheme.surfaceVariant
             textColor = MaterialTheme.colorScheme.onSurfaceVariant
         }
+
         score in -2..-1 -> {
             consensusText = "DANGEROUS DOWNTREND"
             // Normal, dangerous selling pressure.
             bgColor = PulseStatusColors.BearishBg
             textColor = PulseStatusColors.BearishText
         }
+
         score in -4..-3 -> {
             consensusText = "ACCUMULATION PHASE"
             // 💡 CONTRARIAN FLIP: Deep fear. Smart money is buying. This is an OPPORTUNITY.
             bgColor = PulseStatusColors.BullishBg
             textColor = PulseStatusColors.BullishText
         }
+
         else -> {
             consensusText = "CRASH OPPORTUNITY"
             // CONTRARIAN FLIP: Absolute panic. The market is flashing a rare buying opportunity!
@@ -597,21 +632,26 @@ fun SentimentConsensusBadge(sentimentAssets: List<AssetOverview?>, onClick: (Str
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(
                 horizontal = dimensionResource(id = R.dimen.padding_medium),
-                vertical = dimensionResource(id = R.dimen.padding_small)
+                vertical = dimensionResource(id = R.dimen.padding_medium)
             )
         ) {
+
+            // Dynamically match icon to text size
+            val textStyle = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold)
+            val iconSize = with(LocalDensity.current) { textStyle.fontSize.toDp() }
+
             Icon(
                 painter = painterResource(id = R.drawable.ic_engine_quant),
                 contentDescription = "Analysis Engine",
                 tint = textColor,
-                modifier = Modifier.size(dimensionResource(R.dimen.padding_large))
+                modifier = Modifier.size(iconSize) // 💡 Used dynamic size
             )
 
             Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
 
             Text(
                 text = consensusText,
-                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                style = textStyle,
                 color = textColor
             )
 

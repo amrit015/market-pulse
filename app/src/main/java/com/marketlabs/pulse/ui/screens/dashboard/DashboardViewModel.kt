@@ -3,9 +3,9 @@ package com.marketlabs.pulse.ui.screens.dashboard
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.marketlabs.pulse.core.dashboard.DashboardRepository
-import com.marketlabs.pulse.storage.model.dashboard.AssetOverview
-import com.marketlabs.pulse.storage.model.dashboard.MarketState
+import com.marketlabs.pulse.core.weeklyPlaybook.WeeklyPlaybookRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -16,23 +16,31 @@ import javax.inject.Inject
 
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
-    private val repository: DashboardRepository
+    private val repository: DashboardRepository,
+    private val playbookRepository: WeeklyPlaybookRepository
 ) : ViewModel() {
 
     private val _isLoading = MutableStateFlow(false)
     private val _isRefreshing = MutableStateFlow(false)
     private val _errorMessage = MutableStateFlow<String?>(null)
 
+    // We group the 3 simple status flows into a Triple to stay under the 5-flow limit of 'combine'
     val uiState: StateFlow<DashboardUiState> = combine(
         repository.getMarketStateStream(),
         repository.getDashboardAssetsStream(),
-        _isLoading,
-        _isRefreshing,
-        _errorMessage
-    ) { state: MarketState?, assets: List<AssetOverview?>, loading: Boolean, refreshing: Boolean, error: String? ->
+        playbookRepository.getPlaybookStream(),
+        combine(_isLoading, _isRefreshing, _errorMessage) { loading, refreshing, error ->
+            Triple(loading, refreshing, error)
+        }
+    ) { state, assets, playbook, statusTriple ->
+
+        // Unpack the triple
+        val (loading, refreshing, error) = statusTriple
+
         DashboardUiState(
             marketState = state,
             assets = assets,
+            weeklyPlaybook = playbook,
             isLoading = loading && assets.isEmpty(),
             isRefreshing = refreshing,
             errorMessage = error
@@ -72,8 +80,12 @@ class DashboardViewModel @Inject constructor(
             _errorMessage.value = null
 
             try {
-                // The repository handles the 15-min AI caching and WebSocket connection internally
-                repository.refreshDashboard(force)
+                // 💡 NEW: Fetch both concurrently so the dashboard loads faster
+                val dashboardDeferred = async { repository.refreshDashboard(force) }
+                val playbookDeferred = async { playbookRepository.refreshPlaybook(force) }
+
+                dashboardDeferred.await()
+                playbookDeferred.await()
             } catch (e: Exception) {
                 _errorMessage.value = e.localizedMessage ?: "Failed to load dashboard"
             } finally {

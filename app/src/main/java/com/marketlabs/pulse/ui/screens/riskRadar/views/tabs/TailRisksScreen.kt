@@ -57,7 +57,7 @@ fun TailRisksScreen(
     if (data == null || data.risks.isNullOrEmpty()) {
         Box(
             modifier = Modifier.fillMaxSize(),
-            contentAlignment = androidx.compose.ui.Alignment.Center
+            contentAlignment = Alignment.Center
         ) {
             Text(
                 text = stringResource(id = R.string.no_tail_risks_available),
@@ -91,7 +91,7 @@ fun TailRisksScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.ic_engine_ai),
+                        painter = painterResource(id = R.drawable.ic_engine_ai_sparkles),
                         contentDescription = "Analysis Engine",
                         tint = MaterialTheme.colorScheme.onBackground,
                         // 3. Apply the calculated size here

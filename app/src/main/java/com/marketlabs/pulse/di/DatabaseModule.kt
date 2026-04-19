@@ -8,6 +8,7 @@ import com.marketlabs.pulse.storage.database.dao.IndicatorsDao
 import com.marketlabs.pulse.storage.database.dao.NewsDao
 import com.marketlabs.pulse.storage.database.dao.RiskRadarDao
 import com.marketlabs.pulse.storage.database.dao.SummaryDao
+import com.marketlabs.pulse.storage.database.dao.WeeklyPlaybookDao
 import com.marketlabs.pulse.storage.database.migrations.DatabaseMigrations
 import com.marketlabs.pulse.utils.Constants
 import dagger.Module
@@ -60,5 +61,11 @@ object DatabaseModule {
     @Singleton
     fun provideDashboardDao(database: AppDatabase): DashboardDao {
         return database.dashboardDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideWeeklyPlaybookDao(database: AppDatabase): WeeklyPlaybookDao {
+        return database.weeklyPlaybookDao()
     }
 }
