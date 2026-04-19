@@ -36,10 +36,12 @@ class RemoteDashboardDataSourceImpl @Inject constructor(
                                 val state = doc.toObject(NetworkMarketState::class.java)
                                 state?.let { marketStateEntity = it.toEntity() }
                             }
-                            // 💡 NEW: Intercept the standalone summary document
                             "technical_summary" -> {
                                 tempSummary = doc.getString("summary")
                                 tempSummaryTimestamp = doc.getLong("timestamp")
+                            }
+                            "config" -> {
+                                // 💡 FIX: Explicitly ignore the config document!
                             }
                             else -> {
                                 val asset = doc.toObject(NetworkAssetOverview::class.java)

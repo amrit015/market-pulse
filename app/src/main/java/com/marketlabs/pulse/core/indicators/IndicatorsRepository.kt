@@ -8,4 +8,7 @@ interface IndicatorsRepository {
     fun getIndicatorsStream(): Flow<MarketIndicators?>
 
     suspend fun refreshIndicators(force: Boolean): Result<Unit>
+
+    suspend fun getLastSyncedTimestamp(): Long?
+    suspend fun updateLastSyncedTimestamp(timestamp: Long)
 }

@@ -12,4 +12,8 @@ interface LocalRiskRadarDataSource {
     fun getLatestCachedTailRisks(): Flow<MarketRiskAssessment?>
     fun getTailRisksByDate(dateString: String): Flow<MarketRiskAssessment?>
     suspend fun saveTailRisks(assessment: MarketRiskAssessment)
+    suspend fun getLastSyncedTimestampRisk(): Long?
+    suspend fun updateLastSyncedTimestampRisk(timestamp: Long)
+    suspend fun getLastSyncedTimestampTailRisks(): Long?
+    suspend fun updateLastSyncedTimestampTailRisks(timestamp: Long)
 }

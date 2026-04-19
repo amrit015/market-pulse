@@ -14,4 +14,16 @@ interface WeeklyPlaybookDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPlaybook(playbook: WeeklyPlaybookEntity)
+
+    /**
+     * Fetches only the timestamp to avoid loading the entire playbook object into memory.
+     */
+    @Query("SELECT lastSyncedTimestamp FROM weekly_playbook WHERE id = 'latest'")
+    suspend fun getLastSyncedTimestamp(): Long?
+
+    /**
+     * Updates only the timestamp without overwriting the existing playbook events.
+     */
+    @Query("UPDATE weekly_playbook SET lastSyncedTimestamp = :timestamp WHERE id = 'latest'")
+    suspend fun updateLastSyncedTimestamp(timestamp: Long)
 }

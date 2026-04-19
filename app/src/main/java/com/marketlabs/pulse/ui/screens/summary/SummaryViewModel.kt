@@ -3,6 +3,7 @@ package com.marketlabs.pulse.ui.screens.summary
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.marketlabs.pulse.core.summary.SummaryRepository
+import com.marketlabs.pulse.core.sync.SyncManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,10 +18,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SummaryViewModel @Inject constructor(
-    private val repository: SummaryRepository
+    private val repository: SummaryRepository,
+    private val syncManager: SyncManager // 💡 INJECT THE SYNC MANAGER
 ) : ViewModel() {
 
-    // 👇 COMBINE BOTH STREAMS INTO ONE STATE
+    // COMBINE BOTH STREAMS INTO ONE STATE
     val summaryUiState: StateFlow<SummaryUiState> = combine(
         repository.getMarketPulseStream(),
         repository.getDailyPulseStream()
@@ -43,11 +45,24 @@ class SummaryViewModel @Inject constructor(
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing = _isRefreshing.asStateFlow()
 
-    init {
-        refreshData(force = false)
+    /**
+     * Wakes up the global listener when the Summary tab is visible.
+     */
+    fun onStart() {
+        syncManager.startListening()
     }
 
-    fun refreshData(force: Boolean = false) = viewModelScope.launch {
+    /**
+     * Puts the listener to sleep when the app is backgrounded.
+     */
+    fun onStop() {
+        syncManager.stopListening()
+    }
+
+    /**
+     * Retained for manual Pull-To-Refresh.
+     */
+    fun refreshData(force: Boolean = true) = viewModelScope.launch {
         _isRefreshing.value = true
         val result = repository.refreshMarketSummary(force)
         result.onFailure { error ->

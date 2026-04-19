@@ -3,6 +3,7 @@ package com.marketlabs.pulse.ui.screens.indicators
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.marketlabs.pulse.core.indicators.IndicatorsRepository
+import com.marketlabs.pulse.core.sync.SyncManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -14,7 +15,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class IndicatorsViewModel @Inject constructor(
-    private val repository: IndicatorsRepository
+    private val repository: IndicatorsRepository,
+    private val syncManager: SyncManager
 ) : ViewModel() {
 
     private val _isLoading = MutableStateFlow(false)
@@ -40,9 +42,20 @@ class IndicatorsViewModel @Inject constructor(
         initialValue = IndicatorsUiState(isLoading = true)
     )
 
-    init {
-        // Automatically check if we need to fetch new data when the ViewModel spins up
-        fetchIndicators(force = false)
+    /**
+     * Called by the UI when the screen becomes visible.
+     * Wakes up the global listener to catch any background updates.
+     */
+    fun onStart() {
+        syncManager.startListening()
+    }
+
+    /**
+     * Called by the UI when the app goes to the background.
+     * Puts the listener to sleep to save battery.
+     */
+    fun onStop() {
+        syncManager.stopListening()
     }
 
     /**

@@ -3,6 +3,7 @@ package com.marketlabs.pulse.ui.screens.news
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.marketlabs.pulse.core.news.NewsRepository
+import com.marketlabs.pulse.core.sync.SyncManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -15,7 +16,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class NewsViewModel @Inject constructor(
-    private val repository: NewsRepository
+    private val repository: NewsRepository,
+    private val syncManager: SyncManager
 ) : ViewModel() {
 
     private val _isLoading = MutableStateFlow(false)
@@ -39,8 +41,18 @@ class NewsViewModel @Inject constructor(
         initialValue = NewsUiState(isLoading = true)
     )
 
-    init {
-        refreshNews(force = false)
+    /**
+     * Called by the UI when the screen becomes visible.
+     */
+    fun onStart() {
+        syncManager.startListening()
+    }
+
+    /**
+     * Called by the UI when the app goes to the background.
+     */
+    fun onStop() {
+        syncManager.stopListening()
     }
 
     fun refreshNews(force: Boolean = true) {

@@ -7,4 +7,6 @@ interface WeeklyPlaybookRepository {
 
     fun getPlaybookStream(): Flow<WeeklyPlaybook?>
     suspend fun refreshPlaybook(force: Boolean): Result<Unit>
+    suspend fun getLastSyncedTimestamp(): Long?
+    suspend fun updateLastSyncedTimestamp(timestamp: Long)
 }

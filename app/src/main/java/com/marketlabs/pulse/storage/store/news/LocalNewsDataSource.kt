@@ -8,4 +8,6 @@ interface LocalNewsDataSource {
     fun getLatestNews(): Flow<MarketNews?>
     suspend fun saveNews(news: MarketNews)
     suspend fun clearNews()
+    suspend fun getLastSyncedTimestamp(): Long?
+    suspend fun updateLastSyncedTimestamp(timestamp: Long)
 }

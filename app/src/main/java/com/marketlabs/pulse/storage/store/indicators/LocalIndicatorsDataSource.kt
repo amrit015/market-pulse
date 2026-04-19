@@ -10,4 +10,7 @@ interface LocalIndicatorsDataSource {
     fun getIndicatorsByDate(dateString: String): Flow<MarketIndicators?>
 
     suspend fun saveIndicators(indicators: MarketIndicators)
+
+    suspend fun getLastSyncedTimestamp(): Long?
+    suspend fun updateLastSyncedTimestamp(timestamp: Long)
 }

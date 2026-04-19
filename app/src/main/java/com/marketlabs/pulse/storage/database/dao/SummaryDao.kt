@@ -31,4 +31,20 @@ interface SummaryDao {
 
     @Query("DELETE FROM daily_pulse")
     suspend fun clearDailyPulse()
+
+    // ========================================================================
+    // SYNC MANAGER TIMESTAMP QUERIES
+    // ========================================================================
+
+    /**
+     * Fetches only the timestamp to avoid loading the heavy AI JSON into memory.
+     */
+    @Query("SELECT lastSyncedTimestamp FROM market_pulse ORDER BY lastUpdated DESC LIMIT 1")
+    suspend fun getLastSyncedTimestamp(): Long?
+
+    /**
+     * Updates only the timestamp without overwriting the existing summary text.
+     */
+    @Query("UPDATE market_pulse SET lastSyncedTimestamp = :timestamp WHERE dateId = (SELECT dateId FROM market_pulse ORDER BY lastUpdated DESC LIMIT 1)")
+    suspend fun updateLastSyncedTimestamp(timestamp: Long)
 }

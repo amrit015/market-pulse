@@ -7,4 +7,7 @@ interface NewsRepository {
 
     fun getNewsStream(): Flow<MarketNews?>
     suspend fun refreshNews(force: Boolean = false): Result<Unit>
+
+    suspend fun getLastSyncedTimestamp(): Long?
+    suspend fun updateLastSyncedTimestamp(timestamp: Long)
 }

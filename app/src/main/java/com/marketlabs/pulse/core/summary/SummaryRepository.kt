@@ -11,4 +11,7 @@ interface SummaryRepository {
     // 2. Active Command: Fetches from API and updates DB
     // Returns Result so ViewModel can show errors (like "No Internet")
     suspend fun refreshMarketSummary(force: Boolean): Result<Unit>
+
+    suspend fun getLastSyncedTimestamp(): Long?
+    suspend fun updateLastSyncedTimestamp(timestamp: Long)
 }
