@@ -204,6 +204,13 @@
     <string name="section_weekly_playbook">The Weekly Playbook</string>
     <string name="label_estimate">Estimate</string>
     <string name="label_previous">Previous</string>
+    <string name="label_actual">Actual</string>
     <string name="unknown_event">Economic Event</string>
+
+    <string name="label_market_context">Market Context</string>
+    <string name="label_post_release_impact">Post-Release Impact</string>
+    <string name="preview_event_name">Core CPI m/m</string>
+    <string name="preview_event_context">This inflation print is critical to confirm the Fed\'s rate cut trajectory.</string>
+    <string name="preview_event_impact">CPI came in hotter than expected, threatening the current HEALTHY UPTREND by forcing bond yields higher.</string>
 
 </resources>
