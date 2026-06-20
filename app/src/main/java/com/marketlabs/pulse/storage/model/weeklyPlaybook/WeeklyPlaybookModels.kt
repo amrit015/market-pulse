@@ -16,7 +16,9 @@ data class WeeklyPlaybook(
 data class WeeklyEvent(
     val eventName: String? = null,
     val date: String? = null,
+    val actual: String? = null,
     val estimate: String? = null,
     val previous: String? = null,
-    val marketContext: String? = null
+    val marketContext: String? = null,
+    val postReleaseImpact: String? = null
 )

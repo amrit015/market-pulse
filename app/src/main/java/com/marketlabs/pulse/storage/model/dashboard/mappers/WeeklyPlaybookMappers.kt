@@ -20,9 +20,11 @@ private fun NetworkWeeklyEvent.toDomain(): WeeklyEvent {
     return WeeklyEvent(
         eventName = this.eventName,
         date = this.date,
+        actual = this.actual,
         estimate = this.estimate,
         previous = this.previous,
-        marketContext = this.marketContext
+        marketContext = this.marketContext,
+        postReleaseImpact = this.postReleaseImpact
     )
 }
 

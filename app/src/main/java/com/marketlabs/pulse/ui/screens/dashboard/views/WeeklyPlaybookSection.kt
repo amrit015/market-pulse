@@ -1,5 +1,9 @@
 package com.marketlabs.pulse.ui.screens.dashboard.views
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,6 +19,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -25,9 +30,12 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.weeklyPlaybook.WeeklyEvent
 import com.marketlabs.pulse.storage.model.weeklyPlaybook.WeeklyPlaybook
+import com.marketlabs.pulse.ui.theme.PulseStatusColors
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -101,15 +109,23 @@ fun WeeklyEventCard(event: WeeklyEvent) {
 
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
 
-            // 2. Data Row (Estimate & Previous horizontally)
+            // 2. Data Row (Estimate, Previous, Actual horizontally)
             val showEstimate = isValueAvailable(event.estimate)
             val showPrevious = isValueAvailable(event.previous)
+            val showActual = isValueAvailable(event.actual)
 
             if (showEstimate || showPrevious) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_large))
                 ) {
+                    if (showPrevious) {
+                        EventDataColumn(
+                            label = stringResource(id = R.string.label_previous),
+                            value = event.previous!!
+                        )
+                    }
+
                     if (showEstimate) {
                         EventDataColumn(
                             label = stringResource(id = R.string.label_estimate),
@@ -117,10 +133,11 @@ fun WeeklyEventCard(event: WeeklyEvent) {
                         )
                     }
 
-                    if (showPrevious) {
+                    if (showActual) {
                         EventDataColumn(
-                            label = stringResource(id = R.string.label_previous),
-                            value = event.previous!!
+                            label = stringResource(id = R.string.label_actual),
+                            value = event.actual!!,
+                            isActual = true
                         )
                     }
                 }
@@ -133,28 +150,73 @@ fun WeeklyEventCard(event: WeeklyEvent) {
             )
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
 
-            // 3. Market Context
-            Text(
-                text = event.marketContext ?: "",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+            // 3. Market Context (The Setup)
+            if (isValueAvailable(event.marketContext)) {
+                Text(
+                    text = stringResource(id = R.string.label_market_context).uppercase(),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
+                Text(
+                    text = event.marketContext ?: "",
+                    style = MaterialTheme.typography.bodyMedium,
+                    // Slightly mute the context if the actual event has already resolved
+                    color = if (showActual) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
+                )
+            }
+
+            // 4. Post-Release Impact (The Verdict - Slides in when available)
+            val showImpact = isValueAvailable(event.postReleaseImpact)
+
+            AnimatedVisibility(
+                visible = showImpact,
+                enter = fadeIn() + expandVertically()
+            ) {
+                Column(modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_medium))) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_small)),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .border(
+                                width = dimensionResource(id = R.dimen.border_thin),
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                                shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_small))
+                            )
+                    ) {
+                        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_medium))) {
+                            Text(
+                                text = stringResource(id = R.string.label_post_release_impact).uppercase(),
+                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
+                            Text(
+                                text = event.postReleaseImpact ?: "",
+                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun EventDataColumn(label: String, value: String) {
+private fun EventDataColumn(label: String, value: String, isActual: Boolean = false) {
     Column {
         Text(
             text = label.uppercase(),
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = if (isActual) PulseStatusColors.BullishText else MaterialTheme.colorScheme.onSurfaceVariant
         )
         Text(
             text = value,
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colorScheme.onSurface
+            color = if (isActual) PulseStatusColors.BullishText else MaterialTheme.colorScheme.onSurface
         )
     }
 }
@@ -197,4 +259,34 @@ private fun isValueAvailable(value: String?): Boolean {
     if (value.isNullOrBlank()) return false
     val normalized = value.trim().lowercase(Locale.getDefault())
     return normalized !in listOf("n/a", "--", "null", "none", "unknown", "")
+}
+
+// ============================================================================
+// 🎨 PREVIEWS
+// ============================================================================
+
+@Preview(showBackground = true, backgroundColor = 0xFF121212)
+@Composable
+fun PreviewWeeklyPlaybookSection() {
+    MaterialTheme {
+        // Mocking an event that has resolved with mid-week actuals and impact
+        val mockEvent = WeeklyEvent(
+            eventName = stringResource(id = R.string.preview_event_name),
+            date = "2026-06-12",
+            estimate = "0.3%",
+            previous = "0.2%",
+            actual = "0.4%",
+            marketContext = stringResource(id = R.string.preview_event_context),
+            postReleaseImpact = stringResource(id = R.string.preview_event_impact)
+        )
+
+        val mockPlaybook = WeeklyPlaybook(
+            weekStarting = "2026-06-08",
+            events = listOf(mockEvent)
+        )
+
+        Column(modifier = Modifier.padding(16.dp)) {
+            WeeklyPlaybookSection(playbook = mockPlaybook)
+        }
+    }
 }

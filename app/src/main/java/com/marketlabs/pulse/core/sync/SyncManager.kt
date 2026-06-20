@@ -42,12 +42,17 @@ class SyncManager @Inject constructor(
                         // 1. PLAYBOOK SYNC
                         // ==========================================
                         val newPlaybookTime = snapshot.getLong("weekly_playbook_updated") ?: 0L
+                        // Check for the mid-week AI actuals update
+                        val newPlaybookActualsTime = snapshot.getLong("weekly_playbook_actuals_updated") ?: 0L
+
+                        // Take the latest of either the Sunday generation or Mid-Week update
+                        val maxPlaybookTime = maxOf(newPlaybookTime, newPlaybookActualsTime)
                         val localPlaybookTime = playbookRepository.getLastSyncedTimestamp() ?: 0L
 
-                        if (newPlaybookTime > localPlaybookTime) {
-                            Log.d("SyncManager", "New Playbook detected! Fetching...")
+                        if (maxPlaybookTime > localPlaybookTime) {
+                            Log.d("SyncManager", "New Playbook (or Actuals) detected! Fetching...")
                             playbookRepository.refreshPlaybook(force = true)
-                            playbookRepository.updateLastSyncedTimestamp(newPlaybookTime)
+                            playbookRepository.updateLastSyncedTimestamp(maxPlaybookTime)
                         }
 
                         // ==========================================
