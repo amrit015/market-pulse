@@ -1,0 +1,497 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 10,
+    "identityHash": "f4eba508623a46d635fe66a842571468",
+    "entities": [
+      {
+        "tableName": "market_pulse",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`dateId` TEXT NOT NULL, `lastSyncedTimestamp` INTEGER NOT NULL, `lastUpdated` INTEGER NOT NULL, `reportType` TEXT NOT NULL, `verdict` TEXT, `leadStories` TEXT, `macroMix` TEXT, `dominoEffect` TEXT, `marketOutlook` TEXT, PRIMARY KEY(`dateId`))",
+        "fields": [
+          {
+            "fieldPath": "dateId",
+            "columnName": "dateId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastSyncedTimestamp",
+            "columnName": "lastSyncedTimestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastUpdated",
+            "columnName": "lastUpdated",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reportType",
+            "columnName": "reportType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "verdict",
+            "columnName": "verdict",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "leadStories",
+            "columnName": "leadStories",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "macroMix",
+            "columnName": "macroMix",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "dominoEffect",
+            "columnName": "dominoEffect",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "marketOutlook",
+            "columnName": "marketOutlook",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "dateId"
+          ]
+        }
+      },
+      {
+        "tableName": "daily_pulse",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`dateId` TEXT NOT NULL, `lastSyncedTimestamp` INTEGER NOT NULL, `lastUpdated` INTEGER NOT NULL, `reportType` TEXT NOT NULL, `verdict` TEXT, `leadStories` TEXT, `macroMix` TEXT, `dominoEffect` TEXT, `marketOutlook` TEXT, PRIMARY KEY(`dateId`))",
+        "fields": [
+          {
+            "fieldPath": "dateId",
+            "columnName": "dateId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastSyncedTimestamp",
+            "columnName": "lastSyncedTimestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastUpdated",
+            "columnName": "lastUpdated",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reportType",
+            "columnName": "reportType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "verdict",
+            "columnName": "verdict",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "leadStories",
+            "columnName": "leadStories",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "macroMix",
+            "columnName": "macroMix",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "dominoEffect",
+            "columnName": "dominoEffect",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "marketOutlook",
+            "columnName": "marketOutlook",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "dateId"
+          ]
+        }
+      },
+      {
+        "tableName": "market_news",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `lastSyncedTimestamp` INTEGER NOT NULL, `lastUpdated` INTEGER NOT NULL, `sourceCount` INTEGER, `stories` TEXT, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastSyncedTimestamp",
+            "columnName": "lastSyncedTimestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastUpdated",
+            "columnName": "lastUpdated",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceCount",
+            "columnName": "sourceCount",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "stories",
+            "columnName": "stories",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "market_risk",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`date` TEXT NOT NULL, `lastSyncedTimestamp` INTEGER NOT NULL, `lastUpdated` INTEGER NOT NULL, `score` INTEGER, `previousScore` INTEGER, `trend` TEXT, `status` TEXT, `gauges` TEXT, PRIMARY KEY(`date`))",
+        "fields": [
+          {
+            "fieldPath": "date",
+            "columnName": "date",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastSyncedTimestamp",
+            "columnName": "lastSyncedTimestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastUpdated",
+            "columnName": "lastUpdated",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "score",
+            "columnName": "score",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "previousScore",
+            "columnName": "previousScore",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "trend",
+            "columnName": "trend",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "gauges",
+            "columnName": "gauges",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "date"
+          ]
+        }
+      },
+      {
+        "tableName": "market_indicators",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`dateId` TEXT NOT NULL, `lastSyncedTimestamp` INTEGER NOT NULL, `aiSynthesis` TEXT, `tacticalMomentum` TEXT, `systemicRisk` TEXT, `valuation` TEXT, `macroVitals` TEXT, PRIMARY KEY(`dateId`))",
+        "fields": [
+          {
+            "fieldPath": "dateId",
+            "columnName": "dateId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastSyncedTimestamp",
+            "columnName": "lastSyncedTimestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "aiSynthesis",
+            "columnName": "aiSynthesis",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "tacticalMomentum",
+            "columnName": "tacticalMomentum",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "systemicRisk",
+            "columnName": "systemicRisk",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "valuation",
+            "columnName": "valuation",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "macroVitals",
+            "columnName": "macroVitals",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "dateId"
+          ]
+        }
+      },
+      {
+        "tableName": "market_state",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `isEquityOpen` INTEGER, `isFuturesOpen` INTEGER, `technicalSummary` TEXT, `technicalSummaryTimestamp` INTEGER, `lastUpdated` INTEGER, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isEquityOpen",
+            "columnName": "isEquityOpen",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "isFuturesOpen",
+            "columnName": "isFuturesOpen",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "technicalSummary",
+            "columnName": "technicalSummary",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "technicalSummaryTimestamp",
+            "columnName": "technicalSummaryTimestamp",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "lastUpdated",
+            "columnName": "lastUpdated",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "dashboard_assets",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`symbol` TEXT NOT NULL, `name` TEXT, `type` TEXT, `description` TEXT, `isInverted` INTEGER, `price` REAL, `previousClose` REAL, `changePercent` REAL, `rsi` REAL, `rsiStatus` TEXT, `macdSignal` TEXT, `technicalStatus` TEXT, `lastUpdated` INTEGER, `sma20` REAL, `sma50` REAL, `sma200` REAL, PRIMARY KEY(`symbol`))",
+        "fields": [
+          {
+            "fieldPath": "symbol",
+            "columnName": "symbol",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "description",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "isInverted",
+            "columnName": "isInverted",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "price",
+            "columnName": "price",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "previousClose",
+            "columnName": "previousClose",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "changePercent",
+            "columnName": "changePercent",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "rsi",
+            "columnName": "rsi",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "rsiStatus",
+            "columnName": "rsiStatus",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "macdSignal",
+            "columnName": "macdSignal",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "technicalStatus",
+            "columnName": "technicalStatus",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "lastUpdated",
+            "columnName": "lastUpdated",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "sma20",
+            "columnName": "sma20",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "sma50",
+            "columnName": "sma50",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "sma200",
+            "columnName": "sma200",
+            "affinity": "REAL"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "symbol"
+          ]
+        }
+      },
+      {
+        "tableName": "market_tail_risks",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`date` TEXT NOT NULL, `lastSyncedTimestamp` INTEGER NOT NULL, `lastUpdated` INTEGER, `summary` TEXT, `risks` TEXT, `sourceNarrative` TEXT, PRIMARY KEY(`date`))",
+        "fields": [
+          {
+            "fieldPath": "date",
+            "columnName": "date",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastSyncedTimestamp",
+            "columnName": "lastSyncedTimestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastUpdated",
+            "columnName": "lastUpdated",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "summary",
+            "columnName": "summary",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "risks",
+            "columnName": "risks",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "sourceNarrative",
+            "columnName": "sourceNarrative",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "date"
+          ]
+        }
+      },
+      {
+        "tableName": "weekly_playbook",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `lastUpdated` INTEGER, `lastSyncedTimestamp` INTEGER, `weekStarting` TEXT, `events` TEXT, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastUpdated",
+            "columnName": "lastUpdated",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "lastSyncedTimestamp",
+            "columnName": "lastSyncedTimestamp",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "weekStarting",
+            "columnName": "weekStarting",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "events",
+            "columnName": "events",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'f4eba508623a46d635fe66a842571468')"
+    ]
+  }
+}

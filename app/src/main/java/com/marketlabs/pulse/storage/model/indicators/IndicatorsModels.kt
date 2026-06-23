@@ -1,9 +1,6 @@
 package com.marketlabs.pulse.storage.model.indicators
 
-import com.marketlabs.pulse.utils.enums.ActionSignal
 import com.marketlabs.pulse.utils.enums.SignalColor
-import com.marketlabs.pulse.utils.enums.TechnicalSetup
-import com.marketlabs.pulse.utils.enums.TradingCall
 
 // ============================================================================
 // THE MASTER DOMAIN OBJECT
@@ -12,86 +9,66 @@ data class MarketIndicators(
     val dateId: String,
     val lastSyncedTimestamp: Long,
 
-    val marketPhase: DomainMarketPhase?,
-    val macroVitals: DomainMacroVitals?,
-    val marketAction: DomainMarketAction?
+    val aiSynthesis: DomainAiSynthesis?,
+    val tacticalMomentum: DomainIndicatorPillar?,
+    val systemicRisk: DomainIndicatorPillar?,
+    val valuation: DomainIndicatorPillar?,
+    val macroVitals: DomainIndicatorPillar?
 )
 
-// ============================================================================
-// 🚦 PILLAR 1: MARKET PHASE
-// ============================================================================
-data class PhaseDetails(
-    val overallSignal: String?, 
-    val summary: String?,
-    val indicators: List<IndicatorItem>
-)
-
-data class IndicatorItem(
-    val name: String,
-    val value: String?,
-    val changePercent: String?,
-    val signal: String?, 
-    val signalColor: SignalColor,
-    val description: String
-)
-
-data class DomainMarketPhase(
+// ==========================================
+// 🧠 AI SYNTHESIS PILLAR
+// ==========================================
+data class DomainAiSynthesis(
     val timestamp: Long,
-    val marketRegime: String?,
-    val technicalSetup: TechnicalSetup?,
-    val verdictScore: Int?,
-    val previousScore: Int?,
-    val tradingCall: TradingCall?,
-    val verdictAction: String?,
-    val verdictFormula: String?,
-    val trendDetails: PhaseDetails?,
-    val healthDetails: PhaseDetails?,
-    val riskDetails: PhaseDetails?,
-    val valuationDetails: PhaseDetails?
+    val overarchingCondition: String,
+    val whatChanged: String,
+    val pillarGlances: DomainPillarGlances?, // 💡 NEW
+    val shortTerm: DomainHorizon?,
+    val mediumTerm: DomainHorizon?,
+    val longTerm: DomainHorizon?
 )
 
-// ============================================================================
-// 🏥 PILLAR 2: MACRO VITALS
-// ============================================================================
-data class DomainMacroVitals(
+data class DomainPillarGlances( // 💡 NEW
+    val tactical: String,
+    val systemicRisk: String,
+    val valuation: String,
+    val macro: String
+)
+
+data class DomainHorizon(
+    val briefing: String,
+    val riskLevel: String,
+    val keyDriver: String,
+    val whatToDo: String
+)
+
+// ==========================================
+// 📊 UNIFIED QUANTITATIVE PILLAR
+// ==========================================
+data class DomainIndicatorPillar(
     val timestamp: Long,
-    val inflation: List<VitalItem>,
-    val labor: List<VitalItem>,
-    val growth: List<VitalItem>,
-    val policy: List<VitalItem>
+    val masterGauge: DomainMasterGauge?,
+    val metrics: List<DomainUnifiedMetric>
 )
 
-data class VitalItem(
-    val id: String,
-    val name: String,
-    val displayValue: String?,
-    val changeString: String?,
-    val signalColor: SignalColor,
-    val observationDate: String?,
-    val releasedDate: String?
-)
-
-// ============================================================================
-// 🎯 PILLAR 3: MARKET ACTION
-// ============================================================================
-data class DomainMarketAction(
-    val timestamp: Long,
-    val actionScore: Int?,
+data class DomainMasterGauge(
+    val score: Int?,
     val previousScore: Int?,
     val scoreChange: Int?,
-    val signal: ActionSignal, 
-    val colorString: SignalColor, 
-    val description: String?,
-
-    val fearAndGreed: ActionMetric,
-    val putCallRatio: ActionMetric,
-    val sp500Rsi: ActionMetric,
-    val smaExtension: ActionMetric
+    val signalText: String?,
+    val signalColor: SignalColor,
+    val trendChangeLabel: String?
 )
 
-data class ActionMetric(
-    val value: String?,
-    val change: String?,
-    val signal: String?,
+data class DomainUnifiedMetric(
+    val id: String,
+    val name: String,
+    val category: String,
+    val valueRaw: Double?,
+    val valueDisplay: String?,
+    val changeRaw: Double?,
+    val changeDisplay: String?,
+    val signalText: String?,
     val signalColor: SignalColor
 )
