@@ -65,6 +65,7 @@ import com.marketlabs.pulse.storage.model.indicators.MarketIndicators
 import com.marketlabs.pulse.ui.components.UniversalMetricCard
 import com.marketlabs.pulse.ui.components.bottomSheet.FrameworkSheet
 import com.marketlabs.pulse.ui.components.bottomSheet.IndicatorDetailSheet
+import com.marketlabs.pulse.utils.enums.SubcategoryEnums
 import com.marketlabs.pulse.utils.glossary.DictionaryItem
 import com.marketlabs.pulse.utils.glossary.IndicatorsDictionary
 import java.text.SimpleDateFormat
@@ -79,7 +80,6 @@ fun IndicatorsScreen(
     data: MarketIndicators,
     scaffoldPadding: PaddingValues
 ) {
-    // Toggles between the Main Feed and the Horizon Details
     var showHorizons by remember { mutableStateOf(false) }
 
     if (showHorizons) {
@@ -131,7 +131,8 @@ private fun IndicatorsMainFeed(
             PillarUIConfig(stringResource(id = R.string.pillar_valuation), it, data.aiSynthesis?.pillarGlances?.valuation)
         },
         data.macroVitals?.let {
-            PillarUIConfig(stringResource(id = R.string.pillar_macro_vitals), it, data.aiSynthesis?.pillarGlances?.macro)
+            // 💡 FLAGGED AS MACRO: This allows us to conditionally render the release dates
+            PillarUIConfig(stringResource(id = R.string.pillar_macro_vitals), it, data.aiSynthesis?.pillarGlances?.macro, isMacro = true)
         }
     )
 
@@ -141,7 +142,6 @@ private fun IndicatorsMainFeed(
             .background(MaterialTheme.colorScheme.background)
             .padding(top = statusBarHeight)
     ) {
-        // --- SCREEN HEADER ---
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -179,7 +179,6 @@ private fun IndicatorsMainFeed(
             }
         }
 
-        // --- SCROLLING CONTENT ---
         LazyColumn(
             contentPadding = PaddingValues(
                 start = paddingLarge,
@@ -188,7 +187,6 @@ private fun IndicatorsMainFeed(
             ),
             modifier = Modifier.fillMaxSize()
         ) {
-            // 1. AI HERO BRIEFING
             item {
                 AiExecutiveBriefingHero(
                     summaryText = data.aiSynthesis?.overarchingCondition,
@@ -198,13 +196,11 @@ private fun IndicatorsMainFeed(
                 Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
             }
 
-            // 2. HORIZON NAVIGATION BUTTON
             item {
                 HorizonNavigationCard(onClick = onShowHorizons)
                 Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
             }
 
-            // 3. INDICATOR SECTIONS
             items(allPillars) { config ->
                 PillarSection(
                     config = config,
@@ -242,7 +238,6 @@ private fun AiExecutiveBriefingHero(summaryText: String?, whatChanged: String?, 
             .clickable { isExpanded = !isExpanded }
     ) {
         Column(modifier = Modifier.padding(paddingLarge)) {
-            // HEADER
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -287,7 +282,6 @@ private fun AiExecutiveBriefingHero(summaryText: String?, whatChanged: String?, 
             )
             Spacer(modifier = Modifier.height(paddingMedium))
 
-            // OVERARCHING CONDITION
             Text(
                 text = summaryText,
                 style = MaterialTheme.typography.bodyMedium,
@@ -297,7 +291,6 @@ private fun AiExecutiveBriefingHero(summaryText: String?, whatChanged: String?, 
                 lineHeight = MaterialTheme.typography.bodyMedium.lineHeight * 1.2f
             )
 
-            // LATEST SHIFT (What Changed)
             if (!whatChanged.isNullOrBlank()) {
                 Spacer(modifier = Modifier.height(paddingMedium))
                 Row(
@@ -360,7 +353,13 @@ private fun HorizonNavigationCard(onClick: () -> Unit) {
     }
 }
 
-data class PillarUIConfig(val title: String, val pillarData: DomainIndicatorPillar, val glanceText: String?)
+// 💡 Added isMacro flag to safely toggle date views
+data class PillarUIConfig(
+    val title: String,
+    val pillarData: DomainIndicatorPillar,
+    val glanceText: String?,
+    val isMacro: Boolean = false
+)
 
 @Composable
 private fun PillarSection(
@@ -371,7 +370,6 @@ private fun PillarSection(
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        // Section Header
         Text(
             text = config.title,
             style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
@@ -379,7 +377,6 @@ private fun PillarSection(
             modifier = Modifier.padding(bottom = paddingMedium)
         )
 
-        // AI Glance (if available)
         config.glanceText?.let { glance ->
             Surface(
                 color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
@@ -411,32 +408,65 @@ private fun PillarSection(
             }
         }
 
-        // 2x2 Grid using UniversalMetricCard
-        config.pillarData.metrics.chunked(2).forEach { rowMetrics ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(IntrinsicSize.Max),
-                horizontalArrangement = Arrangement.spacedBy(paddingMedium)
-            ) {
-                rowMetrics.forEach { metric ->
-                    UniversalMetricCard(
-                        title = metric.name,
-                        value = metric.valueDisplay,
-                        changeString = metric.changeDisplay,
-                        signalText = metric.signalText,
-                        signalColor = metric.signalColor,
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight(),
-                        onClick = { onIndicatorClick(IndicatorsDictionary.getDefinitionFor(metric.name)) }
-                    )
+        val groupedMetrics = config.pillarData.metrics.groupBy { it.subcategory }
+
+        groupedMetrics.forEach { (subcatEnum, metrics) ->
+
+            if (subcatEnum != null) {
+                val subcategoryText = when (subcatEnum) {
+                    SubcategoryEnums.INFLATION -> stringResource(id = R.string.subcategory_inflation)
+                    SubcategoryEnums.LABOR -> stringResource(id = R.string.subcategory_labor)
+                    SubcategoryEnums.GROWTH -> stringResource(id = R.string.subcategory_growth)
+                    SubcategoryEnums.POLICY -> stringResource(id = R.string.subcategory_policy)
+                    else -> subcatEnum.label
                 }
-                if (rowMetrics.size == 1) {
-                    Spacer(modifier = Modifier.weight(1f).fillMaxHeight())
-                }
+
+                // 💡 UPDATED: Typography changed to match native headers visually without uppercase labels
+                Text(
+                    text = subcategoryText,
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.padding_medium), top = paddingLarge)
+                )
             }
-            Spacer(modifier = Modifier.height(paddingMedium))
+
+            metrics.chunked(2).forEach { rowMetrics ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(IntrinsicSize.Max),
+                    horizontalArrangement = Arrangement.spacedBy(paddingMedium)
+                ) {
+                    rowMetrics.forEach { metric ->
+
+                        val formattedChange = metric.changeDisplay?.let { changeStr ->
+                            if (metric.changeRaw == 0.0 && !changeStr.startsWith("+") && !changeStr.startsWith("-")) {
+                                "+$changeStr"
+                            } else {
+                                changeStr
+                            }
+                        }
+
+                        UniversalMetricCard(
+                            title = metric.name,
+                            value = metric.valueDisplay,
+                            changeString = formattedChange,
+                            signalText = metric.signalText,
+                            signalColor = metric.signalColor,
+                            // 💡 HIDDEN: Evaluates macro flag to strip dates from pure technicals
+                            dateString = if (config.isMacro) metric.releaseDate else null,
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight(),
+                            onClick = { onIndicatorClick(IndicatorsDictionary.getDefinitionFor(metric.name)) }
+                        )
+                    }
+                    if (rowMetrics.size == 1) {
+                        Spacer(modifier = Modifier.weight(1f).fillMaxHeight())
+                    }
+                }
+                Spacer(modifier = Modifier.height(paddingMedium))
+            }
         }
 
         HorizontalDivider(
@@ -471,7 +501,6 @@ private fun HorizonBriefingsView(
             .background(MaterialTheme.colorScheme.background)
             .padding(top = statusBarHeight)
     ) {
-        // --- TOP APP BAR ---
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -499,7 +528,6 @@ private fun HorizonBriefingsView(
             return
         }
 
-        // --- TABS ---
         PrimaryTabRow(
             selectedTabIndex = selectedTabIndex,
             containerColor = MaterialTheme.colorScheme.background,
@@ -531,7 +559,6 @@ private fun HorizonBriefingsView(
             }
         }
 
-        // --- DYNAMIC AI HORIZON BRIEFING ---
         val currentHorizon = when (selectedTabIndex) {
             0 -> aiSynthesis.shortTerm
             1 -> aiSynthesis.mediumTerm
@@ -592,7 +619,6 @@ private fun HorizonDetailPanel(horizon: DomainHorizon, scaffoldPadding: PaddingV
             )
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_xlarge)))
 
-            // The Playbook Action Box
             Column(
                 modifier = Modifier
                     .fillMaxWidth()

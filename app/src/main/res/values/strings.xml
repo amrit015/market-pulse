@@ -228,4 +228,9 @@
     <string name="pillar_valuation">Valuation</string>
     <string name="pillar_macro_vitals">Macro Economy</string>
     <string name="score_label_generic">Score</string>
+
+    <string name="subcategory_inflation">Inflation</string>
+    <string name="subcategory_labor">Labor</string>
+    <string name="subcategory_growth">Growth</string>
+    <string name="subcategory_policy">Policy</string>
 </resources>
