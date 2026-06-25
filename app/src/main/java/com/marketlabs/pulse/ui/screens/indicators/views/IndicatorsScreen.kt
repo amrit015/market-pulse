@@ -28,7 +28,6 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -164,17 +163,6 @@ private fun IndicatorsMainFeed(
                     text = stringResource(id = R.string.indicators_screen_title),
                     style = textStyle,
                     color = MaterialTheme.colorScheme.onBackground
-                )
-            }
-
-            IconButton(
-                onClick = { showFrameworkSheet = true },
-                modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant, shape = CircleShape)
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_info),
-                    contentDescription = "Info",
-                    tint = MaterialTheme.colorScheme.primary
                 )
             }
         }

@@ -2,71 +2,10 @@
   "formatVersion": 1,
   "database": {
     "version": 10,
-    "identityHash": "292ad49ae743575873bd76197073ec47",
+    "identityHash": "db0d15ff732ba079cb3181974d58aaeb",
     "entities": [
       {
         "tableName": "market_pulse",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`dateId` TEXT NOT NULL, `lastSyncedTimestamp` INTEGER NOT NULL, `lastUpdated` INTEGER NOT NULL, `reportType` TEXT NOT NULL, `verdict` TEXT, `leadStories` TEXT, `macroMix` TEXT, `dominoEffect` TEXT, `marketOutlook` TEXT, PRIMARY KEY(`dateId`))",
-        "fields": [
-          {
-            "fieldPath": "dateId",
-            "columnName": "dateId",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "lastSyncedTimestamp",
-            "columnName": "lastSyncedTimestamp",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "lastUpdated",
-            "columnName": "lastUpdated",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "reportType",
-            "columnName": "reportType",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "verdict",
-            "columnName": "verdict",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "leadStories",
-            "columnName": "leadStories",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "macroMix",
-            "columnName": "macroMix",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "dominoEffect",
-            "columnName": "dominoEffect",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "marketOutlook",
-            "columnName": "marketOutlook",
-            "affinity": "TEXT"
-          }
-        ],
-        "primaryKey": {
-          "autoGenerate": false,
-          "columnNames": [
-            "dateId"
-          ]
-        }
-      },
-      {
-        "tableName": "daily_pulse",
         "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`dateId` TEXT NOT NULL, `lastSyncedTimestamp` INTEGER NOT NULL, `lastUpdated` INTEGER NOT NULL, `reportType` TEXT NOT NULL, `verdict` TEXT, `leadStories` TEXT, `macroMix` TEXT, `dominoEffect` TEXT, `marketOutlook` TEXT, PRIMARY KEY(`dateId`))",
         "fields": [
           {
@@ -436,7 +375,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '292ad49ae743575873bd76197073ec47')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'db0d15ff732ba079cb3181974d58aaeb')"
     ]
   }
 }

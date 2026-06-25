@@ -15,7 +15,6 @@ import com.marketlabs.pulse.storage.database.dao.NewsDao
 import com.marketlabs.pulse.storage.database.dao.SummaryDao
 import com.marketlabs.pulse.storage.database.dao.WeeklyPlaybookDao
 import com.marketlabs.pulse.storage.database.entity.AssetOverviewEntity
-import com.marketlabs.pulse.storage.database.entity.DailyPulseEntity
 import com.marketlabs.pulse.storage.database.entity.IndicatorsEntity
 import com.marketlabs.pulse.storage.database.entity.MarketPulseEntity
 import com.marketlabs.pulse.storage.database.entity.MarketRiskEntity
@@ -26,7 +25,6 @@ import com.marketlabs.pulse.storage.database.entity.WeeklyPlaybookEntity
 @Database(
     entities = [
         MarketPulseEntity::class,
-        DailyPulseEntity::class,
         NewsEntity::class,
         IndicatorsEntity::class,
         MarketStateEntity::class,
@@ -50,6 +48,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun marketRiskDao(): MarketRiskDao
     abstract fun marketIndicatorsDao(): IndicatorsDao
     abstract fun dashboardDao(): DashboardDao
-
     abstract fun weeklyPlaybookDao(): WeeklyPlaybookDao
 }
