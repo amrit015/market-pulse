@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 10,
-    "identityHash": "f4eba508623a46d635fe66a842571468",
+    "identityHash": "292ad49ae743575873bd76197073ec47",
     "entities": [
       {
         "tableName": "market_pulse",
@@ -163,61 +163,6 @@
           "autoGenerate": false,
           "columnNames": [
             "id"
-          ]
-        }
-      },
-      {
-        "tableName": "market_risk",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`date` TEXT NOT NULL, `lastSyncedTimestamp` INTEGER NOT NULL, `lastUpdated` INTEGER NOT NULL, `score` INTEGER, `previousScore` INTEGER, `trend` TEXT, `status` TEXT, `gauges` TEXT, PRIMARY KEY(`date`))",
-        "fields": [
-          {
-            "fieldPath": "date",
-            "columnName": "date",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "lastSyncedTimestamp",
-            "columnName": "lastSyncedTimestamp",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "lastUpdated",
-            "columnName": "lastUpdated",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "score",
-            "columnName": "score",
-            "affinity": "INTEGER"
-          },
-          {
-            "fieldPath": "previousScore",
-            "columnName": "previousScore",
-            "affinity": "INTEGER"
-          },
-          {
-            "fieldPath": "trend",
-            "columnName": "trend",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "status",
-            "columnName": "status",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "gauges",
-            "columnName": "gauges",
-            "affinity": "TEXT"
-          }
-        ],
-        "primaryKey": {
-          "autoGenerate": false,
-          "columnNames": [
-            "date"
           ]
         }
       },
@@ -491,7 +436,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'f4eba508623a46d635fe66a842571468')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '292ad49ae743575873bd76197073ec47')"
     ]
   }
 }

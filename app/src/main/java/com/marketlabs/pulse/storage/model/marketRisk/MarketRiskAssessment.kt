@@ -1,4 +1,4 @@
-package com.marketlabs.pulse.storage.model.riskRadar
+package com.marketlabs.pulse.storage.model.marketRisk
 
 import com.marketlabs.pulse.utils.enums.RiskImpactLevel
 

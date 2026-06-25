@@ -39,7 +39,6 @@ fun DashboardRoute(
     val pullRefreshState = rememberPullToRefreshState()
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    // 💡 MAGIC: Auto-connect WebSockets when app opens, disconnect when minimized
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_START) {
@@ -79,7 +78,6 @@ fun DashboardRoute(
                     DashboardScreen(
                         marketState = uiState.marketState,
                         assets = uiState.assets,
-                        playbook = uiState.weeklyPlaybook,
                         scaffoldPadding = scaffoldPadding
                     )
                 }

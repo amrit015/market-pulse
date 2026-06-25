@@ -1,4 +1,4 @@
-package com.marketlabs.pulse.ui.screens.riskRadar.views
+package com.marketlabs.pulse.ui.screens.insights.views
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,21 +34,19 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.marketlabs.pulse.R
-import com.marketlabs.pulse.ui.screens.riskRadar.RiskRadarViewModel
+import com.marketlabs.pulse.ui.screens.insights.InsightsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RiskRadarRoute(
+fun InsightsRoute(
     scaffoldPadding: PaddingValues,
-    viewModel: RiskRadarViewModel = hiltViewModel()
+    viewModel: InsightsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
-    // Remember the state so we can pass it to the custom indicator
     val pullRefreshState = rememberPullToRefreshState()
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    // 💡 NEW: Bind the ViewModel's SyncManager to the Android UI Lifecycle
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
@@ -58,29 +56,25 @@ fun RiskRadarRoute(
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-        }
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    // Trigger Snackbar when an error is emitted
     LaunchedEffect(uiState.errorMessage) {
         uiState.errorMessage?.let { message ->
             snackbarHostState.showSnackbar(message)
+            viewModel.clearError()
         }
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
         PullToRefreshBox(
             isRefreshing = uiState.isLoading,
-            onRefresh = { viewModel.refreshRisk(force = true) },
-            state = pullRefreshState, // Pass the state
+            onRefresh = { viewModel.refreshInsights(force = true) },
+            state = pullRefreshState,
             indicator = {
-                // Override the indicator to add top padding!
                 Indicator(
                     modifier = Modifier
                         .align(Alignment.TopCenter)
-                        // Push the spinner down below the status bar
                         .padding(top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()),
                     isRefreshing = uiState.isLoading,
                     state = pullRefreshState
@@ -88,26 +82,23 @@ fun RiskRadarRoute(
             }
         ) {
             when {
-                // Case A: Initial Load / Empty DB
-                uiState.riskRadar == null && uiState.isLoading -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
+                // Initial Load
+                uiState.weeklyPlaybook == null && uiState.tailRisks == null && uiState.isLoading -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator()
                     }
                 }
 
-                // Case B: Data Available
-                uiState.riskRadar != null -> {
-                    RiskRadarScreen(
-                        uiState = uiState, // 💡 CHANGED: Passing the full state here
+                // Data Available
+                uiState.weeklyPlaybook != null || uiState.tailRisks != null -> {
+                    InsightsScreen(
+                        uiState = uiState,
                         scaffoldPadding = scaffoldPadding
                     )
                 }
 
-                // Case C: Critical Failure (No data + Error)
-                uiState.riskRadar == null && uiState.errorMessage != null -> {
+                // Error
+                uiState.errorMessage != null -> {
                     Column(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.Center,
@@ -119,7 +110,7 @@ fun RiskRadarRoute(
                             color = MaterialTheme.colorScheme.error
                         )
                         Button(
-                            onClick = { viewModel.refreshRisk(force = true) },
+                            onClick = { viewModel.refreshInsights(force = true) },
                             modifier = Modifier.padding(top = 16.dp)
                         ) {
                             Text(stringResource(id = R.string.action_retry))

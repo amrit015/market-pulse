@@ -1,4 +1,4 @@
-package com.marketlabs.pulse.ui.screens.dashboard.views
+package com.marketlabs.pulse.ui.screens.insights.views
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -47,9 +47,8 @@ fun WeeklyPlaybookSection(playbook: WeeklyPlaybook) {
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_medium))
     ) {
-
+        // 💡 ALREADY PERFECT: Matches TailRisks exactly
         Row(verticalAlignment = Alignment.CenterVertically) {
-            // Dynamically match icon to text size
             val textStyle = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
             val iconSize = with(LocalDensity.current) { textStyle.fontSize.toDp() }
 
@@ -62,7 +61,6 @@ fun WeeklyPlaybookSection(playbook: WeeklyPlaybook) {
 
             Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
 
-            // Section Title
             Text(
                 text = stringResource(id = R.string.section_weekly_playbook),
                 style = textStyle,
@@ -87,7 +85,6 @@ fun WeeklyEventCard(event: WeeklyEvent) {
     ) {
         Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
 
-            // 1. Header (Title & Formatted Date Below)
             Text(
                 text = event.eventName ?: stringResource(id = R.string.unknown_event),
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
@@ -109,7 +106,6 @@ fun WeeklyEventCard(event: WeeklyEvent) {
 
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
 
-            // 2. Data Row (Estimate, Previous, Actual horizontally)
             val showEstimate = isValueAvailable(event.estimate)
             val showPrevious = isValueAvailable(event.previous)
             val showActual = isValueAvailable(event.actual)
@@ -150,7 +146,6 @@ fun WeeklyEventCard(event: WeeklyEvent) {
             )
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
 
-            // 3. Market Context (The Setup)
             if (isValueAvailable(event.marketContext)) {
                 Text(
                     text = stringResource(id = R.string.label_market_context).uppercase(),
@@ -161,12 +156,10 @@ fun WeeklyEventCard(event: WeeklyEvent) {
                 Text(
                     text = event.marketContext ?: "",
                     style = MaterialTheme.typography.bodyMedium,
-                    // Slightly mute the context if the actual event has already resolved
                     color = if (showActual) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
                 )
             }
 
-            // 4. Post-Release Impact (The Verdict - Slides in when available)
             val showImpact = isValueAvailable(event.postReleaseImpact)
 
             AnimatedVisibility(
@@ -221,10 +214,6 @@ private fun EventDataColumn(label: String, value: String, isActual: Boolean = fa
     }
 }
 
-/**
- * Safely parses API date formats into readable strings.
- * Falls back to returning the original string if parsing fails.
- */
 private fun formatEventDateSafe(rawDate: String): String {
     return try {
         val isIsoWithTime = rawDate.contains("T")
@@ -251,10 +240,6 @@ private fun formatEventDateSafe(rawDate: String): String {
     }
 }
 
-/**
- * Helper function to determine if a value from the LLM represents an actual number/string,
- * or if it's just a placeholder indicating missing data.
- */
 private fun isValueAvailable(value: String?): Boolean {
     if (value.isNullOrBlank()) return false
     val normalized = value.trim().lowercase(Locale.getDefault())
@@ -264,12 +249,10 @@ private fun isValueAvailable(value: String?): Boolean {
 // ============================================================================
 // 🎨 PREVIEWS
 // ============================================================================
-
 @Preview(showBackground = true, backgroundColor = 0xFF121212)
 @Composable
 fun PreviewWeeklyPlaybookSection() {
     MaterialTheme {
-        // Mocking an event that has resolved with mid-week actuals and impact
         val mockEvent = WeeklyEvent(
             eventName = stringResource(id = R.string.preview_event_name),
             date = "2026-06-12",

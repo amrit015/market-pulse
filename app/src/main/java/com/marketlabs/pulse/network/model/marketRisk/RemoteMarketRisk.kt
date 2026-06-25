@@ -1,4 +1,4 @@
-package com.marketlabs.pulse.network.model.riskRadar
+package com.marketlabs.pulse.network.model.marketRisk
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
