@@ -30,7 +30,8 @@ class IndicatorsRepositoryImpl @Inject constructor(
                 timeZone = TimeZone.getTimeZone("America/New_York")
             }.format(Date())
 
-            Log.d("MarketIndicators", "🌐 Fetching latest Three Pillars from Firebase...")
+            // 💡 Updated log to reflect the new architecture
+            Log.d("MarketIndicators", "🌐 Fetching latest Market Indicators (4 Pillars + AI) from Firebase...")
 
             remoteDataSource.getLatestIndicators(dateId = todayDateString)
                 .onSuccess { freshData ->

@@ -47,7 +47,7 @@ object DatabaseMigrations {
         }
     }
 
-    // 💡 NEW: Migration from Version 3 to Version 4 for Market Indicators (Traffic Light)
+    // Migration from Version 3 to Version 4 for Market Indicators (Traffic Light)
     val MIGRATION_3_4 = object : Migration(3, 4) {
         override fun migrate(db: SupportSQLiteDatabase) {
             db.execSQL(
@@ -66,10 +66,9 @@ object DatabaseMigrations {
         }
     }
 
-    // 💡 NEW: Migration from Version 4 to Version 5 for Dashboard
+    // Migration from Version 4 to Version 5 for Dashboard
     val MIGRATION_4_5 = object : Migration(4, 5) {
         override fun migrate(db: SupportSQLiteDatabase) {
-            // Master Market State Table
             db.execSQL(
                 """
                 CREATE TABLE IF NOT EXISTS `market_state` (
@@ -82,7 +81,6 @@ object DatabaseMigrations {
                 """.trimIndent()
             )
 
-            // Tracked Assets Table
             db.execSQL(
                 """
                 CREATE TABLE IF NOT EXISTS `dashboard_assets` (
@@ -110,10 +108,9 @@ object DatabaseMigrations {
         }
     }
 
-    // 💡 NEW: Migration from Version 5 to Version 6 (The Three Pillar Architecture)
+    // Migration from Version 5 to Version 6 (The Three Pillar Architecture)
     val MIGRATION_5_6 = object : Migration(5, 6) {
         override fun migrate(db: SupportSQLiteDatabase) {
-            // 1. Create the new table matching our updated IndicatorsEntity
             db.execSQL(
                 """
                 CREATE TABLE IF NOT EXISTS `market_indicators_new` (
@@ -126,23 +123,17 @@ object DatabaseMigrations {
                 )
                 """.trimIndent()
             )
-
-            // 2. Drop the old table (It's just a cache, so it will seamlessly re-fetch on next launch)
             db.execSQL("DROP TABLE IF EXISTS `market_indicators`")
-
-            // 3. Rename the new table to the official name
             db.execSQL("ALTER TABLE `market_indicators_new` RENAME TO `market_indicators`")
         }
     }
 
-    // 💡 NEW: Migration from Version 6 to Version 7 (Macro Dashboard Update)
+    // Migration from Version 6 to Version 7 (Macro Dashboard Update)
     val MIGRATION_6_7 = object : Migration(6, 7) {
         override fun migrate(db: SupportSQLiteDatabase) {
-            // 1. Add Summary Fields to Market State
             db.execSQL("ALTER TABLE `market_state` ADD COLUMN `technicalSummary` TEXT")
             db.execSQL("ALTER TABLE `market_state` ADD COLUMN `technicalSummaryTimestamp` INTEGER")
 
-            // 2. Safely recreate the assets table to drop the aiVerdict column
             db.execSQL(
                 """
                 CREATE TABLE IF NOT EXISTS `dashboard_assets_new` (
@@ -169,7 +160,6 @@ object DatabaseMigrations {
         }
     }
 
-    // 💡 NEW: Migration from Version 7 to Version 8 for Market Tail Risks
     // Migration from Version 7 to Version 8 for Market Tail Risks
     val MIGRATION_7_8 = object : Migration(7, 8) {
         override fun migrate(db: SupportSQLiteDatabase) {
@@ -206,5 +196,43 @@ object DatabaseMigrations {
         }
     }
 
-    val ALL_MIGRATIONS = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9)
+    // 💡 NEW: Migration from Version 9 to Version 10 for the "Four Pillars + AI" Monolithic Engine
+    val MIGRATION_9_10 = object : Migration(9, 10) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            // 1. Create the new schema supporting all 5 data pillars
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `market_indicators_new` (
+                    `dateId` TEXT NOT NULL, 
+                    `lastSyncedTimestamp` INTEGER NOT NULL, 
+                    `aiSynthesis` TEXT, 
+                    `tacticalMomentum` TEXT, 
+                    `systemicRisk` TEXT,
+                    `valuation` TEXT,
+                    `macroVitals` TEXT, 
+                    PRIMARY KEY(`dateId`)
+                )
+                """.trimIndent()
+            )
+
+            // 2. We preserve the IDs and timestamps, and transfer macroVitals which is the only surviving schema.
+            // The others (marketPhase, marketAction) are dropped and will be re-fetched automatically on next launch.
+            db.execSQL(
+                """
+                INSERT INTO `market_indicators_new` (`dateId`, `lastSyncedTimestamp`, `macroVitals`)
+                SELECT `dateId`, `lastSyncedTimestamp`, `macroVitals` FROM `market_indicators`
+                """.trimIndent()
+            )
+
+            // 3. Swap the tables
+            db.execSQL("DROP TABLE `market_indicators`")
+            db.execSQL("ALTER TABLE `market_indicators_new` RENAME TO `market_indicators`")
+        }
+    }
+
+    val ALL_MIGRATIONS = arrayOf(
+        MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5,
+        MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9,
+        MIGRATION_9_10 // Added to registry
+    )
 }

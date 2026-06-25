@@ -213,4 +213,19 @@
     <string name="preview_event_context">This inflation print is critical to confirm the Fed\'s rate cut trajectory.</string>
     <string name="preview_event_impact">CPI came in hotter than expected, threatening the current HEALTHY UPTREND by forcing bond yields higher.</string>
 
+    <string name="tab_short_term">Short-Term</string>
+    <string name="tab_medium_term">Medium-Term</string>
+    <string name="tab_long_term">Long-Term</string>
+
+    <string name="ai_executive_briefing">AI Executive Briefing</string>
+    <string name="shift_label">Latest Shift:</string>
+    <string name="outlook_label">Outlook</string>
+    <string name="driver_label">Key Driver</string>
+    <string name="playbook_title">The Playbook</string>
+
+    <string name="pillar_tactical_momentum">Tactical Momentum</string>
+    <string name="pillar_systemic_risk">Systemic Risk</string>
+    <string name="pillar_valuation">Valuation</string>
+    <string name="pillar_macro_vitals">Macro Economy</string>
+    <string name="score_label_generic">Score</string>
 </resources>

@@ -15,28 +15,34 @@ class RemoteIndicatorsDataSourceImpl @Inject constructor(
     override suspend fun getLatestIndicators(dateId: String): Result<MarketIndicators> {
         return try {
             coroutineScope {
-                // 1. Fetch the 3 new pillars concurrently
-                val phaseDef = async { api.getMarketPhase() }
+                // 1. Fetch the 5 new pillars concurrently
+                val synthesisDef = async { api.getAiSynthesis() }
+                val tacticalDef = async { api.getTacticalMomentum() }
+                val riskDef = async { api.getSystemicRisk() }
+                val valuationDef = async { api.getValuation() }
                 val vitalsDef = async { api.getMacroVitals() }
-                val actionDef = async { api.getMarketAction() }
 
-                val phaseRes = phaseDef.await()
+                val synthesisRes = synthesisDef.await()
+                val tacticalRes = tacticalDef.await()
+                val riskRes = riskDef.await()
+                val valuationRes = valuationDef.await()
                 val vitalsRes = vitalsDef.await()
-                val actionRes = actionDef.await()
 
                 // 2. Safely map them into our Master Domain Object
                 val domainModel = MarketIndicators(
                     dateId = dateId,
                     lastSyncedTimestamp = System.currentTimeMillis(),
-                    marketPhase = phaseRes.toDomain(),
-                    macroVitals = vitalsRes.toDomain(),
-                    marketAction = actionRes.toDomain()
+                    aiSynthesis = synthesisRes.toDomain(),
+                    tacticalMomentum = tacticalRes.toDomain(),
+                    systemicRisk = riskRes.toDomain(),
+                    valuation = valuationRes.toDomain(),
+                    macroVitals = vitalsRes.toDomain()
                 )
 
                 Result.success(domainModel)
             }
         } catch (e: Exception) {
-            Log.e("MarketIndicators", "Failed to fetch Three Pillar Data", e)
+            Log.e("MarketIndicators", "Failed to fetch Five Pillar Data", e)
             Result.failure(e)
         }
     }

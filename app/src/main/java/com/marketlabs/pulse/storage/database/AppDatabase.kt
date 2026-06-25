@@ -36,7 +36,7 @@ import com.marketlabs.pulse.storage.database.entity.WeeklyPlaybookEntity
         MarketRiskAssessmentEntity::class,
         WeeklyPlaybookEntity::class
     ],
-    version = 9,
+    version = 10, // 💡 Bumped to Version 10
     exportSchema = true
 )
 @TypeConverters(
@@ -54,5 +54,4 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun dashboardDao(): DashboardDao
 
     abstract fun weeklyPlaybookDao(): WeeklyPlaybookDao
-
 }
