@@ -108,6 +108,13 @@ fun InsightsScreen(
                     TailRisksSection(risksData = risksData)
                 }
             }
+
+            // --- SECTION 3: INSTITUTIONAL POSTURE (NEW) ---
+            uiState.marketPosture?.let { postureData ->
+                item {
+                    InstitutionalPostureSection(postureData = postureData)
+                }
+            }
         }
     }
 }

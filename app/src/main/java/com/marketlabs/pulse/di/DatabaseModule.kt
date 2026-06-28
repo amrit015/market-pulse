@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.marketlabs.pulse.storage.database.AppDatabase
 import com.marketlabs.pulse.storage.database.dao.DashboardDao
 import com.marketlabs.pulse.storage.database.dao.IndicatorsDao
+import com.marketlabs.pulse.storage.database.dao.MarketPostureDao
 import com.marketlabs.pulse.storage.database.dao.MarketRiskDao
 import com.marketlabs.pulse.storage.database.dao.NewsDao
 import com.marketlabs.pulse.storage.database.dao.SummaryDao
@@ -67,5 +68,10 @@ object DatabaseModule {
     @Singleton
     fun provideWeeklyPlaybookDao(database: AppDatabase): WeeklyPlaybookDao {
         return database.weeklyPlaybookDao()
+    }
+
+    @Provides
+    fun provideMarketPostureDao(database: AppDatabase): MarketPostureDao {
+        return database.marketPostureDao()
     }
 }

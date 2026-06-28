@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -38,6 +39,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
@@ -83,6 +85,10 @@ fun DashboardScreen(
     val cryptoCommoditySortOrder = listOf("BTC-USD", "ETH-USD", "GC=F", "SI=F", "CL=F", "HG=F")
     val futureSortOrder = listOf("ES=F", "YM=F", "NQ=F")
 
+    // Fallback filter ensures we safely catch sectors even if AssetType enum doesn't explicitly have SECTOR defined yet
+    val sectorSymbols =
+        listOf("XLK", "XLC", "XLY", "XLF", "XLI", "XLE", "XLV", "XLP", "XLU", "XLB", "XLRE")
+
     val futureAssets = assets
         .filter { it?.type == AssetType.FUTURE }
         .sortedBy { asset ->
@@ -103,6 +109,9 @@ fun DashboardScreen(
             val index = cryptoCommoditySortOrder.indexOf(asset?.symbol)
             if (index == -1) Int.MAX_VALUE else index
         }
+
+    val sectorAssets = assets
+        .filter { it?.type?.name == "SECTOR" || it?.symbol in sectorSymbols }
 
     var selectedAsset by remember { mutableStateOf<AssetOverview?>(null) }
     var selectedRegimeForGlossary by remember { mutableStateOf<String?>(null) }
@@ -210,13 +219,22 @@ fun DashboardScreen(
             )
         }
 
-        // --- SECTION 4: Others ---
+        // --- SECTION 3: Others - Crypto and Commodities ---
         if (otherAssets.isNotEmpty()) {
             AssetSection(
                 title = stringResource(id = R.string.dashboard_section_crypto),
                 items = otherAssets,
                 onAssetClick = { selectedAsset = it },
                 columnNum = 3
+            )
+        }
+
+        // --- SECTION 4: Sector Rotation Heatmap ---
+        if (sectorAssets.isNotEmpty()) {
+            SectorHeatmapSection(
+                title = "Sector Rotation", // Consider moving to strings.xml later!
+                items = sectorAssets,
+                onAssetClick = { selectedAsset = it }
             )
         }
     }
@@ -233,6 +251,134 @@ fun DashboardScreen(
             currentRegime = selectedRegimeForGlossary,
             onDismiss = { selectedRegimeForGlossary = null }
         )
+    }
+}
+
+@Composable
+fun SectorHeatmapSection(
+    title: String,
+    items: List<AssetOverview?>,
+    onAssetClick: (AssetOverview) -> Unit
+) {
+    val paddingMedium = dimensionResource(id = R.dimen.padding_medium)
+    val paddingSmall = dimensionResource(id = R.dimen.padding_small)
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(bottom = paddingMedium)
+        )
+
+        // 💡 Fixed Layout Grid (Muscle Memory)
+        // Grouped logically: Offensive (Row 1), Cyclical (Row 2), Defensive (Row 3), Misc (Row 4)
+        val fixedLayout = listOf(
+            listOf("XLK", "XLC", "XLY"),
+            listOf("XLF", "XLI", "XLE"),
+            listOf("XLV", "XLP", "XLU"),
+            listOf("XLB", "XLRE", null)
+        )
+
+        fixedLayout.forEach { rowSymbols ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(IntrinsicSize.Max), // This forces the row to match its tallest child
+                horizontalArrangement = Arrangement.spacedBy(paddingSmall)
+            ) {
+                rowSymbols.forEach { symbol ->
+                    if (symbol == null) {
+                        Spacer(modifier = Modifier.weight(1f))
+                    } else {
+                        val asset = items.find { it?.symbol == symbol }
+                        if (asset != null) {
+                            SectorBlock(
+                                asset = asset,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxHeight(), // 💡 CRITICAL: Forces shorter blocks to stretch to match the tallest block in the row
+                                onClick = { onAssetClick(asset) }
+                            )
+                        } else {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(paddingSmall))
+        }
+    }
+}
+
+@Composable
+fun SectorBlock(
+    asset: AssetOverview,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    val change = asset.changePercent ?: 0.0
+
+    val bgColor: Color
+    val textColor: Color
+
+    // 💡 Creates the Heatmap intensity scale
+    when {
+        change >= 1.0 -> {
+            bgColor = PulseStatusColors.BullishText.copy(alpha = 0.8f)
+            textColor = Color.White
+        }
+        change > 0.0 -> {
+            bgColor = PulseStatusColors.BullishBg
+            textColor = PulseStatusColors.BullishText
+        }
+        change <= -1.0 -> {
+            bgColor = PulseStatusColors.BearishText.copy(alpha = 0.8f)
+            textColor = Color.White
+        }
+        change < 0.0 -> {
+            bgColor = PulseStatusColors.BearishBg
+            textColor = PulseStatusColors.BearishText
+        }
+        else -> {
+            bgColor = MaterialTheme.colorScheme.surfaceVariant
+            textColor = MaterialTheme.colorScheme.onSurfaceVariant
+        }
+    }
+
+    Card(
+        colors = CardDefaults.cardColors(containerColor = bgColor),
+        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_small)),
+        modifier = modifier
+            // 💡 ADDED: A minimum height so short names (e.g. "Energy") don't look squished
+            .defaultMinSize(minHeight = 72.dp)
+            .clickable { onClick() }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(dimensionResource(id = R.dimen.padding_small)),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = asset.name ?: asset.symbol,
+                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                color = textColor,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center, // 💡 NEW: Centers multi-line text nicely
+                maxLines = 3, // 💡 NEW: Prevents extreme overflow just in case
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+
+            val sign = if (change > 0) "+" else ""
+            val formattedChange = String.format(Locale.US, "%.2f", change)
+            Text(
+                text = "$sign$formattedChange%",
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                color = textColor
+            )
+        }
     }
 }
 
@@ -297,9 +443,10 @@ fun AssetCard(
 ) {
     val isSentimentAsset = asset.symbol == "FEAR_GREED" || asset.symbol == "PUT_CALL"
 
-    val baseColor: androidx.compose.ui.graphics.Color
-    val backgroundColor: androidx.compose.ui.graphics.Color
+    val baseColor: Color
+    val backgroundColor: Color
 
+    // 💡 NEW: Contrarian Logic for Sentiment Indicators
     if (isSentimentAsset && asset.rsiStatus != null) {
         when (asset.rsiStatus.uppercase()) {
             "EXTREME FEAR", "FEAR", "OVERSOLD" -> {
@@ -318,6 +465,7 @@ fun AssetCard(
             }
         }
     } else {
+        // 💡 Standard Logic for Equities, Futures, and Crypto
         val change = asset.changePercent ?: 0.0
         val isMathematicallyPositive = change >= 0
         val isGoodEvent =
@@ -336,9 +484,11 @@ fun AssetCard(
         "FEAR_GREED" -> {
             stringResource(id = R.string.fear_greed_title)
         }
+
         "PUT_CALL" -> {
             stringResource(id = R.string.put_call_index_title)
         }
+
         else -> {
             asset.symbol.replace("=F", "")
         }
@@ -449,7 +599,7 @@ fun TechnicalSummaryCard(summaryText: String?, timestamp: Long?, isEquityOpen: B
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Row (verticalAlignment = Alignment.CenterVertically) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         val textStyle =
                             MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                         val iconSize = with(LocalDensity.current) { textStyle.fontSize.toDp() }
@@ -549,8 +699,8 @@ fun SentimentConsensusBadge(sentimentAssets: List<AssetOverview?>, onClick: (Str
     if (validAssets == 0) return
 
     val consensusText: String
-    val bgColor: androidx.compose.ui.graphics.Color
-    val textColor: androidx.compose.ui.graphics.Color
+    val bgColor: Color
+    val textColor: Color
 
     when {
         score >= 4 -> {
@@ -649,6 +799,94 @@ fun PreviewTechnicalSummaryCard() {
                 summaryText = mockSummary,
                 timestamp = System.currentTimeMillis(),
                 isEquityOpen = true
+            )
+        }
+    }
+}
+
+// ============================================================================
+// 🎨 PREVIEWS
+// ============================================================================
+
+@Preview(showBackground = true, backgroundColor = 0xFF121212)
+@Composable
+fun PreviewSectorHeatmapSection() {
+    MaterialTheme {
+        // Mocking a diverse set of sector performances to visualize the full heatmap gradient
+        val mockAssets = listOf(
+            AssetOverview(
+                symbol = "XLK",
+                name = "Technology",
+                type = AssetType.SECTOR,
+                changePercent = 1.8
+            ),    // Extreme Strength
+            AssetOverview(
+                symbol = "XLC",
+                name = "Communication",
+                type = AssetType.SECTOR,
+                changePercent = 0.5
+            ),   // Mild Strength
+            AssetOverview(
+                symbol = "XLY",
+                name = "Consumer Disc",
+                type = AssetType.SECTOR,
+                changePercent = 0.0
+            ),   // Flat
+            AssetOverview(
+                symbol = "XLF",
+                name = "Financials",
+                type = AssetType.SECTOR,
+                changePercent = -0.4
+            ),     // Mild Weakness
+            AssetOverview(
+                symbol = "XLI",
+                name = "Industrials",
+                type = AssetType.SECTOR,
+                changePercent = -1.5
+            ),    // Extreme Weakness
+            AssetOverview(
+                symbol = "XLE",
+                name = "Energy",
+                type = AssetType.SECTOR,
+                changePercent = 2.1
+            ),
+            AssetOverview(
+                symbol = "XLV",
+                name = "Healthcare",
+                type = AssetType.SECTOR,
+                changePercent = -0.1
+            ),
+            AssetOverview(
+                symbol = "XLP",
+                name = "Consumer Staples",
+                type = AssetType.SECTOR,
+                changePercent = -0.8
+            ),
+            AssetOverview(
+                symbol = "XLU",
+                name = "Utilities",
+                type = AssetType.SECTOR,
+                changePercent = -1.2
+            ),
+            AssetOverview(
+                symbol = "XLB",
+                name = "Materials",
+                type = AssetType.SECTOR,
+                changePercent = 0.2
+            ),
+            AssetOverview(
+                symbol = "XLRE",
+                name = "Real Estate",
+                type = AssetType.SECTOR,
+                changePercent = 1.1
+            )
+        )
+
+        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
+            SectorHeatmapSection(
+                title = "Sector Rotation",
+                items = mockAssets,
+                onAssetClick = {}
             )
         }
     }
