@@ -109,4 +109,5 @@ dependencies {
     implementation(libs.firebase.appcheck.playintegrity)
     // Using debugImplementation ensures this is NOT included in your release APK
     debugImplementation(libs.firebase.appcheck.debug)
+    implementation(libs.compose.markdown)
 }

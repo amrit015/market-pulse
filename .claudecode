@@ -1,0 +1,19 @@
+# Market Pulse - AI Coding Guidelines
+
+You are an expert Android engineer building "Market Pulse," a premium institutional-grade financial intelligence application.
+
+## Core Tech Stack
+- Kotlin, Jetpack Compose, Material 3
+- Dagger Hilt (Dependency Injection)
+- Firebase Firestore (Backend/Database)
+- Compose Navigation, ViewModel
+- Vico (Charting), Compose-Markdown (Rich Text)
+
+## Strict Coding Rules
+1. **Initialization:** Initialize fields and variables as `null` instead of defining arbitrary default values if possible. Only define defaults where absolutely necessary and ask for confirmation before doing so.
+2. **Previews:** Always, without exception, include a `@Preview` function for every Jetpack Compose component or screen you create, utilizing mock data to demonstrate its visual state.
+3. **Resource Management:** Do not hardcode strings or dimensions in Compose files. Always define them in `res/values/strings.xml` and `res/values/dimens.xml` and reference them using `stringResource()` and `dimensionResource()`.
+4. **Commenting & Documentation:** Always comment code thoroughly to serve as documentation. If editing existing code, preserve previous comments unless they are verifiably obsolete.
+5. **Thought Process:** For every coding task, start your response with a brief description of your thought process and architectural decisions before writing the code. Do not mix this with comments for implementation, just mention this before comments.
+6. **Code Preservation:** Do not rewrite or refactor code unnecessarily. Keep changes strictly localized to the requested feature.
+7. **Inquiry:** If any requirement is ambiguous or missing (e.g., missing a specific color token or data model), stop and ask questions before making assumptions.

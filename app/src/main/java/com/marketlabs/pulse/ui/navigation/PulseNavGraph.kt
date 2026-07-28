@@ -13,6 +13,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -29,6 +32,7 @@ import com.marketlabs.pulse.ui.screens.dashboard.views.DashboardRoute
 import com.marketlabs.pulse.ui.screens.indicators.views.IndicatorsRoute
 import com.marketlabs.pulse.ui.screens.insights.views.InsightsRoute
 import com.marketlabs.pulse.ui.screens.news.views.NewsRoute
+import com.marketlabs.pulse.ui.screens.stocks.views.StockAnalysisRoute
 import com.marketlabs.pulse.ui.screens.summary.views.MarketSummaryRoute
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -40,7 +44,13 @@ object PulseRoutes {
     const val MARKET_OVERVIEW = "market_overview"
     const val MARKET_INDICATORS = "market_indicators"
     const val MARKET_INSIGHTS = "market_insights"
+
+    // Added with Claude Code assistance: no longer a bottom-nav tab, only reachable by pushing
+    // from the Dashboard's news preview.
     const val MARKET_NEWS = "market_news"
+
+    // Added with Claude Code assistance: replaces the News tab on the bottom bar.
+    const val MARKET_ANALYSIS = "market_analysis"
 }
 
 /** * 💡 UPDATED: Added a second icon resource for the 'selected' filled state
@@ -59,19 +69,28 @@ sealed class BottomNavItem(val route: String, val label: String, val unselectedI
     internal object MarketRisk :
         BottomNavItem(PulseRoutes.MARKET_INSIGHTS, "Insights", R.drawable.ic_risk, R.drawable.ic_risk_filled)
 
-    internal object News :
-        BottomNavItem(PulseRoutes.MARKET_NEWS, "News", R.drawable.ic_news, R.drawable.ic_news_filled)
+    // Added with Claude Code assistance: replaces News on the bottom bar. No filled variant
+    // exists for this icon, so it's reused for both states — same as `Summary` above.
+    internal object Analysis :
+        BottomNavItem(PulseRoutes.MARKET_ANALYSIS, "Analysis", R.drawable.ic_engine_quant, R.drawable.ic_engine_quant)
 }
 
 @Composable
 fun PulseNavGraph() {
     val navController = rememberNavController()
+
+    // Added with Claude Code assistance: one-shot signal set right before navigating to the News
+    // tab from a Dashboard preview card, so NewsRoute knows which card to scroll to + highlight.
+    // Hoisted here (not a nav argument) so the bottom-nav's plain "market_news" route pattern —
+    // and its selected-tab matching in the bar below — stays untouched.
+    var highlightedNewsArticleUrl by remember { mutableStateOf<String?>(null) }
+
     val items = listOf(
         BottomNavItem.Overview,
         BottomNavItem.Indicators,
         BottomNavItem.Summary,
         BottomNavItem.MarketRisk,
-        BottomNavItem.News
+        BottomNavItem.Analysis
     )
 
     Scaffold(
@@ -137,7 +156,20 @@ fun PulseNavGraph() {
                 MarketSummaryRoute(scaffoldPadding = innerPadding)
             }
             composable(PulseRoutes.MARKET_OVERVIEW) {
-                DashboardRoute(scaffoldPadding = innerPadding)
+                DashboardRoute(
+                    scaffoldPadding = innerPadding,
+                    // Added with Claude Code assistance: News is a plain push destination now
+                    // (not a persisted bottom-nav tab), so this is a simple navigate() — no
+                    // popUpTo/saveState/restoreState tab-preserving dance needed.
+                    onNavigateToNews = {
+                        navController.navigate(PulseRoutes.MARKET_NEWS)
+                    },
+                    // Added with Claude Code assistance: stash the target article, then push News.
+                    onNavigateToNewsArticle = { url ->
+                        highlightedNewsArticleUrl = url
+                        navController.navigate(PulseRoutes.MARKET_NEWS)
+                    }
+                )
             }
             composable(PulseRoutes.MARKET_INDICATORS) {
                 IndicatorsRoute(scaffoldPadding = innerPadding)
@@ -145,15 +177,26 @@ fun PulseNavGraph() {
             composable(PulseRoutes.MARKET_INSIGHTS) {
                 InsightsRoute(scaffoldPadding = innerPadding)
             }
+            // Added with Claude Code assistance: replaces the News tab on the bottom bar — the
+            // Mag7 stock analysis widget, now a full tab instead of a Dashboard-embedded section.
+            composable(PulseRoutes.MARKET_ANALYSIS) {
+                StockAnalysisRoute(scaffoldPadding = innerPadding)
+            }
+            // Added with Claude Code assistance: pushed only from the Dashboard's "Latest News"
+            // chevron or a specific preview card — no longer part of the bottom bar.
             composable(PulseRoutes.MARKET_NEWS) {
                 NewsRoute(
                     scaffoldPadding = innerPadding,
+                    onNavigateUp = { navController.popBackStack() },
                     onNavigateToWebView = { url ->
                         val encodedUrl = URLEncoder.encode(url, StandardCharsets.UTF_8.toString())
                         navController.navigate("webview/$encodedUrl")
-                    }
+                    },
+                    highlightedArticleUrl = highlightedNewsArticleUrl,
+                    onHighlightConsumed = { highlightedNewsArticleUrl = null }
                 )
             }
+
             composable("webview/{encodedUrl}") { backStackEntry ->
                 val encodedUrl = backStackEntry.arguments?.getString("encodedUrl") ?: ""
                 val decodedUrl = URLDecoder.decode(encodedUrl, StandardCharsets.UTF_8.toString())

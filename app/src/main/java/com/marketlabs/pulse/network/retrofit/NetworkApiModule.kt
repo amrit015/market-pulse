@@ -6,6 +6,7 @@ import com.marketlabs.pulse.network.api.MarketPostureApi
 import com.marketlabs.pulse.network.api.MarketPulseApi
 import com.marketlabs.pulse.network.api.MarketRiskApi
 import com.marketlabs.pulse.network.api.NewsApi
+import com.marketlabs.pulse.network.api.StocksApi
 import com.marketlabs.pulse.network.api.WeeklyPlaybookApi
 import com.marketlabs.pulse.network.interceptor.AppCheckInterceptor
 import com.marketlabs.pulse.network.interceptor.HeaderLoggingInterceptor
@@ -128,5 +129,14 @@ object NetworkApiModule {
         @Named("MarketPulseRetrofit") retrofit: Retrofit
     ): MarketPostureApi {
         return retrofit.create(MarketPostureApi::class.java)
+    }
+
+    /** Provides the Retrofit client for the "Individual Stock Analysis" endpoints in marketPulse.ts. */
+    @Provides
+    @Singleton
+    fun provideStocksApi(
+        @Named("MarketPulseRetrofit") retrofit: Retrofit
+    ): StocksApi {
+        return retrofit.create(StocksApi::class.java)
     }
 }

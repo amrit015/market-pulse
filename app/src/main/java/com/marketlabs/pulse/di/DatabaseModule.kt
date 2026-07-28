@@ -8,6 +8,7 @@ import com.marketlabs.pulse.storage.database.dao.IndicatorsDao
 import com.marketlabs.pulse.storage.database.dao.MarketPostureDao
 import com.marketlabs.pulse.storage.database.dao.MarketRiskDao
 import com.marketlabs.pulse.storage.database.dao.NewsDao
+import com.marketlabs.pulse.storage.database.dao.StocksDao
 import com.marketlabs.pulse.storage.database.dao.SummaryDao
 import com.marketlabs.pulse.storage.database.dao.WeeklyPlaybookDao
 import com.marketlabs.pulse.storage.database.migrations.DatabaseMigrations
@@ -73,5 +74,12 @@ object DatabaseModule {
     @Provides
     fun provideMarketPostureDao(database: AppDatabase): MarketPostureDao {
         return database.marketPostureDao()
+    }
+
+    /** Provides the DAO for the stocks domain's `market_stocks` Room cache. */
+    @Provides
+    @Singleton
+    fun provideStocksDao(database: AppDatabase): StocksDao {
+        return database.stocksDao()
     }
 }

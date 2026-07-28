@@ -259,9 +259,33 @@ object DatabaseMigrations {
         }
     }
 
+    // Migration from Version 11 to 12 for the Stock Analysis "Deep Study" domain
+    val MIGRATION_11_12 = object : Migration(11, 12) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `market_stocks` (
+                    `symbol` TEXT NOT NULL,
+                    `lastSyncedTimestamp` INTEGER NOT NULL,
+                    `price` REAL,
+                    `changePercent` REAL,
+                    `technicalIndicators` TEXT,
+                    `technicalSetup` TEXT,
+                    `executiveThesis` TEXT,
+                    `topNewsStream` TEXT,
+                    `battlegroundLevels` TEXT,
+                    `contextVault` TEXT,
+                    `timestamp` INTEGER,
+                    PRIMARY KEY(`symbol`)
+                )
+                """.trimIndent()
+            )
+        }
+    }
+
     val ALL_MIGRATIONS = arrayOf(
         MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5,
         MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9,
-        MIGRATION_9_10, MIGRATION_10_11 // 💡 Added to registry
+        MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12 // 💡 Added to registry
     )
 }

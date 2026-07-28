@@ -1,5 +1,7 @@
 package com.marketlabs.pulse.core.sync
 
+// Includes stock analysis sync wiring added with Claude Code assistance.
+
 import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
@@ -7,6 +9,7 @@ import com.marketlabs.pulse.core.indicators.IndicatorsRepository
 import com.marketlabs.pulse.core.marketRisk.MarketRiskRepository
 import com.marketlabs.pulse.core.news.NewsRepository
 import com.marketlabs.pulse.core.posture.MarketPostureRepository
+import com.marketlabs.pulse.core.stocks.StockAnalysisRepository
 import com.marketlabs.pulse.core.summary.SummaryRepository
 import com.marketlabs.pulse.core.weeklyPlaybook.WeeklyPlaybookRepository
 import kotlinx.coroutines.CoroutineScope
@@ -23,7 +26,8 @@ class SyncManager @Inject constructor(
     private val newsRepository: NewsRepository,
     private val marketRiskRepository: MarketRiskRepository,
     private val summaryRepository: SummaryRepository,
-    private val postureRepository: MarketPostureRepository
+    private val postureRepository: MarketPostureRepository,
+    private val stockAnalysisRepository: StockAnalysisRepository
 ) {
     private var listenerRegistration: ListenerRegistration? = null
     private val scope = CoroutineScope(Dispatchers.IO)
@@ -120,6 +124,24 @@ class SyncManager @Inject constructor(
                             Log.d("SyncManager", "New Market Posture detected! Fetching...")
                             postureRepository.refreshPosture(force = true)
                             postureRepository.updateLastSyncedTimestamp(newPostureTime)
+                        }
+
+                        // ==========================================
+                        // 7. STOCK ANALYSIS SYNC
+                        // ==========================================
+                        // The backend writes two independent flags for this domain — one from the
+                        // EOD deep-analysis run, one from the after-hours run — so we take whichever
+                        // fired most recently, same approach used above for the Playbook's Sunday
+                        // generation vs. mid-week actuals update.
+                        val newStockAnalysisEodTime = snapshot.getLong("stock_analysis_eod") ?: 0L
+                        val newStockAnalysisAfterHoursTime = snapshot.getLong("stock_analysis_after_hours") ?: 0L
+                        val maxStockAnalysisTime = maxOf(newStockAnalysisEodTime, newStockAnalysisAfterHoursTime)
+                        val localStockAnalysisTime = stockAnalysisRepository.getLastSyncedTimestamp() ?: 0L
+
+                        if (maxStockAnalysisTime > localStockAnalysisTime) {
+                            Log.d("SyncManager", "New Stock Analysis detected! Fetching...")
+                            stockAnalysisRepository.refreshTrackedStocks(force = true)
+                            stockAnalysisRepository.updateLastSyncedTimestamp(maxStockAnalysisTime)
                         }
                     }
                 }
