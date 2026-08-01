@@ -3,8 +3,8 @@ package com.marketlabs.pulse.network.retrofit
 import com.marketlabs.pulse.network.api.DashboardApi
 import com.marketlabs.pulse.network.api.IndicatorsApi
 import com.marketlabs.pulse.network.api.MarketPulseApi
+import com.marketlabs.pulse.network.api.MarketRiskApi
 import com.marketlabs.pulse.network.api.NewsApi
-import com.marketlabs.pulse.network.api.RiskRadarApi
 import com.marketlabs.pulse.network.api.WeeklyPlaybookApi
 import com.marketlabs.pulse.network.interceptor.AppCheckInterceptor
 import com.marketlabs.pulse.network.interceptor.HeaderLoggingInterceptor
@@ -90,10 +90,10 @@ object NetworkApiModule {
 
     @Provides
     @Singleton
-    fun provideRiskRadarApi(
+    fun provideMarketRiskApi(
         @Named("MarketPulseRetrofit") retrofit: Retrofit
-    ): RiskRadarApi {
-        return retrofit.create(RiskRadarApi::class.java)
+    ): MarketRiskApi {
+        return retrofit.create(MarketRiskApi::class.java)
     }
 
     @Provides

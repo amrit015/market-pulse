@@ -4,8 +4,8 @@ import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.marketlabs.pulse.core.indicators.IndicatorsRepository
+import com.marketlabs.pulse.core.marketRisk.MarketRiskRepository
 import com.marketlabs.pulse.core.news.NewsRepository
-import com.marketlabs.pulse.core.riskRadar.RiskRadarRepository
 import com.marketlabs.pulse.core.summary.SummaryRepository
 import com.marketlabs.pulse.core.weeklyPlaybook.WeeklyPlaybookRepository
 import kotlinx.coroutines.CoroutineScope
@@ -20,7 +20,7 @@ class SyncManager @Inject constructor(
     private val playbookRepository: WeeklyPlaybookRepository,
     private val indicatorsRepository: IndicatorsRepository,
     private val newsRepository: NewsRepository,
-    private val riskRadarRepository: RiskRadarRepository,
+    private val marketRiskRepository: MarketRiskRepository,
     private val summaryRepository: SummaryRepository
 ) {
     private var listenerRegistration: ListenerRegistration? = null
@@ -84,31 +84,19 @@ class SyncManager @Inject constructor(
                         }
 
                         // ==========================================
-                        // 4. RISK RADAR (GAUGES) SYNC
-                        // ==========================================
-                        val newRiskTime = snapshot.getLong("risk_radar_updated") ?: 0L
-                        val localRiskTime = riskRadarRepository.getLastSyncedTimestampRisk() ?: 0L
-
-                        if (newRiskTime > localRiskTime) {
-                            Log.d("SyncManager", "New Risk Radar Gauges detected! Fetching...")
-                            riskRadarRepository.refreshRisk(force = true)
-                            riskRadarRepository.updateLastSyncedTimestampRisk(newRiskTime)
-                        }
-
-                        // ==========================================
-                        // 5. MARKET TAIL RISKS (AI) SYNC
+                        // 4. MARKET TAIL RISKS (AI) SYNC
                         // ==========================================
                         val newTailRisksTime = snapshot.getLong("market_risks_updated") ?: 0L
-                        val localTailRisksTime = riskRadarRepository.getLastSyncedTimestampTailRisks() ?: 0L
+                        val localTailRisksTime = marketRiskRepository.getLastSyncedTimestampTailRisks() ?: 0L
 
                         if (newTailRisksTime > localTailRisksTime) {
                             Log.d("SyncManager", "New AI Tail Risks detected! Fetching...")
-                            riskRadarRepository.refreshTailRisks(force = true)
-                            riskRadarRepository.updateLastSyncedTimestampTailRisks(newTailRisksTime)
+                            marketRiskRepository.refreshTailRisks(force = true)
+                            marketRiskRepository.updateLastSyncedTimestampTailRisks(newTailRisksTime)
                         }
 
                         // ==========================================
-                        // 6. MARKET PULSE (SUMMARY) SYNC
+                        // 5. MARKET PULSE (SUMMARY) SYNC
                         // ==========================================
                         val newPulseTime = snapshot.getLong("market_pulse_updated") ?: 0L
                         val localPulseTime = summaryRepository.getLastSyncedTimestamp() ?: 0L

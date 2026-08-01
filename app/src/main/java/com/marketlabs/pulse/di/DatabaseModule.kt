@@ -5,8 +5,8 @@ import androidx.room.Room
 import com.marketlabs.pulse.storage.database.AppDatabase
 import com.marketlabs.pulse.storage.database.dao.DashboardDao
 import com.marketlabs.pulse.storage.database.dao.IndicatorsDao
+import com.marketlabs.pulse.storage.database.dao.MarketRiskDao
 import com.marketlabs.pulse.storage.database.dao.NewsDao
-import com.marketlabs.pulse.storage.database.dao.RiskRadarDao
 import com.marketlabs.pulse.storage.database.dao.SummaryDao
 import com.marketlabs.pulse.storage.database.dao.WeeklyPlaybookDao
 import com.marketlabs.pulse.storage.database.migrations.DatabaseMigrations
@@ -47,14 +47,14 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideRiskRadarDao(database: AppDatabase): RiskRadarDao {
-        return database.riskRadarDao()
+    fun provideMarketRiskDao(database: AppDatabase): MarketRiskDao {
+        return database.marketRiskDao()
     }
 
     @Provides
     @Singleton
     fun provideIndicatorsDao(database: AppDatabase): IndicatorsDao {
-        return database.indicatorsDao()
+        return database.marketIndicatorsDao()
     }
 
     @Provides

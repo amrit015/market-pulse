@@ -49,7 +49,6 @@ import androidx.compose.ui.unit.dp
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.dashboard.AssetOverview
 import com.marketlabs.pulse.storage.model.dashboard.MarketState
-import com.marketlabs.pulse.storage.model.weeklyPlaybook.WeeklyPlaybook
 import com.marketlabs.pulse.ui.components.bottomSheet.AssetDetailBottomSheet
 import com.marketlabs.pulse.ui.components.bottomSheet.MarketGlossaryBottomSheet
 import com.marketlabs.pulse.ui.components.widgets.PutCallHorizontalBar
@@ -65,7 +64,6 @@ import java.util.Locale
 fun DashboardScreen(
     marketState: MarketState?,
     assets: List<AssetOverview?>,
-    playbook: WeeklyPlaybook? = null,
     scaffoldPadding: PaddingValues
 ) {
     val scrollState = rememberScrollState()
@@ -83,10 +81,8 @@ fun DashboardScreen(
 
     val equitySortOrder = listOf("SPY", "DIA", "QQQ", "RSP", "IWM", "MAGS")
     val cryptoCommoditySortOrder = listOf("BTC-USD", "ETH-USD", "GC=F", "SI=F", "CL=F", "HG=F")
-    // 💡 NEW: Sort order for Futures
     val futureSortOrder = listOf("ES=F", "YM=F", "NQ=F")
 
-    // 💡 UPDATED: Added sorting logic for Futures to match Equities and Commodities
     val futureAssets = assets
         .filter { it?.type == AssetType.FUTURE }
         .sortedBy { asset ->
@@ -109,8 +105,6 @@ fun DashboardScreen(
         }
 
     var selectedAsset by remember { mutableStateOf<AssetOverview?>(null) }
-
-    // 💡 NEW: State to track if the Glossary bottom sheet is open, and what the current regime string is
     var selectedRegimeForGlossary by remember { mutableStateOf<String?>(null) }
 
     Column(
@@ -127,7 +121,6 @@ fun DashboardScreen(
         verticalArrangement = Arrangement.spacedBy(paddingExtraLarge)
     ) {
 
-        // 💡 UPDATED: Integrated Market Status into the Technical Briefing
         TechnicalSummaryCard(
             summaryText = marketState?.technicalSummary,
             timestamp = marketState?.technicalSummaryTimestamp,
@@ -143,7 +136,6 @@ fun DashboardScreen(
                     modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.padding_medium))
                 )
 
-                // 💡 NEW: Inject the calculated Consensus Badge!
                 SentimentConsensusBadge(
                     sentimentAssets = sentimentAssets,
                     onClick = { currentRegimeText ->
@@ -235,13 +227,6 @@ fun DashboardScreen(
                 columnNum = 3
             )
         }
-
-        HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
-
-        // --- SECTION 5: Weekly Playbook ---
-        if (playbook != null && !playbook.events.isNullOrEmpty()) {
-            WeeklyPlaybookSection(playbook = playbook)
-        }
     }
 
     if (selectedAsset != null) {
@@ -251,7 +236,6 @@ fun DashboardScreen(
         )
     }
 
-    // Trigger the Glossary Bottom Sheet
     if (selectedRegimeForGlossary != null) {
         MarketGlossaryBottomSheet(
             currentRegime = selectedRegimeForGlossary,
@@ -296,7 +280,6 @@ fun AssetSection(
                     }
                 }
 
-                // Dynamically fill any remaining empty spots in the grid row
                 if (rowItems.size < columnNum) {
                     val emptySpots = columnNum - rowItems.size
                     repeat(emptySpots) {
@@ -326,9 +309,6 @@ fun AssetCard(
     val backgroundColor: androidx.compose.ui.graphics.Color
 
     if (isSentimentAsset && asset.rsiStatus != null) {
-        // 💡 NEW: Contrarian Logic for Sentiment Indicators
-        // Extreme Fear = Buying Opportunity (Green Background)
-        // Extreme Greed = Sell Warning (Red Background)
         when (asset.rsiStatus.uppercase()) {
             "EXTREME FEAR", "FEAR", "OVERSOLD" -> {
                 baseColor = PulseStatusColors.BullishText
@@ -346,8 +326,6 @@ fun AssetCard(
             }
         }
     } else {
-        // 💡 Standard Logic for Equities, Futures, and Crypto
-        // Uses the daily change percentage and checks if the asset is inverted (like VIX)
         val change = asset.changePercent ?: 0.0
         val isMathematicallyPositive = change >= 0
         val isGoodEvent =
@@ -374,7 +352,6 @@ fun AssetCard(
         }
     }
 
-    // We initialize as null if it's a sentiment asset since they don't use subtitles
     val cardSubTitle = if (asset.symbol != "FEAR_GREED" && asset.symbol != "PUT_CALL") {
         asset.name
     } else {
@@ -456,14 +433,12 @@ fun TechnicalSummaryCard(summaryText: String?, timestamp: Long?, isEquityOpen: B
     val paddingMedium = dimensionResource(id = R.dimen.padding_medium)
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
 
-    // Market Status Colors
     val badgeBgColor =
         if (isEquityOpen) PulseStatusColors.BullishBg else MaterialTheme.colorScheme.surfaceVariant
     val badgeTextColor =
         if (isEquityOpen) PulseStatusColors.BullishText else MaterialTheme.colorScheme.onSurfaceVariant
 
     Card(
-        // Matches the unified design of the Market Outlook card
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(
                 alpha = 0.4f
@@ -476,7 +451,6 @@ fun TechnicalSummaryCard(summaryText: String?, timestamp: Long?, isEquityOpen: B
             .clickable { isExpanded = !isExpanded }
     ) {
         Column(modifier = Modifier.padding(paddingLarge)) {
-            // HEADER: Title + Timestamp (Left) & Arrow (Right)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -484,7 +458,6 @@ fun TechnicalSummaryCard(summaryText: String?, timestamp: Long?, isEquityOpen: B
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Row (verticalAlignment = Alignment.CenterVertically) {
-                        // Dynamically match icon to text size
                         val textStyle =
                             MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                         val iconSize = with(LocalDensity.current) { textStyle.fontSize.toDp() }
@@ -525,7 +498,6 @@ fun TechnicalSummaryCard(summaryText: String?, timestamp: Long?, isEquityOpen: B
             )
             Spacer(modifier = Modifier.height(paddingMedium))
 
-            // BODY: The Summary Text
             Text(
                 text = summaryText,
                 style = MaterialTheme.typography.bodyMedium,
@@ -534,7 +506,6 @@ fun TechnicalSummaryCard(summaryText: String?, timestamp: Long?, isEquityOpen: B
                 overflow = TextOverflow.Ellipsis
             )
 
-            // FOOTER: Market Status Badge (Bottom Left)
             Spacer(modifier = Modifier.height(paddingLarge))
             Surface(
                 color = badgeBgColor,
@@ -570,7 +541,6 @@ fun SentimentConsensusBadge(sentimentAssets: List<AssetOverview?>, onClick: (Str
     var score = 0
     var validAssets = 0
 
-    // 1. Calculate the math consensus (Max +6, Min -6)
     sentimentAssets.forEach { asset ->
         val status = asset?.rsiStatus?.uppercase()
         if (status != null) {
@@ -590,19 +560,15 @@ fun SentimentConsensusBadge(sentimentAssets: List<AssetOverview?>, onClick: (Str
     val bgColor: androidx.compose.ui.graphics.Color
     val textColor: androidx.compose.ui.graphics.Color
 
-    // 2. Map the score to the 6 Market Phases
-    // 2. Map the score to the 6 Market Phases
     when {
         score >= 4 -> {
             consensusText = "DISTRIBUTION PHASE"
-            // 💡 CONTRARIAN FLIP: High greed. Smart money is selling. This is a WARNING.
             bgColor = PulseStatusColors.BearishBg
             textColor = PulseStatusColors.BearishText
         }
 
         score in 1..3 -> {
             consensusText = "HEALTHY UPTREND"
-            // Normal, safe momentum.
             bgColor = PulseStatusColors.BullishBg
             textColor = PulseStatusColors.BullishText
         }
@@ -615,27 +581,23 @@ fun SentimentConsensusBadge(sentimentAssets: List<AssetOverview?>, onClick: (Str
 
         score in -2..-1 -> {
             consensusText = "DANGEROUS DOWNTREND"
-            // Normal, dangerous selling pressure.
             bgColor = PulseStatusColors.BearishBg
             textColor = PulseStatusColors.BearishText
         }
 
         score in -4..-3 -> {
             consensusText = "ACCUMULATION PHASE"
-            // 💡 CONTRARIAN FLIP: Deep fear. Smart money is buying. This is an OPPORTUNITY.
             bgColor = PulseStatusColors.BullishBg
             textColor = PulseStatusColors.BullishText
         }
 
         else -> {
             consensusText = "CRASH OPPORTUNITY"
-            // CONTRARIAN FLIP: Absolute panic. The market is flashing a rare buying opportunity!
             bgColor = PulseStatusColors.BullishBg
             textColor = PulseStatusColors.BullishText
         }
     }
 
-    // 3. Draw the Pill Badge
     Surface(
         color = bgColor,
         shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_pill)),
@@ -648,8 +610,6 @@ fun SentimentConsensusBadge(sentimentAssets: List<AssetOverview?>, onClick: (Str
                 vertical = dimensionResource(id = R.dimen.padding_medium)
             )
         ) {
-
-            // Dynamically match icon to text size
             val textStyle = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold)
             val iconSize = with(LocalDensity.current) { textStyle.fontSize.toDp() }
 
@@ -657,7 +617,7 @@ fun SentimentConsensusBadge(sentimentAssets: List<AssetOverview?>, onClick: (Str
                 painter = painterResource(id = R.drawable.ic_engine_quant),
                 contentDescription = "Analysis Engine",
                 tint = textColor,
-                modifier = Modifier.size(iconSize) // 💡 Used dynamic size
+                modifier = Modifier.size(iconSize)
             )
 
             Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))

@@ -4,18 +4,16 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
 import com.marketlabs.pulse.storage.database.converters.RiskConverters
-import com.marketlabs.pulse.storage.model.riskRadar.RiskGauges
+import com.marketlabs.pulse.storage.model.marketRisk.MarketRiskFactor
 
-@Entity(tableName = "market_risk")
+@Entity(tableName = "market_tail_risks")
 @TypeConverters(RiskConverters::class)
-data class RiskRadarEntity(
+data class MarketRiskEntity(
     @PrimaryKey(autoGenerate = false)
     val date: String,
     val lastSyncedTimestamp: Long,
-    val lastUpdated: Long,
-    val score: Int? = null,
-    val previousScore: Int? = null,
-    val trend: String? = null,
-    val status: String? = null,
-    val gauges: RiskGauges? = null
+    val lastUpdated: Long? = null,
+    val summary: String? = null,
+    val risks: List<MarketRiskFactor>? = null,
+    val sourceNarrative: String? = null
 )

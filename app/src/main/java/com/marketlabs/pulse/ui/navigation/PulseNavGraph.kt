@@ -27,8 +27,8 @@ import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.components.PulseWebViewScreen
 import com.marketlabs.pulse.ui.screens.dashboard.views.DashboardRoute
 import com.marketlabs.pulse.ui.screens.indicators.views.IndicatorsRoute
+import com.marketlabs.pulse.ui.screens.insights.views.InsightsRoute
 import com.marketlabs.pulse.ui.screens.news.views.NewsRoute
-import com.marketlabs.pulse.ui.screens.riskRadar.views.RiskRadarRoute
 import com.marketlabs.pulse.ui.screens.summary.views.MarketSummaryRoute
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -39,7 +39,7 @@ object PulseRoutes {
     const val MARKET_SUMMARY = "market_summary"
     const val MARKET_OVERVIEW = "market_overview"
     const val MARKET_INDICATORS = "market_indicators"
-    const val MARKET_RISK = "market_risk"
+    const val MARKET_INSIGHTS = "market_insights"
     const val MARKET_NEWS = "market_news"
 }
 
@@ -56,8 +56,8 @@ sealed class BottomNavItem(val route: String, val label: String, val unselectedI
     internal object Summary :
         BottomNavItem(PulseRoutes.MARKET_SUMMARY, "Summary", R.drawable.ic_engine_ai_sparkles, R.drawable.ic_engine_ai_sparkles)
 
-    internal object RiskRadar :
-        BottomNavItem(PulseRoutes.MARKET_RISK, "Risk", R.drawable.ic_risk, R.drawable.ic_risk_filled)
+    internal object MarketRisk :
+        BottomNavItem(PulseRoutes.MARKET_INSIGHTS, "Insights", R.drawable.ic_risk, R.drawable.ic_risk_filled)
 
     internal object News :
         BottomNavItem(PulseRoutes.MARKET_NEWS, "News", R.drawable.ic_news, R.drawable.ic_news_filled)
@@ -70,7 +70,7 @@ fun PulseNavGraph() {
         BottomNavItem.Overview,
         BottomNavItem.Indicators,
         BottomNavItem.Summary,
-        BottomNavItem.RiskRadar,
+        BottomNavItem.MarketRisk,
         BottomNavItem.News
     )
 
@@ -142,8 +142,8 @@ fun PulseNavGraph() {
             composable(PulseRoutes.MARKET_INDICATORS) {
                 IndicatorsRoute(scaffoldPadding = innerPadding)
             }
-            composable(PulseRoutes.MARKET_RISK) {
-                RiskRadarRoute(scaffoldPadding = innerPadding)
+            composable(PulseRoutes.MARKET_INSIGHTS) {
+                InsightsRoute(scaffoldPadding = innerPadding)
             }
             composable(PulseRoutes.MARKET_NEWS) {
                 NewsRoute(

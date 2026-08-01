@@ -1,9 +1,10 @@
-package com.marketlabs.pulse.ui.screens.riskRadar
+package com.marketlabs.pulse.ui.screens.insights
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.marketlabs.pulse.core.riskRadar.RiskRadarRepository
+import com.marketlabs.pulse.core.marketRisk.MarketRiskRepository
 import com.marketlabs.pulse.core.sync.SyncManager
+import com.marketlabs.pulse.core.weeklyPlaybook.WeeklyPlaybookRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,67 +17,62 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class RiskRadarViewModel @Inject constructor(
-    private val repository: RiskRadarRepository,
-    private val syncManager: SyncManager // 💡 INJECT THE SYNC MANAGER
+class InsightsViewModel @Inject constructor(
+    private val riskRepository: MarketRiskRepository,
+    private val playbookRepository: WeeklyPlaybookRepository,
+    private val syncManager: SyncManager
 ) : ViewModel() {
 
     private val _isLoading = MutableStateFlow(false)
     private val _errorMessage = MutableStateFlow<String?>(null)
 
-    val uiState: StateFlow<RiskRadarUiState> = combine(
-        repository.getRiskStream(),
-        repository.getTailRisksStream(),
+    val uiState: StateFlow<InsightsUiState> = combine(
+        riskRepository.getTailRisksStream(),
+        playbookRepository.getPlaybookStream(),
         _isLoading,
         _errorMessage
-    ) { riskData, tailRisksData, loading, error ->
-        RiskRadarUiState(
+    ) { tailRisksData, playbookData, loading, error ->
+        InsightsUiState(
             isLoading = loading,
-            riskRadar = riskData,
+            weeklyPlaybook = playbookData,
             tailRisks = tailRisksData,
             errorMessage = error
         )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        // 💡 Prevent Empty State flash on load
-        initialValue = RiskRadarUiState(isLoading = true)
+        initialValue = InsightsUiState(isLoading = true)
     )
 
-    /**
-     * Wakes up the SyncManager to monitor for backend updates.
-     */
     fun onStart() {
         syncManager.startListening()
     }
 
-    /**
-     * Puts the listener to sleep to save battery.
-     */
     fun onStop() {
         syncManager.stopListening()
     }
 
-    /**
-     * Explicit User Pull-To-Refresh.
-     * Refreshes both Risk Radar and Tail Risks concurrently.
-     */
-    fun refreshRisk(force: Boolean = true) {
+    fun refreshInsights(force: Boolean = true) {
         viewModelScope.launch {
             _isLoading.update { true }
             _errorMessage.update { null }
 
-            val riskDeferred = async { repository.refreshRisk(force) }
-            val tailRisksDeferred = async { repository.refreshTailRisks(force) }
+            // Fetch both concurrently
+            val tailRisksDeferred = async { riskRepository.refreshTailRisks(force) }
+            val playbookDeferred = async { playbookRepository.refreshPlaybook(force) }
 
-            val results = listOf(riskDeferred.await(), tailRisksDeferred.await())
+            val results = listOf(tailRisksDeferred.await(), playbookDeferred.await())
 
             val firstError = results.firstOrNull { it.isFailure }?.exceptionOrNull()
             if (firstError != null) {
-                _errorMessage.update { firstError.localizedMessage ?: "Failed to fetch risk data" }
+                _errorMessage.update { firstError.localizedMessage ?: "Failed to fetch insights data" }
             }
 
             _isLoading.update { false }
         }
+    }
+
+    fun clearError() {
+        _errorMessage.update { null }
     }
 }

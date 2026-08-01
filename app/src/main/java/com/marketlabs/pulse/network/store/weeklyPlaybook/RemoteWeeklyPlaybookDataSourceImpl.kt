@@ -2,8 +2,8 @@ package com.marketlabs.pulse.network.store.weeklyPlaybook
 
 import android.util.Log
 import com.marketlabs.pulse.network.api.WeeklyPlaybookApi
-import com.marketlabs.pulse.storage.model.weeklyPlaybook.WeeklyPlaybook
 import com.marketlabs.pulse.storage.model.dashboard.mappers.toDomain
+import com.marketlabs.pulse.storage.model.weeklyPlaybook.WeeklyPlaybook
 import javax.inject.Inject
 
 class RemoteWeeklyPlaybookDataSourceImpl @Inject constructor(
