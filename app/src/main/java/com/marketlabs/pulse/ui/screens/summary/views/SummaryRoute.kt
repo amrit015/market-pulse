@@ -23,9 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -61,9 +59,6 @@ fun MarketSummaryRoute(
     // to the background, saving battery and resources.
     val uiState by viewModel.summaryUiState.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
-
-    // 💡 STATE: Track which version of the report to display for the A/B test
-    var showLegacyVersion by remember { mutableStateOf(false) }
 
     // 2. SIDE EFFECTS (Snackbars)
     // We need a host state to display Snackbars on top of the content.
@@ -138,18 +133,9 @@ fun MarketSummaryRoute(
                 // Case B: Data Available
                 // We have data (either fresh or cached). We delegate rendering to the stateless screen.
                 is SummaryUiState.Success -> {
-                    // 💡 LOGIC: Decide which data to feed to the screen based on the toggle state
-                    val displayData = if (showLegacyVersion && state.dataV2 != null) {
-                        state.dataV2
-                    } else {
-                        state.dataV3
-                    }
 
                     MarketSummaryScreen(
-                        data = displayData,
-                        isLegacyVersion = showLegacyVersion,
-                        hasLegacyData = state.dataV2 != null,
-                        onToggleVersion = { showLegacyVersion = !showLegacyVersion },
+                        data = state.dataV3,
                         scaffoldPadding = scaffoldPadding
                     )
                 }

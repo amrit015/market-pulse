@@ -78,9 +78,6 @@ import java.util.Locale
 @Composable
 fun MarketSummaryScreen(
     data: MarketPulse?,
-    isLegacyVersion: Boolean,
-    hasLegacyData: Boolean,
-    onToggleVersion: () -> Unit,
     scaffoldPadding: PaddingValues
 ) {
     val statusBarHeight = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
@@ -101,9 +98,6 @@ fun MarketSummaryScreen(
         ),
         verticalArrangement = Arrangement.spacedBy(paddingLarge)
     ) {
-        if (hasLegacyData) {
-            item { VersionToggleBanner(isLegacyVersion, onToggleVersion) }
-        }
 
         data?.let { validData ->
 
@@ -181,49 +175,6 @@ fun MarketSummaryScreen(
 // ---------------------------------------------------------
 // COMPONENT LIBRARY
 // ---------------------------------------------------------
-
-/**
- * Toggle between v3 and v2
- */
-@Composable
-fun VersionToggleBanner(isLegacyVersion: Boolean, onClick: () -> Unit) {
-    val bgColor =
-        if (isLegacyVersion) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.secondaryContainer
-    val contentColor =
-        if (isLegacyVersion) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onSecondaryContainer
-
-    Card(
-        colors = CardDefaults.cardColors(containerColor = bgColor),
-        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() }
-    ) {
-        Row(
-            modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = stringResource(id = if (isLegacyVersion) R.string.banner_emoji_legacy else R.string.banner_emoji_test),
-                style = MaterialTheme.typography.headlineMedium
-            )
-            Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_large)))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = stringResource(id = if (isLegacyVersion) R.string.banner_viewing_legacy else R.string.banner_viewing_test),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = contentColor.copy(alpha = 0.7f)
-                )
-                Text(
-                    text = stringResource(id = if (isLegacyVersion) R.string.banner_switch_latest else R.string.banner_compare_legacy),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = contentColor,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        }
-    }
-}
 
 /**
  * Header section - Market Summary

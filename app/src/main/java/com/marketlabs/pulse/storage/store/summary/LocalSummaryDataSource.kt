@@ -8,8 +8,6 @@ interface LocalSummaryDataSource {
     fun getLatestMarketPulse(): Flow<MarketPulse?>
     suspend fun saveMarketPulse(pulse: MarketPulse)
 
-    fun getLatestDailyPulse(): Flow<MarketPulse?>
-    suspend fun saveDailyPulse(pulse: MarketPulse)
     suspend fun clearAll()
 
     suspend fun getLastSyncedTimestamp(): Long?

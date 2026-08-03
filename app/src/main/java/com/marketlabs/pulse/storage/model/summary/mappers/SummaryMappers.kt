@@ -6,7 +6,6 @@ import com.marketlabs.pulse.network.model.summary.NetworkMarketOutlook
 import com.marketlabs.pulse.network.model.summary.NetworkMarketPulse
 import com.marketlabs.pulse.network.model.summary.NetworkNewsItem
 import com.marketlabs.pulse.network.model.summary.NetworkVerdict
-import com.marketlabs.pulse.storage.database.entity.DailyPulseEntity
 import com.marketlabs.pulse.storage.database.entity.MarketPulseEntity
 import com.marketlabs.pulse.storage.model.summary.DominoEffect
 import com.marketlabs.pulse.storage.model.summary.MacroItem
@@ -39,20 +38,6 @@ fun MarketPulse.toMarketPulseEntity(): MarketPulseEntity {
     )
 }
 
-fun MarketPulse.toDailyPulseEntity(): DailyPulseEntity {
-    return DailyPulseEntity(
-        dateId = this.lastUpdated.toDateIdString(),
-        lastSyncedTimestamp = System.currentTimeMillis(),
-        lastUpdated = this.lastUpdated,
-        reportType = this.reportType?.label ?: "",
-        verdict = this.verdict,
-        leadStories = this.leadStories,
-        macroMix = this.macroMix,
-        dominoEffect = this.dominoEffect,
-        marketOutlook = this.marketOutlook
-    )
-}
-
 // ============================================================================
 // MAPPERS: Entity -> Domain (Reading fromString DB to UI)
 // ============================================================================
@@ -63,20 +48,6 @@ fun MarketPulseEntity.toDomain(): MarketPulse {
         reportType = ReportType.fromString(this.reportType),
         lastUpdated = this.lastUpdated,
         lastSyncedTimestamp = this.lastSyncedTimestamp,
-        verdict = this.verdict,
-        leadStories = this.leadStories,
-        macroMix = this.macroMix,
-        dominoEffect = this.dominoEffect,
-        marketOutlook = this.marketOutlook
-    )
-}
-
-fun DailyPulseEntity.toDomain(): MarketPulse {
-    return MarketPulse(
-        dateId = this.dateId,
-        lastSyncedTimestamp = this.lastSyncedTimestamp,
-        reportType = ReportType.fromString(this.reportType),
-        lastUpdated = this.lastUpdated,
         verdict = this.verdict,
         leadStories = this.leadStories,
         macroMix = this.macroMix,

@@ -19,20 +19,15 @@ import javax.inject.Inject
 @HiltViewModel
 class SummaryViewModel @Inject constructor(
     private val repository: SummaryRepository,
-    private val syncManager: SyncManager // 💡 INJECT THE SYNC MANAGER
+    private val syncManager: SyncManager
 ) : ViewModel() {
 
     // COMBINE BOTH STREAMS INTO ONE STATE
     val summaryUiState: StateFlow<SummaryUiState> = combine(
         repository.getMarketPulseStream(),
-        repository.getDailyPulseStream()
-    ) { v3Data, v2Data ->
+    ) { v3Data ->
         // We only consider it "Success" if we have the primary V3 data
-        if (v3Data != null) {
-            SummaryUiState.Success(dataV3 = v3Data, dataV2 = v2Data)
-        } else {
-            SummaryUiState.Loading
-        }
+        SummaryUiState.Success(dataV3 = v3Data[0])
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),

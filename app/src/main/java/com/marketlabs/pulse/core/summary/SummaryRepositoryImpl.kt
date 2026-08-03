@@ -13,7 +13,6 @@ class SummaryRepositoryImpl @Inject constructor(
 ) : SummaryRepository {
 
     override fun getMarketPulseStream(): Flow<MarketPulse?> = localDataSource.getLatestMarketPulse()
-    override fun getDailyPulseStream(): Flow<MarketPulse?> = localDataSource.getLatestDailyPulse()
 
     override suspend fun refreshMarketSummary(force: Boolean): Result<Unit> {
         return try {
@@ -22,10 +21,6 @@ class SummaryRepositoryImpl @Inject constructor(
             // Fetch both V3 and V2.5 from the backend when a sync is triggered
             remoteDataSource.getLatestMarketPulse().onSuccess { freshV3 ->
                 localDataSource.saveMarketPulse(freshV3)
-            }
-
-            remoteDataSource.getLatestDailyPulse().onSuccess { freshV2 ->
-                localDataSource.saveDailyPulse(freshV2)
             }
 
             Result.success(Unit)
