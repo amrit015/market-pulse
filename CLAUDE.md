@@ -1,38 +1,44 @@
-# CLAUDE.md — MarketPulse (Android)
+# CLAUDE.md — Market Pulse (Android)
 
-Architectural reference for this codebase, derived from an audit of existing feature domains. Package root: `com.marketlabs.pulse` (not `com.marketpulse.app`). See also `.claudecode` for the strict coding rules (nulls, `@Preview`, resource usage, no unnecessary refactors) — this file documents *how the code actually looks*, including where it currently violates those rules.
+Kotlin / Jetpack Compose (Material 3) client for Market Pulse. Package root: `com.marketlabs.pulse` (not `com.marketpulse.app`). Backend is Firebase Cloud **Functions v2** — not Cloud Run.
 
-## Directory structure (per feature domain, e.g. `dashboard`, `posture`, `news`)
+Read this file first. Then read what you need for the task:
+- `ARCHITECTURE.md` — how the system actually works (data flow, transport strategies, Room caching, SyncManager, presentation layer, worked example). Load when you're touching something unfamiliar or cross-cutting.
+- Notion brain (link: `https://app.notion.com/p/marketPulse-brain-3b07c8397e7b801abfc8f8ceb1d9fdae`) — product context, ADRs, cross-repo contracts (sync flag names, Firestore field shapes), design system. Ask before pulling large pages.
 
+## Stack
+
+Kotlin, Jetpack Compose (Material 3), Dagger Hilt, Room, Retrofit + Moshi, Firebase Firestore (client SDK for live-streaming domains, backing store for all), Compose Navigation, Vico (charts), Compose-Markdown.
+
+## The one governing rule
+
+**Every domain is vertically sliced across the same layers, and data flows one direction: Remote → Local (Room) → Repository → ViewModel → Screen.** A ViewModel never talks to a data source directly. A Screen never talks to a ViewModel's dependencies — only to the `StateFlow` it exposes.
+
+See `ARCHITECTURE.md §1` for the full per-domain package layout and §2 for the two transport strategies (Retrofit vs direct Firestore SDK).
+
+## Commands
+
+```bash
+# Build and install debug on connected device
+./gradlew installDebug
+
+# Just compile
+./gradlew assembleDebug
+
+# Run unit tests
+./gradlew test
+
+# Run lint
+./gradlew lint
 ```
-core/<domain>/<Domain>Repository.kt          interface
-core/<domain>/<Domain>RepositoryImpl.kt      @Singleton @Inject impl
-network/model/<domain>/Network<X>.kt         Moshi/Firestore DTOs
-network/store/<domain>/Remote<Domain>DataSource.kt (+ Impl)
-network/api/<Domain>Api.kt                   Retrofit interface (if backed by REST, not raw Firestore)
-storage/model/<domain>/Domain<X>.kt          clean domain models (UI/repo-facing)
-storage/model/<domain>/mappers/<Domain>Mappers.kt   Network→Domain, Network→Entity, Entity→Domain, Domain→Entity
-storage/store/<domain>/Local<Domain>DataSource.kt (+ Impl)   wraps a Room DAO
-storage/database/entity/<X>Entity.kt         Room entities (in the shared entity/ package, not per-domain)
-storage/database/dao/<X>Dao.kt               Room DAOs (shared dao/ package)
-di/<Domain>Module.kt                         Hilt bindings for the above
-ui/screens/<domain>/<Domain>ViewModel.kt
-ui/screens/<domain>/<Domain>UiState.kt
-ui/screens/<domain>/views/<Domain>Route.kt   stateful, hoists ViewModel
-ui/screens/<domain>/views/<Domain>Screen.kt  stateless, pure composable
-```
 
-Two data-fetch styles coexist — pick per how the backend serves the domain, don't force one:
-- **Retrofit + Moshi** (majority): `network/api/<Domain>Api.kt` `@GET` interface → `Network<X>` DTO (`@JsonClass(generateAdapter = true)`, `@Json(name = "snake_case")`) → mapped to a `Domain<X>` model.
-- **Direct Firestore reads** (`dashboard`/`market_overview`, `stocks`/`market_stocks`): inject `FirebaseFirestore` directly into a `Remote*DataSourceImpl`, either via `addSnapshotListener` wrapped in `callbackFlow` (live-updating domains) or `.get().await()` (`kotlinx.coroutines.tasks.await`, one-shot reads). The DTO class is dual-annotated with **both** `@Json`/`@JsonClass` (Moshi) *and* `@get:PropertyName`/`@set:PropertyName` (Firestore) so the same class satisfies `doc.toObject()` and stays consistent with the rest of the codebase's DTO shape — even domains with no Retrofit involvement keep both annotation sets.
+## Conventions
 
-## Null handling & DTO shape
+Follow these unless you have a specific reason not to — and if you do, flag it before writing code.
 
-Per `.claudecode` rule 1: default to `null`, not arbitrary defaults — but Firestore's `toObject()` requires a no-arg constructor, so DTOs consumed via direct Firestore reads use `var` properties with cheap defaults only where a primitive genuinely can't be null (`var symbol: String = ""`, `var price: Double = 0.0`); everything else defaults to `null`. Domain models (`storage/model/<domain>/Domain<X>.kt`) are plain immutable `data class` with `val`, nullable fields default `null`.
+### Dependency Injection (Hilt)
 
-## Dependency Injection (Hilt)
-
-**100% `@Provides`-in-`object` style — no `@Binds`/abstract modules anywhere.** Every module:
+**100% `@Provides`-in-`object` style — no `@Binds`/abstract modules anywhere.** Three-tier domains get exactly three providers (remote data source, local data source, repository). Always `Impl → Interface`, always `@Singleton`.
 
 ```kotlin
 @Module
@@ -52,15 +58,11 @@ object DashboardModule {
 }
 ```
 
-Three-tier domains get exactly 3 providers: `provideRemote<Domain>DataSource`, `provideLocal<Domain>DataSource`, `provide<Domain>Repository` — always `Impl → Interface`, always `@Singleton`. `FirebaseModule` provides the app-wide `FirebaseFirestore` singleton; `DatabaseModule` builds the single Room `AppDatabase` plus one DAO provider per feature. `PulseApplication` (`di/app/`) is `@HiltAndroidApp` and only bootstraps Firebase App Check — no bindings live there.
+Never introduce `@Binds` — it'd be inconsistent with all 9 existing modules.
 
-**Known inconsistencies** (don't silently "fix" without being asked — flag if touching):
-- `DatabaseModule`'s `provideMarketSummaryDao`/`provideMarketPostureDao` omit `@Singleton` (the rest don't).
-- `NewsModule.provideNewsRepository` / `MarketRiskModule.provideMarketRiskRepository` name their impl parameter `marketSummaryRepositoryImpl` — copy-paste leftover from `SummaryModule`, cosmetic only.
+### ViewModels & UiState
 
-## ViewModels & UiState
-
-Dominant convention (Dashboard, Insights, News, Indicators) — **flat `data class` UiState**, not sealed:
+Flat `data class` UiState by default:
 
 ```kotlin
 data class DashboardUiState(
@@ -72,49 +74,57 @@ data class DashboardUiState(
 )
 ```
 
-```kotlin
-@HiltViewModel
-class DashboardViewModel @Inject constructor(
-    private val repository: DashboardRepository,
-    private val syncManager: SyncManager
-) : ViewModel() {
-    private val _isLoading = MutableStateFlow(false)
-    private val _errorMessage = MutableStateFlow<String?>(null)
+`@HiltViewModel`, constructor-inject `Repository` + `SyncManager`, expose one `val uiState: StateFlow<...>` via `combine(...).stateIn(viewModelScope, WhileSubscribed(5000), initial)`. Wire `onStart()`/`onStop()` to `syncManager.startListening()/stopListening()`. Full pattern in `ARCHITECTURE.md §6`.
 
-    val uiState: StateFlow<DashboardUiState> = combine(
-        repository.getMarketStateStream(),
-        repository.getDashboardAssetsStream(),
-        combine(_isLoading, _isRefreshing, _errorMessage) { l, r, e -> Triple(l, r, e) }
-    ) { state, assets, (loading, refreshing, error) ->
-        DashboardUiState(state, assets, loading && assets.isEmpty(), refreshing, error)
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DashboardUiState(isLoading = true))
+**Use sealed UiState only when the screen genuinely renders different layouts per state**, not just different flags. `summary` is the one existing outlier — don't create a second one without a real reason.
 
-    fun onStart() { syncManager.startListening(); fetchDashboard(force = false) }
-    fun onStop() { syncManager.stopListening() }
-}
-```
+### Compose screens
 
-`Summary` is the **one outlier**: sealed interface `Loading` / `Success(data)` / `Error(message)`, consumed via `when(state)` in `SummaryRoute.kt`, plus a one-shot `Channel<String>` for snackbar events. Treat flat-`data class` as the pattern to follow for new domains unless there's a specific reason to branch UI structurally (sealed states earn their keep when the screen genuinely renders different layouts, not just different flags).
+Every screen is two composables:
+- **`XRoute.kt`** — stateful. `hiltViewModel()`, `collectAsStateWithLifecycle()`, wires `onStart`/`onStop` via `LifecycleEventObserver`, owns pull-to-refresh + snackbar.
+- **`XScreen.kt`** — stateless. Plain data + lambdas, no ViewModel awareness.
 
-Shared shape across all 6 ViewModels: `@HiltViewModel`, constructor-injects `Repository` + `SyncManager`, exposes exactly one `val uiState: StateFlow<...>` (name it `<domain>UiState` if the screen isn't literally "the" state, e.g. `summaryUiState`), private `_isLoading`/`_errorMessage`/(`_isRefreshing`) `MutableStateFlow`s merged via `combine`, `onStart()`/`onStop()` driving `syncManager.startListening()/stopListening()`, and a `refresh<Domain>(force: Boolean)` that launches in `viewModelScope`.
+Bottom-nav tabs use the tab-preserving navigation pattern (`popUpTo(startDestination) { saveState = true }; launchSingleTop = true; restoreState = true`). See `ARCHITECTURE.md §6` for the navigation graph shape.
 
-## Compose screens
+### Resources
 
-Consistent **Route/Screen split** for every feature: `<Domain>Route.kt` is stateful (`hiltViewModel()`, `collectAsStateWithLifecycle()`, wires `onStart`/`onStop` to `LifecycleEventObserver`, owns pull-to-refresh/snackbar), delegates to a stateless `<Domain>Screen.kt` (pure composable taking plain data + lambdas). Navigation is a single `PulseNavGraph.kt` with a `PulseRoutes` object of string constants and a `sealed class BottomNavItem`; bottom-nav screens are wired as `composable(route) { <Domain>Route(scaffoldPadding = innerPadding) }`.
+- **All UI text** → `res/values/strings.xml`, referenced via `stringResource()`. Naming: `snake_case`, loosely `<screen_or_context>_<purpose>` (e.g. `news_screen_title`, `radar_vulnerability_score`).
+- **All dimensions** → `res/values/dimens.xml`, referenced via `dimensionResource()`. Prefer existing semantic dimens (`padding_small`, `corner_radius_medium`) over inventing one-offs.
+- **Status colors** → `PulseStatusColors` (in `ui/theme/Color.kt`) is the single source. If a domain model carries `SignalColor`, use `SignalColor.toColor()`/`toBgColor()` extensions — never hand-roll a `when` branching on the enum.
 
-**`@Preview` compliance is currently violated** against the `.claudecode` rule ("always include `@Preview`"): only `DashboardScreen.kt`, `MarketPostureView.kt`, and `WeeklyPlaybookView.kt` have any `@Preview` composables, and even there only a fraction of composables are covered. `InsightsScreen`, `IndicatorsScreen`, `NewsScreen`, `SummaryScreen`, and every `*Route.kt` have **zero**. Don't treat the absence of previews elsewhere as license to skip them on new composables — the rule stands; the gap is legacy debt, not the convention to copy.
+### Null handling
 
-**Resource usage is mostly but not fully compliant**: `DashboardScreen.kt` has a hardcoded `"Sector Rotation"` string (with its own `// Consider moving to strings.xml later!` comment) and raw `dp` literals bypassing `dimens.xml`. Same rule applies — don't propagate hardcoded strings/dims into new code just because one file has them.
+Default fields to `null`, not arbitrary defaults. The exception is Firestore DTOs consumed via `toObject()`, which need a no-arg constructor — those use `var` properties with cheap defaults only where a primitive genuinely can't be null (`var symbol: String = ""`, `var price: Double = 0.0`); everything else is `null`. Domain models are always immutable `val`, nullable default `null`.
 
-## Resource management
+### Cross-repo contracts
 
-- `res/values/strings.xml` (~235 lines): flat namespace, `snake_case`, loosely `<screen_or_context>_<purpose>` (`news_screen_title`, `news_empty_state`, `radar_vulnerability_score`, `gauge_recession`). Not strictly per-screen-prefixed — some keys are generic (`label_trigger`, `label_impact`) and reused.
-- `res/values/dimens.xml` (~47 lines): semantic-role-named, not per-screen: `padding_tiny/small/medium/standard/large/xlarge/xxlarge`, `corner_radius_*`, `icon_size_*`, `border_*`, plus feature-specific one-offs (`gauge_*`, `vix_corner_radius`, `timeline_*`). Prefer an existing semantic-role dimen over inventing a new one-off.
-- `PulseStatusColors` (`ui/theme/Color.kt`) is the canonical status color source — an `object` of `@Composable get()` `Color` properties branching on `isSystemInDarkTheme()`: `BullishText/BearishText/NeutralText/WarningText` (text/icon tier) and `BullishBg/BearishBg/NeutralBg/WarningBg` (card-background tier, alpha-blended in dark mode). Consumed directly in ~13 files, or indirectly via `utils/extensions/ColorExtension.kt`'s `SignalColor.toColor()` / `SignalColor.toBgColor()` extensions, which map the domain enum `SignalColor.GREEN/YELLOW/RED/UNKNOWN` onto it. **When a domain model carries a `SignalColor`, use the extension function — don't hand-roll a new `when` branching on the enum.**
+The Android side has invisible dependencies on backend field/flag names:
+- **Sync flag names** in `SyncManager` must match `updateSyncRegistry` calls in the backend engines. Renaming one is a two-repo change.
+- **Direct Firestore reads** (`market_overview`, historically `market_stocks`) rely on `@get:PropertyName`/`@set:PropertyName` matching backend field names. Silent break if either side changes alone.
+- **Retrofit response shapes** must match backend Express route bodies. Fails loud (deserialization error), but still coordinated.
 
-## Rules to hold new code to
+Backend equivalents are documented in `Notion 10 — Architecture` and the backend `CLAUDE.md`.
 
-1. Match the 3-tier split (`core` interface+impl / `network` DTO+remote-source / `storage` domain-model+mapper+local-source) for any domain that needs offline caching or a live Firestore stream. For a one-shot, non-cached read (like `stocks`), a lighter 2-file `core/<domain>` repository talking straight to `FirebaseFirestore` is acceptable and already precedented — don't force the full 5-layer scaffold where nothing needs caching.
-2. Bind everything with `@Provides` in an `object` module — never introduce `@Binds` into this codebase, it'd be inconsistent with all 9 existing modules.
-3. New UiState → flat `data class`, not sealed, unless the screen has genuinely distinct render paths.
-4. New screens → Route/Screen split, `@Preview` on every composable, `stringResource()`/`dimensionResource()` for all UI text/dims, `SignalColor.toColor()`/`toBgColor()` for status coloring.
+## Strict rules
+
+1. **Initialize as `null`, not arbitrary defaults.** Only add a default where it's genuinely necessary, and flag it before doing so.
+2. **`@Preview` on every composable.** No exceptions. Use inline mock data. The gap in `InsightsScreen`, `IndicatorsScreen`, `NewsScreen`, `SummaryScreen`, and every `*Route.kt` is legacy debt — don't extend it.
+3. **No hardcoded strings or dimensions in Compose files.** Always `stringResource()` / `dimensionResource()`. `DashboardScreen.kt` has a hardcoded `"Sector Rotation"` and raw `dp` literals — don't propagate those into new code.
+4. **Comment thoroughly. Preserve existing comments** unless verifiably obsolete.
+5. **Explain before you code.** For every non-trivial change, start with a short paragraph on your approach and the choices you're making. Keep reasoning in prose, not comments.
+6. **Localized changes only.** Do not refactor, reformat, or "clean up" outside the requested change. If you see something wrong, flag it — don't silently fix it.
+7. **Ask before assuming.** Ambiguous requirement, missing color token, unclear data model, unfamiliar acronym — stop and ask.
+
+## Known gaps (don't propagate)
+
+Current state — none of these are the convention to follow. Fix opportunistically when the file is being touched for another reason; do not schedule cleanup work around them without an ADR.
+
+- **`@Preview` coverage is incomplete.** Only `DashboardScreen.kt`, `MarketPostureView.kt`, and `WeeklyPlaybookView.kt` have any previews, and even those are partial. Rule stands for new code regardless.
+- **Hardcoded strings/dims in `DashboardScreen.kt`.** `"Sector Rotation"` and raw `dp` literals bypass the resource system.
+- **`DatabaseModule` missing `@Singleton` on two DAO providers.** `provideMarketSummaryDao` and `provideMarketPostureDao` — every other DAO provider has it. Cosmetic if you're not touching that module.
+- **`NewsModule` / `MarketRiskModule` parameter naming.** Both name their repository impl parameter `marketSummaryRepositoryImpl` — copy-paste leftover from `SummaryModule`. Also cosmetic.
+- **`DashboardApi.kt` is dead code.** Dashboard uses direct Firestore SDK, not REST. Do not "wire it up."
+
+## Recent decisions (last 5)
+
+_No ADRs logged yet — see Notion 50 — Decisions once populated._
