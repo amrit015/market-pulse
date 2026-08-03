@@ -6,6 +6,7 @@ import com.google.firebase.firestore.ListenerRegistration
 import com.marketlabs.pulse.core.indicators.IndicatorsRepository
 import com.marketlabs.pulse.core.marketRisk.MarketRiskRepository
 import com.marketlabs.pulse.core.news.NewsRepository
+import com.marketlabs.pulse.core.posture.MarketPostureRepository
 import com.marketlabs.pulse.core.summary.SummaryRepository
 import com.marketlabs.pulse.core.weeklyPlaybook.WeeklyPlaybookRepository
 import kotlinx.coroutines.CoroutineScope
@@ -21,7 +22,8 @@ class SyncManager @Inject constructor(
     private val indicatorsRepository: IndicatorsRepository,
     private val newsRepository: NewsRepository,
     private val marketRiskRepository: MarketRiskRepository,
-    private val summaryRepository: SummaryRepository
+    private val summaryRepository: SummaryRepository,
+    private val postureRepository: MarketPostureRepository
 ) {
     private var listenerRegistration: ListenerRegistration? = null
     private val scope = CoroutineScope(Dispatchers.IO)
@@ -56,17 +58,18 @@ class SyncManager @Inject constructor(
                         }
 
                         // ==========================================
-                        // 2. INDICATORS (THREE PILLARS) SYNC
+                        // 2. INDICATORS (FOUR PILLARS + AI) SYNC
                         // ==========================================
-                        val newVitalsTime = snapshot.getLong("macro_vitals_updated") ?: 0L
-                        val newActionTime = snapshot.getLong("market_action_updated") ?: 0L
-                        val newPhaseTime = snapshot.getLong("market_phase_updated") ?: 0L
+                        // 💡 FIX: Updated to listen for the new Monolithic Engine & AI Synthesis
+                        val masterIngestionTime = snapshot.getLong("master_ingestion_updated") ?: 0L
+                        val aiSynthesisTime = snapshot.getLong("indicator_synthesis_updated") ?: 0L
 
-                        val maxIndicatorTime = maxOf(newVitalsTime, newActionTime, newPhaseTime)
+                        // Take the latest of either the raw math ingestion or the AI Synthesis
+                        val maxIndicatorTime = maxOf(masterIngestionTime, aiSynthesisTime)
                         val localIndicatorTime = indicatorsRepository.getLastSyncedTimestamp() ?: 0L
 
                         if (maxIndicatorTime > localIndicatorTime) {
-                            Log.d("SyncManager", "New Indicator Pillars detected! Fetching...")
+                            Log.d("SyncManager", "New Indicators or AI Synthesis detected! Fetching...")
                             indicatorsRepository.refreshIndicators(force = true)
                             indicatorsRepository.updateLastSyncedTimestamp(maxIndicatorTime)
                         }
@@ -105,6 +108,18 @@ class SyncManager @Inject constructor(
                             Log.d("SyncManager", "New AI Market Pulse detected! Fetching...")
                             summaryRepository.refreshMarketSummary(force = true)
                             summaryRepository.updateLastSyncedTimestamp(newPulseTime)
+                        }
+
+                        // ==========================================
+                        // 6. MARKET POSTURE SYNC (NEW)
+                        // ==========================================
+                        val newPostureTime = snapshot.getLong("market_posture_updated") ?: 0L
+                        val localPostureTime = postureRepository.getLastSyncedTimestamp() ?: 0L
+
+                        if (newPostureTime > localPostureTime) {
+                            Log.d("SyncManager", "New Market Posture detected! Fetching...")
+                            postureRepository.refreshPosture(force = true)
+                            postureRepository.updateLastSyncedTimestamp(newPostureTime)
                         }
                     }
                 }

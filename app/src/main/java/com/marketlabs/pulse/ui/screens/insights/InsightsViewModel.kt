@@ -3,6 +3,7 @@ package com.marketlabs.pulse.ui.screens.insights
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.marketlabs.pulse.core.marketRisk.MarketRiskRepository
+import com.marketlabs.pulse.core.posture.MarketPostureRepository
 import com.marketlabs.pulse.core.sync.SyncManager
 import com.marketlabs.pulse.core.weeklyPlaybook.WeeklyPlaybookRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,22 +21,26 @@ import javax.inject.Inject
 class InsightsViewModel @Inject constructor(
     private val riskRepository: MarketRiskRepository,
     private val playbookRepository: WeeklyPlaybookRepository,
+    private val postureRepository: MarketPostureRepository,
     private val syncManager: SyncManager
 ) : ViewModel() {
 
     private val _isLoading = MutableStateFlow(false)
     private val _errorMessage = MutableStateFlow<String?>(null)
 
+    // 💡 Update combine to handle the 5 streams
     val uiState: StateFlow<InsightsUiState> = combine(
         riskRepository.getTailRisksStream(),
         playbookRepository.getPlaybookStream(),
+        postureRepository.getPostureStream(), // 💡 NEW stream
         _isLoading,
         _errorMessage
-    ) { tailRisksData, playbookData, loading, error ->
+    ) { tailRisksData, playbookData, postureData, loading, error ->
         InsightsUiState(
             isLoading = loading,
             weeklyPlaybook = playbookData,
             tailRisks = tailRisksData,
+            marketPosture = postureData, // 💡 NEW data mapping
             errorMessage = error
         )
     }.stateIn(
@@ -57,11 +62,16 @@ class InsightsViewModel @Inject constructor(
             _isLoading.update { true }
             _errorMessage.update { null }
 
-            // Fetch both concurrently
+            // Fetch all concurrently
             val tailRisksDeferred = async { riskRepository.refreshTailRisks(force) }
             val playbookDeferred = async { playbookRepository.refreshPlaybook(force) }
+            val postureDeferred = async { postureRepository.refreshPosture(force) }
 
-            val results = listOf(tailRisksDeferred.await(), playbookDeferred.await())
+            val results = listOf(
+                tailRisksDeferred.await(),
+                playbookDeferred.await(),
+                postureDeferred.await()
+            )
 
             val firstError = results.firstOrNull { it.isFailure }?.exceptionOrNull()
             if (firstError != null) {

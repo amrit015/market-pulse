@@ -196,7 +196,7 @@ object DatabaseMigrations {
         }
     }
 
-    // 💡 NEW: Migration from Version 9 to Version 10 for the "Four Pillars + AI" Monolithic Engine
+    // Migration from Version 9 to Version 10 for the "Four Pillars + AI" Monolithic Engine
     val MIGRATION_9_10 = object : Migration(9, 10) {
         override fun migrate(db: SupportSQLiteDatabase) {
             // 1. Create the new schema supporting all 5 data pillars
@@ -230,9 +230,38 @@ object DatabaseMigrations {
         }
     }
 
+    // 💡 NEW: Migration from Version 10 to 11 for Institutional Market Posture
+    val MIGRATION_10_11 = object : Migration(10, 11) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `market_posture` (
+                    `id` TEXT NOT NULL, 
+                    `naaimValue` REAL, 
+                    `naaimStatus` TEXT, 
+                    `naaimDescription` TEXT, 
+                    `dixValue` REAL, 
+                    `dixDate` TEXT, 
+                    `dixStatus` TEXT, 
+                    `dixDescription` TEXT, 
+                    `netLiqValue` REAL, 
+                    `netLiqStatus` TEXT,
+                    `netLiqAssetsT` REAL, 
+                    `netLiqTgaT` REAL, 
+                    `netLiqRrpT` REAL, 
+                    `netLiqDate` TEXT, 
+                    `netLiqDescription` TEXT, 
+                    `timestamp` INTEGER, 
+                    PRIMARY KEY(`id`)
+                )
+                """.trimIndent()
+            )
+        }
+    }
+
     val ALL_MIGRATIONS = arrayOf(
         MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5,
         MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9,
-        MIGRATION_9_10 // Added to registry
+        MIGRATION_9_10, MIGRATION_10_11 // 💡 Added to registry
     )
 }
