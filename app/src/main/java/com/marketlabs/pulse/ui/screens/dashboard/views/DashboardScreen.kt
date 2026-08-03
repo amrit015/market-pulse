@@ -136,14 +136,6 @@ fun DashboardScreen(
                     modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.padding_medium))
                 )
 
-                SentimentConsensusBadge(
-                    sentimentAssets = sentimentAssets,
-                    onClick = { currentRegimeText ->
-                        selectedRegimeForGlossary = currentRegimeText
-                    }
-                )
-                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
-
                 val vixAsset = sentimentAssets.find { it?.symbol == "^VIX" }
                 if (vixAsset != null) {
                     VixFullWidthCard(asset = vixAsset, onClick = { selectedAsset = vixAsset })

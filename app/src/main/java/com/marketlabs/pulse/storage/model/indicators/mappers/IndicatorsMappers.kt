@@ -15,6 +15,7 @@ import com.marketlabs.pulse.storage.model.indicators.DomainPillarGlances
 import com.marketlabs.pulse.storage.model.indicators.DomainUnifiedMetric
 import com.marketlabs.pulse.storage.model.indicators.MarketIndicators
 import com.marketlabs.pulse.utils.enums.SignalColor
+import com.marketlabs.pulse.utils.enums.SubcategoryEnums
 
 // ==========================================
 // 🌐 NETWORK TO DOMAIN: AI SYNTHESIS
@@ -25,14 +26,14 @@ fun NetworkAiSynthesis.toDomain(): DomainAiSynthesis? {
         timestamp = timestamp ?: 0L,
         overarchingCondition = syncData.overarchingCondition ?: "",
         whatChanged = syncData.whatChanged ?: "",
-        pillarGlances = syncData.pillarGlances?.toDomain(), // 💡 NEW
+        pillarGlances = syncData.pillarGlances?.toDomain(),
         shortTerm = syncData.shortTerm?.toDomain(),
         mediumTerm = syncData.mediumTerm?.toDomain(),
         longTerm = syncData.longTerm?.toDomain()
     )
 }
 
-fun NetworkPillarGlances.toDomain(): DomainPillarGlances { // 💡 NEW
+fun NetworkPillarGlances.toDomain(): DomainPillarGlances {
     return DomainPillarGlances(
         tactical = tactical ?: "",
         systemicRisk = systemicRisk ?: "",
@@ -77,12 +78,16 @@ fun NetworkUnifiedMetric.toDomain(): DomainUnifiedMetric {
         id = id ?: "",
         name = name ?: "Unknown",
         category = category ?: "General",
+        subcategory = SubcategoryEnums.fromString(subcategory),
         valueRaw = valueRaw,
         valueDisplay = valueDisplay,
+        previousValueRaw = previousValueRaw,
+        previousValueDisplay = previousValueDisplay,
         changeRaw = changeRaw,
         changeDisplay = changeDisplay,
         signalText = signalText,
-        signalColor = SignalColor.fromString(signalColor)
+        signalColor = SignalColor.fromString(signalColor),
+        releaseDate = releaseDate
     )
 }
 

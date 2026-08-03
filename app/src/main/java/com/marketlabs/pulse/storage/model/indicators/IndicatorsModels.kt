@@ -1,6 +1,7 @@
 package com.marketlabs.pulse.storage.model.indicators
 
 import com.marketlabs.pulse.utils.enums.SignalColor
+import com.marketlabs.pulse.utils.enums.SubcategoryEnums
 
 // ============================================================================
 // THE MASTER DOMAIN OBJECT
@@ -23,13 +24,13 @@ data class DomainAiSynthesis(
     val timestamp: Long,
     val overarchingCondition: String,
     val whatChanged: String,
-    val pillarGlances: DomainPillarGlances?, // 💡 NEW
+    val pillarGlances: DomainPillarGlances?,
     val shortTerm: DomainHorizon?,
     val mediumTerm: DomainHorizon?,
     val longTerm: DomainHorizon?
 )
 
-data class DomainPillarGlances( // 💡 NEW
+data class DomainPillarGlances(
     val tactical: String,
     val systemicRisk: String,
     val valuation: String,
@@ -65,10 +66,14 @@ data class DomainUnifiedMetric(
     val id: String,
     val name: String,
     val category: String,
+    val subcategory: SubcategoryEnums?,
     val valueRaw: Double?,
     val valueDisplay: String?,
+    val previousValueRaw: Double?,
+    val previousValueDisplay: String?,
     val changeRaw: Double?,
     val changeDisplay: String?,
     val signalText: String?,
-    val signalColor: SignalColor
+    val signalColor: SignalColor,
+    val releaseDate: String?
 )

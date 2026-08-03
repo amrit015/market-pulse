@@ -38,7 +38,7 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 
 // ==========================================
-// 🧩 UNIFIED UI COMPONENTS (Put in IndicatorsScreen.kt)
+// 🧩 UNIFIED UI COMPONENTS
 // ==========================================
 
 @Composable
@@ -50,7 +50,7 @@ fun ContextHeaderCard(guide: PillarGuide) {
         shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { expanded = !expanded } // 💡 Collapsible toggle
+            .clickable { expanded = !expanded }
     ) {
         Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)).animateContentSize()) {
             Row(
@@ -96,12 +96,12 @@ fun UniversalMetricCard(
     changeString: String? = null,
     signalText: String? = null,
     signalColor: SignalColor? = null,
-    dateString: String? = null, // 💡 Renamed to be more generic since it will now hold the Released Date
+    dateString: String? = null,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    val bgColor = signalColor.toBgColor()
-    val baseColor = signalColor.toColor()
+    val bgColor = signalColor?.toBgColor() ?: MaterialTheme.colorScheme.surfaceVariant
+    val baseColor = signalColor?.toColor() ?: MaterialTheme.colorScheme.primary
     val notAvail = stringResource(id = R.string.not_available_short)
 
     Card(
@@ -112,7 +112,7 @@ fun UniversalMetricCard(
         Column(
             modifier = Modifier
                 .padding(dimensionResource(id = R.dimen.padding_large))
-                .fillMaxHeight() // 💡 Fills the height dictated by the Row
+                .fillMaxHeight()
         ) {
             // Header Row (Title + Chevron)
             Row(
@@ -124,7 +124,7 @@ fun UniversalMetricCard(
                     text = title,
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2, // 💡 Will only take 1 line unless it forces a wrap
+                    maxLines = 2,
                     modifier = Modifier.weight(1f)
                 )
                 Icon(
@@ -154,7 +154,7 @@ fun UniversalMetricCard(
                 }
             }
 
-            // 💡 NEW: This empty weighted spacer pushes everything below it to the absolute bottom of the card!
+            // Pushes bottom elements down
             Spacer(modifier = Modifier.weight(1f))
 
             // Optional Signal Badge
@@ -173,7 +173,7 @@ fun UniversalMetricCard(
                 }
             }
 
-            // 💡 MOVED: The Date is now anchored to the bottom of the card
+            // 💡 NEW: Safely parses and displays the Release Date
             if (!dateString.isNullOrBlank()) {
                 val formattedDate = try {
                     val parsed = SimpleDateFormat("yyyy-MM-dd", Locale.US).parse(dateString)
@@ -184,9 +184,7 @@ fun UniversalMetricCard(
 
                 Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
                 Text(
-                    // 💡 Update: Changed from "As of" to "Released".
-                    // Consider moving this string interpolation to your strings.xml when you have time!
-                    text = stringResource(id = R.string.released_date, formattedDate),
+                    text = "Released: $formattedDate",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                 )
