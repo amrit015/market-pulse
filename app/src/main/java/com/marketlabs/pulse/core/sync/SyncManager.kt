@@ -127,21 +127,21 @@ class SyncManager @Inject constructor(
                         }
 
                         // ==========================================
-                        // 7. STOCK ANALYSIS SYNC
+                        // 7. STOCK ANALYSIS SYNC (previews only — detail is fetched on demand)
                         // ==========================================
-                        // The backend writes two independent flags for this domain — one from the
-                        // EOD deep-analysis run, one from the after-hours run — so we take whichever
-                        // fired most recently, same approach used above for the Playbook's Sunday
-                        // generation vs. mid-week actuals update.
-                        val newStockAnalysisEodTime = snapshot.getLong("stock_analysis_eod") ?: 0L
-                        val newStockAnalysisAfterHoursTime = snapshot.getLong("stock_analysis_after_hours") ?: 0L
-                        val maxStockAnalysisTime = maxOf(newStockAnalysisEodTime, newStockAnalysisAfterHoursTime)
-                        val localStockAnalysisTime = stockAnalysisRepository.getLastSyncedTimestamp() ?: 0L
+                        // 💡 Updated with Claude Code assistance: the backend no longer writes
+                        // stock_analysis_eod/stock_analysis_after_hours at all — both were replaced
+                        // by a single stocks_updated flag, fired once per run by the stock-analysis
+                        // hub's completion check rather than by every individual worker. Detail
+                        // documents aren't covered by any sync flag; they're fetched fresh whenever
+                        // a symbol is opened (see StockAnalysisRepository.refreshDetail).
+                        val newStocksTime = snapshot.getLong("stocks_updated") ?: 0L
+                        val localStocksTime = stockAnalysisRepository.getLastSyncedTimestamp() ?: 0L
 
-                        if (maxStockAnalysisTime > localStockAnalysisTime) {
+                        if (newStocksTime > localStocksTime) {
                             Log.d("SyncManager", "New Stock Analysis detected! Fetching...")
-                            stockAnalysisRepository.refreshTrackedStocks(force = true)
-                            stockAnalysisRepository.updateLastSyncedTimestamp(maxStockAnalysisTime)
+                            stockAnalysisRepository.refreshPreviews(force = true)
+                            stockAnalysisRepository.updateLastSyncedTimestamp(newStocksTime)
                         }
                     }
                 }

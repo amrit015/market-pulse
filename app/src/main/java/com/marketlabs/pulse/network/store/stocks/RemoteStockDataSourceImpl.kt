@@ -4,71 +4,48 @@ package com.marketlabs.pulse.network.store.stocks
 
 import android.util.Log
 import com.marketlabs.pulse.network.api.StocksApi
-import com.marketlabs.pulse.storage.model.stocks.StockAnalysis
+import com.marketlabs.pulse.storage.model.stocks.StockDetail
+import com.marketlabs.pulse.storage.model.stocks.StockPreview
 import com.marketlabs.pulse.storage.model.stocks.mappers.toDomain
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
-import retrofit2.HttpException
 import javax.inject.Inject
 
 /**
  * 💡 THOUGHT PROCESS:
- * The backend now exposes real HTTP endpoints for this domain (`/stocks/tracked`,
- * `/stocks/{symbol}` in `marketPulse.ts`), so this mirrors `RemoteIndicatorsDataSourceImpl`'s
- * Retrofit-backed shape instead of reading Firestore directly off the client — same as every
- * other domain that has a dedicated backend endpoint.
- *
- * `/stocks/{symbol}` 404s for a tracked-but-never-analyzed symbol; we treat that the same way a
- * missing Firestore document was treated before — just omit that symbol from the result rather
- * than failing the whole batch. Any other HTTP failure still propagates and fails the batch.
+ * `getStockPreviews()` replaces the old tracked-symbols-then-N-fetches dance with a single call to
+ * `GET /stocks/previews` — the backend's own comment on that route says this exists specifically
+ * to replace that N+1 pattern. `getStockDetail(symbol)` is fetched on demand, one symbol at a
+ * time, when the (future) UI opens a symbol — not batched, since the detail payload is ~6x the
+ * size of a preview and there's no reason to pull all of them upfront.
  */
 class RemoteStockDataSourceImpl @Inject constructor(
     private val api: StocksApi
 ) : RemoteStockDataSource {
 
-    override suspend fun getTrackedSymbols(): Result<List<String>> {
+    override suspend fun getStockPreviews(): Result<List<StockPreview>> {
         return try {
-            val response = api.getTrackedSymbols()
-
-            // Mirrors the backend's own fallback in fetchTrackedStocks() so the app never shows an
-            // empty stocks screen just because stock_config/master hasn't been provisioned yet.
-            Result.success(response.activeSymbols ?: DEFAULT_TRACKED_SYMBOLS)
-        } catch (e: Exception) {
-            Log.e("StockAnalysis", "Failed to fetch tracked symbols", e)
-            Result.failure(e)
-        }
-    }
-
-    override suspend fun getStockAnalysis(symbols: List<String>): Result<List<StockAnalysis>> {
-        return try {
-            // Stamp every symbol fetched in this batch with the same sync time, same as
-            // RemoteIndicatorsDataSourceImpl does for its five concurrently-fetched pillars.
             val syncTimestamp = System.currentTimeMillis()
+            val response = api.getStockPreviews()
 
-            // Fetch every symbol's analysis concurrently instead of sequentially awaiting each one —
-            // with 7+ tracked symbols, sequential round-trips would add up to a noticeably slower load.
-            val domainStocks = coroutineScope {
-                symbols.map { symbol ->
-                    async {
-                        try {
-                            api.getStockAnalysis(symbol).toDomain(symbol = symbol, lastSyncedTimestamp = syncTimestamp)
-                        } catch (e: HttpException) {
-                            if (e.code() == 404) null else throw e
-                        }
-                    }
-                }.awaitAll()
-            }.filterNotNull() // Symbols with no analysis yet (never analyzed) are simply dropped.
+            val previews = response.previews
+                .orEmpty()
+                .mapNotNull { it.toDomain(lastSyncedTimestamp = syncTimestamp) }
 
-            Result.success(domainStocks)
+            Result.success(previews)
         } catch (e: Exception) {
-            Log.e("StockAnalysis", "Failed to fetch stock analysis documents", e)
+            Log.e("StockAnalysis", "Failed to fetch stock previews", e)
             Result.failure(e)
         }
     }
 
-    companion object {
-        // Kept in sync with the backend's hardcoded fallback in stockAnalysisEngine.ts / marketPulse.ts.
-        private val DEFAULT_TRACKED_SYMBOLS = listOf("AAPL", "MSFT", "GOOGL", "AMZN", "META", "TSLA", "NVDA")
+    override suspend fun getStockDetail(symbol: String): Result<StockDetail> {
+        return try {
+            val syncTimestamp = System.currentTimeMillis()
+            val detail = api.getStockDetail(symbol).toDomain(symbol = symbol, lastSyncedTimestamp = syncTimestamp)
+
+            Result.success(detail)
+        } catch (e: Exception) {
+            Log.e("StockAnalysis", "Failed to fetch stock detail for $symbol", e)
+            Result.failure(e)
+        }
     }
 }

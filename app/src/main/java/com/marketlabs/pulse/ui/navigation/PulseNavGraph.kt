@@ -1,8 +1,11 @@
 package com.marketlabs.pulse.ui.navigation
 
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -16,9 +19,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -32,7 +37,6 @@ import com.marketlabs.pulse.ui.screens.dashboard.views.DashboardRoute
 import com.marketlabs.pulse.ui.screens.indicators.views.IndicatorsRoute
 import com.marketlabs.pulse.ui.screens.insights.views.InsightsRoute
 import com.marketlabs.pulse.ui.screens.news.views.NewsRoute
-import com.marketlabs.pulse.ui.screens.stocks.views.StockAnalysisRoute
 import com.marketlabs.pulse.ui.screens.summary.views.MarketSummaryRoute
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -73,6 +77,28 @@ sealed class BottomNavItem(val route: String, val label: String, val unselectedI
     // exists for this icon, so it's reused for both states — same as `Summary` above.
     internal object Analysis :
         BottomNavItem(PulseRoutes.MARKET_ANALYSIS, "Analysis", R.drawable.ic_engine_quant, R.drawable.ic_engine_quant)
+}
+
+/**
+ * 💡 Added with Claude Code assistance: temporary stand-in for the Analysis tab while its views
+ * are rebuilt against the revamped stocks domain layer (core/stocks, storage/model/stocks) —
+ * the old StockAnalysisRoute/Screen/ViewModel were deleted, not patched, since they were written
+ * against a network shape the backend no longer serves.
+ */
+@Composable
+private fun StockAnalysisPlaceholder(scaffoldPadding: PaddingValues) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(scaffoldPadding),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = stringResource(R.string.market_analysis_placeholder_message),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
 }
 
 @Composable
@@ -177,10 +203,13 @@ fun PulseNavGraph() {
             composable(PulseRoutes.MARKET_INSIGHTS) {
                 InsightsRoute(scaffoldPadding = innerPadding)
             }
-            // Added with Claude Code assistance: replaces the News tab on the bottom bar — the
-            // Mag7 stock analysis widget, now a full tab instead of a Dashboard-embedded section.
+            // 💡 Updated with Claude Code assistance: the stocks domain layer was rebuilt against
+            // the backend's new preview/detail split (see core/stocks, storage/model/stocks) and
+            // its old views were deleted wholesale rather than patched — StockAnalysisRoute and
+            // friends no longer exist. This placeholder keeps the Analysis tab compiling and
+            // navigable until the screen is rebuilt against the new domain layer.
             composable(PulseRoutes.MARKET_ANALYSIS) {
-                StockAnalysisRoute(scaffoldPadding = innerPadding)
+                StockAnalysisPlaceholder(scaffoldPadding = innerPadding)
             }
             // Added with Claude Code assistance: pushed only from the Dashboard's "Latest News"
             // chevron or a specific preview card — no longer part of the bottom bar.

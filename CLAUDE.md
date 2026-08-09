@@ -102,6 +102,7 @@ The Android side has invisible dependencies on backend field/flag names:
 - **Sync flag names** in `SyncManager` must match `updateSyncRegistry` calls in the backend engines. Renaming one is a two-repo change.
 - **Direct Firestore reads** (`market_overview`, historically `market_stocks`) rely on `@get:PropertyName`/`@set:PropertyName` matching backend field names. Silent break if either side changes alone.
 - **Retrofit response shapes** must match backend Express route bodies. Fails loud (deserialization error), but still coordinated.
+- **`last_updated` vs `timestamp` on backend responses.** Several backend domains — the stocks domain (`/stocks/previews`, `/stocks/{symbol}/detail`) confirmed so far — include both a `last_updated` string (pre-formatted for human/Firestore-console readability, e.g. `"August 7, 2026 at 6:15:44 PM UTC-7"`) and a `timestamp` (epoch millis) in the same response. The app only ever consumes `timestamp` for "as of" display; `last_updated` is intentionally left unmodeled in the `Network*` DTOs (see the doc comments on `NetworkStockPreview`/`NetworkStockDetail`). Don't add `last_updated` back in — and check for this same pair before modeling a new backend response.
 
 Backend equivalents are documented in `Notion 10 — Architecture` and the backend `CLAUDE.md`.
 

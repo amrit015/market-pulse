@@ -17,13 +17,19 @@ import javax.inject.Inject
 
 /**
  * 💡 THOUGHT PROCESS:
- * Backs the "Analysis" bottom-nav tab. This used to be split across `DashboardViewModel` (chip
- * selection state) and a nav-arg-driven `StockAnalysisViewModel` (pushed detail screen reached by
- * tapping a chip on the Dashboard) — now that the whole feature is its own top-level tab instead
- * of a Dashboard widget, both halves live here together: the tracked-symbol chip row AND the
- * selected symbol's analysis, mirroring `DashboardViewModel`'s `uiState` shape (Room-cached stream
- * + `_isLoading`/`_isRefreshing`/`_errorMessage` combined into one `StateFlow`) but scoped to this
- * tab's own selection instead of nav args.
+ * Drives the Analysis tab — the preview half of the stocks domain only. Unlike the old
+ * `StockAnalysisViewModel` (which also held chip-selection state and rendered detail inline in
+ * the same screen), detail is now its own pushed screen with its own `StockDetailViewModel`
+ * (SavedStateHandle-driven by symbol), so this ViewModel carries no selection state at all — the
+ * future Route navigates on tap via a plain lambda, the same way every other pushed destination in
+ * this app works (`NewsRoute.onNavigateToWebView`, etc.). "Which symbol is selected" simply isn't
+ * this screen's state anymore.
+ *
+ * Previews ARE sync-flag-driven (`stocks_updated`), so this follows the standard
+ * repository+SyncManager / combine+stateIn / onStart+onStop shape every other tab ViewModel uses
+ * (`IndicatorsViewModel`, `DashboardViewModel`). `onStart()` also self-triggers a `force = false`
+ * fetch as a first-paint pre-warm — `DashboardViewModel` does the same; `SyncManager`'s snapshot
+ * listener handles ongoing freshness after that.
  */
 @HiltViewModel
 class StockAnalysisViewModel @Inject constructor(
@@ -31,25 +37,19 @@ class StockAnalysisViewModel @Inject constructor(
     private val syncManager: SyncManager
 ) : ViewModel() {
 
-    private val _selectedSymbol = MutableStateFlow<String?>(null)
     private val _isLoading = MutableStateFlow(false)
     private val _isRefreshing = MutableStateFlow(false)
     private val _errorMessage = MutableStateFlow<String?>(null)
 
     val uiState: StateFlow<StockAnalysisUiState> = combine(
-        repository.getTrackedStocksStream(),
-        _selectedSymbol,
-        combine(_isLoading, _isRefreshing, _errorMessage) { loading, refreshing, error ->
-            Triple(loading, refreshing, error)
-        }
-    ) { stocks, selectedSymbol, statusTriple ->
-        val (loading, refreshing, error) = statusTriple
-
+        repository.getStockPreviewsStream(),
+        _isLoading,
+        _isRefreshing,
+        _errorMessage
+    ) { previews, loading, refreshing, error ->
         StockAnalysisUiState(
-            trackedSymbols = stocks.map { it.symbol },
-            selectedSymbol = selectedSymbol,
-            analysis = stocks.find { it.symbol == selectedSymbol },
-            isLoading = loading && stocks.isEmpty(),
+            previews = previews,
+            isLoading = loading && previews.isEmpty(),
             isRefreshing = refreshing,
             errorMessage = error
         )
@@ -59,36 +59,36 @@ class StockAnalysisViewModel @Inject constructor(
         initialValue = StockAnalysisUiState(isLoading = true)
     )
 
+    /** Called by the UI when the screen becomes visible. */
     fun onStart() {
         syncManager.startListening()
-        fetchAnalysis(force = false)
+        fetchPreviews(force = false)
     }
 
+    /** Called by the UI when the app goes to the background. */
     fun onStop() {
         syncManager.stopListening()
     }
 
-    /** Called when a `Mag7SelectorRow` chip is tapped — swaps which symbol's analysis is displayed. */
-    fun selectStock(symbol: String) {
-        _selectedSymbol.value = symbol
-    }
-
+    /** Called by pull-to-refresh. */
     fun refresh() {
-        fetchAnalysis(force = true)
+        fetchPreviews(force = true)
     }
 
+    /** Clears any active error message (e.g. after a Snackbar is dismissed). */
     fun clearError() {
         _errorMessage.value = null
     }
 
-    private fun fetchAnalysis(force: Boolean) {
+    private fun fetchPreviews(force: Boolean) {
         viewModelScope.launch {
             if (force) _isRefreshing.value = true else _isLoading.value = true
             _errorMessage.value = null
 
-            val result = repository.refreshTrackedStocks(force)
+            val result = repository.refreshPreviews(force)
+
             if (result.isFailure) {
-                _errorMessage.value = result.exceptionOrNull()?.localizedMessage ?: "Failed to load stock analysis"
+                _errorMessage.value = result.exceptionOrNull()?.localizedMessage ?: "Failed to load stock previews"
             }
 
             _isLoading.value = false

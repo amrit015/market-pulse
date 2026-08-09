@@ -4,7 +4,8 @@ package com.marketlabs.pulse.core.stocks
 
 import android.util.Log
 import com.marketlabs.pulse.network.store.stocks.RemoteStockDataSource
-import com.marketlabs.pulse.storage.model.stocks.StockAnalysis
+import com.marketlabs.pulse.storage.model.stocks.StockDetail
+import com.marketlabs.pulse.storage.model.stocks.StockPreview
 import com.marketlabs.pulse.storage.store.stocks.LocalStockDataSource
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
@@ -14,46 +15,72 @@ class StockAnalysisRepositoryImpl @Inject constructor(
     private val remoteDataSource: RemoteStockDataSource
 ) : StockAnalysisRepository {
 
-    override fun getTrackedStocksStream(): Flow<List<StockAnalysis>> =
-        localDataSource.getTrackedStocksStream()
+    override fun getStockPreviewsStream(): Flow<List<StockPreview>> =
+        localDataSource.getStockPreviewsStream()
 
     /**
-     * Refreshes tracked stock analysis from the network: resolves the active symbol list, fetches
-     * each symbol's document, and caches the result to Room. Following `NewsRepositoryImpl`'s note —
-     * cache-expiration logic is intentionally absent; this is strictly driven by `SyncManager` or an
-     * explicit user pull-to-refresh.
+     * Refreshes previews from the network and caches the result to Room. Following
+     * `NewsRepositoryImpl`'s note — cache-expiration logic is intentionally absent; this is
+     * strictly driven by `SyncManager` or an explicit user pull-to-refresh. `force` is accepted
+     * for interface symmetry with every other domain's repository but there's no local
+     * short-circuit to force past — the caller (SyncManager / ViewModel `onStart()`) already
+     * decides when to call this.
      */
-    override suspend fun refreshTrackedStocks(force: Boolean): Result<Unit> {
+    override suspend fun refreshPreviews(force: Boolean): Result<Unit> {
         return try {
-            Log.d("StockAnalysis", "🌐 Fetching latest tracked stock analysis from Firebase...")
+            Log.d("StockAnalysis", "🌐 Fetching latest stock previews...")
 
-            val symbols = remoteDataSource.getTrackedSymbols().getOrElse { throw it }
-
-            remoteDataSource.getStockAnalysis(symbols)
-                .onSuccess { freshStocks ->
-                    localDataSource.saveStocks(freshStocks)
-                }.onFailure {
-                    throw it
-                }
+            remoteDataSource.getStockPreviews()
+                .onSuccess { previews -> localDataSource.savePreviews(previews) }
+                .onFailure { throw it }
 
             Result.success(Unit)
         } catch (e: Exception) {
-            Log.e("StockAnalysis", "Failed to refresh stock analysis repository", e)
+            Log.e("StockAnalysis", "Failed to refresh stock previews", e)
             Result.failure(e)
         }
     }
 
-    /**
-     * Retrieves the timestamp of the last successful sync from the local cache.
-     */
     override suspend fun getLastSyncedTimestamp(): Long? {
         return localDataSource.getLastSyncedTimestamp()
     }
 
-    /**
-     * Updates the local cache with the latest sync timestamp.
-     */
     override suspend fun updateLastSyncedTimestamp(timestamp: Long) {
         localDataSource.updateLastSyncedTimestamp(timestamp)
+    }
+
+    override fun getStockDetailStream(symbol: String): Flow<StockDetail?> =
+        localDataSource.getStockDetailStream(symbol)
+
+    /**
+     * Called when a user opens `symbol`. Skips the network entirely when the cached detail is
+     * already current for that symbol's latest preview — see the interface doc for why this is
+     * safe (a preview's `detailVersion` only advances when the backend actually regenerated the
+     * detail doc) and why it matters (this domain reads through to Firestore; an unconditional
+     * fetch on every tap would be a real, avoidable read-cost).
+     */
+    override suspend fun refreshDetail(symbol: String, force: Boolean): Result<Unit> {
+        return try {
+            if (!force) {
+                val previewVersion = localDataSource.getPreviewDetailVersion(symbol)
+                val cachedDetailVersion = localDataSource.getCachedDetailVersion(symbol)
+
+                if (previewVersion != null && cachedDetailVersion != null && previewVersion == cachedDetailVersion) {
+                    Log.d("StockAnalysis", "Detail for $symbol already current at version $cachedDetailVersion — skipping fetch.")
+                    return Result.success(Unit)
+                }
+            }
+
+            Log.d("StockAnalysis", "🌐 Fetching latest detail for $symbol...")
+
+            remoteDataSource.getStockDetail(symbol)
+                .onSuccess { detail -> localDataSource.saveDetail(detail) }
+                .onFailure { throw it }
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e("StockAnalysis", "Failed to refresh detail for $symbol", e)
+            Result.failure(e)
+        }
     }
 }

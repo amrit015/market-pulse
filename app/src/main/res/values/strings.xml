@@ -234,20 +234,8 @@
     <string name="subcategory_growth">Growth</string>
     <string name="subcategory_policy">Policy</string>
 
-    <string name="stock_executive_thesis_title">Executive Thesis</string>
-    <string name="stock_macro_transmission_label">Macro Transmission Vector</string>
-    <string name="stock_institutional_flow_label">Institutional Order Flow</string>
-    <string name="stock_battleground_title">Battleground Levels</string>
-    <string name="stock_accumulation_floor_label">Accumulation Floor</string>
-    <string name="stock_distribution_ceiling_label">Distribution Ceiling</string>
-    <string name="stock_order_book_dynamics_label">Order Book Dynamics</string>
-    <string name="stock_news_stream_title">Top News Stream</string>
-    <string name="stock_transmission_mechanism_label">Transmission Mechanism</string>
-    <string name="stock_open_article_content_description">Open article</string>
-    <string name="dashboard_section_stock_analysis">Stock Deep Study</string>
-    <string name="stock_analysis_empty_state">No deep study available yet for this symbol.</string>
-    <string name="stock_analysis_select_prompt">Select a tracked symbol above to view its deep study.</string>
     <string name="dashboard_section_news">Latest News</string>
     <string name="dashboard_news_see_all">View all news</string>
     <string name="nav_back_content_description">Back</string>
+    <string name="market_analysis_placeholder_message">Stock analysis is being rebuilt against the new backend data model.</string>
 </resources>

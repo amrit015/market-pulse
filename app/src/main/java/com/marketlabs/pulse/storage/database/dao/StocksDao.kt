@@ -6,30 +6,60 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.marketlabs.pulse.storage.database.entity.StockEntity
+import com.marketlabs.pulse.storage.database.entity.StockDetailEntity
+import com.marketlabs.pulse.storage.database.entity.StockPreviewEntity
 import kotlinx.coroutines.flow.Flow
 
+/**
+ * 💡 THOUGHT PROCESS:
+ * One Dao spanning both `market_stock_previews` and `market_stock_details` — one domain, one Dao,
+ * same convention as every other domain in this codebase, even though it now backs two tables.
+ * Sync-timestamp bookkeeping (`getLastSyncedTimestamp`/`updateLastSyncedTimestamp`) stays scoped
+ * to the previews table only: `SyncManager` drives preview refreshes off the `stocks_updated`
+ * flag, while detail is fetched on-demand per symbol and isn't part of that bookkeeping.
+ *
+ * `getPreviewDetailVersion`/`getCachedDetailVersion` are single-column reads (not full-row) so
+ * `StockAnalysisRepositoryImpl.refreshDetail` can cheaply decide whether a symbol's cached detail
+ * is still current — a preview's `detailVersion` only changes when the backend actually
+ * regenerated that symbol's detail doc, so an unchanged version means the cached detail is still
+ * correct and a Firestore read can be skipped entirely. Same "compare a version/timestamp before
+ * fetching" shape as `SyncManager`'s flag comparisons, just resolved locally per-symbol instead of
+ * against a live snapshot listener.
+ */
 @Dao
 interface StocksDao {
 
-    @Query("SELECT * FROM market_stocks ORDER BY symbol ASC")
-    fun getTrackedStocksStream(): Flow<List<StockEntity>>
+    // --- Previews ---
+
+    @Query("SELECT * FROM market_stock_previews ORDER BY symbol ASC")
+    fun getStockPreviewsStream(): Flow<List<StockPreviewEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertStocks(stocks: List<StockEntity>)
+    suspend fun insertPreviews(previews: List<StockPreviewEntity>)
 
     /**
-     * Retrieves the most recent sync timestamp across all cached symbols. Unlike the single-row
-     * domains (`IndicatorsDao`, `MarketPostureDao`), there's no one "latest" row here — every row
-     * from the same refresh batch shares the same `lastSyncedTimestamp`, so MAX() is equivalent.
+     * Every row from the same refresh batch shares the same `lastSyncedTimestamp`, so MAX() is
+     * equivalent to "the" latest sync — same reasoning as the old single-table Dao.
      */
-    @Query("SELECT MAX(lastSyncedTimestamp) FROM market_stocks")
+    @Query("SELECT MAX(lastSyncedTimestamp) FROM market_stock_previews")
     suspend fun getLastSyncedTimestamp(): Long?
 
-    /**
-     * Stamps every cached symbol with the same sync timestamp, mirroring the single-row
-     * `updateLastSyncedTimestamp` pattern used elsewhere but applied across this table's many rows.
-     */
-    @Query("UPDATE market_stocks SET lastSyncedTimestamp = :timestamp")
+    @Query("UPDATE market_stock_previews SET lastSyncedTimestamp = :timestamp")
     suspend fun updateLastSyncedTimestamp(timestamp: Long)
+
+    /** Null if this symbol has no cached preview yet. */
+    @Query("SELECT detailVersion FROM market_stock_previews WHERE symbol = :symbol")
+    suspend fun getPreviewDetailVersion(symbol: String): Long?
+
+    // --- Detail ---
+
+    @Query("SELECT * FROM market_stock_details WHERE symbol = :symbol")
+    fun getStockDetailStream(symbol: String): Flow<StockDetailEntity?>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertDetail(detail: StockDetailEntity)
+
+    /** Null if this symbol's detail has never been fetched. */
+    @Query("SELECT detailVersion FROM market_stock_details WHERE symbol = :symbol")
+    suspend fun getCachedDetailVersion(symbol: String): Long?
 }

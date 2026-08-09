@@ -24,10 +24,12 @@ import com.marketlabs.pulse.storage.database.entity.MarketPulseEntity
 import com.marketlabs.pulse.storage.database.entity.MarketRiskEntity
 import com.marketlabs.pulse.storage.database.entity.MarketStateEntity
 import com.marketlabs.pulse.storage.database.entity.NewsEntity
-import com.marketlabs.pulse.storage.database.entity.StockEntity
+import com.marketlabs.pulse.storage.database.entity.StockDetailEntity
+import com.marketlabs.pulse.storage.database.entity.StockPreviewEntity
 import com.marketlabs.pulse.storage.database.entity.WeeklyPlaybookEntity
 
-// Includes registration of the stocks (market_stocks) cache, added with Claude Code assistance.
+// Includes registration of the stocks (market_stock_previews / market_stock_details) cache,
+// added with Claude Code assistance.
 @Database(
     entities = [
         MarketPulseEntity::class,
@@ -38,9 +40,10 @@ import com.marketlabs.pulse.storage.database.entity.WeeklyPlaybookEntity
         MarketRiskEntity::class,
         WeeklyPlaybookEntity::class,
         MarketPostureEntity::class,
-        StockEntity::class
+        StockPreviewEntity::class,
+        StockDetailEntity::class
     ],
-    version = 12,
+    version = 13,
     exportSchema = true
 )
 @TypeConverters(
@@ -60,6 +63,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun weeklyPlaybookDao(): WeeklyPlaybookDao
     abstract fun marketPostureDao(): MarketPostureDao
 
-    /** DAO for the `market_stocks` table backing the stock analysis "deep study" cache. */
+    /** DAO for the `market_stock_previews` / `market_stock_details` tables backing the stock analysis cache. */
     abstract fun stocksDao(): StocksDao
 }
