@@ -110,4 +110,6 @@ dependencies {
     // Using debugImplementation ensures this is NOT included in your release APK
     debugImplementation(libs.firebase.appcheck.debug)
     implementation(libs.compose.markdown)
+    // Added for the theme-migration spec: persists the selected MarketPulseTheme preset.
+    implementation(libs.androidx.datastore.preferences)
 }
