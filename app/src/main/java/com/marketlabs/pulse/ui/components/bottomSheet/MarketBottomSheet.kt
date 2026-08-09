@@ -46,7 +46,9 @@ fun MarketGlossaryBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.background
+        // 💡 Migrated for spec-20260809-theme-migration: was colorScheme.background -- bottom
+        // sheets sit above the base background, at the "elevated" step of the surface ramp.
+        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
     ) {
         LazyColumn(
             modifier = Modifier

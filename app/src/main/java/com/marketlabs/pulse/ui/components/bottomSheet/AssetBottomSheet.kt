@@ -26,9 +26,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.dashboard.AssetOverview
-import com.marketlabs.pulse.ui.theme.PulseStatusColors.BearishText
-import com.marketlabs.pulse.ui.theme.PulseStatusColors.BullishText
-import com.marketlabs.pulse.ui.theme.PulseStatusColors.NeutralText
+import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.utils.verticalScrollbar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -50,7 +48,9 @@ fun AssetDetailBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.surface,
+        // 💡 Migrated for spec-20260809-theme-migration: bottom sheets sit above the base
+        // background, at the "elevated" step of the surface ramp.
+        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
     ) {
         val scrollState = rememberScrollState() // 💡 Add this
         Column(
@@ -241,10 +241,11 @@ fun ColoredMetricItem(
     paddingRight: Dp,
     statusForColor: String = value
 ) {
+    val pulseColors = LocalPulseColors.current
     val color = when (statusForColor.uppercase()) {
-        "BULLISH", "EXTREME GREED", "GREED", "OVERSOLD" -> BullishText
-        "BEARISH", "EXTREME FEAR", "FEAR", "OVERBOUGHT" -> BearishText
-        else -> NeutralText
+        "BULLISH", "EXTREME GREED", "GREED", "OVERSOLD" -> pulseColors.signalBullishText
+        "BEARISH", "EXTREME FEAR", "FEAR", "OVERBOUGHT" -> pulseColors.signalBearishText
+        else -> pulseColors.signalNeutralText
     }
 
     Column(modifier = Modifier.padding(end = paddingRight)) {
