@@ -20,31 +20,60 @@ import androidx.compose.ui.graphics.Color
  * - `Surface` — the shared ramp, one instance for all 5 light presets, one for all 5 dark presets.
  * - `Accent` — the one thing that actually varies per preset (5 values × 10 presets).
  */
+/**
+ * `SignalPalette`/`SurfaceRamp` back `PulseTokens.Signal`/`.Surface` below with actual data-class
+ * instances (`light`/`dark` vals of ONE shared type) rather than two separate anonymous `object`
+ * declarations. That distinction matters beyond style: `MarketPulseTheme.kt` picks between the two
+ * with `if (isDark) ... else ...`, and Kotlin can only infer a meaningful common type for that
+ * expression when both branches share a real type — two unrelated `object`s would only unify to
+ * `Any`, which has none of the properties being read off the result.
+ */
+data class SignalPalette(
+    val bullishText: Color,
+    val bearishText: Color,
+    val neutralText: Color,
+    val warningText: Color,
+    val bullishPill: Color,
+    val bearishPill: Color,
+    val neutralPill: Color,
+    val warningPill: Color
+)
+
+data class SurfaceRamp(
+    val background: Color,
+    val surface: Color,
+    val surfaceElevated: Color,
+    val onBackground: Color,
+    val onSurface: Color,
+    val onSurfaceMuted: Color,
+    val outline: Color
+)
+
 object PulseTokens {
 
     /** Layer 1 — signal tokens. LOCKED. Never restyled by any preset. */
     object Signal {
-        object Light {
-            val bullishText = Color(0xFF1B5E20)
-            val bearishText = Color(0xFFB71C1C)
-            val neutralText = Color(0xFFB36A00)
-            val warningText = Color(0xFFBF360C)
-            val bullishPill = Color(0xFFC6E4C1)
-            val bearishPill = Color(0xFFF8C8BE)
-            val neutralPill = Color(0xFFF0DEB0)
-            val warningPill = Color(0xFFF5CFB8)
-        }
+        val light = SignalPalette(
+            bullishText = Color(0xFF1B5E20),
+            bearishText = Color(0xFFB71C1C),
+            neutralText = Color(0xFFB36A00),
+            warningText = Color(0xFFBF360C),
+            bullishPill = Color(0xFFC6E4C1),
+            bearishPill = Color(0xFFF8C8BE),
+            neutralPill = Color(0xFFF0DEB0),
+            warningPill = Color(0xFFF5CFB8)
+        )
 
-        object Dark {
-            val bullishText = Color(0xFF81C784)
-            val bearishText = Color(0xFFF37B7B)
-            val neutralText = Color(0xFFFFD54F)
-            val warningText = Color(0xFFE65100)
-            val bullishPill = Color(0xFF1F4A28)
-            val bearishPill = Color(0xFF4A2222)
-            val neutralPill = Color(0xFF4A3820)
-            val warningPill = Color(0xFF4A2210)
-        }
+        val dark = SignalPalette(
+            bullishText = Color(0xFF81C784),
+            bearishText = Color(0xFFF37B7B),
+            neutralText = Color(0xFFFFD54F),
+            warningText = Color(0xFFE65100),
+            bullishPill = Color(0xFF1F4A28),
+            bearishPill = Color(0xFF4A2222),
+            neutralPill = Color(0xFF4A3820),
+            warningPill = Color(0xFF4A2210)
+        )
 
         // 💡 signal.unknown has no resolved value from Design — Session 3 owns it (data-missing
         // state, surfaces most on Indicators). Do NOT invent a hex here; MarketPulseTheme.kt
@@ -53,25 +82,25 @@ object PulseTokens {
 
     /** Layer 2 — surface ramp. Shared per mode: one instance for all 5 light presets, one for all 5 dark. */
     object Surface {
-        object Light {
-            val background = Color(0xFFF4F2ED)
-            val surface = Color(0xFFFBFAF7)
-            val surfaceElevated = Color(0xFFFFFFFF)
-            val onBackground = Color(0xFF14161B)
-            val onSurface = Color(0xFF14161B)
-            val onSurfaceMuted = Color(0xFF6B6E76)
-            val outline = Color(0xFFE4E2DC)
-        }
+        val light = SurfaceRamp(
+            background = Color(0xFFF4F2ED),
+            surface = Color(0xFFFBFAF7),
+            surfaceElevated = Color(0xFFFFFFFF),
+            onBackground = Color(0xFF14161B),
+            onSurface = Color(0xFF14161B),
+            onSurfaceMuted = Color(0xFF6B6E76),
+            outline = Color(0xFFE4E2DC)
+        )
 
-        object Dark {
-            val background = Color(0xFF0D0E12)
-            val surface = Color(0xFF17181D)
-            val surfaceElevated = Color(0xFF1F2026)
-            val onBackground = Color(0xFFF0EEF3)
-            val onSurface = Color(0xFFF0EEF3)
-            val onSurfaceMuted = Color(0xFF9A9BA3)
-            val outline = Color(0xFF2A2B31)
-        }
+        val dark = SurfaceRamp(
+            background = Color(0xFF0D0E12),
+            surface = Color(0xFF17181D),
+            surfaceElevated = Color(0xFF1F2026),
+            onBackground = Color(0xFFF0EEF3),
+            onSurface = Color(0xFFF0EEF3),
+            onSurfaceMuted = Color(0xFF9A9BA3),
+            outline = Color(0xFF2A2B31)
+        )
     }
 
     /**

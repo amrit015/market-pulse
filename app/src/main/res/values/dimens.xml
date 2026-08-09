@@ -47,6 +47,6 @@
     <dimen name="corner_radius_small">8dp</dimen>
 
     <!-- Added for spec-20260809-theme-migration: FloatingBottomNav is a deliberate exception to
-         this codebase's otherwise flat, no-shadow visual language -- see CLAUDE.md. -->
+         this codebase's otherwise flat, no shadow visual language. See CLAUDE.md. -->
     <dimen name="nav_elevation">2dp</dimen>
 </resources>

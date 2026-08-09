@@ -52,8 +52,8 @@ enum class MarketPulseTheme(val displayName: String, val isDark: Boolean) {
 
     fun toPulseColors(): PulseColors {
         val accent = accentGroup()
-        val signal = if (isDark) PulseTokens.Signal.Dark else PulseTokens.Signal.Light
-        val surface = if (isDark) PulseTokens.Surface.Dark else PulseTokens.Surface.Light
+        val signal = if (isDark) PulseTokens.Signal.dark else PulseTokens.Signal.light
+        val surface = if (isDark) PulseTokens.Surface.dark else PulseTokens.Surface.light
 
         return PulseColors(
             signalBullishText = signal.bullishText,
@@ -76,7 +76,7 @@ enum class MarketPulseTheme(val displayName: String, val isDark: Boolean) {
 
     fun toColorScheme(): ColorScheme {
         val accent = accentGroup()
-        val surface = if (isDark) PulseTokens.Surface.Dark else PulseTokens.Surface.Light
+        val surface = if (isDark) PulseTokens.Surface.dark else PulseTokens.Surface.light
 
         // 💡 error/onError/errorContainer/onErrorContainer are deliberately NOT passed below —
         // omitting them lets lightColorScheme()/darkColorScheme()'s own default parameter values
