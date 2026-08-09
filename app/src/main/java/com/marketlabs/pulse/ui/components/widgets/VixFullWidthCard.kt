@@ -27,22 +27,20 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.dashboard.AssetOverview
-import com.marketlabs.pulse.ui.theme.ColorGreen
-import com.marketlabs.pulse.ui.theme.ColorNeutral
-import com.marketlabs.pulse.ui.theme.ColorRed
-import com.marketlabs.pulse.ui.theme.PulseStatusColors
-import com.marketlabs.pulse.ui.theme.PulseStatusColors.BearishText
-import com.marketlabs.pulse.ui.theme.PulseStatusColors.BullishText
+import com.marketlabs.pulse.ui.theme.LocalPulseColors
 
 @Composable
 fun VixFullWidthCard(asset: AssetOverview, onClick: () -> Unit) {
 
-    val colorGreen  = ColorGreen
-    val colorRed = ColorRed
-    val colorNeutral = ColorNeutral
+    val pulseColors = LocalPulseColors.current
+    // 💡 Migrated for spec-20260809-theme-migration: the old flat, theme-unaware ColorGreen/Red/Neutral
+    // are deleted -- the locked signal.*.text tokens are the direct replacement for a gradient/brush use.
+    val colorGreen = pulseColors.signalBullishText
+    val colorRed = pulseColors.signalBearishText
+    val colorNeutral = pulseColors.signalNeutralText
 
-    val textBearish = BearishText
-    val textBullish = BullishText
+    val textBearish = pulseColors.signalBearishText
+    val textBullish = pulseColors.signalBullishText
 
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
     val paddingMedium = dimensionResource(id = R.dimen.padding_medium)
@@ -56,12 +54,12 @@ fun VixFullWidthCard(asset: AssetOverview, onClick: () -> Unit) {
     val needleOverhangDimen = dimensionResource(id = R.dimen.gauge_needle_overhang)
     val cornerRadiusDimen = dimensionResource(id = R.dimen.vix_corner_radius)
 
-    // 💡 NEW: Contrarian Background Coloring Logic for VIX
-    val statusBgColor = when (asset.rsiStatus?.uppercase()) {
-        "EXTREME FEAR", "FEAR", "BEARISH" -> PulseStatusColors.BullishBg // High VIX = Buy Opportunity
-        "EXTREME GREED", "GREED", "BULLISH" -> PulseStatusColors.BearishBg // Low VIX = Complacency Warning
-        else -> MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
-    }
+    // 💡 Migrated for spec-20260809-theme-migration: this card previously flipped its own
+    // background between BullishBg/BearishBg based on a "contrarian" read of the VIX status (high
+    // VIX -> bullish-tinted card, low VIX -> bearish-tinted card). Per the migration table's rule
+    // for gauges/price cards, the container is uniform and non-directional now -- direction still
+    // reads clearly from the status text color and the needle position, just not the card fill.
+    val statusBgColor = pulseColors.surfaceTinted
 
     Card(
         colors = CardDefaults.cardColors(containerColor = statusBgColor),

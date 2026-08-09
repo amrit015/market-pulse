@@ -22,12 +22,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.font.FontWeight
 import com.marketlabs.pulse.R
-import com.marketlabs.pulse.ui.theme.ColorGreen
-import com.marketlabs.pulse.ui.theme.ColorNeutral
-import com.marketlabs.pulse.ui.theme.ColorRed
-import com.marketlabs.pulse.ui.theme.PulseStatusColors.BearishText
-import com.marketlabs.pulse.ui.theme.PulseStatusColors.BullishText
-import com.marketlabs.pulse.ui.theme.PulseStatusColors.NeutralText
+import com.marketlabs.pulse.ui.theme.LocalPulseColors
 
 @Composable
 fun PutCallHorizontalBar(ratio: Double, change: Double?, status: String?) {
@@ -35,13 +30,16 @@ fun PutCallHorizontalBar(ratio: Double, change: Double?, status: String?) {
     val putPercentage = (ratio / totalOptions).toFloat()
 
     val drawLineColor = MaterialTheme.colorScheme.onSurface
-    val colorGreen = ColorGreen
-    val colorRed = ColorRed
-    val colorNeutral = ColorNeutral
+    val pulseColors = LocalPulseColors.current
+    // 💡 Migrated for spec-20260809-theme-migration: the old flat, theme-unaware ColorGreen/Red/Neutral
+    // are deleted -- the locked signal.*.text tokens are the direct replacement for a gradient/brush use.
+    val colorGreen = pulseColors.signalBullishText
+    val colorRed = pulseColors.signalBearishText
+    val colorNeutral = pulseColors.signalNeutralText
 
-    val textBearish = BearishText
-    val textBullish = BullishText
-    val textNeutral = NeutralText
+    val textBearish = pulseColors.signalBearishText
+    val textBullish = pulseColors.signalBullishText
+    val textNeutral = pulseColors.signalNeutralText
 
     // Load dimens
     val tickOverhang = dimensionResource(id = R.dimen.bar_tick_overhang)
