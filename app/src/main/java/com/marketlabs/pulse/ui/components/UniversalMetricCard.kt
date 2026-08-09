@@ -30,10 +30,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.ui.theme.LocalPulseColors
+import com.marketlabs.pulse.ui.theme.pillColor
+import com.marketlabs.pulse.ui.theme.textColor
 import com.marketlabs.pulse.utils.enums.SignalColor
 import com.marketlabs.pulse.utils.glossary.PillarGuide
-import toBgColor
-import toColor
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -61,12 +62,12 @@ fun ContextHeaderCard(guide: PillarGuide) {
                 Text(
                     text = guide.timeframe,
                     style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.primary
+                    color = LocalPulseColors.current.accentPrimary
                 )
                 Icon(
                     painter = painterResource(id = if (expanded) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down),
                     contentDescription = "Toggle Description",
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = LocalPulseColors.current.accentPrimary,
                     modifier = Modifier.size(dimensionResource(R.dimen.padding_large))
                 )
             }
@@ -100,8 +101,11 @@ fun UniversalMetricCard(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    val bgColor = signalColor?.toBgColor() ?: MaterialTheme.colorScheme.surfaceVariant
-    val baseColor = signalColor?.toColor() ?: MaterialTheme.colorScheme.primary
+    // 💡 Migrated for spec-20260809-theme-migration: price cards are uniform/non-directional now
+    // (surface.tinted, accent-washed neutral, regardless of signal) -- direction lives only in the
+    // sparkline stroke and the pill below, both keyed off signalColor.textColor/.pillColor.
+    val bgColor = LocalPulseColors.current.surfaceTinted
+    val baseColor = signalColor.textColor
     val notAvail = stringResource(id = R.string.not_available_short)
 
     Card(
@@ -130,7 +134,7 @@ fun UniversalMetricCard(
                 Icon(
                     painter = painterResource(id = R.drawable.ic_chevron_forward),
                     contentDescription = "View Details",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = LocalPulseColors.current.accentPrimary,
                     modifier = Modifier.size(dimensionResource(R.dimen.padding_large)).padding(start = dimensionResource(R.dimen.padding_small))
                 )
             }
@@ -161,7 +165,7 @@ fun UniversalMetricCard(
             if (signalText != null) {
                 Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
                 Surface(
-                    color = baseColor.copy(alpha = 0.0f),
+                    color = signalColor.pillColor,
                     shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_chip))
                 ) {
                     Text(
