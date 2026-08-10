@@ -53,12 +53,7 @@ import com.marketlabs.pulse.storage.model.summary.MarketPulse
 import com.marketlabs.pulse.storage.model.summary.NewsItem
 import com.marketlabs.pulse.storage.model.summary.Verdict
 import com.marketlabs.pulse.ui.components.bottomSheet.MarketGlossaryBottomSheet
-import com.marketlabs.pulse.ui.theme.PulseStatusColors.BearishBg
-import com.marketlabs.pulse.ui.theme.PulseStatusColors.BearishText
-import com.marketlabs.pulse.ui.theme.PulseStatusColors.BullishBg
-import com.marketlabs.pulse.ui.theme.PulseStatusColors.BullishText
-import com.marketlabs.pulse.ui.theme.PulseStatusColors.NeutralBg
-import com.marketlabs.pulse.ui.theme.PulseStatusColors.NeutralText
+import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.utils.enums.ReportType
 import com.marketlabs.pulse.utils.enums.TradingCall
 import java.text.SimpleDateFormat
@@ -503,19 +498,25 @@ fun VerdictCard(verdict: Verdict, onClick: () -> Unit) {
     val regime = verdict.regime ?: return
     val setup = verdict.setup ?: return
 
-    val (bgColor, textColor) = when (call) {
+    val pulseColors = LocalPulseColors.current
+    // 💡 Migrated for spec-20260809-theme-migration: the sector heatmap tile is explicitly called
+    // out in the Token Contract as "the ONE exception where signal owns the whole tile" -- every
+    // other directional card background, this one included, moves to the uniform surfaceTinted
+    // fill. Direction still reads clearly from the regime pill, the call headline, and the setup
+    // subtitle, all keyed off the same signal text/pill pair.
+    val (pillColor, textColor) = when (call) {
         TradingCall.CONTRARIAN_BUY,
-        TradingCall.ACCUMULATE -> Pair(BullishBg, BullishText)
+        TradingCall.ACCUMULATE -> pulseColors.signalBullishPill to pulseColors.signalBullishText
 
         TradingCall.CONTRARIAN_SELL,
         TradingCall.SELL_AVOID,
-        TradingCall.HEDGE_PROTECT -> Pair(BearishBg, BearishText)
+        TradingCall.HEDGE_PROTECT -> pulseColors.signalBearishPill to pulseColors.signalBearishText
 
-        else -> Pair(NeutralBg, NeutralText)
+        else -> pulseColors.signalNeutralPill to pulseColors.signalNeutralText
     }
 
     Card(
-        colors = CardDefaults.cardColors(containerColor = bgColor),
+        colors = CardDefaults.cardColors(containerColor = pulseColors.surfaceTinted),
         shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
         modifier = Modifier
             .fillMaxWidth()
@@ -531,7 +532,7 @@ fun VerdictCard(verdict: Verdict, onClick: () -> Unit) {
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Surface(
-                        color = textColor.copy(alpha = 0.1f),
+                        color = pillColor,
                         shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_chip))
                     ) {
                         Text(
