@@ -38,8 +38,7 @@ import androidx.compose.ui.unit.dp
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.marketRisk.MarketRiskAssessment
 import com.marketlabs.pulse.storage.model.marketRisk.MarketRiskFactor
-import com.marketlabs.pulse.ui.theme.AlertRed
-import com.marketlabs.pulse.ui.theme.PulseStatusColors
+import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.utils.enums.RiskImpactLevel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -148,19 +147,24 @@ private fun RiskAssessmentHeader(data: MarketRiskAssessment) {
 
 @Composable
 private fun TailRiskCard(risk: MarketRiskFactor) {
+    val pulseColors = LocalPulseColors.current
+
+    // 💡 Migrated for spec-20260809-theme-migration: AlertRed is deleted. EXTREME previously used
+    // a raw, non-theme-aware red distinct from HIGH's (theme-aware) BearishText -- there is no
+    // fifth "beyond bearish" token in the new signal system, so EXTREME and HIGH now collapse to
+    // the same signalBearishText/.pill pair. A real, flagged visual change: EXTREME risk cards no
+    // longer look distinctly redder than HIGH ones.
     val impactTextColor = when (risk.impactLevel) {
-        RiskImpactLevel.EXTREME -> AlertRed
-        RiskImpactLevel.HIGH -> PulseStatusColors.BearishText
-        RiskImpactLevel.MEDIUM -> PulseStatusColors.WarningText
-        RiskImpactLevel.LOW -> PulseStatusColors.BullishText
+        RiskImpactLevel.EXTREME, RiskImpactLevel.HIGH -> pulseColors.signalBearishText
+        RiskImpactLevel.MEDIUM -> pulseColors.signalWarningText
+        RiskImpactLevel.LOW -> pulseColors.signalBullishText
         else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 
     val impactBgColor = when (risk.impactLevel) {
-        RiskImpactLevel.EXTREME -> AlertRed.copy(alpha = 0.15f)
-        RiskImpactLevel.HIGH -> PulseStatusColors.BearishBg
-        RiskImpactLevel.MEDIUM -> PulseStatusColors.WarningBg
-        RiskImpactLevel.LOW -> PulseStatusColors.BullishBg
+        RiskImpactLevel.EXTREME, RiskImpactLevel.HIGH -> pulseColors.signalBearishPill
+        RiskImpactLevel.MEDIUM -> pulseColors.signalWarningPill
+        RiskImpactLevel.LOW -> pulseColors.signalBullishPill
         else -> MaterialTheme.colorScheme.surfaceVariant
     }
 
