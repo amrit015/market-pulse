@@ -499,11 +499,10 @@ fun VerdictCard(verdict: Verdict, onClick: () -> Unit) {
     val setup = verdict.setup ?: return
 
     val pulseColors = LocalPulseColors.current
-    // 💡 Migrated for spec-20260809-theme-migration: the sector heatmap tile is explicitly called
-    // out in the Token Contract as "the ONE exception where signal owns the whole tile" -- every
-    // other directional card background, this one included, moves to the uniform surfaceTinted
-    // fill. Direction still reads clearly from the regime pill, the call headline, and the setup
-    // subtitle, all keyed off the same signal text/pill pair.
+    // 💡 The sector rotation heatmap is the only place in this app where a signal color is allowed
+    // to own an entire card/tile background -- every other directional card, this one included,
+    // uses a uniform accent-neutral fill instead. Direction still reads clearly from the regime
+    // pill, the call headline, and the setup subtitle, all keyed off the same signal text/pill pair.
     val (pillColor, textColor) = when (call) {
         TradingCall.CONTRARIAN_BUY,
         TradingCall.ACCUMULATE -> pulseColors.signalBullishPill to pulseColors.signalBullishText

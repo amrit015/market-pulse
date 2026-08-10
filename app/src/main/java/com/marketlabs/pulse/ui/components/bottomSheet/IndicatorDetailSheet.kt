@@ -40,10 +40,8 @@ fun IndicatorDetailSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        // 💡 Migrated for spec-20260809-theme-migration: was colorScheme.background (a discrepancy
-        // from the migration table, which named .surface -- confirmed by reading this file before
-        // rewriting it). Bottom sheets sit above the base background either way, at the "elevated"
-        // step of the surface ramp.
+        // 💡 Was colorScheme.background. Bottom sheets sit above the base background, at the
+        // elevated step of the surface ramp, so they read as a distinct layer over the screen.
         containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
     ) {
         Column(

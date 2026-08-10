@@ -47,10 +47,10 @@ import java.util.Date
 import java.util.Locale
 
 /**
- * 💡 Added for spec-20260809-theme-migration: both NewsArticleCard and NewsPreviewCard resolve the
- * same sentiment -> (text, pill) pair -- factored out once rather than duplicated, since the
- * migration table's rule ("sentiment chip stays signal-colored on top of the accent tint") applies
- * identically to both.
+ * 💡 Both NewsArticleCard and NewsPreviewCard resolve the same sentiment -> (text, pill) pair --
+ * factored out once rather than duplicated. The sentiment chip stays signal-colored (bullish/
+ * bearish/neutral) even though the card around it wears the accent tint -- the card is curated
+ * synthesis, the chip inside it is still a real market read, and those are different things.
  */
 private fun sentimentColors(pulseColors: PulseColors, sentiment: String): Pair<androidx.compose.ui.graphics.Color, androidx.compose.ui.graphics.Color> {
     return when (sentiment) {
@@ -158,8 +158,9 @@ fun NewsArticleCard(
     val cardShape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card))
 
     Card(
-        // 💡 Migrated for spec-20260809-theme-migration: news cards are synthesis layer
-        // (curated + AI-filtered), matching the AI briefing tint per the migration table.
+        // 💡 News cards are curated + AI-filtered, not raw feed -- they wear the same accent tint
+        // as the AI briefing card so a reader can tell interpreted/curated content apart from raw
+        // market data at a glance, without reading a word.
         colors = CardDefaults.cardColors(containerColor = pulseColors.accentSurface),
         shape = cardShape,
         modifier = Modifier
@@ -351,7 +352,7 @@ fun NewsPreviewCard(
     val (sentimentColor, sentimentBgColor) = sentimentColors(pulseColors, sentiment)
 
     Card(
-        // 💡 Migrated for spec-20260809-theme-migration: matches the AI briefing tint.
+        // 💡 Matches the AI briefing card's accent tint -- see NewsArticleCard's card above.
         colors = CardDefaults.cardColors(containerColor = pulseColors.accentSurface),
         shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
         modifier = Modifier

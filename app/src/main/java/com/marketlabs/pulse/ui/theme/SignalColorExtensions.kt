@@ -8,8 +8,10 @@ import com.marketlabs.pulse.utils.enums.SignalColor
  * 💡 THOUGHT PROCESS:
  * Replaces `utils/extensions/ColorExtension.kt`'s `SignalColor.toColor()`/`.toBgColor()` — same
  * mapping target (the domain enum), new token source (`LocalPulseColors` instead of the deleted
- * `PulseStatusColors`) and new names (`.textColor`/`.pillColor`, matching the Token Contract's own
- * `signal.*.text` / `signal.*.pill` vocabulary instead of the old ambiguous "Bg" naming).
+ * `PulseStatusColors`) and new names (`.textColor`/`.pillColor`, matching the `signal.*.text` /
+ * `signal.*.pill` naming used throughout this theming system instead of the old ambiguous "Bg"
+ * suffix — a "text" color and a "pill" background read unambiguously; a "Bg" color could mean
+ * either).
  *
  * `UNKNOWN`/`null` fall back to `LocalPulseColors.current.signalUnknown` — a real color both
  * variants can share, rather than reaching into `MaterialTheme.colorScheme` for an unrelated

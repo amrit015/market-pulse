@@ -4,21 +4,25 @@ import androidx.compose.ui.graphics.Color
 
 /**
  * 💡 THOUGHT PROCESS:
- * Full rewrite for the ten-preset theme migration (spec-20260809-theme-migration.md). Replaces
- * the old flat `PulseBlue`/`PulseBlack`/`PulseGold`/`PulseOrange`/`AlertRed`/light+dark surface
- * constants/`PulseStatusColors`/`ColorGreen`/`ColorRed`/`ColorNeutral` entirely — every one of
- * those is gone, not deprecated. This file is now pure DATA: every resolved hex value from the
- * Token Contract (rev 3, Notion `40 — Design System › Token Contract`), organized so a future hex
- * change from Design is a single-file edit here. The logic that assembles these into `PulseColors`
- * / `ColorScheme` per preset lives in `MarketPulseTheme.kt`, not here.
+ * This app supports ten color presets (5 light, 5 dark), replacing the old flat single-theme
+ * palette (`PulseBlue`/`PulseBlack`/`PulseGold`/`PulseOrange`/`AlertRed`/light+dark surface
+ * constants/`PulseStatusColors`/`ColorGreen`/`ColorRed`/`ColorNeutral`) entirely — every one of
+ * those is gone, not deprecated. This file is now pure DATA: every resolved hex value the presets
+ * use, organized so a future hex change is a single-file edit here. The logic that assembles these
+ * into `PulseColors`/`ColorScheme` per preset lives in `MarketPulseTheme.kt`, not here.
  *
- * Three groups, matching the Token Contract's own layering:
- * - `Signal` — locked, identical across every preset in a given mode. Every dark preset paints
- *   the same 8 dark hexes; every light preset the same 8 light hexes. `unknown` has no resolved
- *   value from Design yet (Session 3 owns it) — placeholder-mapped to the mode's own
- *   `Surface.*.onSurfaceMuted` in `MarketPulseTheme.kt`, not invented here.
- * - `Surface` — the shared ramp, one instance for all 5 light presets, one for all 5 dark presets.
- * - `Accent` — the one thing that actually varies per preset (5 values × 10 presets).
+ * Three groups:
+ * - `Signal` — locked, identical across every preset in a given mode. Bullish/bearish/neutral/
+ *   warning meanings must stay recognizable regardless of which preset is active, so every dark
+ *   preset paints the same 8 dark hexes and every light preset the same 8 light hexes; nothing in
+ *   `Accent` is ever allowed to override them. `unknown` (the fourth signal state, for missing
+ *   data) has no resolved hex yet — placeholder-mapped to the mode's own `Surface.*.onSurfaceMuted`
+ *   in `MarketPulseTheme.kt` rather than invented here; see the `TODO` next to it below.
+ * - `Surface` — the shared ramp (background/surface/outline/etc.), one instance for all 5 light
+ *   presets, one for all 5 dark presets.
+ * - `Accent` — the one thing that actually varies per preset (5 values × 10 presets): the brand
+ *   color a preset paints itself with, kept deliberately out of the signal hues above so a themed
+ *   accent can never be mistaken for a bullish/bearish/warning read.
  */
 /**
  * `SignalPalette`/`SurfaceRamp` back `PulseTokens.Signal`/`.Surface` below with actual data-class
@@ -104,9 +108,11 @@ object PulseTokens {
     }
 
     /**
-     * Layer 2 — accent group, one per preset. `primary`/`on`/`surface`/`surfaceBorder`/`tinted`
-     * map 1:1 to the Token Contract's `accent.primary` / `accent.on` / `accent.surface` /
-     * `accent.surfaceBorder` / `surface.tinted` columns.
+     * Layer 2 — accent group, one per preset: the brand color (`primary`), the color text/icons
+     * use when sitting on top of it (`on`), a soft tint for synthesis-layer cards like AI
+     * briefings and news (`surface`) with a matching hairline border (`surfaceBorder`), and an
+     * accent-washed neutral used for price-card backgrounds regardless of bullish/bearish
+     * direction (`tinted`).
      */
     object Accent {
         object Plum {

@@ -149,11 +149,11 @@ private fun RiskAssessmentHeader(data: MarketRiskAssessment) {
 private fun TailRiskCard(risk: MarketRiskFactor) {
     val pulseColors = LocalPulseColors.current
 
-    // 💡 Migrated for spec-20260809-theme-migration: AlertRed is deleted. EXTREME previously used
-    // a raw, non-theme-aware red distinct from HIGH's (theme-aware) BearishText -- there is no
-    // fifth "beyond bearish" token in the new signal system, so EXTREME and HIGH now collapse to
-    // the same signalBearishText/.pill pair. A real, flagged visual change: EXTREME risk cards no
-    // longer look distinctly redder than HIGH ones.
+    // 💡 The old flat, non-theme-aware AlertRed constant is gone. EXTREME used to get its own raw
+    // red, kept visually distinct from HIGH's theme-aware bearish red. This app's signal system
+    // has exactly four tiers (bullish/bearish/neutral/warning) and no fifth "beyond bearish" tier,
+    // so EXTREME and HIGH now collapse to the same signalBearishText/.pill pair. A real visual
+    // change worth knowing about: EXTREME risk cards no longer look distinctly redder than HIGH ones.
     val impactTextColor = when (risk.impactLevel) {
         RiskImpactLevel.EXTREME, RiskImpactLevel.HIGH -> pulseColors.signalBearishText
         RiskImpactLevel.MEDIUM -> pulseColors.signalWarningText

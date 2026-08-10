@@ -18,22 +18,22 @@ import androidx.compose.ui.graphics.Color
  * `LocalPulseColors.current.accentPrimary`/`.accentOn` — not a second source of truth, just so
  * built-in M3 components (ripples, default `Switch`/`CircularProgressIndicator` tinting, etc.)
  * that read `colorScheme.primary` internally stay visually coherent with the accent. This app's
- * OWN composables should still read `LocalPulseColors.current.accentPrimary` directly per the
- * migration table, not `colorScheme.primary` — see `spec-20260809-theme-migration.md`.
+ * OWN composables should still read `LocalPulseColors.current.accentPrimary` directly, not
+ * `colorScheme.primary` — `LocalPulseColors` is the real source of truth for the accent; the
+ * `ColorScheme` copy exists purely for framework components that only know how to read M3 roles.
  *
- * `secondary`/`secondaryContainer` have no dedicated Token Contract entry — the spec says "both
- * modes use the standard M3 secondary mapping from the shared surface ramp" without giving exact
- * hexes. Resolved here as `secondary = onSurfaceMuted` / `secondaryContainer = surfaceElevated`
- * (ramp tokens, not invented values) since existing call sites use `secondary` for muted
- * meta-text/labels and `secondaryContainer.copy(alpha=…)` for a subtle card-background wash —
- * both read correctly against these. Flagging per the spec's own "flag in-line rather than guess"
- * instruction for exactly this kind of gap.
+ * `secondary`/`secondaryContainer` have no independently-defined hex — resolved here as
+ * `secondary = onSurfaceMuted` / `secondaryContainer = surfaceElevated` (existing ramp tokens, not
+ * new invented values) since call sites across the app already use `secondary` for muted
+ * meta-text/labels and `secondaryContainer.copy(alpha=…)` for a subtle card-background wash — both
+ * read correctly against these.
  *
  * `error`/`errorContainer`/`onError`/`onErrorContainer` are intentionally left OUT of the
- * `ColorScheme` builder calls below — neither the Token Contract nor the Design Direction defines
- * an error/danger token (the closest thing, `AlertRed`, is explicitly deleted by this migration).
- * Same "don't invent a value" principle the spec applies to `signal.unknown`: M3's own
- * `lightColorScheme()`/`darkColorScheme()` baseline default takes over for these four roles.
+ * `ColorScheme` builder calls below — there is no danger/error hex defined anywhere in this
+ * theming system (the closest thing, the old flat `AlertRed` constant, is deleted along with the
+ * rest of the single-theme palette). Rather than invent a value, M3's own
+ * `lightColorScheme()`/`darkColorScheme()` baseline default takes over for these four roles —
+ * same reasoning as leaving `signal.unknown` as an explicit placeholder rather than a guess.
  */
 enum class MarketPulseTheme(val displayName: String, val isDark: Boolean) {
     // --- Light presets ---
@@ -81,7 +81,7 @@ enum class MarketPulseTheme(val displayName: String, val isDark: Boolean) {
         // 💡 error/onError/errorContainer/onErrorContainer are deliberately NOT passed below —
         // omitting them lets lightColorScheme()/darkColorScheme()'s own default parameter values
         // (M3's baseline error palette, already correct per-mode) apply, rather than hand-picking
-        // a value neither the Token Contract nor the Design Direction defines. See file header.
+        // a value this theming system has no hex for at all. See the file header comment above.
         val scheme = if (isDark) {
             darkColorScheme(
                 primary = accent.primary,

@@ -22,14 +22,16 @@ import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 /**
  * 💡 THOUGHT PROCESS:
  * Global collapsing top bar, one instance at the top-level `Scaffold` in `MainActivity` — wordmark
- * left (`accent.primary`, per Design Direction §6: "the top-bar wordmark" is one of the things the
- * accent touches), gear right (`on.surface.muted`). `enterAlwaysScrollBehavior` (YouTube-style:
- * hides on scroll-down, returns on any scroll-up) is created by the caller and passed in, not
- * built here, since the same `TopAppBarScrollBehavior` instance also needs to be attached to the
- * scrollable content producing the scroll deltas (see `MainActivity.kt`).
+ * left in the accent color (the wordmark is one of the few places this app deliberately uses the
+ * accent as decoration, not just as an interactive-affordance color), gear right in a muted
+ * neutral. `enterAlwaysScrollBehavior` (YouTube-style: hides on scroll-down, returns on any
+ * scroll-up) is created by the caller and passed in, not built here, since the same
+ * `TopAppBarScrollBehavior` instance also needs to be attached to the scrollable content producing
+ * the scroll deltas (see `MainActivity.kt`).
  *
  * Per-screen headers (Indicators, Analysis) stay exactly as they are — this bar fully collapses on
- * scroll rather than displacing or duplicating them, per the Design Direction §9 resolution.
+ * scroll rather than displacing or duplicating them, so there's never a moment with two headers
+ * stacked on top of each other.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

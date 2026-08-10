@@ -38,8 +38,8 @@ fun SpeedometerGauge(score: Double, previousScore: Double?, status: String?) {
     val needleWidthDimen = dimensionResource(id = R.dimen.gauge_needle_width)
     val needleRadiusDimen = dimensionResource(id = R.dimen.gauge_needle_radius)
 
-    // 💡 Migrated for spec-20260809-theme-migration: the old flat, theme-unaware ColorGreen/Red/Neutral
-    // are deleted -- the locked signal.*.text tokens are the direct replacement for a gradient/brush use.
+    // 💡 The old flat, theme-unaware ColorGreen/Red/Neutral constants are deleted -- the locked
+    // signal.*.text tokens are the direct replacement for a gradient/brush use like this one.
     val pulseColors = LocalPulseColors.current
     val colorGreen = pulseColors.signalBullishText
     val colorRed = pulseColors.signalBearishText

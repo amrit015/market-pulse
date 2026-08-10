@@ -31,8 +31,8 @@ fun PutCallHorizontalBar(ratio: Double, change: Double?, status: String?) {
 
     val drawLineColor = MaterialTheme.colorScheme.onSurface
     val pulseColors = LocalPulseColors.current
-    // 💡 Migrated for spec-20260809-theme-migration: the old flat, theme-unaware ColorGreen/Red/Neutral
-    // are deleted -- the locked signal.*.text tokens are the direct replacement for a gradient/brush use.
+    // 💡 The old flat, theme-unaware ColorGreen/Red/Neutral constants are deleted -- the locked
+    // signal.*.text tokens are the direct replacement for a gradient/brush use like this one.
     val colorGreen = pulseColors.signalBullishText
     val colorRed = pulseColors.signalBearishText
     val colorNeutral = pulseColors.signalNeutralText

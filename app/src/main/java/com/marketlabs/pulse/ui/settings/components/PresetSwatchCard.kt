@@ -39,9 +39,8 @@ import com.marketlabs.pulse.ui.theme.MarketPulseTheme
  * One swatch renders ANOTHER preset entirely — deliberately does NOT read `LocalPulseColors.current`
  * / `MaterialTheme.colorScheme` (those reflect whichever theme the app is CURRENTLY running, not
  * the preset being previewed). `preset.toPulseColors()` is called directly so all ten swatches can
- * render side by side regardless of the app's active theme, matching the Token Contract's own
- * component spec ("Preset swatch card — background: preset's own surface... selected state:
- * accent.primary border + checkmark + dot").
+ * render side by side regardless of the app's active theme — a picker where every option renders
+ * itself, not the currently-selected one.
  *
  * `remember(preset)` avoids re-resolving the same preset's colors on every recomposition — cheap,
  * but there's no reason to redo it when nothing about `preset` changed.

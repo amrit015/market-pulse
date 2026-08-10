@@ -29,7 +29,7 @@ class ThemeRepositoryImpl @Inject constructor(
     }
 
     companion object {
-        /** LILAC — the developer's stated hero preset (Design Direction), used until the user ever picks one. */
+        /** LILAC — the app's hero preset, used until the user ever picks one. */
         private val DEFAULT_THEME = MarketPulseTheme.LILAC
     }
 }

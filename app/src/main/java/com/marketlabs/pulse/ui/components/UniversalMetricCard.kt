@@ -101,9 +101,11 @@ fun UniversalMetricCard(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    // 💡 Migrated for spec-20260809-theme-migration: price cards are uniform/non-directional now
-    // (surface.tinted, accent-washed neutral, regardless of signal) -- direction lives only in the
-    // sparkline stroke and the pill below, both keyed off signalColor.textColor/.pillColor.
+    // 💡 Price cards are uniform/non-directional now (an accent-washed neutral, regardless of
+    // signal) -- direction lives only in the sparkline stroke and the pill below, both keyed off
+    // signalColor.textColor/.pillColor. A grid of price cards used to flip its own background
+    // color per card based on direction, which made a down day look alarming at a glance; keeping
+    // the container neutral and the direction in smaller details reads calmer.
     val bgColor = LocalPulseColors.current.surfaceTinted
     val baseColor = signalColor.textColor
     val notAvail = stringResource(id = R.string.not_available_short)

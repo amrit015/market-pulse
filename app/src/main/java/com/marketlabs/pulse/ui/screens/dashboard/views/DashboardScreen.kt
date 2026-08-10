@@ -341,11 +341,11 @@ fun SectorBlock(
     val bgColor: Color
     val textColor: Color
 
-    // 💡 Migrated for spec-20260809-theme-migration: the heatmap tile is the ONE place signal owns
-    // the full background (Token Contract component spec: "full-saturation signal.*.text as
-    // background, white on-color text"). The old two-tier intensity scale (full-saturation past
-    // +-1%, a softer .Bg token below that) is gone -- every non-flat tile uses the same
-    // full-saturation treatment now, uniformly.
+    // 💡 The heatmap tile is the one place in this app where a signal color owns the entire
+    // background rather than just text/pill accents -- full-saturation signal color as background,
+    // white text on top for contrast. The old two-tier intensity scale (full-saturation only past
+    // +-1% change, a softer background below that) is gone -- every non-flat tile uses the same
+    // full-saturation treatment now, uniformly, regardless of how large the move is.
     when {
         change > 0.0 -> {
             bgColor = pulseColors.signalBullishText
@@ -460,9 +460,9 @@ fun AssetCard(
     val pulseColors = LocalPulseColors.current
 
     val baseColor: Color
-    // 💡 Migrated for spec-20260809-theme-migration: price cards are uniform/non-directional now --
-    // the card container no longer flips between Bullish/BearishBg. Direction lives only in
-    // baseColor (the change-percent text below).
+    // 💡 Price cards are uniform/non-directional now -- the card container no longer flips between
+    // a bullish-tinted and bearish-tinted background. Direction lives only in baseColor (the
+    // change-percent text below), so a grid of six down-days does not read as visually alarming.
     val backgroundColor: Color = pulseColors.surfaceTinted
 
     // 💡 NEW: Contrarian Logic for Sentiment Indicators
@@ -583,9 +583,12 @@ fun TechnicalSummaryCard(summaryText: String?, timestamp: Long?, isEquityOpen: B
     val badgeTextColor =
         if (isEquityOpen) pulseColors.signalBullishText else MaterialTheme.colorScheme.onSurfaceVariant
 
-    // 💡 Migrated for spec-20260809-theme-migration: this IS the "Technical Briefing" card the
-    // migration table refers to (not UnifiedScoreHeaderCard, which is feed-layer -- see that
-    // file). Synthesis-layer card: accent.surface fill + accent.surfaceBorder hairline, both new.
+    // 💡 This is the AI-generated "Technical Briefing" card -- interpreted, editorial content, not
+    // raw market data. It wears the accent as a tinted fill with a matching hairline border (both
+    // new; the border did not exist before), the same treatment as AI analysis and news cards.
+    // Contrast this with UnifiedScoreHeaderCard, whose colors are all passed in by the caller as
+    // real signal colors (bullish/bearish/neutral pillar scores) -- that one stays signal-colored
+    // on purpose, since it is showing raw computed data, not an AI's interpretation of it.
     Card(
         colors = CardDefaults.cardColors(containerColor = pulseColors.accentSurface),
         border = BorderStroke(dimensionResource(id = R.dimen.border_thin), pulseColors.accentSurfaceBorder),

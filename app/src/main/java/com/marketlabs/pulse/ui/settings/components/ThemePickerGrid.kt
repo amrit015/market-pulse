@@ -14,7 +14,7 @@ import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 /**
- * 2 columns x 5 rows, per the Token Contract's component spec. `MarketPulseTheme.entries` is
+ * 2 columns x 5 rows. `MarketPulseTheme.entries` is
  * declared light-then-dark, 5-then-5 (see the enum) — `.chunked(2)` on that ordering naturally
  * pairs each light preset with a dark one per row rather than grouping all 5 light presets first,
  * which reads better as a gallery than two solid blocks of one mode.

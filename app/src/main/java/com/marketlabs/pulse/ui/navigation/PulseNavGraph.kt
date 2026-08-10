@@ -43,7 +43,7 @@ object PulseRoutes {
     // Added with Claude Code assistance: replaces the News tab on the bottom bar.
     const val MARKET_ANALYSIS = "market_analysis"
 
-    // 💡 Added for spec-20260809-theme-migration: reached from the global top bar gear.
+    // Reached from the gear icon on the global top bar.
     const val SETTINGS = "settings"
 }
 
@@ -70,9 +70,9 @@ sealed class BottomNavItem(val route: String, val label: String, val unselectedI
 }
 
 /**
- * 💡 Added for spec-20260809-theme-migration: hoisted out of `PulseNavGraph()` (was previously
- * rebuilt on every recomposition as a local `val`) since `MainActivity` now also needs this exact
- * list to drive `FloatingBottomNav`.
+ * Hoisted to a top-level `val` (was previously rebuilt on every recomposition as a local `val`
+ * inside `PulseNavGraph()`) since `MainActivity` also needs this exact list to drive
+ * `FloatingBottomNav`.
  */
 val bottomNavItems = listOf(
     BottomNavItem.Overview,
@@ -105,11 +105,11 @@ private fun StockAnalysisPlaceholder(scaffoldPadding: PaddingValues) {
 }
 
 /**
- * 💡 Updated for spec-20260809-theme-migration: this is now NavHost-only. The `Scaffold`, the
- * bottom `NavigationBar`, and `navController` creation all moved up to `MainActivity`, since the
- * new global top bar and floating nav are app-wide chrome that wraps this graph rather than
- * something the graph owns itself — `MainActivity` needs `navController` directly to drive
- * `FloatingBottomNav`'s selected-tab state and `AppTopBar`'s gear navigation.
+ * NavHost-only. The `Scaffold`, the bottom `NavigationBar`, and `navController` creation all live
+ * in `MainActivity` instead, since the global top bar and floating nav are app-wide chrome that
+ * wraps this graph rather than something the graph owns itself — `MainActivity` needs
+ * `navController` directly to drive `FloatingBottomNav`'s selected-tab state and `AppTopBar`'s
+ * gear navigation.
  */
 @Composable
 fun PulseNavGraph(
@@ -187,7 +187,7 @@ fun PulseNavGraph(
             )
         }
 
-        // 💡 Added for spec-20260809-theme-migration: reached from the global top bar gear.
+        // Reached from the gear icon on the global top bar.
         composable(PulseRoutes.SETTINGS) {
             SettingsRoute(onNavigateUp = { navController.popBackStack() })
         }

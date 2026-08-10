@@ -33,15 +33,16 @@ import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 /**
  * 💡 THOUGHT PROCESS:
- * A detached, rounded, elevated SOLID bar (per spec-20260809-theme-migration and Design Direction
- * §9) -- not `NavigationBar`, which is edge-attached with no margin or radius. The 2dp elevation is
- * a deliberate, flagged exception to this codebase's otherwise flat, no-shadow visual language
- * (`nav_elevation` in dimens.xml, called out in `CLAUDE.md`). No blur -- minSdk 26 has no
- * `RenderEffect` to build one from, and the spec is explicit this bar is solid regardless.
+ * A detached, rounded, elevated SOLID bar -- not `NavigationBar`, which is edge-attached with no
+ * margin or radius. The 2dp elevation is a deliberate, flagged exception to this codebase's
+ * otherwise flat, no-shadow visual language (`nav_elevation` in dimens.xml, called out in
+ * `CLAUDE.md`). No blur -- minSdk 26 has no `RenderEffect` to build one from, so a solid
+ * background is not just a stylistic choice, it is the only option available without dropping
+ * older devices.
  *
  * Reuses `corner_radius_card_large` (16dp) rather than introducing a new radius dimen, since it
- * already matches the spec's stated 16dp exactly. Horizontal margin and the padding above the
- * system nav bar both reuse `padding_standard` (12dp), for the same reason.
+ * already matches the intended radius exactly. Horizontal margin and the padding above the system
+ * nav bar both reuse `padding_standard` (12dp), for the same reason.
  *
  * Takes `items: List<BottomNavItem>` rather than owning route/label definitions itself -- those
  * stay owned by the navigation layer (`PulseNavGraph.kt`), this composable is rendering-only.

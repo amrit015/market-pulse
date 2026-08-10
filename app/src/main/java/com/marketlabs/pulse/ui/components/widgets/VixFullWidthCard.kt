@@ -33,8 +33,8 @@ import com.marketlabs.pulse.ui.theme.LocalPulseColors
 fun VixFullWidthCard(asset: AssetOverview, onClick: () -> Unit) {
 
     val pulseColors = LocalPulseColors.current
-    // 💡 Migrated for spec-20260809-theme-migration: the old flat, theme-unaware ColorGreen/Red/Neutral
-    // are deleted -- the locked signal.*.text tokens are the direct replacement for a gradient/brush use.
+    // 💡 The old flat, theme-unaware ColorGreen/Red/Neutral constants are deleted -- the locked
+    // signal.*.text tokens are the direct replacement for a gradient/brush use like this one.
     val colorGreen = pulseColors.signalBullishText
     val colorRed = pulseColors.signalBearishText
     val colorNeutral = pulseColors.signalNeutralText
@@ -54,11 +54,12 @@ fun VixFullWidthCard(asset: AssetOverview, onClick: () -> Unit) {
     val needleOverhangDimen = dimensionResource(id = R.dimen.gauge_needle_overhang)
     val cornerRadiusDimen = dimensionResource(id = R.dimen.vix_corner_radius)
 
-    // 💡 Migrated for spec-20260809-theme-migration: this card previously flipped its own
-    // background between BullishBg/BearishBg based on a "contrarian" read of the VIX status (high
-    // VIX -> bullish-tinted card, low VIX -> bearish-tinted card). Per the migration table's rule
-    // for gauges/price cards, the container is uniform and non-directional now -- direction still
-    // reads clearly from the status text color and the needle position, just not the card fill.
+    // 💡 This card previously flipped its own background between a bullish and bearish tint based
+    // on a "contrarian" read of the VIX status (high VIX -> bullish-tinted card, since a volatility
+    // spike is often a buying opportunity; low VIX -> bearish-tinted card, since complacency often
+    // precedes a pullback). The container is uniform and non-directional now, matching every other
+    // price/gauge card in this app -- direction still reads clearly from the status text color and
+    // the needle position, just not the card fill.
     val statusBgColor = pulseColors.surfaceTinted
 
     Card(

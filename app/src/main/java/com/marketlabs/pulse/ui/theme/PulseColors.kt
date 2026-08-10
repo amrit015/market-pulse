@@ -6,8 +6,8 @@ import androidx.compose.ui.graphics.Color
 /**
  * 💡 THOUGHT PROCESS:
  * Compose's `MaterialTheme.colorScheme` covers the ~30 standard M3 roles (background, surface,
- * onBackground, onSurface, outline, etc.) but not the extended tokens the Token Contract defines
- * on top of it (`surface.tinted`, `accent.surface`, `accent.surfaceBorder`, `signal.*.text`,
+ * onBackground, onSurface, outline, etc.) but this app also needs a handful of tokens on top of
+ * that (`surface.tinted`, `accent.surface`, `accent.surfaceBorder`, `signal.*.text`,
  * `signal.*.pill`). A custom `CompositionLocal` carrying this data class, provided alongside
  * `MaterialTheme` at the top of the theme tree, is the standard way to extend Compose's color
  * system without fighting it — every composable reads standard roles via `MaterialTheme.colorScheme`

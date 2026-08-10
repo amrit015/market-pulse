@@ -27,11 +27,11 @@ import javax.inject.Inject
 
 /**
  * 💡 THOUGHT PROCESS:
- * Rewritten for spec-20260809-theme-migration. Previously just `enableEdgeToEdge()` +
- * `MarketPulseTheme { PulseNavGraph() }` — the `Scaffold`, the global collapsing `AppTopBar`, and
- * the floating `FloatingBottomNav` now all live here instead of inside `PulseNavGraph`, since they
- * are app-wide chrome, not per-graph. `navController` is created here (not inside the graph) so it
- * can drive both the top bar's gear navigation and the floating nav's selected-tab highlighting.
+ * Owns the app-wide chrome: the `Scaffold`, the global collapsing `AppTopBar`, and the floating
+ * `FloatingBottomNav` all live here rather than inside `PulseNavGraph`, since they wrap every
+ * screen rather than belonging to any one of them. `navController` is created here (not inside the
+ * graph) so it can drive both the top bar's gear navigation and the floating nav's selected-tab
+ * highlighting.
  *
  * `ThemeRepository` is field-injected directly into the Activity (standard Hilt pattern for
  * `@AndroidEntryPoint`) rather than through a ViewModel — this is app-wide, cross-screen state read

@@ -48,8 +48,8 @@ fun AssetDetailBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        // 💡 Migrated for spec-20260809-theme-migration: bottom sheets sit above the base
-        // background, at the "elevated" step of the surface ramp.
+        // 💡 Bottom sheets sit above the base background, at the elevated step of the surface
+        // ramp, so they read as a distinct layer floating over the screen rather than blending in.
         containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
     ) {
         val scrollState = rememberScrollState() // 💡 Add this

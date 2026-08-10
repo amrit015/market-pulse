@@ -239,7 +239,7 @@
     <string name="nav_back_content_description">Back</string>
     <string name="market_analysis_placeholder_message">Stock analysis is being rebuilt against the new backend data model.</string>
 
-    <!-- Added for spec-20260809-theme-migration: global top bar, floating nav, Settings, theme picker. -->
+    <!-- Global top bar, floating nav, Settings screen, theme picker. -->
     <string name="app_top_bar_settings_content_description">Settings</string>
     <string name="settings_screen_title">Settings</string>
     <string name="settings_section_theme">Theme</string>
