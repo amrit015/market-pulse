@@ -259,9 +259,104 @@ object DatabaseMigrations {
         }
     }
 
+    // Migration from Version 11 to 12 for the Stock Analysis "Deep Study" domain
+    val MIGRATION_11_12 = object : Migration(11, 12) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `market_stocks` (
+                    `symbol` TEXT NOT NULL,
+                    `lastSyncedTimestamp` INTEGER NOT NULL,
+                    `price` REAL,
+                    `changePercent` REAL,
+                    `technicalIndicators` TEXT,
+                    `technicalSetup` TEXT,
+                    `executiveThesis` TEXT,
+                    `topNewsStream` TEXT,
+                    `battlegroundLevels` TEXT,
+                    `contextVault` TEXT,
+                    `timestamp` INTEGER,
+                    PRIMARY KEY(`symbol`)
+                )
+                """.trimIndent()
+            )
+        }
+    }
+
+    // Migration from Version 12 to 13: the backend split the single deep-study document into a
+    // small always-cached preview and a large detail fetched only on tap, so `market_stocks`
+    // becomes two tables — `market_stock_previews` (was `market_stocks`) and the new
+    // `market_stock_details`. No data-preserving copy: the old cache is just re-fetched.
+    val MIGRATION_12_13 = object : Migration(12, 13) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("DROP TABLE IF EXISTS `market_stocks`")
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `market_stock_previews` (
+                    `symbol` TEXT NOT NULL,
+                    `lastSyncedTimestamp` INTEGER NOT NULL,
+                    `name` TEXT,
+                    `schemaVersion` INTEGER,
+                    `analysisDate` TEXT,
+                    `price` REAL,
+                    `changePercent` REAL,
+                    `plainRead` TEXT,
+                    `technicalSetup` TEXT,
+                    `setupNetBias` INTEGER,
+                    `setupConfidence` INTEGER,
+                    `conditionChips` TEXT,
+                    `regimeAtAnalysis` TEXT,
+                    `previousClose` REAL,
+                    `previousSetup` TEXT,
+                    `previousNetBias` INTEGER,
+                    `setupChanged` INTEGER,
+                    `chipsAdded` TEXT,
+                    `chipsRemoved` TEXT,
+                    `headlineMetrics` TEXT,
+                    `hasDirectNews` INTEGER,
+                    `topHeadline` TEXT,
+                    `contentFlags` TEXT,
+                    `detailVersion` INTEGER,
+                    `timestamp` INTEGER,
+                    PRIMARY KEY(`symbol`)
+                )
+                """.trimIndent()
+            )
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `market_stock_details` (
+                    `symbol` TEXT NOT NULL,
+                    `lastSyncedTimestamp` INTEGER NOT NULL,
+                    `detailVersion` INTEGER,
+                    `analysisDate` TEXT,
+                    `technicalIndicators` TEXT,
+                    `levels` TEXT,
+                    `setupSignals` TEXT,
+                    `setupConfirming` TEXT,
+                    `setupConflicting` TEXT,
+                    `conditionLabels` TEXT,
+                    `watchList` TEXT,
+                    `fundamentals` TEXT,
+                    `macro` TEXT,
+                    `technicalRead` TEXT,
+                    `notCovered` TEXT,
+                    `scenarios` TEXT,
+                    `considerations` TEXT,
+                    `executiveThesis` TEXT,
+                    `topNewsStream` TEXT,
+                    `contextVault` TEXT,
+                    `calls` TEXT,
+                    `timestamp` INTEGER,
+                    PRIMARY KEY(`symbol`)
+                )
+                """.trimIndent()
+            )
+        }
+    }
+
     val ALL_MIGRATIONS = arrayOf(
         MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5,
         MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9,
-        MIGRATION_9_10, MIGRATION_10_11 // 💡 Added to registry
+        MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13 // 💡 Added to registry
     )
 }

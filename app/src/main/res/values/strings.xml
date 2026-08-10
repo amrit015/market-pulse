@@ -233,4 +233,9 @@
     <string name="subcategory_labor">Labor</string>
     <string name="subcategory_growth">Growth</string>
     <string name="subcategory_policy">Policy</string>
+
+    <string name="dashboard_section_news">Latest News</string>
+    <string name="dashboard_news_see_all">View all news</string>
+    <string name="nav_back_content_description">Back</string>
+    <string name="market_analysis_placeholder_message">Stock analysis is being rebuilt against the new backend data model.</string>
 </resources>

@@ -6,6 +6,7 @@ import androidx.room.TypeConverters
 import com.marketlabs.pulse.storage.database.converters.IndicatorsConverters
 import com.marketlabs.pulse.storage.database.converters.NewsConverters
 import com.marketlabs.pulse.storage.database.converters.RiskConverters
+import com.marketlabs.pulse.storage.database.converters.StocksConverters
 import com.marketlabs.pulse.storage.database.converters.SummaryConverters
 import com.marketlabs.pulse.storage.database.converters.WeeklyPlaybookConverters
 import com.marketlabs.pulse.storage.database.dao.DashboardDao
@@ -13,6 +14,7 @@ import com.marketlabs.pulse.storage.database.dao.IndicatorsDao
 import com.marketlabs.pulse.storage.database.dao.MarketPostureDao
 import com.marketlabs.pulse.storage.database.dao.MarketRiskDao
 import com.marketlabs.pulse.storage.database.dao.NewsDao
+import com.marketlabs.pulse.storage.database.dao.StocksDao
 import com.marketlabs.pulse.storage.database.dao.SummaryDao
 import com.marketlabs.pulse.storage.database.dao.WeeklyPlaybookDao
 import com.marketlabs.pulse.storage.database.entity.AssetOverviewEntity
@@ -22,8 +24,12 @@ import com.marketlabs.pulse.storage.database.entity.MarketPulseEntity
 import com.marketlabs.pulse.storage.database.entity.MarketRiskEntity
 import com.marketlabs.pulse.storage.database.entity.MarketStateEntity
 import com.marketlabs.pulse.storage.database.entity.NewsEntity
+import com.marketlabs.pulse.storage.database.entity.StockDetailEntity
+import com.marketlabs.pulse.storage.database.entity.StockPreviewEntity
 import com.marketlabs.pulse.storage.database.entity.WeeklyPlaybookEntity
 
+// Includes registration of the stocks (market_stock_previews / market_stock_details) cache,
+// added with Claude Code assistance.
 @Database(
     entities = [
         MarketPulseEntity::class,
@@ -33,9 +39,11 @@ import com.marketlabs.pulse.storage.database.entity.WeeklyPlaybookEntity
         AssetOverviewEntity::class,
         MarketRiskEntity::class,
         WeeklyPlaybookEntity::class,
-        MarketPostureEntity::class
+        MarketPostureEntity::class,
+        StockPreviewEntity::class,
+        StockDetailEntity::class
     ],
-    version = 11,
+    version = 13,
     exportSchema = true
 )
 @TypeConverters(
@@ -43,7 +51,8 @@ import com.marketlabs.pulse.storage.database.entity.WeeklyPlaybookEntity
     SummaryConverters::class,
     NewsConverters::class,
     IndicatorsConverters::class,
-    WeeklyPlaybookConverters::class
+    WeeklyPlaybookConverters::class,
+    StocksConverters::class
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun marketSummaryDao(): SummaryDao
@@ -53,4 +62,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun dashboardDao(): DashboardDao
     abstract fun weeklyPlaybookDao(): WeeklyPlaybookDao
     abstract fun marketPostureDao(): MarketPostureDao
+
+    /** DAO for the `market_stock_previews` / `market_stock_details` tables backing the stock analysis cache. */
+    abstract fun stocksDao(): StocksDao
 }

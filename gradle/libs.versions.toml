@@ -34,6 +34,7 @@ foundationLayout = "1.10.3"
 uiGraphicsVersion = "1.10.3"
 uiToolingPreview = "1.10.4"
 uiTooling = "1.10.4"
+composeMarkdown = "0.7.2"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -83,6 +84,7 @@ androidx-compose-foundation-layout = { group = "androidx.compose.foundation", na
 ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics", version.ref = "uiGraphicsVersion" }
 androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview", version.ref = "uiToolingPreview" }
 androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", version.ref = "uiTooling" }
+compose-markdown = { module = "com.github.jeziellago:compose-markdown", version.ref = "composeMarkdown" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -32,9 +32,12 @@ import com.marketlabs.pulse.ui.screens.dashboard.DashboardViewModel
 @Composable
 fun DashboardRoute(
     scaffoldPadding: PaddingValues,
+    onNavigateToNews: () -> Unit, // Added with Claude Code assistance.
+    onNavigateToNewsArticle: (String) -> Unit, // Added with Claude Code assistance.
     viewModel: DashboardViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val latestNewsPreview by viewModel.latestNewsPreview.collectAsStateWithLifecycle() // Added with Claude Code assistance.
     val snackbarHostState = remember { SnackbarHostState() }
     val pullRefreshState = rememberPullToRefreshState()
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -78,7 +81,10 @@ fun DashboardRoute(
                     DashboardScreen(
                         marketState = uiState.marketState,
                         assets = uiState.assets,
-                        scaffoldPadding = scaffoldPadding
+                        scaffoldPadding = scaffoldPadding,
+                        newsArticles = latestNewsPreview,
+                        onNewsArticleClick = onNavigateToNewsArticle,
+                        onNavigateToNews = onNavigateToNews
                     )
                 }
                 uiState.isLoading -> {

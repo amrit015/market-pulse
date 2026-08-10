@@ -3,20 +3,26 @@ package com.marketlabs.pulse.ui.screens.dashboard
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.marketlabs.pulse.core.dashboard.DashboardRepository
+import com.marketlabs.pulse.core.news.NewsRepository
 import com.marketlabs.pulse.core.sync.SyncManager
+import com.marketlabs.pulse.storage.model.news.NewsArticle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+// News-preview StateFlow below added with Claude Code assistance.
+
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
     private val repository: DashboardRepository,
-    private val syncManager: SyncManager
+    private val syncManager: SyncManager,
+    private val newsRepository: NewsRepository
 ) : ViewModel() {
 
     private val _isLoading = MutableStateFlow(false)
@@ -78,5 +84,24 @@ class DashboardViewModel @Inject constructor(
                 _isRefreshing.value = false
             }
         }
+    }
+
+    // --- News preview widget (top few stories; "See all" / a card tap navigates to News) ---
+
+    /**
+     * Top 3 latest stories for the Dashboard's condensed `NewsPreviewSection`. No explicit refresh
+     * call needed here — `syncManager.startListening()` (already called above) keeps `NewsRepository`
+     * populated app-wide, the same way it does for every other domain's Room cache.
+     */
+    val latestNewsPreview: StateFlow<List<NewsArticle>> = newsRepository.getNewsStream()
+        .map { news -> news?.stories?.take(NEWS_PREVIEW_COUNT) ?: emptyList() }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+    private companion object {
+        private const val NEWS_PREVIEW_COUNT = 3
     }
 }

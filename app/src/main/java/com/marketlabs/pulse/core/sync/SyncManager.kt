@@ -1,5 +1,7 @@
 package com.marketlabs.pulse.core.sync
 
+// Includes stock analysis sync wiring added with Claude Code assistance.
+
 import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
@@ -7,6 +9,7 @@ import com.marketlabs.pulse.core.indicators.IndicatorsRepository
 import com.marketlabs.pulse.core.marketRisk.MarketRiskRepository
 import com.marketlabs.pulse.core.news.NewsRepository
 import com.marketlabs.pulse.core.posture.MarketPostureRepository
+import com.marketlabs.pulse.core.stocks.StockAnalysisRepository
 import com.marketlabs.pulse.core.summary.SummaryRepository
 import com.marketlabs.pulse.core.weeklyPlaybook.WeeklyPlaybookRepository
 import kotlinx.coroutines.CoroutineScope
@@ -23,7 +26,8 @@ class SyncManager @Inject constructor(
     private val newsRepository: NewsRepository,
     private val marketRiskRepository: MarketRiskRepository,
     private val summaryRepository: SummaryRepository,
-    private val postureRepository: MarketPostureRepository
+    private val postureRepository: MarketPostureRepository,
+    private val stockAnalysisRepository: StockAnalysisRepository
 ) {
     private var listenerRegistration: ListenerRegistration? = null
     private val scope = CoroutineScope(Dispatchers.IO)
@@ -120,6 +124,24 @@ class SyncManager @Inject constructor(
                             Log.d("SyncManager", "New Market Posture detected! Fetching...")
                             postureRepository.refreshPosture(force = true)
                             postureRepository.updateLastSyncedTimestamp(newPostureTime)
+                        }
+
+                        // ==========================================
+                        // 7. STOCK ANALYSIS SYNC (previews only — detail is fetched on demand)
+                        // ==========================================
+                        // 💡 Updated with Claude Code assistance: the backend no longer writes
+                        // stock_analysis_eod/stock_analysis_after_hours at all — both were replaced
+                        // by a single stocks_updated flag, fired once per run by the stock-analysis
+                        // hub's completion check rather than by every individual worker. Detail
+                        // documents aren't covered by any sync flag; they're fetched fresh whenever
+                        // a symbol is opened (see StockAnalysisRepository.refreshDetail).
+                        val newStocksTime = snapshot.getLong("stocks_updated") ?: 0L
+                        val localStocksTime = stockAnalysisRepository.getLastSyncedTimestamp() ?: 0L
+
+                        if (newStocksTime > localStocksTime) {
+                            Log.d("SyncManager", "New Stock Analysis detected! Fetching...")
+                            stockAnalysisRepository.refreshPreviews(force = true)
+                            stockAnalysisRepository.updateLastSyncedTimestamp(newStocksTime)
                         }
                     }
                 }

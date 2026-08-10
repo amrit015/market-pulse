@@ -51,22 +51,30 @@ import androidx.compose.ui.unit.dp
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.dashboard.AssetOverview
 import com.marketlabs.pulse.storage.model.dashboard.MarketState
+import com.marketlabs.pulse.storage.model.news.NewsArticle
 import com.marketlabs.pulse.ui.components.bottomSheet.AssetDetailBottomSheet
 import com.marketlabs.pulse.ui.components.bottomSheet.MarketGlossaryBottomSheet
 import com.marketlabs.pulse.ui.components.widgets.PutCallHorizontalBar
 import com.marketlabs.pulse.ui.components.widgets.SpeedometerGauge
 import com.marketlabs.pulse.ui.components.widgets.VixFullWidthCard
+import com.marketlabs.pulse.ui.screens.news.views.NewsPreviewSection
 import com.marketlabs.pulse.ui.theme.PulseStatusColors
 import com.marketlabs.pulse.utils.enums.AssetType
+import dev.jeziellago.compose.markdowntext.MarkdownText
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+
+// News preview section below added with Claude Code assistance.
 
 @Composable
 fun DashboardScreen(
     marketState: MarketState?,
     assets: List<AssetOverview?>,
-    scaffoldPadding: PaddingValues
+    scaffoldPadding: PaddingValues,
+    newsArticles: List<NewsArticle>,
+    onNewsArticleClick: (String) -> Unit,
+    onNavigateToNews: () -> Unit
 ) {
     val scrollState = rememberScrollState()
     val statusBarHeight = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
@@ -235,6 +243,15 @@ fun DashboardScreen(
                 title = "Sector Rotation", // Consider moving to strings.xml later!
                 items = sectorAssets,
                 onAssetClick = { selectedAsset = it }
+            )
+        }
+
+        // --- SECTION: Latest News preview (bottom of the Dashboard; chevron/card taps navigate to News) ---
+        if (newsArticles.isNotEmpty()) {
+            NewsPreviewSection(
+                articles = newsArticles,
+                onArticleClick = onNewsArticleClick,
+                onSeeAllClick = onNavigateToNews
             )
         }
     }
@@ -640,12 +657,13 @@ fun TechnicalSummaryCard(summaryText: String?, timestamp: Long?, isEquityOpen: B
             )
             Spacer(modifier = Modifier.height(paddingMedium))
 
-            Text(
-                text = summaryText,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = if (isExpanded) Int.MAX_VALUE else 3,
-                overflow = TextOverflow.Ellipsis
+            // Changed to MarkdownText to support bold blocks and line endings natively
+            MarkdownText(
+                markdown = summaryText,
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    color = MaterialTheme.colorScheme.onSurface
+                ),
+                maxLines = if (isExpanded) Int.MAX_VALUE else 3
             )
 
             Spacer(modifier = Modifier.height(paddingLarge))
