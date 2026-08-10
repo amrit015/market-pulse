@@ -39,16 +39,26 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.news.MarketNews
 import com.marketlabs.pulse.storage.model.news.NewsArticle
-import com.marketlabs.pulse.ui.theme.PulseStatusColors.BearishBg
-import com.marketlabs.pulse.ui.theme.PulseStatusColors.BearishText
-import com.marketlabs.pulse.ui.theme.PulseStatusColors.BullishBg
-import com.marketlabs.pulse.ui.theme.PulseStatusColors.BullishText
-import com.marketlabs.pulse.ui.theme.PulseStatusColors.NeutralBg
-import com.marketlabs.pulse.ui.theme.PulseStatusColors.NeutralText
+import com.marketlabs.pulse.ui.theme.LocalPulseColors
+import com.marketlabs.pulse.ui.theme.PulseColors
 import com.marketlabs.pulse.utils.extensions.toRelativeTimeString
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+
+/**
+ * 💡 Added for spec-20260809-theme-migration: both NewsArticleCard and NewsPreviewCard resolve the
+ * same sentiment -> (text, pill) pair -- factored out once rather than duplicated, since the
+ * migration table's rule ("sentiment chip stays signal-colored on top of the accent tint") applies
+ * identically to both.
+ */
+private fun sentimentColors(pulseColors: PulseColors, sentiment: String): Pair<androidx.compose.ui.graphics.Color, androidx.compose.ui.graphics.Color> {
+    return when (sentiment) {
+        "BULLISH" -> pulseColors.signalBullishText to pulseColors.signalBullishPill
+        "BEARISH" -> pulseColors.signalBearishText to pulseColors.signalBearishPill
+        else -> pulseColors.signalNeutralText to pulseColors.signalNeutralPill
+    }
+}
 
 @Composable
 fun NewsScreen(
@@ -142,26 +152,22 @@ fun NewsArticleCard(
     val sentiment = article.sentiment?.uppercase() ?: "NEUTRAL"
     val url = article.url ?: ""
 
-    val (sentimentColor, sentimentBgColor) = when (sentiment) {
-        "BULLISH" -> Pair(BullishText, BullishBg)
-        "BEARISH" -> Pair(BearishText, BearishBg)
-        else -> Pair(NeutralText, NeutralBg)
-    }
+    val pulseColors = LocalPulseColors.current
+    val (sentimentColor, sentimentBgColor) = sentimentColors(pulseColors, sentiment)
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
     val cardShape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card))
 
     Card(
-        // 💡 CHANGED: Matches Market Outlook and Summary Screen backgrounds
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
-        ),
+        // 💡 Migrated for spec-20260809-theme-migration: news cards are synthesis layer
+        // (curated + AI-filtered), matching the AI briefing tint per the migration table.
+        colors = CardDefaults.cardColors(containerColor = pulseColors.accentSurface),
         shape = cardShape,
         modifier = Modifier
             .fillMaxWidth()
             // Added with Claude Code assistance: frames the card a Dashboard news preview linked to.
             .let {
                 if (isHighlighted) {
-                    it.border(dimensionResource(id = R.dimen.border_medium), MaterialTheme.colorScheme.primary, cardShape)
+                    it.border(dimensionResource(id = R.dimen.border_medium), pulseColors.accentPrimary, cardShape)
                 } else {
                     it
                 }
@@ -188,7 +194,7 @@ fun NewsArticleCard(
                     Text(
                         text = source.uppercase(),
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary
+                        color = pulseColors.accentPrimary
                     )
                     article.timestamp?.let { timestamp ->
                         Text(
@@ -236,7 +242,7 @@ fun NewsArticleCard(
                 Icon(
                     painter = painterResource(id = R.drawable.ic_chevron_forward),
                     contentDescription = "View Details",
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = pulseColors.accentPrimary,
                     modifier = Modifier.size(dimensionResource(R.dimen.padding_large))
                 )
 
@@ -273,7 +279,7 @@ fun NewsArticleCard(
                             Text(
                                 text = tag,
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
+                                color = pulseColors.accentPrimary.copy(alpha = 0.8f),
                                 fontWeight = FontWeight.Medium
                             )
                         }
@@ -308,14 +314,14 @@ fun NewsPreviewSection(
             Text(
                 text = stringResource(id = R.string.dashboard_section_news),
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.primary
+                color = LocalPulseColors.current.accentPrimary
             )
 
             IconButton(onClick = onSeeAllClick) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_chevron_forward),
                     contentDescription = stringResource(id = R.string.dashboard_news_see_all),
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = LocalPulseColors.current.accentPrimary
                 )
             }
         }
@@ -341,16 +347,12 @@ fun NewsPreviewCard(
     val sentiment = article.sentiment?.uppercase() ?: "NEUTRAL"
     val url = article.url ?: ""
 
-    val (sentimentColor, sentimentBgColor) = when (sentiment) {
-        "BULLISH" -> Pair(BullishText, BullishBg)
-        "BEARISH" -> Pair(BearishText, BearishBg)
-        else -> Pair(NeutralText, NeutralBg)
-    }
+    val pulseColors = LocalPulseColors.current
+    val (sentimentColor, sentimentBgColor) = sentimentColors(pulseColors, sentiment)
 
     Card(
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
-        ),
+        // 💡 Migrated for spec-20260809-theme-migration: matches the AI briefing tint.
+        colors = CardDefaults.cardColors(containerColor = pulseColors.accentSurface),
         shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
         modifier = Modifier
             .fillMaxWidth()
