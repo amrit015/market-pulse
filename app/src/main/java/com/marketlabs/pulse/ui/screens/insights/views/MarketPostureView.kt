@@ -40,7 +40,7 @@ import com.marketlabs.pulse.storage.model.posture.DomainDarkPoolIndex
 import com.marketlabs.pulse.storage.model.posture.DomainMarketPosture
 import com.marketlabs.pulse.storage.model.posture.DomainNaaimExposure
 import com.marketlabs.pulse.storage.model.posture.DomainNetLiquidity
-import com.marketlabs.pulse.ui.theme.PulseStatusColors
+import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -171,8 +171,8 @@ private fun NaaimExposureCard(naaim: DomainNaaimExposure) {
                 }
 
                 val statusColor = when (naaim.status?.uppercase()) {
-                    "BULLISH", "EXTREME GREED (LEVERAGED)" -> PulseStatusColors.BullishText
-                    "BEARISH", "EXTREME FEAR (HEDGED)" -> PulseStatusColors.BearishText
+                    "BULLISH", "EXTREME GREED (LEVERAGED)" -> LocalPulseColors.current.signalBullishText
+                    "BEARISH", "EXTREME FEAR (HEDGED)" -> LocalPulseColors.current.signalBearishText
                     else -> MaterialTheme.colorScheme.onSurfaceVariant
                 }
 
@@ -298,7 +298,7 @@ private fun DarkPoolCard(dix: DomainDarkPoolIndex) {
                 }
 
                 val isBullish = (dix.value ?: 0.0) >= 45.0
-                val statusColor = if (isBullish) PulseStatusColors.BullishText else MaterialTheme.colorScheme.onSurfaceVariant
+                val statusColor = if (isBullish) LocalPulseColors.current.signalBullishText else MaterialTheme.colorScheme.onSurfaceVariant
 
                 Surface(
                     color = statusColor.copy(alpha = 0.15f),
@@ -366,8 +366,8 @@ private fun NetLiquidityCard(liquidity: DomainNetLiquidity) {
 
                 // 💡 NEW: The Dynamic Liquidity Status Badge
                 val statusColor = when (liquidity.status?.uppercase()) {
-                    "EXPANDING" -> PulseStatusColors.BullishText // Expanding liquidity acts as a tailwind (Green)
-                    "DRAINING" -> PulseStatusColors.BearishText // Contracting liquidity acts as a headwind (Red)
+                    "EXPANDING" -> LocalPulseColors.current.signalBullishText // Expanding liquidity acts as a tailwind (Green)
+                    "DRAINING" -> LocalPulseColors.current.signalBearishText // Contracting liquidity acts as a headwind (Red)
                     else -> MaterialTheme.colorScheme.onSurfaceVariant
                 }
 
@@ -424,7 +424,7 @@ private fun LiquidityComponentCol(label: String, valueT: Double?, isPositive: Bo
         Text(
             text = "$${String.format(Locale.US, "%.2f", valueT ?: 0.0)}T",
             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-            color = if (isPositive) PulseStatusColors.BullishText else PulseStatusColors.BearishText
+            color = if (isPositive) LocalPulseColors.current.signalBullishText else LocalPulseColors.current.signalBearishText
         )
     }
 }

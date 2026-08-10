@@ -35,7 +35,7 @@ import androidx.compose.ui.unit.dp
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.weeklyPlaybook.WeeklyEvent
 import com.marketlabs.pulse.storage.model.weeklyPlaybook.WeeklyPlaybook
-import com.marketlabs.pulse.ui.theme.PulseStatusColors
+import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -204,12 +204,12 @@ private fun EventDataColumn(label: String, value: String, isActual: Boolean = fa
         Text(
             text = label.uppercase(),
             style = MaterialTheme.typography.labelSmall,
-            color = if (isActual) PulseStatusColors.BullishText else MaterialTheme.colorScheme.onSurfaceVariant
+            color = if (isActual) LocalPulseColors.current.signalBullishText else MaterialTheme.colorScheme.onSurfaceVariant
         )
         Text(
             text = value,
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-            color = if (isActual) PulseStatusColors.BullishText else MaterialTheme.colorScheme.onSurface
+            color = if (isActual) LocalPulseColors.current.signalBullishText else MaterialTheme.colorScheme.onSurface
         )
     }
 }
