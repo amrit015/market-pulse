@@ -1,6 +1,7 @@
 package com.marketlabs.pulse.ui.screens.dashboard.views
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -58,7 +59,7 @@ import com.marketlabs.pulse.ui.components.widgets.PutCallHorizontalBar
 import com.marketlabs.pulse.ui.components.widgets.SpeedometerGauge
 import com.marketlabs.pulse.ui.components.widgets.VixFullWidthCard
 import com.marketlabs.pulse.ui.screens.news.views.NewsPreviewSection
-import com.marketlabs.pulse.ui.theme.PulseStatusColors
+import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.utils.enums.AssetType
 import dev.jeziellago.compose.markdowntext.MarkdownText
 import java.text.SimpleDateFormat
@@ -149,7 +150,7 @@ fun DashboardScreen(
                 Text(
                     text = stringResource(id = R.string.dashboard_section_sentiment),
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.primary,
+                    color = LocalPulseColors.current.accentPrimary,
                     modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.padding_medium))
                 )
 
@@ -284,7 +285,7 @@ fun SectorHeatmapSection(
         Text(
             text = title,
             style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colorScheme.primary,
+            color = LocalPulseColors.current.accentPrimary,
             modifier = Modifier.padding(bottom = paddingMedium)
         )
 
@@ -335,27 +336,24 @@ fun SectorBlock(
     onClick: () -> Unit
 ) {
     val change = asset.changePercent ?: 0.0
+    val pulseColors = LocalPulseColors.current
 
     val bgColor: Color
     val textColor: Color
 
-    // 💡 Creates the Heatmap intensity scale
+    // 💡 Migrated for spec-20260809-theme-migration: the heatmap tile is the ONE place signal owns
+    // the full background (Token Contract component spec: "full-saturation signal.*.text as
+    // background, white on-color text"). The old two-tier intensity scale (full-saturation past
+    // +-1%, a softer .Bg token below that) is gone -- every non-flat tile uses the same
+    // full-saturation treatment now, uniformly.
     when {
-        change >= 1.0 -> {
-            bgColor = PulseStatusColors.BullishText.copy(alpha = 0.8f)
-            textColor = Color.White
-        }
         change > 0.0 -> {
-            bgColor = PulseStatusColors.BullishBg
-            textColor = PulseStatusColors.BullishText
-        }
-        change <= -1.0 -> {
-            bgColor = PulseStatusColors.BearishText.copy(alpha = 0.8f)
+            bgColor = pulseColors.signalBullishText
             textColor = Color.White
         }
         change < 0.0 -> {
-            bgColor = PulseStatusColors.BearishBg
-            textColor = PulseStatusColors.BearishText
+            bgColor = pulseColors.signalBearishText
+            textColor = Color.White
         }
         else -> {
             bgColor = MaterialTheme.colorScheme.surfaceVariant
@@ -412,7 +410,7 @@ fun AssetSection(
         Text(
             text = title,
             style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colorScheme.primary,
+            color = LocalPulseColors.current.accentPrimary,
             modifier = Modifier.padding(bottom = paddingMedium)
         )
 
@@ -459,27 +457,20 @@ fun AssetCard(
     onClick: () -> Unit
 ) {
     val isSentimentAsset = asset.symbol == "FEAR_GREED" || asset.symbol == "PUT_CALL"
+    val pulseColors = LocalPulseColors.current
 
     val baseColor: Color
-    val backgroundColor: Color
+    // 💡 Migrated for spec-20260809-theme-migration: price cards are uniform/non-directional now --
+    // the card container no longer flips between Bullish/BearishBg. Direction lives only in
+    // baseColor (the change-percent text below).
+    val backgroundColor: Color = pulseColors.surfaceTinted
 
     // 💡 NEW: Contrarian Logic for Sentiment Indicators
     if (isSentimentAsset && asset.rsiStatus != null) {
-        when (asset.rsiStatus.uppercase()) {
-            "EXTREME FEAR", "FEAR", "OVERSOLD" -> {
-                baseColor = PulseStatusColors.BullishText
-                backgroundColor = PulseStatusColors.BullishBg
-            }
-
-            "EXTREME GREED", "GREED", "OVERBOUGHT" -> {
-                baseColor = PulseStatusColors.BearishText
-                backgroundColor = PulseStatusColors.BearishBg
-            }
-
-            else -> {
-                baseColor = MaterialTheme.colorScheme.onSurfaceVariant
-                backgroundColor = MaterialTheme.colorScheme.surfaceVariant
-            }
+        baseColor = when (asset.rsiStatus.uppercase()) {
+            "EXTREME FEAR", "FEAR", "OVERSOLD" -> pulseColors.signalBullishText
+            "EXTREME GREED", "GREED", "OVERBOUGHT" -> pulseColors.signalBearishText
+            else -> MaterialTheme.colorScheme.onSurfaceVariant
         }
     } else {
         // 💡 Standard Logic for Equities, Futures, and Crypto
@@ -488,13 +479,7 @@ fun AssetCard(
         val isGoodEvent =
             if (asset.isInverted == true) !isMathematicallyPositive else isMathematicallyPositive
 
-        if (isGoodEvent) {
-            baseColor = PulseStatusColors.BullishText
-            backgroundColor = PulseStatusColors.BullishBg
-        } else {
-            baseColor = PulseStatusColors.BearishText
-            backgroundColor = PulseStatusColors.BearishBg
-        }
+        baseColor = if (isGoodEvent) pulseColors.signalBullishText else pulseColors.signalBearishText
     }
 
     val cardTitle = when (asset.symbol) {
@@ -541,7 +526,7 @@ fun AssetCard(
                 Icon(
                     painter = painterResource(id = R.drawable.ic_chevron_forward),
                     contentDescription = asset.rsiStatus,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = LocalPulseColors.current.accentPrimary,
                     modifier = Modifier.size(dimensionResource(id = R.dimen.icon_size_small))
                 )
             }
@@ -592,17 +577,18 @@ fun TechnicalSummaryCard(summaryText: String?, timestamp: Long?, isEquityOpen: B
     val paddingMedium = dimensionResource(id = R.dimen.padding_medium)
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
 
+    val pulseColors = LocalPulseColors.current
     val badgeBgColor =
-        if (isEquityOpen) PulseStatusColors.BullishBg else MaterialTheme.colorScheme.surfaceVariant
+        if (isEquityOpen) pulseColors.signalBullishPill else MaterialTheme.colorScheme.surfaceVariant
     val badgeTextColor =
-        if (isEquityOpen) PulseStatusColors.BullishText else MaterialTheme.colorScheme.onSurfaceVariant
+        if (isEquityOpen) pulseColors.signalBullishText else MaterialTheme.colorScheme.onSurfaceVariant
 
+    // 💡 Migrated for spec-20260809-theme-migration: this IS the "Technical Briefing" card the
+    // migration table refers to (not UnifiedScoreHeaderCard, which is feed-layer -- see that
+    // file). Synthesis-layer card: accent.surface fill + accent.surfaceBorder hairline, both new.
     Card(
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(
-                alpha = 0.4f
-            )
-        ),
+        colors = CardDefaults.cardColors(containerColor = pulseColors.accentSurface),
+        border = BorderStroke(dimensionResource(id = R.dimen.border_thin), pulseColors.accentSurfaceBorder),
         shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
         modifier = Modifier
             .fillMaxWidth()
@@ -624,7 +610,7 @@ fun TechnicalSummaryCard(summaryText: String?, timestamp: Long?, isEquityOpen: B
                         Icon(
                             painter = painterResource(id = R.drawable.ic_engine_ai_sparkles),
                             contentDescription = "Analysis Engine",
-                            tint = MaterialTheme.colorScheme.secondary,
+                            tint = pulseColors.accentPrimary,
                             modifier = Modifier.size(iconSize)
                         )
 
@@ -633,7 +619,7 @@ fun TechnicalSummaryCard(summaryText: String?, timestamp: Long?, isEquityOpen: B
                         Text(
                             text = stringResource(id = R.string.dashboard_technical_briefing),
                             style = textStyle,
-                            color = MaterialTheme.colorScheme.secondary
+                            color = pulseColors.accentPrimary
                         )
                     }
                     Text(
@@ -716,6 +702,7 @@ fun SentimentConsensusBadge(sentimentAssets: List<AssetOverview?>, onClick: (Str
 
     if (validAssets == 0) return
 
+    val pulseColors = LocalPulseColors.current
     val consensusText: String
     val bgColor: Color
     val textColor: Color
@@ -723,14 +710,14 @@ fun SentimentConsensusBadge(sentimentAssets: List<AssetOverview?>, onClick: (Str
     when {
         score >= 4 -> {
             consensusText = "DISTRIBUTION PHASE"
-            bgColor = PulseStatusColors.BearishBg
-            textColor = PulseStatusColors.BearishText
+            bgColor = pulseColors.signalBearishPill
+            textColor = pulseColors.signalBearishText
         }
 
         score in 1..3 -> {
             consensusText = "HEALTHY UPTREND"
-            bgColor = PulseStatusColors.BullishBg
-            textColor = PulseStatusColors.BullishText
+            bgColor = pulseColors.signalBullishPill
+            textColor = pulseColors.signalBullishText
         }
 
         score == 0 -> {
@@ -741,20 +728,20 @@ fun SentimentConsensusBadge(sentimentAssets: List<AssetOverview?>, onClick: (Str
 
         score in -2..-1 -> {
             consensusText = "DANGEROUS DOWNTREND"
-            bgColor = PulseStatusColors.BearishBg
-            textColor = PulseStatusColors.BearishText
+            bgColor = pulseColors.signalBearishPill
+            textColor = pulseColors.signalBearishText
         }
 
         score in -4..-3 -> {
             consensusText = "ACCUMULATION PHASE"
-            bgColor = PulseStatusColors.BullishBg
-            textColor = PulseStatusColors.BullishText
+            bgColor = pulseColors.signalBullishPill
+            textColor = pulseColors.signalBullishText
         }
 
         else -> {
             consensusText = "CRASH OPPORTUNITY"
-            bgColor = PulseStatusColors.BullishBg
-            textColor = PulseStatusColors.BullishText
+            bgColor = pulseColors.signalBullishPill
+            textColor = pulseColors.signalBullishText
         }
     }
 
