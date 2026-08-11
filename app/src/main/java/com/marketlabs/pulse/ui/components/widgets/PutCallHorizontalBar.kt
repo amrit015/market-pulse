@@ -23,6 +23,7 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.font.FontWeight
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
+import kotlin.math.abs
 
 @Composable
 fun PutCallHorizontalBar(ratio: Double, change: Double?, status: String?) {
@@ -68,15 +69,37 @@ fun PutCallHorizontalBar(ratio: Double, change: Double?, status: String?) {
                         color = MaterialTheme.colorScheme.onSurface
                     )
 
-                    // 💡 Only show Change % if it's not null
+                    // 💡 Only show Change % if it's not null -- shown as a directional pill now,
+                    // matching VixFullWidthCard's treatment (same contrarian coloring: a rising
+                    // ratio is bad, so it gets the bearish tone even though the triangle points
+                    // up). Text is unsigned (magnitude only) since the triangle already states the
+                    // sign; an exact 0% reading gets the neutral tone and a flat bar instead of a
+                    // triangle, since the ratio did not actually move.
                     if (change != null) {
-                        Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+                        // 💡 Gap from the ratio value bumped from `padding_small` to `padding_medium`
+                        // -- the pill sitting almost flush against the value read cramped once it grew.
+                        Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_medium)))
 
-                        val sign = if (change >= 0) "+" else ""
-                        Text(
-                            text = "$sign${String.format("%.2f", change)}%",
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                            color = if (change > 0) textBearish else textBullish // INVERTED: Ratio UP is Bad
+                        val isFlat = change == 0.0
+                        val isRatioRising = change > 0
+                        val changeDirection = when {
+                            isFlat -> ChangeDirection.FLAT
+                            isRatioRising -> ChangeDirection.UP
+                            else -> ChangeDirection.DOWN
+                        }
+                        DirectionalChangePill(
+                            changeText = "${String.format("%.2f", abs(change))}%",
+                            direction = changeDirection,
+                            pillColor = when {
+                                isFlat -> pulseColors.signalNeutralPill
+                                isRatioRising -> pulseColors.signalBearishPill
+                                else -> pulseColors.signalBullishPill
+                            },
+                            contentColor = when {
+                                isFlat -> textNeutral
+                                isRatioRising -> textBearish
+                                else -> textBullish
+                            }
                         )
                     }
                 }

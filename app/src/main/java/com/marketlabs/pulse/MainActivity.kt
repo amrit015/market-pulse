@@ -4,24 +4,32 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.marketlabs.pulse.data.theme.ThemeRepository
 import com.marketlabs.pulse.ui.components.AppTopBar
 import com.marketlabs.pulse.ui.components.FloatingBottomNav
 import com.marketlabs.pulse.ui.navigation.PulseNavGraph
 import com.marketlabs.pulse.ui.navigation.PulseRoutes
 import com.marketlabs.pulse.ui.navigation.bottomNavItems
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
-import com.marketlabs.pulse.data.theme.ThemeRepository
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -68,15 +76,28 @@ class MainActivity : ComponentActivity() {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route
 
+                // 💡 News, Settings, and the in-app web view are pushed, full-screen destinations
+                // that already own their own local Scaffold/TopAppBar with a back button (see
+                // NewsRoute.kt, SettingsScreen.kt, WebViewScreen.kt). Rendering the global
+                // collapsing bar on top of those was showing two bars stacked at once and fighting
+                // the local one's back affordance, so it is left out of the Scaffold entirely for
+                // these routes rather than just visually collapsed.
+                val hasOwnTopBar = currentRoute == PulseRoutes.MARKET_NEWS ||
+                    currentRoute == PulseRoutes.SETTINGS ||
+                    currentRoute?.startsWith("webview/") == true
+
                 Scaffold(
                     modifier = Modifier
                         .fillMaxSize()
                         .nestedScroll(scrollBehavior.nestedScrollConnection),
                     topBar = {
-                        AppTopBar(
-                            scrollBehavior = scrollBehavior,
-                            onSettingsClick = { navController.navigate(PulseRoutes.SETTINGS) }
-                        )
+                        if (!hasOwnTopBar) {
+                            AppTopBar(
+                                title = topBarTitle(currentRoute),
+                                scrollBehavior = scrollBehavior,
+                                onSettingsClick = { navController.navigate(PulseRoutes.SETTINGS) }
+                            )
+                        }
                     },
                     bottomBar = {
                         // Settings is a pushed, full-screen destination reached from the gear —
@@ -98,12 +119,60 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 ) { innerPadding ->
+                    // 💡 `innerPadding` alone stays fixed at the top bar's fully-expanded height
+                    // the whole time -- `enterAlwaysScrollBehavior` hides the bar by translating it
+                    // off-screen at render time, which is not a layout change, so Scaffold's own
+                    // padding measurement never shrinks. Using it as-is would leave a dead,
+                    // background-colored gap where the bar used to be once it slides away, instead
+                    // of letting content actually scroll up into that space so the (edge-to-edge,
+                    // transparent) status bar shows real content behind it rather than empty space.
+                    //
+                    // Adding `scrollBehavior.state.heightOffset` in fixes this: it is 0 when the
+                    // bar is fully expanded (so this equals `innerPadding` exactly, unchanged from
+                    // before) and grows negative as the bar collapses, down to a limit Material 3
+                    // computes net of the bar's own status-bar inset -- so this bottoms out exactly
+                    // at the status bar's height once the bar is fully hidden, never less, without
+                    // this needing to know that height itself.
+                    val layoutDirection = LocalLayoutDirection.current
+                    val density = LocalDensity.current
+                    val dynamicTopPadding = with(density) {
+                        (innerPadding.calculateTopPadding() + scrollBehavior.state.heightOffset.toDp())
+                            .coerceAtLeast(0.dp)
+                    }
+                    val dynamicScaffoldPadding = PaddingValues(
+                        start = innerPadding.calculateStartPadding(layoutDirection),
+                        top = dynamicTopPadding,
+                        end = innerPadding.calculateEndPadding(layoutDirection),
+                        bottom = innerPadding.calculateBottomPadding()
+                    )
+
                     PulseNavGraph(
                         navController = navController,
-                        scaffoldPadding = innerPadding
+                        scaffoldPadding = dynamicScaffoldPadding
                     )
                 }
             }
         }
     }
+}
+
+/**
+ * Resolves the global top bar's title from the current back-stack route. A static per-route
+ * mapping, not read from any screen's own ViewModel state -- `MainActivity` owns app-wide chrome
+ * and stays intentionally dumb about what any one screen is doing internally. Market Summary's own
+ * in-content header shows a data-dependent report-type label (only known once that screen's data
+ * loads) that this can't replicate without reaching into its state, so it gets a fixed "Summary"
+ * here instead; that in-content label stays exactly as it is, unlike Indicators/Insights' redundant
+ * page-title rows, which are gone now that this bar carries the title.
+ *
+ * News and Settings have no branch here -- `hasOwnTopBar` above means this bar is never composed
+ * for those routes at all, so a title for them would never be read.
+ */
+@Composable
+private fun topBarTitle(route: String?): String = when (route) {
+    PulseRoutes.MARKET_INDICATORS -> stringResource(id = R.string.indicators_screen_title)
+    PulseRoutes.MARKET_INSIGHTS -> stringResource(id = R.string.insights_screen_title)
+    PulseRoutes.MARKET_SUMMARY -> stringResource(id = R.string.summary_screen_title)
+    PulseRoutes.MARKET_ANALYSIS -> stringResource(id = R.string.market_analysis_screen_title)
+    else -> stringResource(id = R.string.app_name)
 }

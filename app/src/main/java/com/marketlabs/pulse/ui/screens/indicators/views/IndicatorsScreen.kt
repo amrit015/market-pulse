@@ -16,15 +16,12 @@ import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -61,9 +58,12 @@ import com.marketlabs.pulse.storage.model.indicators.DomainAiSynthesis
 import com.marketlabs.pulse.storage.model.indicators.DomainHorizon
 import com.marketlabs.pulse.storage.model.indicators.DomainIndicatorPillar
 import com.marketlabs.pulse.storage.model.indicators.MarketIndicators
+import com.marketlabs.pulse.ui.components.PulseCard
+import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.UniversalMetricCard
 import com.marketlabs.pulse.ui.components.bottomSheet.FrameworkSheet
 import com.marketlabs.pulse.ui.components.bottomSheet.IndicatorDetailSheet
+import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.utils.enums.SubcategoryEnums
 import com.marketlabs.pulse.utils.glossary.DictionaryItem
 import com.marketlabs.pulse.utils.glossary.IndicatorsDictionary
@@ -105,7 +105,6 @@ private fun IndicatorsMainFeed(
     scaffoldPadding: PaddingValues,
     onShowHorizons: () -> Unit
 ) {
-    val statusBarHeight = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
 
     var showFrameworkSheet by remember { mutableStateOf(false) }
@@ -135,42 +134,21 @@ private fun IndicatorsMainFeed(
         }
     )
 
+    // 💡 The icon+"Market Indicators" row that used to open this screen is gone -- the title now
+    // lives in the global top bar (MainActivity resolves it per-route), so keeping this row would
+    // have said the same thing twice in two places on screen at once. `scaffoldPadding`'s top
+    // component (not the raw status bar inset alone) is what actually accounts for the top bar's
+    // real rendered height, so content starts right below it instead of underneath it.
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(top = statusBarHeight)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = paddingLarge, vertical = dimensionResource(id = R.dimen.padding_medium)),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                val textStyle = MaterialTheme.typography.headlineMedium
-                val iconSize = with(LocalDensity.current) { textStyle.fontSize.toDp() }
-
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_engine_quant),
-                    contentDescription = "Analysis Engine",
-                    tint = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.size(iconSize)
-                )
-                Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
-                Text(
-                    text = stringResource(id = R.string.indicators_screen_title),
-                    style = textStyle,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-            }
-        }
-
         LazyColumn(
             contentPadding = PaddingValues(
                 start = paddingLarge,
                 end = paddingLarge,
+                top = scaffoldPadding.calculateTopPadding() + paddingLarge,
                 bottom = scaffoldPadding.calculateBottomPadding() + paddingLarge
             ),
             modifier = Modifier.fillMaxSize()
@@ -215,15 +193,16 @@ private fun AiExecutiveBriefingHero(summaryText: String?, whatChanged: String?, 
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
     val paddingSmall = dimensionResource(id = R.dimen.padding_small)
 
-    Card(
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
-        ),
-        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
+    // 💡 SYNTHESIS style -- this is the AI Executive Briefing, the same kind of AI-interpreted
+    // content as Dashboard's Technical Briefing and the News cards. Replaces the old
+    // `secondaryContainer.copy(alpha = 0.4f)` leftover from before this app had its own token
+    // system.
+    PulseCard(
+        style = PulseCardStyle.SYNTHESIS,
         modifier = Modifier
             .fillMaxWidth()
-            .animateContentSize()
-            .clickable { isExpanded = !isExpanded }
+            .animateContentSize(),
+        onClick = { isExpanded = !isExpanded }
     ) {
         Column(modifier = Modifier.padding(paddingLarge)) {
             Row(
@@ -236,17 +215,23 @@ private fun AiExecutiveBriefingHero(summaryText: String?, whatChanged: String?, 
                         val textStyle = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                         val iconSize = with(LocalDensity.current) { textStyle.fontSize.toDp() }
 
+                        // 💡 This eyebrow (icon + label) marks the card as AI-sourced, the same
+                        // role Dashboard's Technical Briefing eyebrow plays -- matches its
+                        // accentPrimary color instead of the muted `colorScheme.secondary` this
+                        // used before, for the same reason: an AI-source label is a deliberate
+                        // accent-colored exception to the plain onSurface every other card title
+                        // in this app uses.
                         Icon(
                             painter = painterResource(id = R.drawable.ic_engine_ai_sparkles),
                             contentDescription = "Analysis Engine",
-                            tint = MaterialTheme.colorScheme.secondary,
+                            tint = LocalPulseColors.current.accentPrimary,
                             modifier = Modifier.size(iconSize)
                         )
                         Spacer(modifier = Modifier.width(paddingSmall))
                         Text(
                             text = stringResource(id = R.string.ai_executive_briefing),
                             style = textStyle,
-                            color = MaterialTheme.colorScheme.secondary
+                            color = LocalPulseColors.current.accentPrimary
                         )
                     }
                     Text(
@@ -297,10 +282,14 @@ private fun AiExecutiveBriefingHero(summaryText: String?, whatChanged: String?, 
                         color = MaterialTheme.colorScheme.error,
                         modifier = Modifier.padding(end = 4.dp)
                     )
+                    // 💡 Explainer text, always onSurface -- was `onSurfaceVariant`, reserved for
+                    // genuine metadata like dates, not descriptive content. The "SHIFT" label next
+                    // to it stays `colorScheme.error` on purpose, a real alert color, not a muted
+                    // one.
                     Text(
                         text = whatChanged,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurface,
                         maxLines = if (isExpanded) Int.MAX_VALUE else 2,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -474,7 +463,6 @@ private fun HorizonBriefingsView(
     scaffoldPadding: PaddingValues,
     onBackClick: () -> Unit
 ) {
-    val statusBarHeight = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     var selectedTabIndex by remember { mutableIntStateOf(0) }
 
     val tabs = listOf(
@@ -483,11 +471,16 @@ private fun HorizonBriefingsView(
         stringResource(id = R.string.tab_long_term)
     )
 
+    // 💡 This sub-view's own back-button-plus-title row stays -- it is reached by tapping into
+    // Horizon Briefings from within the Indicators tab (local Compose state, not a NavGraph route),
+    // so the global top bar has no way to show a back affordance for it or react to this in-tab
+    // navigation. Its top padding uses `scaffoldPadding`'s real top-bar-aware value for the same
+    // reason as everywhere else, so it isn't rendered underneath the (collapsed) global bar.
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(top = statusBarHeight)
+            .padding(top = scaffoldPadding.calculateTopPadding())
     ) {
         Row(
             modifier = Modifier

@@ -2,7 +2,6 @@ package com.marketlabs.pulse.ui.screens.insights.views
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,11 +14,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -40,6 +36,9 @@ import com.marketlabs.pulse.storage.model.posture.DomainDarkPoolIndex
 import com.marketlabs.pulse.storage.model.posture.DomainMarketPosture
 import com.marketlabs.pulse.storage.model.posture.DomainNaaimExposure
 import com.marketlabs.pulse.storage.model.posture.DomainNetLiquidity
+import com.marketlabs.pulse.ui.components.PulseCard
+import com.marketlabs.pulse.ui.components.PulseCardStyle
+import com.marketlabs.pulse.ui.components.widgets.SignalPill
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -101,12 +100,13 @@ fun InstitutionalPostureSection(postureData: DomainMarketPosture) {
 private fun PostureDisclaimerCard() {
     var expanded by remember { mutableStateOf(false) }
 
-    Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
-        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { expanded = !expanded }
+    // 💡 SYNTHESIS style -- a disclaimer about externally-sourced research data, editorial content
+    // rather than a raw reading. Replaces the old `surfaceVariant.copy(alpha = 0.5f)` leftover from
+    // before this app had its own token system.
+    PulseCard(
+        style = PulseCardStyle.SYNTHESIS,
+        modifier = Modifier.fillMaxWidth(),
+        onClick = { expanded = !expanded }
     ) {
         Column(
             modifier = Modifier
@@ -145,9 +145,11 @@ private fun PostureDisclaimerCard() {
 
 @Composable
 private fun NaaimExposureCard(naaim: DomainNaaimExposure) {
-    Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)),
-        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
+    // 💡 SYNTHESIS style -- externally-sourced institutional positioning data, presented with
+    // AI-written context, not a raw price. Replaces the old `secondaryContainer.copy(alpha = 0.4f)`
+    // leftover from before this app had its own token system.
+    PulseCard(
+        style = PulseCardStyle.SYNTHESIS,
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
@@ -159,38 +161,41 @@ private fun NaaimExposureCard(naaim: DomainNaaimExposure) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = "Active Manager Exposure (NAAIM)",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.secondary
+                        // 💡 titleSmall (15sp, semi-bold), not titleMedium.Bold (17sp, bold) -- the
+                        // consistent title tier every curated/AI-content card title uses now,
+                        // separate from DATA-style cards (Equities, VIX, Indicators), which keep
+                        // their bold 17sp title.
+                        style = MaterialTheme.typography.titleSmall,
+                        // 💡 Card titles are always onSurface (dark-on-light/white-on-dark) across
+                        // this app -- same treatment as Equities/AI/News cards.
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(modifier = Modifier.height(2.dp))
+                    // 💡 Explainer subtitle, always onSurface -- was `onSurfaceVariant`, reserved
+                    // for genuine metadata like dates, not descriptive content.
                     Text(
                         text = naaim.description ?: "",
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
-                val statusColor = when (naaim.status?.uppercase()) {
-                    "BULLISH", "EXTREME GREED (LEVERAGED)" -> LocalPulseColors.current.signalBullishText
-                    "BEARISH", "EXTREME FEAR (HEDGED)" -> LocalPulseColors.current.signalBearishText
-                    else -> MaterialTheme.colorScheme.onSurfaceVariant
+                // 💡 Real `signal.*.pill`/`signal.*.text` token pairs now, not a translucent
+                // (`.copy(alpha = 0.15f)`) version of the text color standing in for a background --
+                // the same pill token every other signal badge in the app uses.
+                val pulseColors = LocalPulseColors.current
+                val (statusPillColor, statusTextColor) = when (naaim.status?.uppercase()) {
+                    "BULLISH", "EXTREME GREED (LEVERAGED)" -> pulseColors.signalBullishPill to pulseColors.signalBullishText
+                    "BEARISH", "EXTREME FEAR (HEDGED)" -> pulseColors.signalBearishPill to pulseColors.signalBearishText
+                    else -> MaterialTheme.colorScheme.surfaceVariant to MaterialTheme.colorScheme.onSurfaceVariant
                 }
 
-                Surface(
-                    color = statusColor.copy(alpha = 0.15f),
-                    shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_chip)),
-                    modifier = Modifier.padding(start = dimensionResource(id = R.dimen.padding_small))
-                ) {
-                    Text(
-                        text = naaim.status ?: "UNKNOWN",
-                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                        color = statusColor,
-                        modifier = Modifier.padding(
-                            horizontal = dimensionResource(id = R.dimen.padding_medium),
-                            vertical = dimensionResource(id = R.dimen.padding_tiny)
-                        )
-                    )
-                }
+                SignalPill(
+                    text = naaim.status ?: "UNKNOWN",
+                    pillColor = statusPillColor,
+                    contentColor = statusTextColor,
+                    modifier = Modifier.padding(start = dimensionResource(id = R.dimen.padding_medium))
+                )
             }
 
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
@@ -272,9 +277,9 @@ private fun NaaimExposureCard(naaim: DomainNaaimExposure) {
 
 @Composable
 private fun DarkPoolCard(dix: DomainDarkPoolIndex) {
-    Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)),
-        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
+    // 💡 SYNTHESIS style -- see NaaimExposureCard above.
+    PulseCard(
+        style = PulseCardStyle.SYNTHESIS,
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
@@ -286,35 +291,35 @@ private fun DarkPoolCard(dix: DomainDarkPoolIndex) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = "Dark Pool Index (DIX)",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.secondary
+                        // 💡 titleSmall (15sp, semi-bold) -- see NaaimExposureCard above.
+                        style = MaterialTheme.typography.titleSmall,
+                        // 💡 Card titles are always onSurface -- see NaaimExposureCard above.
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(modifier = Modifier.height(2.dp))
+                    // 💡 Explainer subtitle, always onSurface -- see NaaimExposureCard above.
                     Text(
                         text = dix.description ?: "",
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
                 val isBullish = (dix.value ?: 0.0) >= 45.0
-                val statusColor = if (isBullish) LocalPulseColors.current.signalBullishText else MaterialTheme.colorScheme.onSurfaceVariant
-
-                Surface(
-                    color = statusColor.copy(alpha = 0.15f),
-                    shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_chip)),
-                    modifier = Modifier.padding(start = dimensionResource(id = R.dimen.padding_small))
-                ) {
-                    Text(
-                        text = dix.status ?: "UNKNOWN",
-                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                        color = statusColor,
-                        modifier = Modifier.padding(
-                            horizontal = dimensionResource(id = R.dimen.padding_medium),
-                            vertical = dimensionResource(id = R.dimen.padding_tiny)
-                        )
-                    )
+                // 💡 Real `signal.*.pill`/`signal.*.text` token pair -- see NaaimExposureCard above.
+                val pulseColors = LocalPulseColors.current
+                val (statusPillColor, statusTextColor) = if (isBullish) {
+                    pulseColors.signalBullishPill to pulseColors.signalBullishText
+                } else {
+                    MaterialTheme.colorScheme.surfaceVariant to MaterialTheme.colorScheme.onSurfaceVariant
                 }
+
+                SignalPill(
+                    text = dix.status ?: "UNKNOWN",
+                    pillColor = statusPillColor,
+                    contentColor = statusTextColor,
+                    modifier = Modifier.padding(start = dimensionResource(id = R.dimen.padding_medium))
+                )
             }
 
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
@@ -338,9 +343,9 @@ private fun DarkPoolCard(dix: DomainDarkPoolIndex) {
 
 @Composable
 private fun NetLiquidityCard(liquidity: DomainNetLiquidity) {
-    Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)),
-        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
+    // 💡 SYNTHESIS style -- see NaaimExposureCard above.
+    PulseCard(
+        style = PulseCardStyle.SYNTHESIS,
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
@@ -353,39 +358,35 @@ private fun NetLiquidityCard(liquidity: DomainNetLiquidity) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = "Global Net Liquidity",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.secondary
+                        // 💡 titleSmall (15sp, semi-bold) -- see NaaimExposureCard above.
+                        style = MaterialTheme.typography.titleSmall,
+                        // 💡 Card titles are always onSurface -- see NaaimExposureCard above.
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(modifier = Modifier.height(2.dp))
+                    // 💡 Explainer subtitle, always onSurface -- see NaaimExposureCard above.
                     Text(
                         text = liquidity.description ?: "",
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
                 // 💡 NEW: The Dynamic Liquidity Status Badge
-                val statusColor = when (liquidity.status?.uppercase()) {
-                    "EXPANDING" -> LocalPulseColors.current.signalBullishText // Expanding liquidity acts as a tailwind (Green)
-                    "DRAINING" -> LocalPulseColors.current.signalBearishText // Contracting liquidity acts as a headwind (Red)
-                    else -> MaterialTheme.colorScheme.onSurfaceVariant
+                // 💡 Real `signal.*.pill`/`signal.*.text` token pair -- see NaaimExposureCard above.
+                val pulseColors = LocalPulseColors.current
+                val (statusPillColor, statusTextColor) = when (liquidity.status?.uppercase()) {
+                    "EXPANDING" -> pulseColors.signalBullishPill to pulseColors.signalBullishText // Expanding liquidity acts as a tailwind (Green)
+                    "DRAINING" -> pulseColors.signalBearishPill to pulseColors.signalBearishText // Contracting liquidity acts as a headwind (Red)
+                    else -> MaterialTheme.colorScheme.surfaceVariant to MaterialTheme.colorScheme.onSurfaceVariant
                 }
 
-                Surface(
-                    color = statusColor.copy(alpha = 0.15f),
-                    shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_chip)),
-                    modifier = Modifier.padding(start = dimensionResource(id = R.dimen.padding_small))
-                ) {
-                    Text(
-                        text = liquidity.status ?: "UNKNOWN",
-                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                        color = statusColor,
-                        modifier = Modifier.padding(
-                            horizontal = dimensionResource(id = R.dimen.padding_medium),
-                            vertical = dimensionResource(id = R.dimen.padding_tiny)
-                        )
-                    )
-                }
+                SignalPill(
+                    text = liquidity.status ?: "UNKNOWN",
+                    pillColor = statusPillColor,
+                    contentColor = statusTextColor,
+                    modifier = Modifier.padding(start = dimensionResource(id = R.dimen.padding_medium))
+                )
             }
 
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))

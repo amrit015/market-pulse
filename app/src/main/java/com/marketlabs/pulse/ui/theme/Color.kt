@@ -87,7 +87,11 @@ object PulseTokens {
     /** Layer 2 — surface ramp. Shared per mode: one instance for all 5 light presets, one for all 5 dark. */
     object Surface {
         val light = SurfaceRamp(
-            background = Color(0xFFF4F2ED),
+            // 💡 Blended halfway toward `surface` below -- the literal Token Contract value read as
+            // more visibly grey/cream than wanted once the top bar started sharing this exact color
+            // (AppTopBar.kt), a greyish-white was asked for instead. Dark mode's background is
+            // untouched -- "more white" only applies to light mode.
+            background = Color(0xFFF8F6F2),
             surface = Color(0xFFFBFAF7),
             surfaceElevated = Color(0xFFFFFFFF),
             onBackground = Color(0xFF14161B),
@@ -120,6 +124,12 @@ object PulseTokens {
             val on = Color(0xFFFFFFFF)
             val surface = Color(0xFFEBDFF3)
             val surfaceBorder = Color(0xFFD8C3E4)
+            // 💡 This is the literal Token Contract value, unmodified. Price cards need a stronger
+            // version of this for their actual background -- that adjustment now happens as a
+            // runtime blend toward `surface` in `MarketPulseTheme.toPulseColors()` rather than
+            // baked into this constant, specifically so the blend factor is a one-line tweak
+            // instead of hand-recomputing ten hex values every time it needs to change (which
+            // happened three times across two sessions before this was worth doing properly).
             val tinted = Color(0xFFF3EEF6)
         }
 

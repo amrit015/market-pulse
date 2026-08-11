@@ -14,9 +14,9 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemColors
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,8 +25,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.navigation.BottomNavItem
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
@@ -65,37 +67,44 @@ fun FloatingBottomNav(
 ) {
     val cornerRadius = dimensionResource(id = R.dimen.corner_radius_pill)
     val elevation = dimensionResource(id = R.dimen.nav_elevation)
-    val margin = dimensionResource(id = R.dimen.padding_standard)
+    // 💡 Both started at `padding_standard` (12dp) -- horizontal margin bumped to `padding_large`
+    // (16dp) for more breathing room from the screen edges, kept as its own value so it can change
+    // independently of the bottom margin. Bottom margin (the gap above the system nav bar) went the
+    // other way, down to `padding_small` (4dp) -- 12dp read as an oversized gap once seen against
+    // the rest of the app's tighter spacing.
+    val horizontalMargin = dimensionResource(id = R.dimen.padding_large)
+    val bottomMargin = 0.dp
     val borderWidth = dimensionResource(id = R.dimen.border_thin)
 
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = margin)
+            .padding(horizontal = horizontalMargin)
             .windowInsetsPadding(WindowInsets.navigationBars)
-            .padding(bottom = margin),
+            .padding(bottom = bottomMargin),
         shape = RoundedCornerShape(cornerRadius),
         color = MaterialTheme.colorScheme.surfaceContainerHighest,
-        border = BorderStroke(borderWidth, MaterialTheme.colorScheme.outline),
+        border = BorderStroke(borderWidth, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)),
         shadowElevation = elevation
     ) {
-        Row(modifier = Modifier.fillMaxWidth()) {
+        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp)) {
             items.forEach { item ->
                 val isSelected = currentRoute == item.route
                 val iconSize by animateDpAsState(
-                    targetValue = if (isSelected) 28.dp else 24.dp,
+                    targetValue = if (isSelected) 22.dp else 20.dp,
                     label = "FloatingBottomNavIconSize"
                 )
 
                 NavigationBarItem(
+                    modifier = Modifier.weight(1f),
                     selected = isSelected,
                     onClick = { onItemClick(item.route) },
-                    label = { Text(item.label) },
+                    label = { Text(text = item.label, textAlign = TextAlign.Center, fontSize = 10.sp) },
                     icon = {
                         Icon(
                             painter = painterResource(id = if (isSelected) item.selectedIconRes else item.unselectedIconRes),
                             contentDescription = item.label,
-                            modifier = Modifier.size(iconSize)
+                            modifier = Modifier.size(iconSize),
                         )
                     },
                     colors = floatingNavItemColors()

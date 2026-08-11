@@ -2,7 +2,6 @@ package com.marketlabs.pulse.ui.screens.news.views
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,18 +13,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,6 +34,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.news.MarketNews
 import com.marketlabs.pulse.storage.model.news.NewsArticle
+import com.marketlabs.pulse.ui.components.PulseCard
+import com.marketlabs.pulse.ui.components.PulseCardStyle
+import com.marketlabs.pulse.ui.components.widgets.SignalPill
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.PulseColors
 import com.marketlabs.pulse.utils.extensions.toRelativeTimeString
@@ -157,26 +155,24 @@ fun NewsArticleCard(
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
     val cardShape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card))
 
-    Card(
-        // 💡 News cards are curated + AI-filtered, not raw feed -- they wear the same accent tint
-        // as the AI briefing card so a reader can tell interpreted/curated content apart from raw
-        // market data at a glance, without reading a word.
-        colors = CardDefaults.cardColors(containerColor = pulseColors.accentSurface),
+    // 💡 News cards are curated + AI-filtered, not raw feed -- SYNTHESIS style, same as the AI
+    // briefing card, so a reader can tell interpreted/curated content apart from raw market data at
+    // a glance. The highlighted border (thicker, full accent) draws on top of PulseCard's own
+    // hairline border -- Added with Claude Code assistance: frames the card a Dashboard news
+    // preview linked to.
+    PulseCard(
+        style = PulseCardStyle.SYNTHESIS,
         shape = cardShape,
         modifier = Modifier
             .fillMaxWidth()
-            // Added with Claude Code assistance: frames the card a Dashboard news preview linked to.
             .let {
                 if (isHighlighted) {
                     it.border(dimensionResource(id = R.dimen.border_medium), pulseColors.accentPrimary, cardShape)
                 } else {
                     it
                 }
-            }
-            // 💡 ACTION: Make the entire card clickable, firing the URI handler
-            .clickable(enabled = url.isNotBlank()) {
-                onClick(url) // open the webpages on the app webview
-            }
+            },
+        onClick = if (url.isNotBlank()) ({ onClick(url) }) else null
     ) {
         Column(
             modifier = Modifier
@@ -206,20 +202,7 @@ fun NewsArticleCard(
                     }
                 }
 
-                Surface(
-                    color = sentimentBgColor,
-                    shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_chip))
-                ) {
-                    Text(
-                        text = sentiment,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = sentimentColor,
-                        modifier = Modifier.padding(
-                            horizontal = dimensionResource(id = R.dimen.padding_medium),
-                            vertical = dimensionResource(id = R.dimen.padding_tiny)
-                        )
-                    )
-                }
+                SignalPill(text = sentiment, pillColor = sentimentBgColor, contentColor = sentimentColor)
             }
 
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
@@ -233,10 +216,19 @@ fun NewsArticleCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // --- HEADLINE ---
+                // 💡 Was `colorScheme.secondary` (mapped to the muted onSurfaceMuted tone) -- the
+                // same fix already applied to NewsPreviewCard's headline, now applied here too.
+                // Card titles are always onSurface (dark-on-light/white-on-dark) across this app.
+                // 💡 Was `titleMedium` (17sp) with no weight override, sitting at the same size as
+                // Equities' bold card title but one weight step lighter (semi-bold) -- read as an
+                // inconsistent size at a glance even though the sp value matched. Every
+                // curated/AI-content card title in the app now uses `titleSmall` (15sp,
+                // semi-bold) as its own distinct, consistent tier, separate from the DATA-style
+                // cards (Equities, VIX, Indicators), which keep their bold 17sp title.
                 Text(
                     text = headline,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.secondary,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f)
                 )
 
@@ -327,7 +319,10 @@ fun NewsPreviewSection(
             }
         }
 
-        Column(verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_small))) {
+        // 💡 Was `padding_small` (4dp) -- read as cramped next to the more generously spaced
+        // sections above it on the same screen. `padding_standard` (12dp) matches the gap other
+        // multi-card groups on Dashboard use between siblings.
+        Column(verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_standard))) {
             articles.forEach { article ->
                 NewsPreviewCard(article = article, onClick = onArticleClick)
             }
@@ -351,34 +346,21 @@ fun NewsPreviewCard(
     val pulseColors = LocalPulseColors.current
     val (sentimentColor, sentimentBgColor) = sentimentColors(pulseColors, sentiment)
 
-    Card(
-        // 💡 Matches the AI briefing card's accent tint -- see NewsArticleCard's card above.
-        colors = CardDefaults.cardColors(containerColor = pulseColors.accentSurface),
-        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(enabled = url.isNotBlank()) { onClick(url) }
+    // 💡 SYNTHESIS style -- matches NewsArticleCard's above.
+    PulseCard(
+        style = PulseCardStyle.SYNTHESIS,
+        modifier = Modifier.fillMaxWidth(),
+        onClick = if (url.isNotBlank()) ({ onClick(url) }) else null
     ) {
-        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_medium))) {
+        // 💡 Was `padding_medium` (8dp) -- bumped to `padding_large` (16dp), matching the inner
+        // padding every other card on this screen (AssetCard, VixFullWidthCard, etc.) already uses.
+        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Surface(
-                    color = sentimentBgColor,
-                    shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_chip))
-                ) {
-                    Text(
-                        text = sentiment,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = sentimentColor,
-                        modifier = Modifier.padding(
-                            horizontal = dimensionResource(id = R.dimen.padding_small),
-                            vertical = dimensionResource(id = R.dimen.padding_tiny)
-                        )
-                    )
-                }
+                SignalPill(text = sentiment, pillColor = sentimentBgColor, contentColor = sentimentColor)
 
                 article.timestamp?.let { timestamp ->
                     Text(
@@ -391,12 +373,19 @@ fun NewsPreviewCard(
 
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_tiny)))
 
-            // Smaller style than NewsArticleCard's titleMedium, and no maxLines/ellipsis — the
-            // whole headline is shown, wrapping onto as many lines as it needs.
+            // No maxLines/ellipsis -- the whole headline is shown, wrapping onto as many lines as
+            // it needs.
+            // 💡 Was `colorScheme.secondary`, an unset M3 role that falls back to Material's own
+            // baseline default rather than anything this app's token set defines -- it read as a
+            // washed-out, off-brand purple instead of a real headline color. Switched to `onSurface`,
+            // the same dark-on-light/light-on-dark neutral every other card's title text uses.
+            // 💡 Dropped the `.copy(fontWeight = Bold)` override -- `titleSmall` (15sp, semi-bold)
+            // is the consistent title tier every curated/AI-content card title uses now, and this
+            // one was the odd one out at bold instead of semi-bold.
             Text(
                 text = headline,
                 style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.secondary
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
     }

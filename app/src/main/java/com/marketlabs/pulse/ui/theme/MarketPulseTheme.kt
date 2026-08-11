@@ -4,6 +4,7 @@ import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 
 /**
  * 💡 THOUGHT PROCESS:
@@ -69,7 +70,20 @@ enum class MarketPulseTheme(val displayName: String, val isDark: Boolean) {
             accentOn = accent.on,
             accentSurface = accent.surface,
             accentSurfaceBorder = accent.surfaceBorder,
-            surfaceTinted = accent.tinted,
+            // 💡 AI/News cards need to read as clearly darker than price cards, not just a
+            // different hue -- blended 42% from `surface` toward `surfaceBorder` (the next step
+            // further in the same direction that border color already moves, per mode) rather
+            // than a new hand-picked hex.
+            accentSurfaceStrong = lerp(accent.surface, accent.surfaceBorder, 0.42f),
+            // 💡 Blended 45% from the literal Token Contract `tinted` value toward `surface` --
+            // the raw `tinted` value alone reads as too close to the page background to register
+            // as a distinct card (35% was an earlier attempt, still a bit too subtle once judged
+            // against the finished app rather than in isolation). Computed here (not baked into
+            // the `tinted` constant) so this factor is a one-line change the next time it needs
+            // tuning -- and it only needs tuning in this one spot, since every DATA-style card
+            // (Equities' AssetCard, Indicators' UniversalMetricCard) reads it through the same
+            // `PulseCard` component.
+            surfaceTinted = lerp(accent.tinted, accent.surface, 0.45f),
             onSurfaceMuted = surface.onSurfaceMuted
         )
     }

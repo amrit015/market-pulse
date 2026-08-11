@@ -37,6 +37,9 @@ data class PulseColors(
     val accentSurface: Color,
     val accentSurfaceBorder: Color,
 
+    /** A more saturated step past `accentSurface`, blended toward `accentSurfaceBorder` -- used by AI-generated/curated cards (Technical Briefing, News) so they read as clearly darker than price cards, not just a different hue. */
+    val accentSurfaceStrong: Color,
+
     /** Accent-washed neutral used by every price card regardless of direction — the thing that decouples the accent's touch on price cards from the signal layer entirely. */
     val surfaceTinted: Color,
 

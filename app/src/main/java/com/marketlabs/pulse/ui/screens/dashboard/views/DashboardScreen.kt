@@ -1,7 +1,6 @@
 package com.marketlabs.pulse.ui.screens.dashboard.views
 
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -11,8 +10,6 @@ import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,7 +17,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -53,9 +49,14 @@ import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.dashboard.AssetOverview
 import com.marketlabs.pulse.storage.model.dashboard.MarketState
 import com.marketlabs.pulse.storage.model.news.NewsArticle
+import com.marketlabs.pulse.ui.components.PulseCard
+import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.bottomSheet.AssetDetailBottomSheet
 import com.marketlabs.pulse.ui.components.bottomSheet.MarketGlossaryBottomSheet
+import com.marketlabs.pulse.ui.components.widgets.ChangeDirection
+import com.marketlabs.pulse.ui.components.widgets.DirectionalChangePill
 import com.marketlabs.pulse.ui.components.widgets.PutCallHorizontalBar
+import com.marketlabs.pulse.ui.components.widgets.SignalPill
 import com.marketlabs.pulse.ui.components.widgets.SpeedometerGauge
 import com.marketlabs.pulse.ui.components.widgets.VixFullWidthCard
 import com.marketlabs.pulse.ui.screens.news.views.NewsPreviewSection
@@ -65,6 +66,7 @@ import dev.jeziellago.compose.markdowntext.MarkdownText
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.math.abs
 
 // News preview section below added with Claude Code assistance.
 
@@ -78,7 +80,6 @@ fun DashboardScreen(
     onNavigateToNews: () -> Unit
 ) {
     val scrollState = rememberScrollState()
-    val statusBarHeight = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
 
     val paddingExtraLarge = dimensionResource(id = R.dimen.padding_extra_large)
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
@@ -125,13 +126,17 @@ fun DashboardScreen(
     var selectedAsset by remember { mutableStateOf<AssetOverview?>(null) }
     var selectedRegimeForGlossary by remember { mutableStateOf<String?>(null) }
 
+    // 💡 Top padding uses `scaffoldPadding`'s top component (the Scaffold's own measurement of
+    // the top bar's real rendered height) instead of the raw status bar inset alone -- the raw
+    // inset only accounts for the system status bar, not the app's own top bar sitting below it,
+    // so content used to start underneath the top bar rather than below it.
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .verticalScroll(scrollState)
             .padding(
-                top = statusBarHeight + paddingExtraLarge,
+                top = scaffoldPadding.calculateTopPadding() + paddingExtraLarge,
                 bottom = scaffoldPadding.calculateBottomPadding() + paddingExtraLarge,
                 start = paddingLarge,
                 end = paddingLarge
@@ -460,17 +465,31 @@ fun AssetCard(
     val pulseColors = LocalPulseColors.current
 
     val baseColor: Color
+    val pillColor: Color
     // 💡 Price cards are uniform/non-directional now -- the card container no longer flips between
-    // a bullish-tinted and bearish-tinted background. Direction lives only in baseColor (the
-    // change-percent text below), so a grid of six down-days does not read as visually alarming.
-    val backgroundColor: Color = pulseColors.surfaceTinted
+    // a bullish-tinted and bearish-tinted background. Direction lives only in baseColor/pillColor
+    // (the directional pill below), so a grid of six down-days does not read as visually alarming.
+    //
+    // Sentiment cards (Fear & Greed, Put/Call) used to get a distinct NEUTRAL card style (plain
+    // white/elevated surface) instead of the DATA style every other price card uses, on the theory
+    // that a computed reading shouldn't look like raw data -- retired once that distinction stopped
+    // being wanted; every price/reading card shares the same DATA style now.
 
     // 💡 NEW: Contrarian Logic for Sentiment Indicators
     if (isSentimentAsset && asset.rsiStatus != null) {
-        baseColor = when (asset.rsiStatus.uppercase()) {
-            "EXTREME FEAR", "FEAR", "OVERSOLD" -> pulseColors.signalBullishText
-            "EXTREME GREED", "GREED", "OVERBOUGHT" -> pulseColors.signalBearishText
-            else -> MaterialTheme.colorScheme.onSurfaceVariant
+        when (asset.rsiStatus.uppercase()) {
+            "EXTREME FEAR", "FEAR", "OVERSOLD" -> {
+                baseColor = pulseColors.signalBullishText
+                pillColor = pulseColors.signalBullishPill
+            }
+            "EXTREME GREED", "GREED", "OVERBOUGHT" -> {
+                baseColor = pulseColors.signalBearishText
+                pillColor = pulseColors.signalBearishPill
+            }
+            else -> {
+                baseColor = MaterialTheme.colorScheme.onSurfaceVariant
+                pillColor = MaterialTheme.colorScheme.surfaceVariant
+            }
         }
     } else {
         // 💡 Standard Logic for Equities, Futures, and Crypto
@@ -480,6 +499,7 @@ fun AssetCard(
             if (asset.isInverted == true) !isMathematicallyPositive else isMathematicallyPositive
 
         baseColor = if (isGoodEvent) pulseColors.signalBullishText else pulseColors.signalBearishText
+        pillColor = if (isGoodEvent) pulseColors.signalBullishPill else pulseColors.signalBearishPill
     }
 
     val cardTitle = when (asset.symbol) {
@@ -504,10 +524,10 @@ fun AssetCard(
 
     val livePriceTextSize = MaterialTheme.typography.titleSmall
 
-    Card(
-        colors = CardDefaults.cardColors(containerColor = backgroundColor),
-        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card_large)),
-        modifier = modifier.clickable { onClick() }
+    PulseCard(
+        style = PulseCardStyle.DATA,
+        modifier = modifier,
+        onClick = onClick
     ) {
         Column(
             modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))
@@ -552,13 +572,26 @@ fun AssetCard(
                 )
 
                 val changeForDisplay = asset.changePercent ?: 0.0
-                val isDisplayPositive = changeForDisplay >= 0
-                val sign = if (isDisplayPositive) "+" else ""
+                // 💡 Triangle direction always follows the raw numeric sign of the move itself, not
+                // whether that move is "good" or "bad" -- pillColor/baseColor already carry the
+                // good/bad read (including the isInverted flip above), so the triangle and the
+                // pill's color can legitimately disagree, e.g. a rising VIX shows an up triangle on
+                // a bearish-colored pill. The triangle already states the sign, so the text itself
+                // is unsigned (magnitude only); an exact 0% reading gets the neutral tone and a flat
+                // bar instead of either triangle, since it did not actually rise or fall.
+                val isFlat = changeForDisplay == 0.0
+                val changeDirection = when {
+                    isFlat -> ChangeDirection.FLAT
+                    changeForDisplay > 0 -> ChangeDirection.UP
+                    else -> ChangeDirection.DOWN
+                }
 
-                Text(
-                    text = "$sign${String.format("%.2f", changeForDisplay)}%",
-                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                    color = baseColor
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_tiny)))
+                DirectionalChangePill(
+                    changeText = "${String.format("%.2f", abs(changeForDisplay))}%",
+                    direction = changeDirection,
+                    pillColor = if (isFlat) pulseColors.signalNeutralPill else pillColor,
+                    contentColor = if (isFlat) pulseColors.signalNeutralText else baseColor
                 )
             }
         }
@@ -584,19 +617,16 @@ fun TechnicalSummaryCard(summaryText: String?, timestamp: Long?, isEquityOpen: B
         if (isEquityOpen) pulseColors.signalBullishText else MaterialTheme.colorScheme.onSurfaceVariant
 
     // 💡 This is the AI-generated "Technical Briefing" card -- interpreted, editorial content, not
-    // raw market data. It wears the accent as a tinted fill with a matching hairline border (both
-    // new; the border did not exist before), the same treatment as AI analysis and news cards.
+    // raw market data. SYNTHESIS style, the same treatment as AI analysis and news cards.
     // Contrast this with UnifiedScoreHeaderCard, whose colors are all passed in by the caller as
     // real signal colors (bullish/bearish/neutral pillar scores) -- that one stays signal-colored
     // on purpose, since it is showing raw computed data, not an AI's interpretation of it.
-    Card(
-        colors = CardDefaults.cardColors(containerColor = pulseColors.accentSurface),
-        border = BorderStroke(dimensionResource(id = R.dimen.border_thin), pulseColors.accentSurfaceBorder),
-        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
+    PulseCard(
+        style = PulseCardStyle.SYNTHESIS,
         modifier = Modifier
             .fillMaxWidth()
-            .animateContentSize()
-            .clickable { isExpanded = !isExpanded }
+            .animateContentSize(),
+        onClick = { isExpanded = !isExpanded }
     ) {
         Column(modifier = Modifier.padding(paddingLarge)) {
             Row(
@@ -656,31 +686,19 @@ fun TechnicalSummaryCard(summaryText: String?, timestamp: Long?, isEquityOpen: B
             )
 
             Spacer(modifier = Modifier.height(paddingLarge))
-            Surface(
-                color = badgeBgColor,
-                shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_pill))
-            ) {
-                Row(
-                    modifier = Modifier.padding(
-                        horizontal = paddingMedium,
-                        vertical = paddingSmall
-                    ),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+            SignalPill(
+                text = if (isEquityOpen) stringResource(id = R.string.dashboard_market_open)
+                else stringResource(id = R.string.dashboard_market_closed),
+                pillColor = badgeBgColor,
+                contentColor = badgeTextColor,
+                leadingIcon = {
                     Box(
                         modifier = Modifier
                             .size(dimensionResource(id = R.dimen.icon_size_small))
                             .background(color = badgeTextColor, shape = CircleShape)
                     )
-                    Text(
-                        text = if (isEquityOpen) stringResource(id = R.string.dashboard_market_open)
-                        else stringResource(id = R.string.dashboard_market_closed),
-                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                        color = badgeTextColor,
-                        modifier = Modifier.padding(start = paddingSmall)
-                    )
                 }
-            }
+            )
         }
     }
 }

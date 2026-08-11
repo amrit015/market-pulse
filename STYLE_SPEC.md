@@ -1,71 +1,139 @@
 # Market Pulse — Current Style Spec
 
-Design reference extracted from source. Every color, type, spacing, and shape value defined in the Android client today, read straight out of `Color.kt`, `Theme.kt`, `Type.kt`, and `dimens.xml` — plus the inconsistencies worth a decision before the revamp starts.
+Design reference extracted from source. Every color, type, spacing, and shape value defined in the Android client today, read straight out of `Color.kt`, `MarketPulseTheme.kt`, `PulseColors.kt`, `PulseCard.kt`, `SignalPill.kt`, `Type.kt`, and `dimens.xml` — plus the inconsistencies worth a decision.
 
 **This documents what exists, not what's recommended.**
 
 - Package: `com.marketlabs.pulse`
 - Stack: Kotlin · Jetpack Compose · Material 3
-- Snapshot: 2026-08-08 · branch `feat-stock-analysis`
+- Snapshot: 2026-08-10 · branch `feat-design-migration`
+
+**Since the previous snapshot of this doc**, the entire color system was rebuilt: the old flat single-theme palette (`PulseBlue`/`PulseBlack`/`PulseGold`/`PulseOrange`/`AlertRed`, `PulseStatusColors`, `ColorGreen`/`ColorRed`/`ColorNeutral`) is gone — not deprecated, deleted — replaced by a 10-preset system described below. Most of §1–§3 in the old version of this doc no longer applies to anything in the running app.
 
 ---
 
-## 1. Brand marks
+## 1. Theme architecture — 10 presets, three token layers
 
-Two dedicated brand colors are defined. Everything else derives from Material role mapping or the semantic status colors below — there is no broader brand palette to draw from yet.
+The app supports **10 baked-mode presets** — 5 light (Plum, Navy, Fuchsia, Graphite, Teal), 5 dark (Lilac, Sky, Sand, Rose, Aqua). Picking a preset **is** the appearance setting — there's no separate "follow system" toggle, and a chosen preset overrides whatever light/dark mode the OS is in. Selection persists via DataStore (`ThemeRepository`), default is `LILAC`.
 
-| Name | Hex | Variable |
+Every preset resolves from the same three data sources in `PulseTokens` (`ui/theme/Color.kt`):
+
+| Layer | Varies by preset? | What it covers |
 |---|---|---|
-| Pulse Black | `#000000` | `PulseBlack` |
-| Pulse Blue | `#083B95` | `PulseBlue` |
-| Pulse Gold | `#F9A825` | `PulseGold` |
-| Pulse Orange | `#EF6C00` | `PulseOrange` |
-| Alert Red | `#C62828` | `AlertRed` |
+| **Signal** | No — locked per mode | Bullish/bearish/neutral/warning meaning. Every light preset paints the same 8 hexes; every dark preset paints the same (different) 8 hexes. `Accent` is never allowed to override these — a themed accent can never be mistaken for a market read. |
+| **Surface** | No — locked per mode | The shared neutral ramp (background, surface, elevated surface, outline, on-surface text). One instance for all 5 light presets, one for all 5 dark presets. |
+| **Accent** | **Yes — the one thing that changes** | 5 values per preset: `primary` (the preset's brand color), `on` (text/icon color sitting on top of it), `surface` + `surfaceBorder` (a soft tint + matching hairline border for AI/curated cards), `tinted` (an accent-washed neutral for price cards). |
+
+Resolution happens once per composition, in `MarketPulseTheme.toPulseColors()` / `.toColorScheme()` (`ui/theme/MarketPulseTheme.kt`) — every screen reads either `MaterialTheme.colorScheme` (standard M3 roles) or `LocalPulseColors.current` (the extended tokens below), never `PulseTokens` directly.
 
 ---
 
-## 2. Material role mapping — light vs. dark
+## 2. Signal tokens (locked)
 
-How the five brand colors get distributed across Material 3's `ColorScheme` roles in `Theme.kt`.
+The one color category every preset shares. `PulseTokens.Signal` in `Color.kt`.
+
+| Role | Light text | Light pill | Dark text | Dark pill |
+|---|---|---|---|---|
+| Bullish | `#1B5E20` | `#C6E4C1` | `#81C784` | `#1F4A28` |
+| Bearish | `#B71C1C` | `#F8C8BE` | `#F37B7B` | `#4A2222` |
+| Neutral | `#B36A00` | `#F0DEB0` | `#FFD54F` | `#4A3820` |
+| Warning | `#BF360C` | `#F5CFB8` | `#E65100` | `#4A2210` |
+
+`signal.unknown` (the fourth state, for missing data) has **no resolved hex yet** — placeholder-mapped to the mode's own `onSurfaceMuted` until Design provides one.
+
+Access pattern: never branch on the `SignalColor` enum by hand. Use `SignalColor.textColor` / `.pillColor` (`ui/theme/SignalColorExtensions.kt`), which read `LocalPulseColors.current` under the hood.
+
+---
+
+## 3. Surface ramp (locked per mode)
+
+Shared neutral scale — one instance for all 5 light presets, one for all 5 dark. `PulseTokens.Surface` in `Color.kt`.
 
 | Role | Light | Dark |
 |---|---|---|
-| `primary` | `#083B95` ⚠️ | `#F9A825` |
-| `onPrimary` | `#000000` ⚠️ | `#000000` |
-| `secondary` | `#000000` | `#EF6C00` |
-| `background` | `#F5F5F5` | `#000000` |
-| `onBackground` | `#000000` | `#EFEFEF` |
-| `surface` | `#FAFAFA` | `#121212` |
-| `onSurface` | `#000000` | `#EFEFEF` |
-| `surfaceVariant` | `#FFFFFF` | `#2C2C2C` |
-| `error` | `#C62828` | `#C62828` |
+| `background` | `#F8F6F2` | `#0D0E12` |
+| `surface` | `#FBFAF7` | `#17181D` |
+| `surfaceElevated` | `#FFFFFF` | `#1F2026` |
+| `onBackground` / `onSurface` | `#14161B` | `#F0EEF3` |
+| `onSurfaceMuted` | `#6B6E76` | `#9A9BA3` |
+| `outline` | `#E4E2DC` | `#2A2B31` |
 
-⚠️ **Contrast issue:** light-mode `primary` (`#083B95`) with `onPrimary` (`#000000`) comes out to roughly **2:1** contrast — well under WCAG AA's 4.5:1 minimum for text. Any filled button or chip using this pairing in light mode is likely hard to read. In dark mode, `onPrimary` is also black, but it sits on gold (`#F9A825`), which is legible — it's specifically the light-mode pairing that's broken.
-
-Also worth a decision:
-- `secondary` means something different per theme — neutral black in light mode, a bright accent orange in dark mode.
-- Light-mode `background` (#F5F5F5) → `surface` (#FAFAFA) → `surfaceVariant` (#FFFFFF) span under 3% luminance — see [§9](#9-vestigial-assets) and the gaps list.
+`background` (light mode) was hand-tuned once already — nudged lighter (was `#F4F2ED`) after the global top bar started sharing this exact color, so it needed to read as a clean "greyish-white," not visibly cream. Dark mode's background was untouched.
 
 ---
 
-## 3. Semantic status colors
+## 4. Accent tokens — all 10 presets
 
-`PulseStatusColors` is the one place colors are already theme-aware and centralized — this is the pattern the rest of the palette should probably follow.
+The one layer that actually differs per preset. `PulseTokens.Accent` in `Color.kt`. `tinted` is the *literal* per-preset value — see §5 for what price cards actually render (a runtime blend, not this raw hex).
 
-| Signal | Light text | Light bg | Dark text | Dark bg |
+| Preset | Mode | `primary` | `on` | `surface` | `surfaceBorder` | `tinted` (raw) |
+|---|---|---|---|---|---|---|
+| Plum | Light | `#5B2A82` | `#FFFFFF` | `#EBDFF3` | `#D8C3E4` | `#F3EEF6` |
+| Navy | Light | `#14315E` | `#FFFFFF` | `#E3E9F3` | `#C7D3E5` | `#EDF0F5` |
+| Fuchsia | Light | `#9C1A6B` | `#FFFFFF` | `#F5E1EE` | `#ECC7DE` | `#F5EBF1` |
+| Graphite | Light | `#2B303A` | `#FFFFFF` | `#E9E9EB` | `#DDDCD8` | `#EFEDEA` |
+| Teal | Light | `#05555C` | `#FFFFFF` | `#DDECED` | `#C1DEDE` | `#EBF0F0` |
+| Lilac | Dark | `#C7A9FF` | `#1A0F2E` | `#2C2338` | `#3B2E4B` | `#1E1B27` |
+| Sky | Dark | `#7BC0FF` | `#08192E` | `#1E2A3B` | `#2A3B54` | `#171C25` |
+| Sand | Dark | `#C9B49A` | `#1F1A11` | `#2B261E` | `#3C3325` | `#1D1C18` |
+| Rose | Dark | `#E9A2D8` | `#2B0F22` | `#331F2C` | `#452838` | `#1E1A1E` |
+| Aqua | Dark | `#7ED9D6` | `#062120` | `#1B2E2D` | `#294241` | `#141D1D` |
+
+---
+
+## 5. Derived tokens — the actual theme ↔ color relationship
+
+Two extended tokens on `PulseColors` (read via `LocalPulseColors.current`) aren't stored as constants anywhere — they're **computed at runtime, once per preset resolution**, as a blend between two of the accent values above. This is deliberate: three separate sessions of "make this background a bit more/less pronounced" turned into single-line factor edits instead of hand-recomputing 10 hex values each time.
+
+| Token | Formula | Blend factor | Used by |
+|---|---|---|---|
+| `surfaceTinted` | `lerp(accent.tinted, accent.surface, f)` | **0.45** | Every `PulseCard(style = DATA)` — Equities' price cards, Indicators' metric cards, VIX, Fear & Greed, Put/Call. |
+| `accentSurfaceStrong` | `lerp(accent.surface, accent.surfaceBorder, f)` | **0.42** | Every `PulseCard(style = SYNTHESIS)` — AI briefings, news, verdicts, curated/externally-sourced cards. |
+
+Both blend *toward* an already-defined, already-vetted value in the same hue family (not toward an arbitrary new hex), so the result stays visually coherent with the preset regardless of which direction a future tweak needs to go. `accentSurfaceStrong` is intentionally the more saturated of the two — curated/AI content is meant to read as visibly "more accented" than a plain price card sitting next to it, not just a different token name.
+
+`colorScheme.primary`/`onPrimary` also mirror `accentPrimary`/`accentOn` exactly (not a second source of truth) — purely so built-in M3 components (ripples, default `Switch` tinting) that only know how to read `colorScheme.*` stay coherent with the accent without individual migration. App code should always read `LocalPulseColors.current`, never `MaterialTheme.colorScheme` for anything this token system defines.
+
+`colorScheme.secondary`/`secondaryContainer` have no independent hex — resolved as `onSurfaceMuted`/`surfaceElevated`. **Known trap:** several card titles were found this session still reading `colorScheme.secondary` directly (a leftover pre-migration habit) instead of `onSurface` — they rendered muted instead of full-strength text. All fixed, but worth flagging as an easy mistake to reintroduce.
+
+`error`/`errorContainer`/`onError`/`onErrorContainer` have **no resolved hex in this system at all** — left out of the `ColorScheme` builder calls entirely so M3's own baseline default applies, same reasoning as `signal.unknown`.
+
+---
+
+## 6. Card system — `PulseCard`
+
+Every content card in the app now goes through one shared composable, `PulseCard(style: PulseCardStyle)` (`ui/components/PulseCard.kt`), instead of hand-rolled `Card(colors=…, border=…, shape=…)` per call site. Exactly **two** styles:
+
+| Style | Background | Border | Corner radius | Used by |
 |---|---|---|---|---|
-| Bullish | `#2E7D32` | `#BADCBE` | `#81C784` | `#1B5E20` @25% |
-| Bearish | `#C62828` | `#F3D8DB` | `#F37B7B` | `#B71C1C` @25% |
-| Neutral | `#D87B00` | `#F5E3CD` | `#FFD54F` | `#F57F17` @15% |
-| Warning | `#CC4A00` | `#F8DFD3` | `#E65100` | `#E65100` @15% |
+| `DATA` | `surfaceTinted` | `accentSurfaceBorder`, 1dp | `corner_radius_card_large` (16dp) | Equities' `AssetCard`, Indicators' `UniversalMetricCard`, VIX, Fear & Greed, Put/Call |
+| `SYNTHESIS` | `accentSurfaceStrong` | `accentSurfaceBorder`, 1dp | `corner_radius_card` (12dp) | Technical Briefing, News (both variants), Weekly Playbook events, Tail Risk, NAAIM/Dark Pool/Net Liquidity, Lead Story/Macro/Domino/Outlook/Action Footer, Verdict |
 
-A separate, older trio — `ColorGreen` (`#2E7D32`), `ColorRed` (`#C62828`), `ColorNeutral` (`#CE5A03`) — duplicates the light-mode text colors above but isn't theme-aware and doesn't appear to route through `SignalColor`. Likely a leftover from before `PulseStatusColors` existed.
+A third style, `NEUTRAL` (plain white/elevated background, no accent wash — used briefly for VIX/Fear & Greed/Put-Call on the theory a computed reading shouldn't look like raw price data), existed and was retired once that distinction stopped being wanted; those cards moved onto `DATA`.
+
+**Deliberately excluded** from this system (still plain `Card`, on purpose): `HorizonNavigationCard` (a pill-shaped CTA button, not a content card), `UnifiedScoreHeaderCard` / `UniversalGaugeCard` (background is signal-colored, passed in by the caller — showing raw computed data, not an AI's interpretation of it), `PresetSwatchCard` (must render a *different* preset's raw colors regardless of the active theme, so it can't read `LocalPulseColors.current`), the sector rotation heatmap tiles (the one place a signal color is allowed to own an entire tile background).
 
 ---
 
-## 4. Typography scale
+## 7. Signal pill system — `SignalPill`
 
-All 12 Material 3 type roles from `AppTypography`. Only five `.ttf` files ship: Montserrat Bold/ExtraBold/Medium, and Inter Regular/Medium.
+Every small colored badge — sentiment tags, impact levels, status pills, regime pills, the directional change indicators — goes through one shared composable, `SignalPill` (`ui/components/widgets/SignalPill.kt`).
+
+- Background: whichever `signal.*.pill` (or `accentSurfaceBorder`-adjacent) color the caller passes in.
+- Padding: `padding_medium` (8dp) horizontal / `padding_small` (4dp) vertical, `corner_radius_pill` (fully stadium-shaped).
+- **Text color is blended from the signal token, direction depends on mode** — this is computed inside `SignalPill`, not baked into `signal.*.text` itself, since those tokens are also used as plain standalone text elsewhere (e.g. VIX's own "GREED"/"FEAR" label) where the full-strength color is correct:
+  - Light mode: blend toward **black**, 20%. (Light-mode signal text is already dark-on-light; blending toward white read as too soft against the pill's own light fill.)
+  - Dark mode: blend toward **white**, currently 40%. (Dark-mode signal text starts lighter already, so this pushes it further toward a bright, high-contrast label.)
+  - Detected via `colorScheme.background.luminance() > 0.5f` — no new "isDark" token, reuses what's already there.
+- `leadingIcon` is an optional slot, so the same component backs plain text pills and icon+text ones (`DirectionalChangePill`'s triangle) without duplicating the implementation.
+
+`DirectionalChangePill` (the up/down-triangle % pills used throughout for price/ratio changes) is a thin wrapper over `SignalPill`. Notable behavior: text is unsigned magnitude only (the triangle already states the sign — `"2.41%"`, never `"+2.41%"`), and there's a third `FLAT` state (a flat-bar icon + neutral tone) for an exact 0% reading, rather than forcing it into an arbitrary up or down.
+
+---
+
+## 8. Typography scale
+
+Unchanged from the previous snapshot — `AppTypography` in `Type.kt` — **except** a new convention for which size a card title uses.
 
 | Role | Family / weight | Size / line-height / tracking | Bundled? |
 |---|---|---|---|
@@ -82,18 +150,29 @@ All 12 Material 3 type roles from `AppTypography`. Only five `.ttf` files ship: 
 | `labelMedium` | Inter SemiBold (600) | 12sp / 16sp / 0.5sp | ❌ no file |
 | `labelSmall` | Inter SemiBold (600) | 11sp / 16sp / 1.2sp — "terminal aesthetic" per code comment | ❌ no file |
 
-**8 of 12 styles request a weight that isn't bundled.** Compose falls back to the nearest bundled weight instead of the one `Type.kt` specifies. In practice, most body copy and every label in the app is likely rendering heavier than the type scale intends.
+**8 of 12 styles still request a weight that isn't bundled** — unaddressed this round.
 
 | Family | Bundled weights | Requested but missing |
 |---|---|---|
 | Montserrat | Bold, ExtraBold, Medium | Normal, SemiBold |
 | Inter | Regular, Medium | Bold, SemiBold |
 
+### Card title convention (new)
+
+Two tiers, by card style (§6):
+
+- **`DATA`-style card titles** — `titleMedium.copy(fontWeight = Bold)`, **17sp bold**. Equities' `AssetCard`, VIX, Indicators' `UniversalMetricCard`.
+- **`SYNTHESIS`-style card titles** — `titleSmall`, **15sp semi-bold, no weight override**. Every AI/curated-content card. Was previously an inconsistent mix of 17sp-semibold, 17sp-bold, and 15sp-bold across different cards (nobody had applied the same override twice) — standardized in this pass. One card (`DominoCard`) had a `fontWeight = Bold` parameter set directly on the `Text` composable, separate from its `style=`, invisible from a glance at the style line alone — worth checking for that pattern specifically if an inconsistency like this shows up again.
+
+### Card body-text color convention (new)
+
+Every card's inner subtitle/explainer/description text is `onSurface`, matching its title — **not** `onSurfaceVariant`/`colorScheme.secondary`. The two carve-outs: genuine date/timestamp strings ("Analyzed as of…", "Released…"), and text with an intentional signal/condition color (impact badges, status pills). A muted role was found applied well past just those two cases before this pass — mostly the same `colorScheme.secondary`-reads-as-muted trap noted in §5.
+
 ---
 
-## 5. Spacing scale
+## 9. Spacing scale
 
-All named padding tokens from `dimens.xml`.
+Unchanged from the previous snapshot.
 
 | Token | Value |
 |---|---|
@@ -107,43 +186,44 @@ All named padding tokens from `dimens.xml`.
 | `padding_xxlarge` | 24dp |
 | `padding_extra_large` | 24dp ⚠️ (duplicate of `padding_xxlarge`) |
 
-`padding_tiny` (2dp) and `padding_micro` (3dp) are one unit apart — likely redundant granularity.
+`padding_tiny` (2dp) and `padding_micro` (3dp) are still one unit apart, still likely redundant. Neither collision was addressed this round.
 
 ---
 
-## 6. Corner radius
+## 10. Corner radius
 
-Six named radii, but a grep across `ui/` found only three literal values actually used at composable call sites — `6.dp` (×4), `8.dp` (×1), `12.dp` (×4) — all hardcoded rather than referencing these tokens. The scale exists in `dimens.xml` but isn't yet the source of truth in code.
+Same finding as the previous snapshot, re-verified: a fresh grep still finds the exact same three hardcoded literal values at composable call sites instead of the token — `6.dp` (×4), `8.dp` (×1), `12.dp` (×4) — against 20 call sites that do correctly reference a `dimensionResource`. The token scale is more load-bearing now than before (`PulseCard` and `SignalPill` both centralize their own shape choice through it), but the remaining ad-hoc literals weren't swept up.
 
 | Token | Value |
 |---|---|
 | `corner_radius_chip` | 6dp |
 | `corner_radius_small` | 8dp |
-| `corner_radius_card` | 12dp |
-| `corner_radius_card_large` | 16dp ⚠️ |
+| `corner_radius_card` | 12dp — now `PulseCard`'s `SYNTHESIS` default |
+| `corner_radius_card_large` | 16dp ⚠️ — now `PulseCard`'s `DATA` default |
 | `vix_corner_radius` | 16dp ⚠️ (duplicate of `corner_radius_card_large`) |
 | `corner_radius_card_extra_large` | 24dp |
-| `corner_radius_pill` | 50dp |
+| `corner_radius_pill` | 50dp — now `SignalPill`'s and `FloatingBottomNav`'s shape; far more central to the app's look than when this was first documented |
 
 ---
 
-## 7. Borders, elevation & icon sizes
+## 11. Borders, elevation & icon sizes
 
-There's effectively no shadow system today — `elevation_small` (3dp) is the only elevation token defined, its one usage site (`MarketRisksView.kt`) overrides it straight to `0.dp`, and there are zero `.shadow()` calls anywhere in the codebase. Depth currently comes entirely from border weight and background contrast.
+Still effectively no shadow system — one exception now exists on purpose (see below), and it's the only one.
 
 | Token | Value |
 |---|---|
-| `border_thin` | 1dp |
+| `border_thin` | 1dp — now `PulseCard`'s and `SignalPill`-adjacent border weight everywhere |
 | `border_medium` | 3dp |
 | `border_thick` | 6dp |
 | `icon_size_small` | 16dp |
 | `icon_size_medium` | 20dp |
 | `icon_size_large` | 24dp |
 | `bullet_size` | 6dp |
+| `nav_elevation` | 2dp — **new.** `FloatingBottomNav`'s shadow, a deliberate, explicitly flagged one-off exception to the flat/no-shadow rule (documented in `CLAUDE.md`). No blur — minSdk 26 has no `RenderEffect` to build one from, so it's a solid `shadowElevation`, not a soft glow. |
 
 ### Component-specific dimensions
 
-Single-purpose measurements for specific widgets (the gauge, the timeline, the tab indicator) rather than a reusable scale — worth leaving as-is unless a new component needs the same shape.
+Unchanged.
 
 | Token | Value |
 |---|---|
@@ -160,52 +240,54 @@ Single-purpose measurements for specific widgets (the gauge, the timeline, the t
 
 ---
 
-## 8. Opacity in practice
+## 12. Opacity in practice
 
-No named opacity tokens exist anywhere — every `.copy(alpha = …)` call picks its own float. Every distinct value found across `ui/`, with occurrence count:
+Re-counted fresh against the current codebase (was last counted before the migration; values shifted meaningfully since a lot of the old alpha-based "fake pill background" pattern — `statusColor.copy(alpha = 0.15f)` standing in for a real pill token — was found and replaced with real `signal.*.pill` tokens this session).
 
 | Alpha | Occurrences |
 |---|---|
-| 0.05 | ×3 |
-| 0.10 | ×22 |
-| 0.15 | ×9 |
+| 0.10 | ×19 |
+| 0.50 | ×10 |
+| 0.40 | ×9 |
+| 0.30 | ×8 |
 | 0.20 | ×5 |
-| 0.25 | ×2 |
-| 0.30 | ×7 |
-| 0.40 | ×17 |
-| 0.50 | ×13 |
+| 0.80 | ×4 |
+| 0.15 | ×4 |
+| 0.05 | ×3 |
 | 0.70 | ×1 |
-| 0.80 | ×6 |
+| 0.0 | ×1 |
 
-Ten distinct values, none named, unevenly spaced.
-
----
-
-## 9. Vestigial assets
-
-Not part of the live Compose theme, but still shipping in the project and worth a decision:
-
-- `res/values/themes.xml` / `res/values-night/themes.xml` — `Theme.MarketPulse` still carries the unmodified Android Studio default (`colorPrimary = purple_500`, `colorSecondary = teal_200`), wired via `android:theme` in the manifest. Compose's `MaterialTheme()` overrides it once the tree inflates, but it likely governs the window background for a brief moment at cold start.
-- `fab_margin` / `fragment_horizontal_margin` in the width-qualified `dimens.xml` files read like unused template boilerplate.
+Still no named opacity scale — every `.copy(alpha = …)` call still picks its own float independently. Not addressed this round.
 
 ---
 
-## 10. Decisions worth making before the revamp
+## 13. Vestigial assets
 
-Not a sequence — nine independent calls, gathered here so the design doc can address each deliberately instead of inheriting it by default.
-
-1. **Light-mode primary/onPrimary is ~2:1 contrast.** Black text on Pulse Blue (`#083B95`) fails WCAG AA (4.5:1) by a wide margin.
-2. **Light-mode surfaces sit within ~3% luminance of each other.** `background` `#F5F5F5` → `surface` `#FAFAFA` → `surfaceVariant` `#FFFFFF`, combined with zero shadow usage anywhere, means card boundaries may be nearly invisible in light mode.
-3. **`secondary` changes role between themes.** A neutral black in light mode, a bright accent orange in dark mode — decide whether secondary should carry one consistent meaning.
-4. **8 of 12 type styles request an unbundled weight.** Either bundle the missing weights or repoint the styles at weights that exist.
-5. **Two spacing tokens collide.** `padding_xxlarge` and `padding_extra_large` are both 24dp under different names; `padding_tiny` (2dp) and `padding_micro` (3dp) are one unit apart. Candidates to collapse.
-6. **Corner radius tokens aren't the source of truth yet.** Composables mostly hardcode a literal `.dp` value instead of referencing `dimens.xml`.
-7. **No formal opacity scale.** A small named scale (e.g. 8/16/24/40/60/80%) would tighten this up.
-8. **Legacy flat status colors.** `ColorGreen`/`ColorRed`/`ColorNeutral` duplicate `PulseStatusColors`'s light-mode text values without being theme-aware. Likely removable.
-9. **`themes.xml` still ships default Material purple/teal.** Decide whether to re-skin it to match the Compose theme or leave it as pure launch scaffolding.
+- `res/values/themes.xml` / `res/values-night/themes.xml` — **partially cleaned up.** The `android:statusBarColor` override (a static opaque color left over from the original Android Studio template) was actively fighting `enableEdgeToEdge()`'s attempt to make the status bar transparent, and has been removed. The rest of the boilerplate — `colorPrimary = purple_500`, `colorSecondary = teal_200`, etc. — is still there, still unused by Compose's own `MaterialTheme()`, still just launch-time scaffolding. Left alone since it's cosmetic and out of scope for whatever prompted the statusBarColor fix.
+- `fab_margin` / `fragment_horizontal_margin` in the width-qualified `dimens.xml` files — still present, still unused-looking template boilerplate. Not investigated this round.
 
 ---
 
-*Sourced from `ui/theme/Color.kt`, `Theme.kt`, `Type.kt`, `res/values{,-w600dp,-w936dp}/dimens.xml`, `res/values{,-night}/themes.xml`, and a grep sweep of `ui/` for shape, elevation, border, and alpha usage.*
+## 14. Decisions — status update
 
-*A visual, live-rendered version of this document (actual embedded fonts, live color swatches) is also available as a Claude Artifact.*
+The nine items from the previous snapshot, with what's actually happened to each:
+
+1. ~~**Light-mode primary/onPrimary is ~2:1 contrast.**~~ **Resolved.** Every preset's `accent.primary`/`accent.on` pair was authored together, not derived from an unrelated brand-blue + black-text combination.
+2. ~~**Light-mode surfaces sit within ~3% luminance of each other.**~~ **Resolved.** The new surface ramp (`background` → `surface` → `surfaceElevated`) plus the `surfaceTinted`/`accentSurfaceStrong` derived tokens (§5) give real, intentional separation between page background, plain cards, and curated-content cards.
+3. ~~**`secondary` changes role between themes.**~~ **Resolved architecturally, still a live trap in practice.** `colorScheme.secondary` now has one consistent meaning (`onSurfaceMuted`) in every preset — but several call sites were still reading it directly for card titles this session, where it silently rendered muted instead of full-strength. Worth a dedicated grep sweep (`MaterialTheme.colorScheme.secondary` outside of genuinely-meant-to-be-muted contexts) if this hasn't been done exhaustively.
+4. **8 of 12 type styles request an unbundled weight.** Still open, untouched.
+5. **Two spacing tokens collide.** Still open (§9).
+6. **Corner radius tokens aren't the full source of truth.** Improved in the sense that `PulseCard`/`SignalPill` now centralize the majority of shape usage through the token system, but the same 9 literal-`dp` call sites from the original audit are still there (§10).
+7. **No formal opacity scale.** Still open (§12).
+8. ~~**Legacy flat status colors** (`ColorGreen`/`ColorRed`/`ColorNeutral`).~~ **Resolved.** Deleted entirely as part of the migration, not just superseded.
+9. **`themes.xml` still ships default Material purple/teal.** **Partially resolved** — the one actively-harmful part (`statusBarColor` fighting edge-to-edge) is fixed; the cosmetic remainder is still there (§13).
+
+New items worth a decision, surfaced by this round of work:
+
+10. **`signal.unknown` still has no resolved hex.** Placeholder-mapped to `onSurfaceMuted` since the very first pass of the migration. Needs a real value from Design before the data-missing state can look intentional rather than "we forgot this."
+11. **`accentSurfaceStrong`'s 0.42 and `surfaceTinted`'s 0.45 blend factors were tuned by eye, not against a contrast target.** Both are documented as one-line changes for exactly this reason, but neither has been checked against WCAG for every one of the 10 presets × both text colors that sit on top of them.
+12. **`SignalPill`'s dark-mode text blend (40% toward white) was tuned live, mid-session, well past the initial 12–15% estimate.** Worth a second look against real content on a device — a jump that large usually means the original blend was under-corrected, but it's also possible 40% overshoots for some of the 5 dark presets specifically.
+
+---
+
+*Sourced from `ui/theme/Color.kt`, `MarketPulseTheme.kt`, `PulseColors.kt`, `Type.kt`, `ui/components/PulseCard.kt`, `ui/components/widgets/SignalPill.kt`, `res/values{,-w600dp,-w936dp}/dimens.xml`, `res/values{,-night}/themes.xml`, and fresh grep sweeps of `ui/` for shape, elevation, border, and alpha usage.*
