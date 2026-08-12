@@ -238,4 +238,23 @@
     <string name="dashboard_news_see_all">View all news</string>
     <string name="nav_back_content_description">Back</string>
     <string name="market_analysis_placeholder_message">Stock analysis is being rebuilt against the new backend data model.</string>
+
+    <!-- Global top bar, floating nav, Settings screen, theme picker. -->
+    <string name="app_top_bar_settings_content_description">Settings</string>
+    <!-- Per-route titles the global top bar shows in place of the app wordmark, once a screen has left the Overview tab. -->
+    <string name="insights_screen_title">Insights</string>
+    <string name="summary_screen_title">Summary</string>
+    <string name="market_analysis_screen_title">Analysis</string>
+    <string name="settings_screen_title">Settings</string>
+    <string name="settings_section_theme">Theme</string>
+    <string name="settings_section_more">More</string>
+    <string name="settings_item_notifications">Notifications</string>
+    <string name="settings_item_data_sync">Data &amp; Sync</string>
+    <string name="settings_item_about">About Market Pulse</string>
+    <string name="settings_coming_soon_toast">Coming soon</string>
+    <string name="settings_preset_selected_content_description">Selected</string>
+    <string name="settings_preset_mode_light">Light</string>
+    <string name="settings_preset_mode_dark">Dark</string>
+    <string name="settings_preset_sample_bullish">+2.4%</string>
+    <string name="settings_preset_sample_bearish">-1.1%</string>
 </resources>

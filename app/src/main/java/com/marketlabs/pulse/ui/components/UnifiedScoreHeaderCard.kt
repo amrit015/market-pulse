@@ -33,6 +33,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.components.widgets.ScoreGauge
+import com.marketlabs.pulse.ui.theme.LocalPulseColors
 
 data class StatusPillState(
     val text: String,
@@ -124,7 +125,7 @@ fun UnifiedScoreHeaderCard(
                 Icon(
                     painter = painterResource(id = R.drawable.ic_chevron_forward),
                     contentDescription = "View Details",
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = LocalPulseColors.current.accentPrimary,
                     modifier = Modifier.size(dimensionResource(R.dimen.padding_large))
                 )
             }

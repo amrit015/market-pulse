@@ -1,7 +1,6 @@
 package com.marketlabs.pulse.ui.components.widgets
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,9 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,22 +23,23 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.dashboard.AssetOverview
-import com.marketlabs.pulse.ui.theme.ColorGreen
-import com.marketlabs.pulse.ui.theme.ColorNeutral
-import com.marketlabs.pulse.ui.theme.ColorRed
-import com.marketlabs.pulse.ui.theme.PulseStatusColors
-import com.marketlabs.pulse.ui.theme.PulseStatusColors.BearishText
-import com.marketlabs.pulse.ui.theme.PulseStatusColors.BullishText
+import com.marketlabs.pulse.ui.components.PulseCard
+import com.marketlabs.pulse.ui.components.PulseCardStyle
+import com.marketlabs.pulse.ui.theme.LocalPulseColors
+import kotlin.math.abs
 
 @Composable
 fun VixFullWidthCard(asset: AssetOverview, onClick: () -> Unit) {
 
-    val colorGreen  = ColorGreen
-    val colorRed = ColorRed
-    val colorNeutral = ColorNeutral
+    val pulseColors = LocalPulseColors.current
+    // 💡 The old flat, theme-unaware ColorGreen/Red/Neutral constants are deleted -- the locked
+    // signal.*.text tokens are the direct replacement for a gradient/brush use like this one.
+    val colorGreen = pulseColors.signalBullishText
+    val colorRed = pulseColors.signalBearishText
+    val colorNeutral = pulseColors.signalNeutralText
 
-    val textBearish = BearishText
-    val textBullish = BullishText
+    val textBearish = pulseColors.signalBearishText
+    val textBullish = pulseColors.signalBullishText
 
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
     val paddingMedium = dimensionResource(id = R.dimen.padding_medium)
@@ -56,19 +53,18 @@ fun VixFullWidthCard(asset: AssetOverview, onClick: () -> Unit) {
     val needleOverhangDimen = dimensionResource(id = R.dimen.gauge_needle_overhang)
     val cornerRadiusDimen = dimensionResource(id = R.dimen.vix_corner_radius)
 
-    // 💡 NEW: Contrarian Background Coloring Logic for VIX
-    val statusBgColor = when (asset.rsiStatus?.uppercase()) {
-        "EXTREME FEAR", "FEAR", "BEARISH" -> PulseStatusColors.BullishBg // High VIX = Buy Opportunity
-        "EXTREME GREED", "GREED", "BULLISH" -> PulseStatusColors.BearishBg // Low VIX = Complacency Warning
-        else -> MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
-    }
-
-    Card(
-        colors = CardDefaults.cardColors(containerColor = statusBgColor),
-        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card_large)),
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() }
+    // 💡 This card previously flipped its own background between a bullish and bearish tint based
+    // on a "contrarian" read of the VIX status (high VIX -> bullish-tinted card, since a volatility
+    // spike is often a buying opportunity; low VIX -> bearish-tinted card, since complacency often
+    // precedes a pullback). The container is uniform and non-directional now, matching every other
+    // price/gauge card in this app -- direction still reads clearly from the status text color and
+    // the needle position, just not the card fill.
+    //
+    // DATA style -- the same tinted background and hairline border every equity price card uses.
+    PulseCard(
+        style = PulseCardStyle.DATA,
+        modifier = Modifier.fillMaxWidth(),
+        onClick = onClick
     ) {
         Column(modifier = Modifier.padding(paddingLarge)) {
             Row(
@@ -106,15 +102,37 @@ fun VixFullWidthCard(asset: AssetOverview, onClick: () -> Unit) {
                         color = MaterialTheme.colorScheme.onSurface
                     )
 
-                    // 💡 Null-safe Change %
+                    // 💡 Null-safe Change % -- shown as a directional pill now instead of plain
+                    // text. The triangle still follows the raw numeric sign (up = VIX rose), but the
+                    // pill's color keeps the VIX contrarian read (rising VIX = bearish for
+                    // equities, falling VIX = bullish) -- those two things are allowed to disagree.
+                    // The triangle already states the sign, so the text is unsigned (magnitude
+                    // only); an exact 0% reading gets the neutral tone and a flat bar instead of a
+                    // (necessarily arbitrary) bullish/bearish read, since VIX did not actually move.
                     if (change != null) {
-                        Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
-                        val sign = if (change >= 0) "+" else ""
-                        Text(
-                            text = "$sign${String.format("%.2f", change)}%",
-                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                            // VIX change text color: Up = Red, Down = Green
-                            color = if (change > 0) textBearish else textBullish,
+                        // 💡 Gap from the price value bumped from `padding_small` to `padding_medium`
+                        // -- the pill sitting almost flush against the price read cramped once it grew.
+                        Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_medium)))
+                        val isFlat = change == 0.0
+                        val isVixRising = change > 0
+                        val changeDirection = when {
+                            isFlat -> ChangeDirection.FLAT
+                            isVixRising -> ChangeDirection.UP
+                            else -> ChangeDirection.DOWN
+                        }
+                        DirectionalChangePill(
+                            changeText = "${String.format("%.2f", abs(change))}%",
+                            direction = changeDirection,
+                            pillColor = when {
+                                isFlat -> pulseColors.signalNeutralPill
+                                isVixRising -> pulseColors.signalBearishPill
+                                else -> pulseColors.signalBullishPill
+                            },
+                            contentColor = when {
+                                isFlat -> colorNeutral
+                                isVixRising -> textBearish
+                                else -> textBullish
+                            },
                             modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.padding_tiny))
                         )
                     }

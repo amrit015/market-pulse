@@ -1,7 +1,6 @@
 package com.marketlabs.pulse.ui.components
 
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,12 +10,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -30,10 +25,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.ui.components.widgets.ChangeDirection
+import com.marketlabs.pulse.ui.components.widgets.DirectionalChangePill
+import com.marketlabs.pulse.ui.components.widgets.SignalPill
+import com.marketlabs.pulse.ui.theme.LocalPulseColors
+import com.marketlabs.pulse.ui.theme.pillColor
+import com.marketlabs.pulse.ui.theme.textColor
 import com.marketlabs.pulse.utils.enums.SignalColor
 import com.marketlabs.pulse.utils.glossary.PillarGuide
-import toBgColor
-import toColor
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -45,12 +44,13 @@ import java.util.Locale
 fun ContextHeaderCard(guide: PillarGuide) {
     var expanded by remember { mutableStateOf(false) }
 
-    Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
-        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { expanded = !expanded }
+    // 💡 Explanatory/glossary content, not raw data -- SYNTHESIS, same as the AI briefing and news
+    // cards, replacing the old `surfaceVariant.copy(alpha = 0.5f)` leftover from before this app
+    // had its own token system.
+    PulseCard(
+        style = PulseCardStyle.SYNTHESIS,
+        modifier = Modifier.fillMaxWidth(),
+        onClick = { expanded = !expanded }
     ) {
         Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)).animateContentSize()) {
             Row(
@@ -61,12 +61,12 @@ fun ContextHeaderCard(guide: PillarGuide) {
                 Text(
                     text = guide.timeframe,
                     style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.primary
+                    color = LocalPulseColors.current.accentPrimary
                 )
                 Icon(
                     painter = painterResource(id = if (expanded) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down),
                     contentDescription = "Toggle Description",
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = LocalPulseColors.current.accentPrimary,
                     modifier = Modifier.size(dimensionResource(R.dimen.padding_large))
                 )
             }
@@ -79,10 +79,13 @@ fun ContextHeaderCard(guide: PillarGuide) {
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
+                // 💡 Explainer text is always onSurface, matching the title/value above -- was
+                // `onSurfaceVariant` (muted), reserved for genuine metadata like dates, not
+                // descriptive content.
                 Text(
                     text = guide.howToUse,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
         }
@@ -100,14 +103,21 @@ fun UniversalMetricCard(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    val bgColor = signalColor?.toBgColor() ?: MaterialTheme.colorScheme.surfaceVariant
-    val baseColor = signalColor?.toColor() ?: MaterialTheme.colorScheme.primary
+    // 💡 Price cards are uniform/non-directional now (an accent-washed neutral, regardless of
+    // signal) -- direction lives only in the sparkline stroke and the pill below, both keyed off
+    // signalColor.textColor/.pillColor. A grid of price cards used to flip its own background
+    // color per card based on direction, which made a down day look alarming at a glance; keeping
+    // the container neutral and the direction in smaller details reads calmer.
+    //
+    // DATA style -- the same outer shell Equities' price cards use (AssetCard in
+    // DashboardScreen.kt), so a change to how price cards look updates both at once.
+    val baseColor = signalColor.textColor
     val notAvail = stringResource(id = R.string.not_available_short)
 
-    Card(
-        colors = CardDefaults.cardColors(containerColor = bgColor),
-        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card_large)),
-        modifier = modifier.clickable { onClick() }
+    PulseCard(
+        style = PulseCardStyle.DATA,
+        modifier = modifier,
+        onClick = onClick
     ) {
         Column(
             modifier = Modifier
@@ -123,14 +133,17 @@ fun UniversalMetricCard(
                 Text(
                     text = title,
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    // 💡 Card titles are always onSurface (dark-on-light/white-on-dark) across
+                    // this app -- was `onSurfaceVariant` (muted), the one card whose title read
+                    // grey next to Equities' AssetCard title using the same role.
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 2,
                     modifier = Modifier.weight(1f)
                 )
                 Icon(
                     painter = painterResource(id = R.drawable.ic_chevron_forward),
                     contentDescription = "View Details",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = LocalPulseColors.current.accentPrimary,
                     modifier = Modifier.size(dimensionResource(R.dimen.padding_large)).padding(start = dimensionResource(R.dimen.padding_small))
                 )
             }
@@ -144,12 +157,33 @@ fun UniversalMetricCard(
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onSurface
                 )
+                // 💡 The change percent used to be plain colored text -- direction was only implied
+                // by the sign character. A pill with a triangle makes direction read as a shape, not
+                // just a color, at a glance on a dense grid of cards. Since the triangle already
+                // carries the sign, the leading "+"/"-" is stripped from the caller's pre-formatted
+                // string so direction is not stated twice. An exact 0% reading gets the neutral
+                // signal tone and a flat-bar icon instead of either triangle -- it did not move, so
+                // it should not visually claim it went up or down.
                 if (!changeString.isNullOrBlank()) {
-                    Text(
-                        text = changeString,
-                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                        color = baseColor,
-                        modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.padding_micro), start = dimensionResource(id = R.dimen.padding_small))
+                    val trimmedChange = changeString.trim()
+                    val isNegative = trimmedChange.startsWith("-")
+                    val displayChange = trimmedChange.removePrefix("+").removePrefix("-")
+                    val numericChange = displayChange.trimEnd('%').toDoubleOrNull()
+                    val isFlat = numericChange == 0.0
+                    val direction = when {
+                        isFlat -> ChangeDirection.FLAT
+                        isNegative -> ChangeDirection.DOWN
+                        else -> ChangeDirection.UP
+                    }
+                    val pulseColors = LocalPulseColors.current
+                    // 💡 Gap from the value text bumped from `padding_small` to `padding_medium` --
+                    // the pill sitting almost flush against the value read cramped once it grew.
+                    DirectionalChangePill(
+                        changeText = displayChange,
+                        direction = direction,
+                        pillColor = if (isFlat) pulseColors.signalNeutralPill else signalColor.pillColor,
+                        contentColor = if (isFlat) pulseColors.signalNeutralText else baseColor,
+                        modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.padding_micro), start = dimensionResource(id = R.dimen.padding_medium))
                     )
                 }
             }
@@ -160,17 +194,11 @@ fun UniversalMetricCard(
             // Optional Signal Badge
             if (signalText != null) {
                 Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
-                Surface(
-                    color = baseColor.copy(alpha = 0.0f),
-                    shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_chip))
-                ) {
-                    Text(
-                        text = signalText.uppercase(),
-                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                        color = baseColor,
-                        modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.padding_small), vertical = dimensionResource(id = R.dimen.padding_tiny))
-                    )
-                }
+                SignalPill(
+                    text = signalText.uppercase(),
+                    pillColor = signalColor.pillColor,
+                    contentColor = baseColor
+                )
             }
 
             // 💡 NEW: Safely parses and displays the Release Date

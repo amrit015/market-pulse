@@ -45,4 +45,8 @@
     <dimen name="tab_indicator_corner">4dp</dimen>
 
     <dimen name="corner_radius_small">8dp</dimen>
+
+    <!-- FloatingBottomNav's shadow. A deliberate exception to this codebase's otherwise flat, no
+         shadow visual language. See CLAUDE.md. -->
+    <dimen name="nav_elevation">2dp</dimen>
 </resources>

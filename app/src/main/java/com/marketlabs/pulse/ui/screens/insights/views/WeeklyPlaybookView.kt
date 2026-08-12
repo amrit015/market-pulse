@@ -14,8 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -35,7 +33,9 @@ import androidx.compose.ui.unit.dp
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.weeklyPlaybook.WeeklyEvent
 import com.marketlabs.pulse.storage.model.weeklyPlaybook.WeeklyPlaybook
-import com.marketlabs.pulse.ui.theme.PulseStatusColors
+import com.marketlabs.pulse.ui.components.PulseCard
+import com.marketlabs.pulse.ui.components.PulseCardStyle
+import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -76,19 +76,26 @@ fun WeeklyPlaybookSection(playbook: WeeklyPlaybook) {
 
 @Composable
 fun WeeklyEventCard(event: WeeklyEvent) {
-    Card(
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
-        ),
-        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
+    // 💡 SYNTHESIS style -- calendar events with AI-written market context, the same kind of
+    // curated content as the briefing and news cards. Replaces the old
+    // `secondaryContainer.copy(alpha = 0.4f)` leftover from before this app had its own token
+    // system.
+    PulseCard(
+        style = PulseCardStyle.SYNTHESIS,
         modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.padding_medium))
     ) {
         Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
 
             Text(
                 text = event.eventName ?: stringResource(id = R.string.unknown_event),
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.secondary,
+                // 💡 titleSmall (15sp, semi-bold), not titleMedium.Bold (17sp, bold) -- the
+                // consistent title tier every curated/AI-content card title uses now, separate
+                // from DATA-style cards (Equities, VIX, Indicators), which keep their bold 17sp
+                // title.
+                style = MaterialTheme.typography.titleSmall,
+                // 💡 Card titles are always onSurface (dark-on-light/white-on-dark) across this
+                // app -- same treatment as Equities/AI/News cards.
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -147,16 +154,19 @@ fun WeeklyEventCard(event: WeeklyEvent) {
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
 
             if (isValueAvailable(event.marketContext)) {
+                // 💡 Both the label and the explainer text below it are always onSurface -- was
+                // `onSurfaceVariant` for the label, and conditionally muted for the text itself
+                // once the "Actual" figure came in. Neither is a date, so neither should be grey.
                 Text(
                     text = stringResource(id = R.string.label_market_context).uppercase(),
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
                 Text(
                     text = event.marketContext ?: "",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = if (showActual) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
 
@@ -201,15 +211,18 @@ fun WeeklyEventCard(event: WeeklyEvent) {
 @Composable
 private fun EventDataColumn(label: String, value: String, isActual: Boolean = false) {
     Column {
+        // 💡 Was `onSurfaceVariant` for the non-actual case -- a plain data-column label, not a
+        // date, so it follows the same onSurface rule as everything else. The "Actual" case stays
+        // signal-colored on purpose (a real market read, not just a label).
         Text(
             text = label.uppercase(),
             style = MaterialTheme.typography.labelSmall,
-            color = if (isActual) PulseStatusColors.BullishText else MaterialTheme.colorScheme.onSurfaceVariant
+            color = if (isActual) LocalPulseColors.current.signalBullishText else MaterialTheme.colorScheme.onSurface
         )
         Text(
             text = value,
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-            color = if (isActual) PulseStatusColors.BullishText else MaterialTheme.colorScheme.onSurface
+            color = if (isActual) LocalPulseColors.current.signalBullishText else MaterialTheme.colorScheme.onSurface
         )
     }
 }

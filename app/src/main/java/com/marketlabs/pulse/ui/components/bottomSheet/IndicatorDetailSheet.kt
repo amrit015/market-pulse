@@ -21,7 +21,7 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import com.marketlabs.pulse.R
-import com.marketlabs.pulse.ui.theme.PulseStatusColors.NeutralText
+import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.utils.glossary.DictionaryItem
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,7 +40,9 @@ fun IndicatorDetailSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.background,
+        // 💡 Was colorScheme.background. Bottom sheets sit above the base background, at the
+        // elevated step of the surface ramp, so they read as a distinct layer over the screen.
+        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
     ) {
         Column(
             modifier = Modifier
@@ -56,7 +58,7 @@ fun IndicatorDetailSheet(
             Text(
                 text = item.subtitle,
                 style = MaterialTheme.typography.titleMedium,
-                color = NeutralText
+                color = LocalPulseColors.current.signalNeutralText
             )
 
             Spacer(modifier = Modifier.height(paddingExtraLarge))

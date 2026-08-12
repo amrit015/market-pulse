@@ -90,7 +90,8 @@ Bottom-nav tabs use the tab-preserving navigation pattern (`popUpTo(startDestina
 
 - **All UI text** → `res/values/strings.xml`, referenced via `stringResource()`. Naming: `snake_case`, loosely `<screen_or_context>_<purpose>` (e.g. `news_screen_title`, `radar_vulnerability_score`).
 - **All dimensions** → `res/values/dimens.xml`, referenced via `dimensionResource()`. Prefer existing semantic dimens (`padding_small`, `corner_radius_medium`) over inventing one-offs.
-- **Status colors** → `PulseStatusColors` (in `ui/theme/Color.kt`) is the single source. If a domain model carries `SignalColor`, use `SignalColor.toColor()`/`toBgColor()` extensions — never hand-roll a `when` branching on the enum.
+- **Status colors** → since spec-20260809-theme-migration, the old `PulseStatusColors` object is deleted. The signal layer (`PulseTokens.Signal` in `ui/theme/Color.kt`) is locked and identical across every preset in a given mode; extended-token reads go through `LocalPulseColors.current` (accent group, `surfaceTinted`, `onSurfaceMuted`), never `MaterialTheme.colorScheme` for anything the Token Contract defines separately. If a domain model carries `SignalColor`, use the `SignalColor.textColor`/`.pillColor` extensions (`ui/theme/SignalColorExtensions.kt`) — never hand-roll a `when` branching on the enum.
+- **This app is flat/no-shadow by convention.** `FloatingBottomNav` (`ui/components/FloatingBottomNav.kt`, `nav_elevation` = 2dp) is a deliberate, one-off exception — don't take it as license to start adding elevation elsewhere.
 
 ### Null handling
 
@@ -115,6 +116,7 @@ Backend equivalents are documented in `Notion 10 — Architecture` and the backe
 5. **Explain before you code.** For every non-trivial change, start with a short paragraph on your approach and the choices you're making. Keep reasoning in prose, not comments.
 6. **Localized changes only.** Do not refactor, reformat, or "clean up" outside the requested change. If you see something wrong, flag it — don't silently fix it.
 7. **Ask before assuming.** Ambiguous requirement, missing color token, unclear data model, unfamiliar acronym — stop and ask.
+8. **Comments are self-contained — never cite a spec, ADR, or doc file by name.** No `spec-YYYYMMDD-*.md`, no "Token Contract," no "Design Direction," no "per the migration table." A comment has to make sense to someone with only this repo checked out, nothing else open. Document the thought process and the actual implementation directly: what the code does, why it does it that way, what it replaced and why that mattered. If a rule genuinely originates from an external doc, restate the rule itself in the comment — don't point at the doc.
 
 ## Known gaps (don't propagate)
 
@@ -128,4 +130,9 @@ Current state — none of these are the convention to follow. Fix opportunistica
 
 ## Recent decisions (last 5)
 
-_No ADRs logged yet — see Notion 50 — Decisions once populated._
+- **2026-08-09 — Design System v1.0: signal-layer refinement, `surface.tinted`, 10 presets.**
+- **2026-08-08 — Redesign shell: global collapsing top bar, floating nav, full-screen Settings.**
+- **2026-08-08 — Theme model: baked-mode presets (count later revised to 10), gallery, overrides OS.**
+- **2026-08-08 — Two-layer color system: themeable accent + locked signal.**
+
+Full entries in Notion `50 — Decisions`.

@@ -35,7 +35,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.marketlabs.pulse.R
-import com.marketlabs.pulse.ui.theme.PulseStatusColors
+import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import kotlin.math.abs
 
 @Composable
@@ -50,10 +50,11 @@ fun ScoreGauge(
     val delta = score - previousScore
 
     // 💡 Filled geometric icons visually matched to the exact text height
+    val pulseColors = LocalPulseColors.current
     val (deltaSymbol, deltaColor) = when {
-        delta > 0 -> "▲" to if (isHigherBetter) PulseStatusColors.BullishText else PulseStatusColors.BearishText
-        delta < 0 -> "▼" to if (isHigherBetter) PulseStatusColors.BearishText else PulseStatusColors.BullishText
-        else -> "▲" to PulseStatusColors.NeutralText // A bold flat line for neutral
+        delta > 0 -> "▲" to if (isHigherBetter) pulseColors.signalBullishText else pulseColors.signalBearishText
+        delta < 0 -> "▼" to if (isHigherBetter) pulseColors.signalBearishText else pulseColors.signalBullishText
+        else -> "▲" to pulseColors.signalNeutralText // A bold flat line for neutral
     }
 
     // 💡 Forces long text (like "Sideways Range") to neatly stack into two centered lines

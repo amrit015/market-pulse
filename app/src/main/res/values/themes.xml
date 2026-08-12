@@ -9,8 +9,11 @@
         <item name="colorSecondary">@color/teal_200</item>
         <item name="colorSecondaryVariant">@color/teal_700</item>
         <item name="colorOnSecondary">@color/black</item>
-        <!-- Status bar color. -->
-        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+        <!-- No android:statusBarColor here on purpose. This was a static opaque color left over
+             from the original template theme, and it was fighting enableEdgeToEdge()'s attempt to
+             make the status bar transparent. The app's actual status bar appearance is owned by
+             MainActivity.onCreate() (enableEdgeToEdge()) and MarketPulseTheme.kt (icon contrast per
+             preset) now, not this XML theme. -->
         <!-- Customize your theme here. -->
     </style>
 

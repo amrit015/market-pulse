@@ -1,8 +1,6 @@
 package com.marketlabs.pulse.ui.screens.summary.views
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,22 +8,17 @@ import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -43,7 +36,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.summary.DominoEffect
@@ -52,13 +44,11 @@ import com.marketlabs.pulse.storage.model.summary.MarketOutlook
 import com.marketlabs.pulse.storage.model.summary.MarketPulse
 import com.marketlabs.pulse.storage.model.summary.NewsItem
 import com.marketlabs.pulse.storage.model.summary.Verdict
+import com.marketlabs.pulse.ui.components.PulseCard
+import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.bottomSheet.MarketGlossaryBottomSheet
-import com.marketlabs.pulse.ui.theme.PulseStatusColors.BearishBg
-import com.marketlabs.pulse.ui.theme.PulseStatusColors.BearishText
-import com.marketlabs.pulse.ui.theme.PulseStatusColors.BullishBg
-import com.marketlabs.pulse.ui.theme.PulseStatusColors.BullishText
-import com.marketlabs.pulse.ui.theme.PulseStatusColors.NeutralBg
-import com.marketlabs.pulse.ui.theme.PulseStatusColors.NeutralText
+import com.marketlabs.pulse.ui.components.widgets.SignalPill
+import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.utils.enums.ReportType
 import com.marketlabs.pulse.utils.enums.TradingCall
 import java.text.SimpleDateFormat
@@ -80,18 +70,21 @@ fun MarketSummaryScreen(
     data: MarketPulse?,
     scaffoldPadding: PaddingValues
 ) {
-    val statusBarHeight = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
 
     // 💡 NEW: State to track if the Verdict Glossary bottom sheet is open
     var showVerdictGlossary by remember { mutableStateOf(false) }
 
+    // 💡 Top padding uses `scaffoldPadding`'s top component (the Scaffold's own measurement of
+    // the top bar's real rendered height) instead of the raw status bar inset alone -- the raw
+    // inset only accounts for the system status bar, not the app's own top bar sitting below it,
+    // so content used to start underneath the top bar rather than below it.
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background),
         contentPadding = PaddingValues(
-            top = statusBarHeight + paddingLarge,
+            top = scaffoldPadding.calculateTopPadding() + paddingLarge,
             bottom = scaffoldPadding.calculateBottomPadding() + paddingLarge,
             start = paddingLarge,
             end = paddingLarge
@@ -231,20 +224,26 @@ fun HeaderSection(type: ReportType, timestamp: Long) {
 fun LeadStoryCard(story: NewsItem) {
     val headline = story.headline ?: return
 
-    Card(
-        // 💡 CHANGED: Matches Market Outlook background
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
-        ),
-        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
+    // 💡 SYNTHESIS style -- an AI-summarized lead story, not raw data. Replaces the old
+    // `secondaryContainer.copy(alpha = 0.4f)` leftover from before this app had its own token
+    // system.
+    PulseCard(
+        style = PulseCardStyle.SYNTHESIS,
         modifier = Modifier.fillMaxWidth()
     ) {
         Column {
             Text(
                 modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)),
                 text = headline,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.secondary
+                // 💡 titleSmall (15sp, semi-bold), not titleMedium -- the consistent title tier
+                // every curated/AI-content card title uses, separate from DATA-style cards
+                // (Equities, VIX, Indicators), which keep their bold 17sp title.
+                style = MaterialTheme.typography.titleSmall,
+                // 💡 Card titles are always onSurface (dark-on-light/white-on-dark) across this
+                // app -- same treatment as Equities/AI/News cards. Was `colorScheme.secondary`
+                // (mapped to the muted onSurfaceMuted tone), which read as washed-out next to
+                // those cards' bold titles.
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             HorizontalDivider(
@@ -273,12 +272,9 @@ fun LeadStoryCard(story: NewsItem) {
 fun MacroCard(item: MacroItem) {
     val headline = item.headline ?: return
 
-    Card(
-        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
-        // 💡 CHANGED: Matches Market Outlook background
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
-        ),
+    // 💡 SYNTHESIS style -- see LeadStoryCard above.
+    PulseCard(
+        style = PulseCardStyle.SYNTHESIS,
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(modifier = Modifier.height(IntrinsicSize.Min)) {
@@ -299,7 +295,8 @@ fun MacroCard(item: MacroItem) {
                     Text(
                         text = headline,
                         style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.secondary,
+                        // 💡 Card titles are always onSurface -- see LeadStoryCard above.
+                        color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.weight(1f)
                     )
 
@@ -354,12 +351,9 @@ fun DominoCard(domino: DominoEffect) {
     val impact = domino.impact ?: return
     val outlook = domino.outlook ?: return
 
-    Card(
-        // 💡 CHANGED: Matches Market Outlook background
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
-        ),
-        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
+    // 💡 SYNTHESIS style -- see LeadStoryCard above.
+    PulseCard(
+        style = PulseCardStyle.SYNTHESIS,
         modifier = Modifier.fillMaxWidth()
     ) {
         Column {
@@ -369,9 +363,12 @@ fun DominoCard(domino: DominoEffect) {
             ) {
                 Text(
                     text = stringResource(id = R.string.section_domino_effect),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.secondary,
-                    fontWeight = FontWeight.Bold
+                    // 💡 titleSmall (15sp, semi-bold) -- see LeadStoryCard above. The separate
+                    // `fontWeight = Bold` override is gone too, since titleSmall's own semi-bold
+                    // is the target weight, not bold.
+                    style = MaterialTheme.typography.titleSmall,
+                    // 💡 Card titles are always onSurface -- see LeadStoryCard above.
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
 
@@ -431,10 +428,13 @@ private fun DominoTimelineStep(title: String, text: String, isLast: Boolean) {
         Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_standard)))
 
         Column(modifier = Modifier.padding(bottom = if (isLast) 0.dp else dimensionResource(id = R.dimen.padding_xlarge))) {
+            // 💡 "TRIGGER"/"IMPACT"/"OUTLOOK" -- a label naming the text below it, not a date, so
+            // it follows the same onSurface rule as every other card label. Was `colorScheme.
+            // secondary` (mapped to the muted onSurfaceMuted tone).
             Text(
                 text = title,
                 style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.secondary
+                color = MaterialTheme.colorScheme.onSurface
             )
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
             Text(
@@ -451,26 +451,21 @@ private fun DominoTimelineStep(title: String, text: String, isLast: Boolean) {
  */
 @Composable
 fun OutlookCard(outlook: MarketOutlook) {
-    Card(
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(
-                alpha = 0.4f
-            )
-        ),
-        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
-        border = BorderStroke(
-            dimensionResource(id = R.dimen.border_thin),
-            MaterialTheme.colorScheme.secondaryContainer
-        ),
+    // 💡 SYNTHESIS style -- an AI-written market outlook, not raw data. Replaces the old
+    // `secondaryContainer.copy(alpha = 0.4f)` fill and its matching (same-color, essentially
+    // invisible) border -- both leftovers from before this app had its own token system.
+    PulseCard(
+        style = PulseCardStyle.SYNTHESIS,
         modifier = Modifier.fillMaxWidth()
     ) {
         Column {
-            // 💡 ACTION: Market Outlook Title upgraded to titleMedium for higher visibility
             Text(
                 modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)),
                 text = stringResource(id = R.string.section_market_outlook),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.secondary
+                // 💡 titleSmall (15sp, semi-bold) -- see LeadStoryCard above.
+                style = MaterialTheme.typography.titleSmall,
+                // 💡 Card titles are always onSurface -- see LeadStoryCard above.
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             HorizontalDivider(
@@ -503,23 +498,31 @@ fun VerdictCard(verdict: Verdict, onClick: () -> Unit) {
     val regime = verdict.regime ?: return
     val setup = verdict.setup ?: return
 
-    val (bgColor, textColor) = when (call) {
+    val pulseColors = LocalPulseColors.current
+    // 💡 The sector rotation heatmap is the only place in this app where a signal color is allowed
+    // to own an entire card/tile background -- every other directional card, this one included,
+    // uses a uniform accent-neutral fill instead. Direction still reads clearly from the regime
+    // pill, the call headline, and the setup subtitle, all keyed off the same signal text/pill pair.
+    val (pillColor, textColor) = when (call) {
         TradingCall.CONTRARIAN_BUY,
-        TradingCall.ACCUMULATE -> Pair(BullishBg, BullishText)
+        TradingCall.ACCUMULATE -> pulseColors.signalBullishPill to pulseColors.signalBullishText
 
         TradingCall.CONTRARIAN_SELL,
         TradingCall.SELL_AVOID,
-        TradingCall.HEDGE_PROTECT -> Pair(BearishBg, BearishText)
+        TradingCall.HEDGE_PROTECT -> pulseColors.signalBearishPill to pulseColors.signalBearishText
 
-        else -> Pair(NeutralBg, NeutralText)
+        else -> pulseColors.signalNeutralPill to pulseColors.signalNeutralText
     }
 
-    Card(
-        colors = CardDefaults.cardColors(containerColor = bgColor),
-        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() } // 💡 NEW: Made the card clickable
+    // 💡 SYNTHESIS style -- this is the AI Verdict (regime, call, setup), the same kind of
+    // AI-interpreted content as the Technical Briefing and news cards, not a raw price reading.
+    // Was `surfaceTinted` (the DATA style price cards use) with no border; moved here for the same
+    // reason Technical Briefing wears the accent tint -- this card is an AI's synthesis of the
+    // data, not the data itself.
+    PulseCard(
+        style = PulseCardStyle.SYNTHESIS,
+        modifier = Modifier.fillMaxWidth(),
+        onClick = onClick
     ) {
         Column {
             Row(
@@ -530,20 +533,7 @@ fun VerdictCard(verdict: Verdict, onClick: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Surface(
-                        color = textColor.copy(alpha = 0.1f),
-                        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_chip))
-                    ) {
-                        Text(
-                            text = regime.label,
-                            color = textColor,
-                            style = MaterialTheme.typography.labelSmall,
-                            modifier = Modifier.padding(
-                                horizontal = dimensionResource(id = R.dimen.padding_medium),
-                                vertical = dimensionResource(id = R.dimen.padding_tiny)
-                            )
-                        )
-                    }
+                    SignalPill(text = regime.label, pillColor = pillColor, contentColor = textColor)
 
                     Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
 
@@ -591,23 +581,21 @@ fun VerdictCard(verdict: Verdict, onClick: () -> Unit) {
  */
 @Composable
 fun ActionFooter(action: String) {
-    Card(
-        // 💡 CHANGED: Matches Market Outlook background
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
-        ),
-        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
-        border = BorderStroke(
-            dimensionResource(id = R.dimen.border_thin),
-            MaterialTheme.colorScheme.primary
-        ),
+    // 💡 SYNTHESIS style -- the AI report's closing action plan. Replaces the old
+    // `secondaryContainer.copy(alpha = 0.4f)` fill and its bold `primary`-colored border with the
+    // same softer hairline every other synthesis card uses -- both leftovers from before this app
+    // had its own token system.
+    PulseCard(
+        style = PulseCardStyle.SYNTHESIS,
         modifier = Modifier.fillMaxWidth()
     ) {
         Column {
             Text(
                 text = stringResource(id = R.string.section_action_plan),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.secondary,
+                // 💡 titleSmall (15sp, semi-bold) -- see LeadStoryCard above.
+                style = MaterialTheme.typography.titleSmall,
+                // 💡 Card titles are always onSurface -- see LeadStoryCard above.
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))
             )
             HorizontalDivider(

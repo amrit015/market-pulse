@@ -24,12 +24,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.font.FontWeight
 import com.marketlabs.pulse.R
-import com.marketlabs.pulse.ui.theme.ColorGreen
-import com.marketlabs.pulse.ui.theme.ColorNeutral
-import com.marketlabs.pulse.ui.theme.ColorRed
-import com.marketlabs.pulse.ui.theme.PulseStatusColors.BearishText
-import com.marketlabs.pulse.ui.theme.PulseStatusColors.BullishText
-import com.marketlabs.pulse.ui.theme.PulseStatusColors.NeutralText
+import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
@@ -43,13 +38,16 @@ fun SpeedometerGauge(score: Double, previousScore: Double?, status: String?) {
     val needleWidthDimen = dimensionResource(id = R.dimen.gauge_needle_width)
     val needleRadiusDimen = dimensionResource(id = R.dimen.gauge_needle_radius)
 
-    val colorGreen  = ColorGreen
-    val colorRed = ColorRed
-    val colorNeutral = ColorNeutral
+    // 💡 The old flat, theme-unaware ColorGreen/Red/Neutral constants are deleted -- the locked
+    // signal.*.text tokens are the direct replacement for a gradient/brush use like this one.
+    val pulseColors = LocalPulseColors.current
+    val colorGreen = pulseColors.signalBullishText
+    val colorRed = pulseColors.signalBearishText
+    val colorNeutral = pulseColors.signalNeutralText
 
-    val textBearish = BearishText
-    val textBullish = BullishText
-    val textNeutral = NeutralText
+    val textBearish = pulseColors.signalBearishText
+    val textBullish = pulseColors.signalBullishText
+    val textNeutral = pulseColors.signalNeutralText
 
     Column(
         modifier = Modifier.fillMaxWidth(),

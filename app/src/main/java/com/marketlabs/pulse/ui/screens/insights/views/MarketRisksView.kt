@@ -16,8 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -34,12 +32,13 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.marketRisk.MarketRiskAssessment
 import com.marketlabs.pulse.storage.model.marketRisk.MarketRiskFactor
-import com.marketlabs.pulse.ui.theme.AlertRed
-import com.marketlabs.pulse.ui.theme.PulseStatusColors
+import com.marketlabs.pulse.ui.components.PulseCard
+import com.marketlabs.pulse.ui.components.PulseCardStyle
+import com.marketlabs.pulse.ui.components.widgets.SignalPill
+import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.utils.enums.RiskImpactLevel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -148,28 +147,33 @@ private fun RiskAssessmentHeader(data: MarketRiskAssessment) {
 
 @Composable
 private fun TailRiskCard(risk: MarketRiskFactor) {
+    val pulseColors = LocalPulseColors.current
+
+    // 💡 The old flat, non-theme-aware AlertRed constant is gone. EXTREME used to get its own raw
+    // red, kept visually distinct from HIGH's theme-aware bearish red. This app's signal system
+    // has exactly four tiers (bullish/bearish/neutral/warning) and no fifth "beyond bearish" tier,
+    // so EXTREME and HIGH now collapse to the same signalBearishText/.pill pair. A real visual
+    // change worth knowing about: EXTREME risk cards no longer look distinctly redder than HIGH ones.
     val impactTextColor = when (risk.impactLevel) {
-        RiskImpactLevel.EXTREME -> AlertRed
-        RiskImpactLevel.HIGH -> PulseStatusColors.BearishText
-        RiskImpactLevel.MEDIUM -> PulseStatusColors.WarningText
-        RiskImpactLevel.LOW -> PulseStatusColors.BullishText
+        RiskImpactLevel.EXTREME, RiskImpactLevel.HIGH -> pulseColors.signalBearishText
+        RiskImpactLevel.MEDIUM -> pulseColors.signalWarningText
+        RiskImpactLevel.LOW -> pulseColors.signalBullishText
         else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 
     val impactBgColor = when (risk.impactLevel) {
-        RiskImpactLevel.EXTREME -> AlertRed.copy(alpha = 0.15f)
-        RiskImpactLevel.HIGH -> PulseStatusColors.BearishBg
-        RiskImpactLevel.MEDIUM -> PulseStatusColors.WarningBg
-        RiskImpactLevel.LOW -> PulseStatusColors.BullishBg
+        RiskImpactLevel.EXTREME, RiskImpactLevel.HIGH -> pulseColors.signalBearishPill
+        RiskImpactLevel.MEDIUM -> pulseColors.signalWarningPill
+        RiskImpactLevel.LOW -> pulseColors.signalBullishPill
         else -> MaterialTheme.colorScheme.surfaceVariant
     }
 
-    Card(
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
-        ),
-        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+    // 💡 SYNTHESIS style -- an AI-assessed tail risk, not raw data. Replaces the old
+    // `secondaryContainer.copy(alpha = 0.4f)` leftover from before this app had its own token
+    // system. `elevation = 0.dp` dropped along with it -- PulseCard never adds elevation, matching
+    // this app's flat, no-shadow convention everywhere else.
+    PulseCard(
+        style = PulseCardStyle.SYNTHESIS,
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(modifier = Modifier.height(IntrinsicSize.Min)) {
@@ -187,8 +191,14 @@ private fun TailRiskCard(risk: MarketRiskFactor) {
             ) {
                 Text(
                     text = risk.riskFactor ?: stringResource(id = R.string.unknown_risk),
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.secondary
+                    // 💡 titleSmall (15sp, semi-bold), not titleMedium.Bold (17sp, bold) -- the
+                    // consistent title tier every curated/AI-content card title uses now, separate
+                    // from DATA-style cards (Equities, VIX, Indicators), which keep their bold
+                    // 17sp title.
+                    style = MaterialTheme.typography.titleSmall,
+                    // 💡 Card titles are always onSurface (dark-on-light/white-on-dark) across
+                    // this app -- same treatment as Equities/AI/News cards.
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
@@ -212,20 +222,11 @@ private fun TailRiskCard(risk: MarketRiskFactor) {
                     }
 
                     if (risk.impactLevel != null) {
-                        Surface(
-                            color = impactBgColor,
-                            shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_chip))
-                        ) {
-                            Text(
-                                text = risk.impactLevel.label.uppercase(),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = impactTextColor,
-                                modifier = Modifier.padding(
-                                    horizontal = dimensionResource(id = R.dimen.padding_medium),
-                                    vertical = dimensionResource(id = R.dimen.padding_tiny)
-                                )
-                            )
-                        }
+                        SignalPill(
+                            text = risk.impactLevel.label.uppercase(),
+                            pillColor = impactBgColor,
+                            contentColor = impactTextColor
+                        )
                     }
                 }
 

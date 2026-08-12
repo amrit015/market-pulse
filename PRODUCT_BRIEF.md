@@ -38,8 +38,11 @@ Five bottom-nav tabs, plus one screen reached only by drilling in from another. 
 | **Insights** | Three sub-views: AI tail-risk spotlight, the weekly economic "event playbook" (with mid-week actuals updates), and institutional positioning (NAAIM exposure + FRED data) | `MarketRisksView`, `WeeklyPlaybookView`, `MarketPostureView`, `RiskBottomSheet` |
 | **Analysis** | Per-symbol deep dive — technicals, fundamentals, and an AI "deep study" — for the Magnificent 7 today, expanding over time. No default selection; nothing renders until the user picks a symbol | `StockAnalysisComponents` (chip row + detail composables), `ScoreGauge`, `SpeedometerGauge`, `DonutScoreCard` |
 | **News** *(not a tab — reached from Overview)* | Curated, AI-filtered market news. Used to be a bottom-nav tab; now only reachable by tapping a preview card on Overview, which is why it carries its own top bar and back button | `NewsScreen` with its own `Scaffold`/`TopAppBar` |
+| **Settings** *(not a tab — reached from the top bar)* | New since the redesign shell landed. Full-screen (own `Scaffold`, no bottom nav), houses the 10-preset theme picker | Preset gallery/swatch grid (`PresetSwatchCard`) |
 
 Shared cross-screen components worth knowing about before designing something new: `UniversalGaugeCard`, `UniversalMetricCard`, `PutCallHorizontalBar`, `VixFullWidthCard`, and a family of bottom sheets (`AssetBottomSheet`, `FrameworkSheet`, `IndicatorDetailSheet`, `MarketBottomSheet`, `RiskBottomSheet`) used for progressive disclosure instead of pushing a new screen.
+
+**Card and pill vocabulary is now consolidated app-wide.** Every content card renders through one shared `PulseCard(style: PulseCardStyle)` — `DATA` for raw price/metric cards (Equities, Indicators, VIX, Fear & Greed, Put/Call), `SYNTHESIS` for AI-written or curated content (briefings, news, verdicts, risk/playbook cards). Every small colored badge — sentiment tags, impact levels, the up/down % change indicators — renders through `SignalPill` (and its `DirectionalChangePill` wrapper for directional change specifically). A new card or pill pattern should extend one of these, not introduce a third. Full token mapping in `STYLE_SPEC.md §6–7`.
 
 ## Data rhythm
 
@@ -61,7 +64,7 @@ A screen showing a stale value with no visible "as of" timestamp is a real UX ga
 
 ## Domain vocabulary a designer will hit
 
-- **Signal color** — the app's own domain concept: `GREEN` (bullish) / `YELLOW` (neutral or warning) / `RED` (bearish) / `UNKNOWN` (data missing). Every status color in the UI ultimately resolves to one of these four, never a raw green/red.
+- **Signal color** — the app's own domain concept: bullish / bearish / neutral / warning, plus an as-yet-unresolved `unknown` (data missing) state. This is a fixed four-tier read on the market, locked identically across every theme preset — a themed accent color can never be mistaken for a signal. Every status color in the UI ultimately resolves to one of these tiers, never a raw green/red. See `STYLE_SPEC.md §2`.
 - **VIX** — 30-day forward volatility expectation implied by options pricing. The "fear gauge."
 - **NAAIM Exposure Index** — a weekly survey of active manager net long exposure, roughly -200 to +200.
 - **Fear & Greed Index** — CNN's composite sentiment score, shown on Overview.
@@ -72,13 +75,14 @@ A screen showing a stale value with no visible "as of" timestamp is a real UX ga
 - **Material 3 / Jetpack Compose.** Mockups need to map to real composables, not just look right — think in terms of `Card`, `Row`/`Column` nesting, `Scaffold`, bottom sheets, not arbitrary layout.
 - **Every screen is already split stateful/stateless** (`XRoute` + `XScreen`) — a redesign changes `XScreen` composition; it doesn't need to touch data-loading code.
 - **Existing components should be reused or evolved, not duplicated.** The gauge/sparkline/card component family above already covers most data-display needs — check it before proposing a net-new pattern.
-- **Dark and light mode both matter.** The app is dual-theme today (see `STYLE_SPEC.md` for exactly what that looks like currently, including where it currently falls short — a real light-mode contrast issue and a flat, shadow-less card system are both documented there).
+- **Theming is a 10-preset system, not a dark/light toggle.** Five light presets (Plum, Navy, Fuchsia, Graphite, Teal), five dark (Lilac, Sky, Sand, Rose, Aqua) — the user picks a preset, which fixes both the appearance mode and the accent together; there's no separate "follow system" switch. A design only needs to work in one mode at a time, but should be checked against at least one light and one dark preset, since only the accent varies between presets in the same mode — everything else (signal colors, neutral surfaces) is shared. See `STYLE_SPEC.md §1–5` for the full token architecture, including the two derived/blended tokens that give price cards vs. AI-content cards their different backgrounds.
+- **Flat, shadow-less by convention — one deliberate exception.** Cards, sheets, and surfaces don't use elevation/shadow to differentiate. `FloatingBottomNav` is the one intentional exception (a small `shadowElevation`); it's not license to add shadows elsewhere.
 
 ## Status
 
 - **Backend:** in production — Cloud Functions v2, ~20 deployed functions, running against real market data.
-- **Android:** in active development. Core screens shipped (Overview, Indicators, Insights, News, Summary, Analysis).
-- **Design:** pre-branding. This doc plus `STYLE_SPEC.md` are the starting brief for that work.
+- **Android:** in active development. Core screens shipped (Overview, Indicators, Insights, News, Summary, Analysis, Settings).
+- **Design:** past pre-branding — a full visual pass has landed. The 10-preset theme system, a consolidated card/pill component vocabulary (`PulseCard`, `SignalPill`, `DirectionalChangePill`), a collapsing/blending top bar, and a typography pass across every card title are all shipped on `feat-design-migration`. What's left is closer to refinement than a from-scratch brief: `STYLE_SPEC.md §14` tracks the specific open items (an unresolved `signal.unknown` color, unbundled type weights, a couple of un-tokenized literals) rather than a wholesale redesign backlog.
 
 ## Further reading
 

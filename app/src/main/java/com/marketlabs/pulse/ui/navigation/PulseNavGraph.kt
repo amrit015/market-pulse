@@ -1,18 +1,10 @@
 package com.marketlabs.pulse.ui.navigation
 
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -21,16 +13,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
-import androidx.navigation.NavDestination.Companion.hierarchy
-import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.components.PulseWebViewScreen
 import com.marketlabs.pulse.ui.screens.dashboard.views.DashboardRoute
@@ -38,6 +24,7 @@ import com.marketlabs.pulse.ui.screens.indicators.views.IndicatorsRoute
 import com.marketlabs.pulse.ui.screens.insights.views.InsightsRoute
 import com.marketlabs.pulse.ui.screens.news.views.NewsRoute
 import com.marketlabs.pulse.ui.screens.summary.views.MarketSummaryRoute
+import com.marketlabs.pulse.ui.settings.SettingsRoute
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -55,6 +42,9 @@ object PulseRoutes {
 
     // Added with Claude Code assistance: replaces the News tab on the bottom bar.
     const val MARKET_ANALYSIS = "market_analysis"
+
+    // Reached from the gear icon on the global top bar.
+    const val SETTINGS = "settings"
 }
 
 /** * 💡 UPDATED: Added a second icon resource for the 'selected' filled state
@@ -80,6 +70,19 @@ sealed class BottomNavItem(val route: String, val label: String, val unselectedI
 }
 
 /**
+ * Hoisted to a top-level `val` (was previously rebuilt on every recomposition as a local `val`
+ * inside `PulseNavGraph()`) since `MainActivity` also needs this exact list to drive
+ * `FloatingBottomNav`.
+ */
+val bottomNavItems = listOf(
+    BottomNavItem.Overview,
+    BottomNavItem.Indicators,
+    BottomNavItem.Summary,
+    BottomNavItem.MarketRisk,
+    BottomNavItem.Analysis
+)
+
+/**
  * 💡 Added with Claude Code assistance: temporary stand-in for the Analysis tab while its views
  * are rebuilt against the revamped stocks domain layer (core/stocks, storage/model/stocks) —
  * the old StockAnalysisRoute/Screen/ViewModel were deleted, not patched, since they were written
@@ -101,141 +104,92 @@ private fun StockAnalysisPlaceholder(scaffoldPadding: PaddingValues) {
     }
 }
 
+/**
+ * NavHost-only. The `Scaffold`, the bottom `NavigationBar`, and `navController` creation all live
+ * in `MainActivity` instead, since the global top bar and floating nav are app-wide chrome that
+ * wraps this graph rather than something the graph owns itself — `MainActivity` needs
+ * `navController` directly to drive `FloatingBottomNav`'s selected-tab state and `AppTopBar`'s
+ * gear navigation.
+ */
 @Composable
-fun PulseNavGraph() {
-    val navController = rememberNavController()
-
+fun PulseNavGraph(
+    navController: NavHostController,
+    scaffoldPadding: PaddingValues,
+    modifier: Modifier = Modifier
+) {
     // Added with Claude Code assistance: one-shot signal set right before navigating to the News
     // tab from a Dashboard preview card, so NewsRoute knows which card to scroll to + highlight.
     // Hoisted here (not a nav argument) so the bottom-nav's plain "market_news" route pattern —
-    // and its selected-tab matching in the bar below — stays untouched.
+    // and its selected-tab matching in the bar above — stays untouched.
     var highlightedNewsArticleUrl by remember { mutableStateOf<String?>(null) }
 
-    val items = listOf(
-        BottomNavItem.Overview,
-        BottomNavItem.Indicators,
-        BottomNavItem.Summary,
-        BottomNavItem.MarketRisk,
-        BottomNavItem.Analysis
-    )
-
-    Scaffold(
-        bottomBar = {
-            NavigationBar(
-                containerColor = MaterialTheme.colorScheme.surface,
-                contentColor = MaterialTheme.colorScheme.primary,
-                // Clear default insets so we control the exact padding
-                windowInsets = WindowInsets(15, 15, 15, 70)
-            ) {
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentDestination = navBackStackEntry?.destination
-
-                items.forEach { item ->
-                    val isSelected = currentDestination?.hierarchy?.any { it.route == item.route } == true
-
-                    // 💡 NEW: Smoothly animate the icon size from 24dp to 28dp when selected
-                    val iconSize by animateDpAsState(
-                        targetValue = if (isSelected) 28.dp else 24.dp,
-                        label = "BottomNavIconSize"
-                    )
-
-                    NavigationBarItem(
-                        label = { Text(item.label) },
-                        selected = isSelected,
-                        onClick = {
-                            navController.navigate(item.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        },
-                        icon = {
-                            // 💡 NEW: Swap between the filled and outlined icons based on state
-                            Icon(
-                                painter = painterResource(id = if (isSelected) item.selectedIconRes else item.unselectedIconRes),
-                                contentDescription = item.label,
-                                modifier = Modifier.size(iconSize) // Apply the animated size
-                            )
-                        },
-                        // 💡 NEW: Kill the default gray highlight pill
-                        colors = NavigationBarItemDefaults.colors(
-                            indicatorColor = Color.Transparent,
-                            selectedIconColor = MaterialTheme.colorScheme.primary,
-                            selectedTextColor = MaterialTheme.colorScheme.primary,
-                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    )
-                }
-            }
+    NavHost(
+        navController = navController,
+        startDestination = PulseRoutes.MARKET_OVERVIEW,
+        modifier = modifier.fillMaxSize()
+    ) {
+        composable(PulseRoutes.MARKET_SUMMARY) {
+            MarketSummaryRoute(scaffoldPadding = scaffoldPadding)
         }
-    ) { innerPadding ->
-        NavHost(
-            navController = navController,
-            startDestination = PulseRoutes.MARKET_OVERVIEW,
-            modifier = Modifier.fillMaxSize()
-        ) {
-            // ... (Keep all your existing composable routes exactly the same) ...
-            composable(PulseRoutes.MARKET_SUMMARY) {
-                MarketSummaryRoute(scaffoldPadding = innerPadding)
-            }
-            composable(PulseRoutes.MARKET_OVERVIEW) {
-                DashboardRoute(
-                    scaffoldPadding = innerPadding,
-                    // Added with Claude Code assistance: News is a plain push destination now
-                    // (not a persisted bottom-nav tab), so this is a simple navigate() — no
-                    // popUpTo/saveState/restoreState tab-preserving dance needed.
-                    onNavigateToNews = {
-                        navController.navigate(PulseRoutes.MARKET_NEWS)
-                    },
-                    // Added with Claude Code assistance: stash the target article, then push News.
-                    onNavigateToNewsArticle = { url ->
-                        highlightedNewsArticleUrl = url
-                        navController.navigate(PulseRoutes.MARKET_NEWS)
-                    }
-                )
-            }
-            composable(PulseRoutes.MARKET_INDICATORS) {
-                IndicatorsRoute(scaffoldPadding = innerPadding)
-            }
-            composable(PulseRoutes.MARKET_INSIGHTS) {
-                InsightsRoute(scaffoldPadding = innerPadding)
-            }
-            // 💡 Updated with Claude Code assistance: the stocks domain layer was rebuilt against
-            // the backend's new preview/detail split (see core/stocks, storage/model/stocks) and
-            // its old views were deleted wholesale rather than patched — StockAnalysisRoute and
-            // friends no longer exist. This placeholder keeps the Analysis tab compiling and
-            // navigable until the screen is rebuilt against the new domain layer.
-            composable(PulseRoutes.MARKET_ANALYSIS) {
-                StockAnalysisPlaceholder(scaffoldPadding = innerPadding)
-            }
-            // Added with Claude Code assistance: pushed only from the Dashboard's "Latest News"
-            // chevron or a specific preview card — no longer part of the bottom bar.
-            composable(PulseRoutes.MARKET_NEWS) {
-                NewsRoute(
-                    scaffoldPadding = innerPadding,
-                    onNavigateUp = { navController.popBackStack() },
-                    onNavigateToWebView = { url ->
-                        val encodedUrl = URLEncoder.encode(url, StandardCharsets.UTF_8.toString())
-                        navController.navigate("webview/$encodedUrl")
-                    },
-                    highlightedArticleUrl = highlightedNewsArticleUrl,
-                    onHighlightConsumed = { highlightedNewsArticleUrl = null }
-                )
-            }
+        composable(PulseRoutes.MARKET_OVERVIEW) {
+            DashboardRoute(
+                scaffoldPadding = scaffoldPadding,
+                // Added with Claude Code assistance: News is a plain push destination now
+                // (not a persisted bottom-nav tab), so this is a simple navigate() — no
+                // popUpTo/saveState/restoreState tab-preserving dance needed.
+                onNavigateToNews = {
+                    navController.navigate(PulseRoutes.MARKET_NEWS)
+                },
+                // Added with Claude Code assistance: stash the target article, then push News.
+                onNavigateToNewsArticle = { url ->
+                    highlightedNewsArticleUrl = url
+                    navController.navigate(PulseRoutes.MARKET_NEWS)
+                }
+            )
+        }
+        composable(PulseRoutes.MARKET_INDICATORS) {
+            IndicatorsRoute(scaffoldPadding = scaffoldPadding)
+        }
+        composable(PulseRoutes.MARKET_INSIGHTS) {
+            InsightsRoute(scaffoldPadding = scaffoldPadding)
+        }
+        // 💡 Updated with Claude Code assistance: the stocks domain layer was rebuilt against
+        // the backend's new preview/detail split (see core/stocks, storage/model/stocks) and
+        // its old views were deleted wholesale rather than patched — StockAnalysisRoute and
+        // friends no longer exist. This placeholder keeps the Analysis tab compiling and
+        // navigable until the screen is rebuilt against the new domain layer.
+        composable(PulseRoutes.MARKET_ANALYSIS) {
+            StockAnalysisPlaceholder(scaffoldPadding = scaffoldPadding)
+        }
+        // Added with Claude Code assistance: pushed only from the Dashboard's "Latest News"
+        // chevron or a specific preview card — no longer part of the bottom bar.
+        composable(PulseRoutes.MARKET_NEWS) {
+            NewsRoute(
+                scaffoldPadding = scaffoldPadding,
+                onNavigateUp = { navController.popBackStack() },
+                onNavigateToWebView = { url ->
+                    val encodedUrl = URLEncoder.encode(url, StandardCharsets.UTF_8.toString())
+                    navController.navigate("webview/$encodedUrl")
+                },
+                highlightedArticleUrl = highlightedNewsArticleUrl,
+                onHighlightConsumed = { highlightedNewsArticleUrl = null }
+            )
+        }
 
-            composable("webview/{encodedUrl}") { backStackEntry ->
-                val encodedUrl = backStackEntry.arguments?.getString("encodedUrl") ?: ""
-                val decodedUrl = URLDecoder.decode(encodedUrl, StandardCharsets.UTF_8.toString())
+        composable("webview/{encodedUrl}") { backStackEntry ->
+            val encodedUrl = backStackEntry.arguments?.getString("encodedUrl") ?: ""
+            val decodedUrl = URLDecoder.decode(encodedUrl, StandardCharsets.UTF_8.toString())
 
-                PulseWebViewScreen(
-                    url = decodedUrl,
-                    bottomNavPadding = innerPadding,
-                    onNavigateUp = { navController.popBackStack() }
-                )
-            }
+            PulseWebViewScreen(
+                url = decodedUrl,
+                bottomNavPadding = scaffoldPadding,
+                onNavigateUp = { navController.popBackStack() }
+            )
+        }
+
+        // Reached from the gear icon on the global top bar.
+        composable(PulseRoutes.SETTINGS) {
+            SettingsRoute(onNavigateUp = { navController.popBackStack() })
         }
     }
 }

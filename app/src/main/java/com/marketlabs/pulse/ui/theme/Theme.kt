@@ -1,94 +1,58 @@
 package com.marketlabs.pulse.ui.theme
 
 import android.app.Activity
-import android.content.Context
-import android.content.ContextWrapper
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 /**
- * Configures the Material 3 ColorScheme for MarketLabs Pulse.
- * Action: Implement dual-mode support with high-contrast Dark and Light variants.
- * Action: Update SideEffect to handle transparent system bars for edge-to-edge.
+ * 💡 THOUGHT PROCESS:
+ * Full rewrite for the theme migration. The old signature — `MarketPulseTheme(darkTheme: Boolean =
+ * isSystemInDarkTheme(), content)` — is gone: the theme picker now overrides OS dark mode by
+ * design, so `isSystemInDarkTheme()` is never consulted. The composable takes a resolved
+ * `theme: MarketPulseTheme` and derives both the standard `ColorScheme` and the extended
+ * `PulseColors` from it via `theme.toColorScheme()` / `theme.toPulseColors()` (both in
+ * `MarketPulseTheme.kt`).
+ *
+ * A same-named top-level function and enum in one file/package is legal Kotlin here without
+ * ambiguity — `MarketPulseTheme` the enum has no externally-invokable constructor, so a call site
+ * like `MarketPulseTheme(theme = MarketPulseTheme.LILAC) { ... }` only ever resolves to this
+ * function.
+ *
+ * This composable deliberately does NOT know about `ThemeRepository` — it stays a pure function of
+ * its `theme` parameter (easier to `@Preview`, no Hilt dependency here). The caller (`MainActivity`)
+ * collects `ThemeRepository.selectedTheme` and passes the current value in — see that file for why
+ * this split was chosen over an `EntryPointAccessors`-based lookup inside the composable itself.
  */
-
-/** * High-Contrast Dark Scheme
- * Action: Use pure black background for an authoritative, "Pulse" aesthetic.
- */
-/** Dark Scheme configuration */
-private val PulseDarkColorScheme = darkColorScheme(
-    primary = PulseGold,
-    secondary = PulseOrange,
-    onPrimary = PulseBlack,
-    background = PulseBlack,
-    onBackground = DarkOnSurface,
-    surface = DarkSurface,
-    onSurface = DarkOnSurface,
-    surfaceVariant = PulseDeepGray,
-    onSurfaceVariant = DarkOnSurface,
-    error = AlertRed
-)
-
-/** Light Scheme configuration */
-private val PulseLightColorScheme = lightColorScheme(
-    primary = PulseBlue,
-    secondary = PulseBlack,
-    onPrimary = PulseBlack,
-    background = LightBackground,
-    onBackground = PulseBlack,
-    surface = LightSurface,
-    onSurface = PulseBlack,
-    surfaceVariant = Color.White,
-    error = AlertRed
-)
-
 @Composable
 fun MarketPulseTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    theme: MarketPulseTheme,
     content: @Composable () -> Unit
 ) {
-    // Action: Select color palette based on theme preference
-    val colorScheme = if (darkTheme) PulseDarkColorScheme else PulseLightColorScheme
+    val colorScheme = theme.toColorScheme()
+    val pulseColors = theme.toPulseColors()
 
-    // Action: Handle System UI and Status Bar integration
     val view = LocalView.current
-    /** Action: Handle system bar icon contrast using the modern Controller API */
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as? Activity)?.window
             window?.let {
                 val controller = WindowCompat.getInsetsController(it, view)
-
-                /** * Action: Set icon contrast.
-                 * In PulseBlack (Dark), icons must be light (isAppearanceLightStatusBars = false).
-                 * In PulseLight (Light), icons must be dark (isAppearanceLightS
-                 * tatusBars = true).
-                 */
-                controller.isAppearanceLightStatusBars = !darkTheme
-                controller.isAppearanceLightNavigationBars = !darkTheme
+                // isDark now comes straight off the selected preset, not isSystemInDarkTheme().
+                controller.isAppearanceLightStatusBars = !theme.isDark
+                controller.isAppearanceLightNavigationBars = !theme.isDark
             }
         }
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = AppTypography,
-        content = content
-    )
-}
-
-/** * Helper extension to locate the Activity context
- * Action: Use tailrec for efficient context traversal.
- */
-private tailrec fun Context.findActivity(): Activity? = when (this) {
-    is Activity -> this
-    is ContextWrapper -> baseContext.findActivity()
-    else -> null
+    CompositionLocalProvider(LocalPulseColors provides pulseColors) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = AppTypography,
+            content = content
+        )
+    }
 }

@@ -37,7 +37,9 @@ fun FrameworkSheet(onDismiss: () -> Unit) {
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.background,
+        // 💡 Was colorScheme.background. Bottom sheets sit above the base background, at the
+        // elevated step of the surface ramp, so they read as a distinct layer over the screen.
+        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
         dragHandle = null
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
