@@ -6,12 +6,17 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.marketlabs.pulse.core.stocks.StockAnalysisRepository
+import com.marketlabs.pulse.storage.model.stocks.StockPreview
+import com.marketlabs.pulse.ui.common.UiError
+import com.marketlabs.pulse.ui.common.toUiError
 import com.marketlabs.pulse.ui.screens.stocks.StockDetailViewModel.Companion.ARG_SYMBOL
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -32,8 +37,14 @@ import javax.inject.Inject
  * No `SyncManager` here — per `StockAnalysisRepository`'s interface doc, detail is deliberately
  * NOT sync-flag-driven; it's fetched on demand and `refreshDetail` already skips the network when
  * the cached detail's `detailVersion` matches the cached preview's. `onStart()` is kept anyway
- * (rather than firing the fetch from `init {}`) purely so the future Route's lifecycle wiring is
+ * (rather than firing the fetch from `init {}`) purely so the Route's lifecycle wiring is
  * identical to every other screen's `DisposableEffect` — `onStop()` is intentionally a no-op.
+ *
+ * Also reads `repository.getStockPreviewsStream()` (already running for the Analysis tab, or
+ * spun back up here if the user deep-navigated) filtered down to this one symbol -- `StockDetail`
+ * has no `name`/`price`/`change_percent`/`technical_setup`/`regime_at_analysis`/day-over-day-delta
+ * fields of its own, only the preview does, so `DetailHeader` and the "what changed since last
+ * run" box both read off this same cross-referenced preview rather than the detail stream.
  */
 @HiltViewModel
 class StockDetailViewModel @Inject constructor(
@@ -47,20 +58,33 @@ class StockDetailViewModel @Inject constructor(
 
     private val _isLoading = MutableStateFlow(false)
     private val _isRefreshing = MutableStateFlow(false)
-    private val _errorMessage = MutableStateFlow<String?>(null)
+    private val _error = MutableStateFlow<UiError?>(null)
+    private val _expandedChipIds = MutableStateFlow<Set<String>>(emptySet())
+    private val _expandedNewsIds = MutableStateFlow<Set<String>>(emptySet())
+
+    private val matchingPreview: Flow<StockPreview?> = repository.getStockPreviewsStream()
+        .map { previews -> previews.firstOrNull { it.symbol == symbol } }
+
+    private val uiFlags: Flow<DetailUiFlags> = combine(
+        _isLoading, _isRefreshing, _error, _expandedChipIds, _expandedNewsIds
+    ) { isLoading, isRefreshing, error, expandedChipIds, expandedNewsIds ->
+        DetailUiFlags(isLoading, isRefreshing, error, expandedChipIds, expandedNewsIds)
+    }
 
     val uiState: StateFlow<StockDetailUiState> = combine(
         repository.getStockDetailStream(symbol),
-        _isLoading,
-        _isRefreshing,
-        _errorMessage
-    ) { detail, loading, refreshing, error ->
+        matchingPreview,
+        uiFlags
+    ) { detail, preview, flags ->
         StockDetailUiState(
             symbol = symbol,
             detail = detail,
-            isLoading = loading && detail == null,
-            isRefreshing = refreshing,
-            errorMessage = error
+            preview = preview,
+            isLoading = flags.isLoading && detail == null,
+            isRefreshing = flags.isRefreshing,
+            expandedChipIds = flags.expandedChipIds,
+            expandedNewsIds = flags.expandedNewsIds,
+            error = flags.error
         )
     }.stateIn(
         scope = viewModelScope,
@@ -81,20 +105,30 @@ class StockDetailViewModel @Inject constructor(
         fetchDetail(force = true)
     }
 
-    /** Clears any active error message (e.g. after a Snackbar is dismissed). */
+    /** Clears any active error (e.g. after a Snackbar is dismissed). */
     fun clearError() {
-        _errorMessage.value = null
+        _error.value = null
+    }
+
+    /** Toggles a SignalConditions chip's expanded (tap-to-show-meaning) state, keyed by its label. */
+    fun toggleChipExpanded(chipLabel: String) {
+        _expandedChipIds.value = _expandedChipIds.value.toggled(chipLabel)
+    }
+
+    /** Toggles a DirectNews item's expanded (tap-to-show-implication) state, keyed by its URL. */
+    fun toggleNewsExpanded(newsUrl: String) {
+        _expandedNewsIds.value = _expandedNewsIds.value.toggled(newsUrl)
     }
 
     private fun fetchDetail(force: Boolean) {
         viewModelScope.launch {
             if (force) _isRefreshing.value = true else _isLoading.value = true
-            _errorMessage.value = null
+            _error.value = null
 
             val result = repository.refreshDetail(symbol, force)
 
             if (result.isFailure) {
-                _errorMessage.value = result.exceptionOrNull()?.localizedMessage ?: "Failed to load $symbol"
+                _error.value = result.exceptionOrNull().toUiError()
             }
 
             _isLoading.value = false
@@ -103,7 +137,18 @@ class StockDetailViewModel @Inject constructor(
     }
 
     companion object {
-        /** Must match the nav argument name in the future `stock_detail/{symbol}` route. */
+        /** Must match the nav argument name in the `stockAnalysis/{symbol}` route. */
         const val ARG_SYMBOL = "symbol"
     }
 }
+
+private data class DetailUiFlags(
+    val isLoading: Boolean,
+    val isRefreshing: Boolean,
+    val error: UiError?,
+    val expandedChipIds: Set<String>,
+    val expandedNewsIds: Set<String>
+)
+
+private fun Set<String>.toggled(id: String): Set<String> =
+    if (contains(id)) this - id else this + id

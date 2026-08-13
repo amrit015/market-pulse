@@ -237,7 +237,112 @@
     <string name="dashboard_section_news">Latest News</string>
     <string name="dashboard_news_see_all">View all news</string>
     <string name="nav_back_content_description">Back</string>
-    <string name="market_analysis_placeholder_message">Stock analysis is being rebuilt against the new backend data model.</string>
+
+    <!-- Analysis tab (list): StockAnalysisScreen and StockPreviewCard. -->
+    <string name="stock_analysis_subtitle">%1$d TRACKED · %2$s</string>
+    <string name="stock_analysis_empty_message">No stocks tracked</string>
+    <string name="stock_analysis_ai_glyph_content_description">AI-generated read</string>
+    <string name="stock_analysis_chips_new_and_dropped">%1$d new · %2$d dropped</string>
+    <string name="stock_analysis_chips_new_only">%1$d new</string>
+    <string name="stock_analysis_chips_dropped_only">%1$d dropped</string>
+    <string name="stock_analysis_news_label">NEWS</string>
+    <string name="stock_analysis_error_network">Can\'t reach the network. Check your connection and try again.</string>
+    <string name="stock_analysis_error_server">Something went wrong on our end. Please try again.</string>
+    <string name="stock_analysis_error_unknown">Something went wrong. Please try again.</string>
+
+    <!-- Stock detail screen (pushed from a StockPreviewCard tap): DetailHeader + sections/*. -->
+    <string name="stock_detail_back_label">ANALYSIS</string>
+    <string name="stock_detail_regime_suffix">%1$s REGIME</string>
+    <string name="stock_detail_why_setup">WHY %1$s</string>
+    <string name="stock_detail_conf_label">CONF</string>
+    <string name="stock_detail_bias_label">BIAS</string>
+    <string name="stock_detail_confirms_label">CONFIRMS</string>
+    <string name="stock_detail_conflicts_label">CONFLICTS</string>
+    <string name="stock_detail_metric_atr">ATR</string>
+    <string name="stock_detail_metric_dist_sma200">DIST SMA200</string>
+    <string name="stock_detail_metric_52w_range">52W RANGE</string>
+    <string name="stock_detail_metric_rsi">RSI</string>
+    <string name="stock_detail_metric_rvol">RVOL</string>
+    <string name="stock_detail_headline_metrics_title">HEADLINE METRICS</string>
+    <string name="stock_detail_key_levels_title">KEY LEVELS</string>
+    <string name="stock_detail_resistance_label">RESISTANCE</string>
+    <string name="stock_detail_support_label">SUPPORT</string>
+    <string name="stock_detail_fair_value_anchor_label">FAIR VALUE ANCHOR</string>
+    <string name="stock_detail_value_area_label">VALUE AREA</string>
+    <string name="stock_detail_what_to_watch_title">WHAT TO WATCH</string>
+    <string name="watch_urgency_high">HIGH</string>
+    <string name="watch_urgency_medium">MEDIUM</string>
+    <string name="watch_urgency_low">LOW</string>
+    <string name="stock_detail_technical_read_title">TECHNICAL READ</string>
+    <string name="stock_detail_signal_conditions_title">SIGNAL CONDITIONS · %1$d</string>
+    <string name="stock_detail_signal_conditions_hint">tap a chip for why</string>
+    <string name="stock_detail_what_changed_title">WHAT CHANGED SINCE LAST RUN</string>
+    <string name="stock_detail_chip_added">+ %1$s</string>
+    <string name="stock_detail_chip_removed">− %1$s</string>
+    <string name="stock_detail_category_momentum">MOMENTUM</string>
+    <string name="stock_detail_category_trend">TREND</string>
+    <string name="stock_detail_category_volume">VOLUME</string>
+    <string name="stock_detail_category_volatility">VOLATILITY</string>
+    <string name="stock_detail_category_valuation">VALUATION</string>
+    <string name="stock_detail_category_event">EVENT</string>
+    <string name="stock_detail_deep_study_title">DEEP STUDY</string>
+    <string name="stock_detail_what_the_numbers_say">What the numbers say</string>
+    <string name="stock_detail_valuation_context">Valuation context</string>
+    <string name="stock_detail_macro_impact">Macro impact</string>
+    <string name="stock_detail_scenarios_title">SCENARIOS</string>
+    <string name="stock_detail_bull_case">BULL CASE</string>
+    <string name="stock_detail_bear_case">BEAR CASE</string>
+    <string name="stock_detail_what_it_would_mean">WHAT IT WOULD MEAN</string>
+    <string name="stock_detail_what_would_need_to_happen">WHAT WOULD NEED TO HAPPEN</string>
+
+    <string name="stock_detail_fundamentals_title">FUNDAMENTALS</string>
+    <string name="stock_detail_cluster_valuation">VALUATION</string>
+    <string name="stock_detail_cluster_profitability">PROFITABILITY</string>
+    <string name="stock_detail_cluster_growth">GROWTH</string>
+    <string name="stock_detail_cluster_analyst_view">ANALYST VIEW</string>
+    <string name="stock_detail_metric_trailing_pe">TRAILING PE</string>
+    <string name="stock_detail_metric_forward_pe">FORWARD PE</string>
+    <string name="stock_detail_metric_pe_vs_5y_med">PE VS 5Y MED</string>
+    <string name="stock_detail_metric_ev_ebitda">EV/EBITDA</string>
+    <string name="stock_detail_metric_peg">PEG</string>
+    <string name="stock_detail_metric_roic">ROIC</string>
+    <string name="stock_detail_metric_roe">ROE</string>
+    <string name="stock_detail_metric_gross_margin">GROSS MARGIN</string>
+    <string name="stock_detail_metric_op_margin">OP MARGIN</string>
+    <string name="stock_detail_metric_fcf_yield">FCF YIELD</string>
+    <string name="stock_detail_metric_revenue_yoy">REVENUE YOY</string>
+    <string name="stock_detail_metric_eps_yoy">EPS YOY</string>
+    <string name="stock_detail_mean_target_label">MEAN TARGET · $%1$s–$%2$s</string>
+    <string name="stock_detail_analysts_covering">%1$d analysts covering</string>
+    <string name="stock_detail_next_earnings">Next earnings %1$s</string>
+
+    <string name="stock_detail_things_to_check_title">THINGS TO CHECK</string>
+
+    <string name="stock_detail_macro_title">MACRO</string>
+    <string name="stock_detail_metric_10y_yield">10Y YIELD</string>
+    <string name="stock_detail_metric_excess_ey">EXCESS EY</string>
+    <string name="stock_detail_metric_excess_21d">EXCESS 21D</string>
+    <string name="stock_detail_metric_rate_sens">RATE SENS</string>
+
+    <string name="stock_detail_forward_calls_title">FORWARD CALLS</string>
+    <string name="stock_detail_calls_held_of_total">%1$d of %2$d recent calls held</string>
+    <string name="stock_detail_call_made_resolves">Made %1$s · resolves %2$s</string>
+    <string name="stock_detail_predicate_close_above">Closes above</string>
+    <string name="stock_detail_predicate_close_below">Closes below</string>
+    <string name="stock_detail_predicate_holds_above">Holds above</string>
+    <string name="stock_detail_predicate_holds_below">Holds below</string>
+    <string name="stock_detail_predicate_stays_within">Stays within</string>
+
+    <string name="stock_detail_technical_timeline_title">TECHNICAL TIMELINE · LAST 30 DAYS</string>
+    <string name="stock_detail_show_all">Show all</string>
+    <string name="stock_detail_show_latest">Show latest</string>
+
+    <string name="stock_detail_direct_news_title">DIRECT NEWS</string>
+    <string name="stock_detail_impact_suffix">%1$s IMPACT</string>
+    <string name="stock_detail_read_the_analysis">Read the analysis</string>
+    <string name="stock_detail_forward_implication_label">Forward implication</string>
+    <string name="stock_detail_transmission_mechanism_label">Transmission mechanism</string>
+    <string name="stock_detail_view_definitions_content_description">View definitions for %1$s</string>
 
     <!-- Global top bar, floating nav, Settings screen, theme picker. -->
     <string name="app_top_bar_settings_content_description">Settings</string>

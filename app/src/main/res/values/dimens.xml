@@ -49,4 +49,28 @@
     <!-- FloatingBottomNav's shadow. A deliberate exception to this codebase's otherwise flat, no
          shadow visual language. See CLAUDE.md. -->
     <dimen name="nav_elevation">2dp</dimen>
+
+    <!-- Stock Analysis preview card: empty space held open next to the price/change block for the
+         sparkline a future pass will add (no backend chart series yet, see the stock-analysis-ui
+         spec's "Deferred" section). Sized to roughly match the sparkline's height in the Design
+         mockups so the card doesn't reflow once it's added. -->
+    <dimen name="stock_preview_sparkline_space">32dp</dimen>
+
+    <!-- Loading-skeleton placeholder bars on StockAnalysisLoadingSkeleton, roughly matching a real
+         StockPreviewCard's symbol/name line lengths so the swap-in on load doesn't visibly jump. -->
+    <dimen name="stock_preview_skeleton_symbol_width">96dp</dimen>
+    <dimen name="stock_preview_skeleton_name_width">160dp</dimen>
+
+    <!-- Detail screen: fixed width for the CONFIRMS/CONFLICTS label column in SetupReasoning so
+         the descriptions that follow line up regardless of which label is longer. -->
+    <dimen name="setup_reasoning_label_width">76dp</dimen>
+
+    <!-- Detail screen: vertical space reserved between SetupReasoning and HeadlineMetricsStrip for
+         the price chart a future design + spec pass will add (see the stock-analysis-ui spec's
+         "Deferred" section, same reserve-space-don't-render-placeholder treatment as the preview
+         card's sparkline). -->
+    <dimen name="stock_detail_chart_reserved_height">180dp</dimen>
+
+    <!-- Detail screen: fixed width for each stat item in a FlowRow metric grid (Fundamentals, Macro). -->
+    <dimen name="detail_stat_width">96dp</dimen>
 </resources>

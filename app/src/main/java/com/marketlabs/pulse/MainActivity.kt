@@ -76,22 +76,30 @@ class MainActivity : ComponentActivity() {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route
 
-                // 💡 News, Settings, and the in-app web view are pushed, full-screen destinations
-                // that already own their own local Scaffold/TopAppBar with a back button (see
-                // NewsRoute.kt, SettingsScreen.kt, WebViewScreen.kt). Rendering the global
-                // collapsing bar on top of those was showing two bars stacked at once and fighting
-                // the local one's back affordance, so it is left out of the Scaffold entirely for
-                // these routes rather than just visually collapsed.
-                val hasOwnTopBar = currentRoute == PulseRoutes.MARKET_NEWS ||
+                // 💡 News, Settings, the in-app web view, and the stock detail screen are pushed,
+                // full-screen destinations reached by tapping something on a bottom-nav tab, not a
+                // tab themselves -- they already own their own top-of-screen chrome (see
+                // NewsRoute.kt, SettingsScreen.kt, WebViewScreen.kt, StockDetailRoute.kt's pinned
+                // DetailHeader) and have no "current tab" for the floating nav to highlight.
+                // Rendering the global collapsing bar on top of those was showing two bars stacked
+                // at once and fighting the local one's back affordance, and the floating nav below
+                // them was just extra chrome over a screen that already has its own way back -- so
+                // both are left out of the Scaffold entirely for these routes, not just visually
+                // collapsed. Stock detail's own header isn't a Material TopAppBar (too rich a
+                // layout for that slot -- symbol/price/badges all in one pinned block), but the
+                // same exclusion applies per the stock-analysis-ui spec's explicit "suppress the
+                // collapsing top bar for this route" instruction.
+                val isPushedDestination = currentRoute == PulseRoutes.MARKET_NEWS ||
                     currentRoute == PulseRoutes.SETTINGS ||
-                    currentRoute?.startsWith("webview/") == true
+                    currentRoute?.startsWith("webview/") == true ||
+                    currentRoute?.startsWith("${PulseRoutes.STOCK_ANALYSIS_DETAIL}/") == true
 
                 Scaffold(
                     modifier = Modifier
                         .fillMaxSize()
                         .nestedScroll(scrollBehavior.nestedScrollConnection),
                     topBar = {
-                        if (!hasOwnTopBar) {
+                        if (!isPushedDestination) {
                             AppTopBar(
                                 title = topBarTitle(currentRoute),
                                 scrollBehavior = scrollBehavior,
@@ -100,9 +108,10 @@ class MainActivity : ComponentActivity() {
                         }
                     },
                     bottomBar = {
-                        // Settings is a pushed, full-screen destination reached from the gear —
-                        // there is no "Settings" tab, so the floating nav has no place there.
-                        if (currentRoute != PulseRoutes.SETTINGS) {
+                        // 💡 Reuses `isPushedDestination` rather than its own route list -- see the
+                        // comment above it. One shared boolean means these two chrome decisions
+                        // can't drift apart as new pushed routes are added later.
+                        if (!isPushedDestination) {
                             FloatingBottomNav(
                                 items = bottomNavItems,
                                 currentRoute = currentRoute,
@@ -165,8 +174,8 @@ class MainActivity : ComponentActivity() {
  * here instead; that in-content label stays exactly as it is, unlike Indicators/Insights' redundant
  * page-title rows, which are gone now that this bar carries the title.
  *
- * News and Settings have no branch here -- `hasOwnTopBar` above means this bar is never composed
- * for those routes at all, so a title for them would never be read.
+ * News and Settings have no branch here -- `isPushedDestination` above means this bar is never
+ * composed for those routes at all, so a title for them would never be read.
  */
 @Composable
 private fun topBarTitle(route: String?): String = when (route) {

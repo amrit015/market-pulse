@@ -1,19 +1,13 @@
 package com.marketlabs.pulse.ui.navigation
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -23,6 +17,8 @@ import com.marketlabs.pulse.ui.screens.dashboard.views.DashboardRoute
 import com.marketlabs.pulse.ui.screens.indicators.views.IndicatorsRoute
 import com.marketlabs.pulse.ui.screens.insights.views.InsightsRoute
 import com.marketlabs.pulse.ui.screens.news.views.NewsRoute
+import com.marketlabs.pulse.ui.screens.stocks.detail.StockDetailRoute
+import com.marketlabs.pulse.ui.screens.stocks.views.StockAnalysisRoute
 import com.marketlabs.pulse.ui.screens.summary.views.MarketSummaryRoute
 import com.marketlabs.pulse.ui.settings.SettingsRoute
 import java.net.URLDecoder
@@ -42,6 +38,10 @@ object PulseRoutes {
 
     // Added with Claude Code assistance: replaces the News tab on the bottom bar.
     const val MARKET_ANALYSIS = "market_analysis"
+
+    // Pushed from a StockPreviewCard tap on the Analysis tab. "symbol" is a required nav argument,
+    // not a query param -- see StockDetailViewModel's SavedStateHandle read.
+    const val STOCK_ANALYSIS_DETAIL = "stockAnalysis"
 
     // Reached from the gear icon on the global top bar.
     const val SETTINGS = "settings"
@@ -81,28 +81,6 @@ val bottomNavItems = listOf(
     BottomNavItem.MarketRisk,
     BottomNavItem.Analysis
 )
-
-/**
- * 💡 Added with Claude Code assistance: temporary stand-in for the Analysis tab while its views
- * are rebuilt against the revamped stocks domain layer (core/stocks, storage/model/stocks) —
- * the old StockAnalysisRoute/Screen/ViewModel were deleted, not patched, since they were written
- * against a network shape the backend no longer serves.
- */
-@Composable
-private fun StockAnalysisPlaceholder(scaffoldPadding: PaddingValues) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(scaffoldPadding),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = stringResource(R.string.market_analysis_placeholder_message),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
 
 /**
  * NavHost-only. The `Scaffold`, the bottom `NavigationBar`, and `navController` creation all live
@@ -154,12 +132,25 @@ fun PulseNavGraph(
             InsightsRoute(scaffoldPadding = scaffoldPadding)
         }
         // 💡 Updated with Claude Code assistance: the stocks domain layer was rebuilt against
-        // the backend's new preview/detail split (see core/stocks, storage/model/stocks) and
-        // its old views were deleted wholesale rather than patched — StockAnalysisRoute and
-        // friends no longer exist. This placeholder keeps the Analysis tab compiling and
-        // navigable until the screen is rebuilt against the new domain layer.
+        // the backend's new preview/detail split (see core/stocks, storage/model/stocks), and
+        // this tab now renders the real preview list against it -- the temporary placeholder
+        // that stood in for this tab is gone.
         composable(PulseRoutes.MARKET_ANALYSIS) {
-            StockAnalysisPlaceholder(scaffoldPadding = scaffoldPadding)
+            StockAnalysisRoute(
+                scaffoldPadding = scaffoldPadding,
+                onNavigateToDetail = { symbol ->
+                    navController.navigate("${PulseRoutes.STOCK_ANALYSIS_DETAIL}/$symbol")
+                }
+            )
+        }
+        // Pushed from a StockPreviewCard tap. "symbol" is read out of SavedStateHandle by
+        // StockDetailViewModel itself (see StockDetailViewModel.ARG_SYMBOL), not passed as a
+        // composable parameter here -- hiltViewModel() auto-populates it from this route.
+        composable("${PulseRoutes.STOCK_ANALYSIS_DETAIL}/{symbol}") {
+            StockDetailRoute(
+                scaffoldPadding = scaffoldPadding,
+                onNavigateUp = { navController.popBackStack() }
+            )
         }
         // Added with Claude Code assistance: pushed only from the Dashboard's "Latest News"
         // chevron or a specific preview card — no longer part of the bottom bar.
