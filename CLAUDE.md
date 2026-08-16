@@ -130,6 +130,7 @@ Current state — none of these are the convention to follow. Fix opportunistica
 
 ## Recent decisions (last 5)
 
+- **2026-08-16 — Stock Analysis UI: 10 post-spec refinements** (tab restructure, `SYNTHESIS` narrowed to 3 hero cards app-wide, `tinted`/`onSurfaceMuted` contrast fixes, field-coverage audit). See `ADR-2026-08-16-stock-analysis-post-spec-refinements.md`.
 - **2026-08-09 — Design System v1.0: signal-layer refinement, `surface.tinted`, 10 presets.**
 - **2026-08-08 — Redesign shell: global collapsing top bar, floating nav, full-screen Settings.**
 - **2026-08-08 — Theme model: baked-mode presets (count later revised to 10), gallery, overrides OS.**

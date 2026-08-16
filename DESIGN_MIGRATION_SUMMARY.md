@@ -26,6 +26,8 @@ Every content card across the app now renders through one shared composable, `Pu
 
 A third style (`NEUTRAL`, plain elevated background) existed briefly for VIX/Fear & Greed/Put-Call before the decision to fold those into `DATA` alongside Equities.
 
+> **2026-08-16 update:** `SYNTHESIS`'s card list above reflects this branch's state, not current `main`. Building Stock Analysis end-to-end found `SYNTHESIS`/`DATA` read as nearly indistinguishable on several presets once most cards on a screen wore the "AI" tint — it stopped signaling anything. `SYNTHESIS` is now narrowed to exactly 3 cards app-wide (Summary's `VerdictCard`, Indicators' AI Executive Briefing, Dashboard's Technical Briefing — one hero card per screen); every other card listed above, including all of News and the summary-screen list, moved to `DATA`. `accentSurfaceStrong`'s formula also changed — it now blends from `accent.tinted` (the same base `surfaceTinted` uses) toward `accent.surfaceBorder` at 0.55, not from `accent.surface` toward `accent.surfaceBorder` at 0.42. Full detail: `STYLE_SPEC.md` §5–§6, `ADR-2026-08-16-stock-analysis-post-spec-refinements.md`.
+
 Deliberately left outside this system: `HorizonNavigationCard` (a CTA button, not a content card), `UnifiedScoreHeaderCard`/`UniversalGaugeCard` (background is signal-owned, not accent-owned), `PresetSwatchCard` (must render a different preset's raw colors on purpose), the sector heatmap tiles.
 
 ## 3. Pill system consolidated — `SignalPill` / `DirectionalChangePill`
