@@ -149,7 +149,13 @@ fun PulseNavGraph(
         composable("${PulseRoutes.STOCK_ANALYSIS_DETAIL}/{symbol}") {
             StockDetailRoute(
                 scaffoldPadding = scaffoldPadding,
-                onNavigateUp = { navController.popBackStack() }
+                onNavigateUp = { navController.popBackStack() },
+                // 💡 Same in-app webview route News' article cards push to -- Direct News' cards
+                // open the same way rather than each screen owning its own way of leaving the app.
+                onNavigateToWebView = { url ->
+                    val encodedUrl = URLEncoder.encode(url, StandardCharsets.UTF_8.toString())
+                    navController.navigate("webview/$encodedUrl")
+                }
             )
         }
         // Added with Claude Code assistance: pushed only from the Dashboard's "Latest News"

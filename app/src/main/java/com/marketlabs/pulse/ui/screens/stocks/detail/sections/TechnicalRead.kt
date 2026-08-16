@@ -38,7 +38,7 @@ fun TechnicalRead(technicalRead: String?, modifier: Modifier = Modifier) {
             androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
             Text(
                 text = technicalRead,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurface
             )
         }

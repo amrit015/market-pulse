@@ -80,7 +80,9 @@ fun EventLog(contextVault: DomainContextVault?, modifier: Modifier = Modifier) {
         Spacer()
 
         contextVault?.thirtyDayTrendTimeline?.let {
-            Text(text = it, style = MaterialTheme.typography.bodyMedium, color = pulseColors.onSurfaceMuted)
+            // 💡 onSurface, not onSurfaceMuted -- a full analytical sentence reads as this app's
+            // normal body-text color everywhere else on the Detail screen.
+            Text(text = it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
             Spacer()
         }
 

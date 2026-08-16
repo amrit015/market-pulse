@@ -101,7 +101,7 @@ fun DetailHeader(
                     Text(
                         text = it,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = pulseColors.onSurfaceMuted,
+                        color = pulseColors.accentPrimary,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )

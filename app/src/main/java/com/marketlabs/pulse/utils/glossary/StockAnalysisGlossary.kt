@@ -40,7 +40,25 @@ object StockAnalysisGlossary {
         GlossaryTerm("10Y_YIELD", "The 10-year U.S. Treasury yield -- the risk-free rate used as a benchmark for valuing riskier assets like stocks."),
         GlossaryTerm("EXCESS_EY", "How much this stock's earnings yield exceeds the 10-year Treasury yield -- the extra compensation for taking on equity risk over a risk-free bond."),
         GlossaryTerm("EXCESS_21D", "This stock's return over the last 21 trading days, minus its benchmark's return over the same period."),
-        GlossaryTerm("RATE_SENS", "How sensitive this stock's returns have historically been to moves in the 10-year Treasury yield.")
+        GlossaryTerm("RATE_SENS", "How sensitive this stock's returns have historically been to moves in the 10-year Treasury yield."),
+        GlossaryTerm("MACD_SIGNAL", "Moving Average Convergence Divergence -- a trend-following momentum indicator. Bullish means the MACD line has crossed above its signal line; bearish means it's crossed below."),
+        GlossaryTerm("MACD_HISTOGRAM", "The gap between the MACD line and its signal line -- a widening histogram means the current trend is strengthening, a narrowing one means it's losing steam."),
+        GlossaryTerm("MACD_BARS", "How many trading sessions have passed since MACD last crossed its signal line -- a fresher cross carries more weight than an old one."),
+        GlossaryTerm("DIST_SMA20", "How far the current price sits above or below its 20-day moving average, a gauge of short-term trend."),
+        GlossaryTerm("DIST_SMA50", "How far the current price sits above or below its 50-day moving average, a gauge of medium-term trend."),
+        GlossaryTerm("52W_HIGH", "The highest price this stock has traded at over the last 52 weeks."),
+        GlossaryTerm("52W_LOW", "The lowest price this stock has traded at over the last 52 weeks."),
+        GlossaryTerm("UP_DOWN_VOLUME", "The ratio of volume on up days to volume on down days -- above 1.0 means buyers have been moving more shares than sellers recently."),
+        GlossaryTerm("VOL_PERCENTILE", "Where this stock's current price volatility ranks against its own past year -- 99% means swings are wider than 99% of days over that period."),
+        GlossaryTerm("RETURN_WINDOW", "This stock's price return over the stated window, ending today."),
+        GlossaryTerm("MARKET_CAP", "Total market value of all outstanding shares -- share price multiplied by shares outstanding."),
+        GlossaryTerm("BETA", "How much this stock has historically moved relative to the broader market -- above 1.0 means more volatile than the market, below 1.0 means less."),
+        GlossaryTerm("DEBT_TO_EQUITY", "Total debt divided by shareholder equity -- a higher ratio means the company relies more on borrowed money relative to its own capital."),
+        GlossaryTerm("CURRENT_RATIO", "Current assets divided by current liabilities -- a gauge of whether the company can cover its near-term obligations. Above 1.0 generally means it can."),
+        GlossaryTerm("PRICE_TO_BOOK", "Share price divided by book value per share -- how much investors are paying relative to the company's net accounting assets."),
+        GlossaryTerm("PRICE_TO_SALES", "Share price divided by revenue per share -- a valuation multiple useful when earnings are volatile or negative."),
+        GlossaryTerm("EV_REVENUE", "Enterprise Value divided by revenue -- a valuation multiple that, like EV/EBITDA, accounts for debt and cash on the balance sheet."),
+        GlossaryTerm("DIVIDEND_YIELD", "Annual dividend payments as a percentage of share price. Only shown for stocks that actually pay a dividend.")
     )
 
     fun definitionFor(key: String): String? = terms.firstOrNull { it.term == key }?.definition

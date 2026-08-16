@@ -25,6 +25,10 @@ import com.marketlabs.pulse.ui.common.UiError
  * `expandedChipIds`/`expandedNewsIds` are tap-to-expand UI state (chip label / news URL as the
  * id), not persisted — reset implicitly whenever a new `StockDetailViewModel` instance is created,
  * i.e. on navigating away and back.
+ *
+ * `selectedTabIndex` (into `DetailTab.entries`) is the same kind of ephemeral UI state -- a plain
+ * `MutableStateFlow` in the ViewModel, not `SavedStateHandle`-backed, so it survives a
+ * configuration change but not process death, same as the expand/collapse state above.
  */
 data class StockDetailUiState(
     val symbol: String,
@@ -34,5 +38,6 @@ data class StockDetailUiState(
     val isRefreshing: Boolean = false,
     val expandedChipIds: Set<String> = emptySet(),
     val expandedNewsIds: Set<String> = emptySet(),
+    val selectedTabIndex: Int = 0,
     val error: UiError? = null
 )

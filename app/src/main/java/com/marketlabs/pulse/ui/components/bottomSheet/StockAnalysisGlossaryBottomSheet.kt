@@ -24,8 +24,15 @@ import androidx.compose.ui.text.font.FontWeight
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.utils.glossary.StockAnalysisGlossary
 
-/** A `(display label, glossary key)` pair -- the label is what a section already renders (via `stringResource`), the key looks up `StockAnalysisGlossary`. */
-data class GlossaryEntry(val label: String, val term: String)
+/**
+ * A `(display label, glossary key)` pair -- the label is what a section already renders (via
+ * `stringResource`), the key looks up `StockAnalysisGlossary`. `definitionOverride` is an escape
+ * hatch for the rare definition that needs a runtime value baked in (Macro's "Excess Return"
+ * explainer naming the actual benchmark, e.g. "SPY", instead of the glossary's generic static
+ * "its benchmark") -- leave it `null` to use `StockAnalysisGlossary`'s definition as-is, which is
+ * what every other section's entries already do.
+ */
+data class GlossaryEntry(val label: String, val term: String, val definitionOverride: String? = null)
 
 /**
  * Same `ModalBottomSheet` shell/styling `MarketGlossaryBottomSheet`/`IndicatorDetailSheet` already
@@ -68,7 +75,7 @@ fun StockAnalysisGlossaryBottomSheet(
             }
 
             items(entries) { entry ->
-                val definition = StockAnalysisGlossary.definitionFor(entry.term)
+                val definition = entry.definitionOverride ?: StockAnalysisGlossary.definitionFor(entry.term)
                 if (definition != null) {
                     Column(modifier = Modifier.padding(bottom = paddingLarge)) {
                         Text(

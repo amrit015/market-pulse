@@ -104,16 +104,21 @@ fun KeyLevels(levels: DomainLevels?, price: Double?, modifier: Modifier = Modifi
                     valueAreaHigh = levels.distributionZoneHigh,
                     fairValueAnchor = levels.fairValueAnchor,
                     support = levels.support,
+                    resistance = levels.resistance,
                     currentPrice = price
                 )
             }
 
             levels.commentary?.let {
                 Spacer()
+                // 💡 onSurface, not onSurfaceMuted -- a full analytical sentence reads as this
+                // app's normal body-text color everywhere else (WatchList, Scenarios, Consider,
+                // TechnicalRead); this was the one prose paragraph on the Detail screen still
+                // muted, which made it read like secondary metadata instead of the card's content.
                 Text(
                     text = it,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = pulseColors.onSurfaceMuted
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
         }

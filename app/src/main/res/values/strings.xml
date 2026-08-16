@@ -242,9 +242,7 @@
     <string name="stock_analysis_subtitle">%1$d TRACKED · %2$s</string>
     <string name="stock_analysis_empty_message">No stocks tracked</string>
     <string name="stock_analysis_ai_glyph_content_description">AI-generated read</string>
-    <string name="stock_analysis_chips_new_and_dropped">%1$d new · %2$d dropped</string>
-    <string name="stock_analysis_chips_new_only">%1$d new</string>
-    <string name="stock_analysis_chips_dropped_only">%1$d dropped</string>
+    <string name="stock_analysis_setup_changed_format">%1$s → %2$s</string>
     <string name="stock_analysis_news_label">NEWS</string>
     <string name="stock_analysis_error_network">Can\'t reach the network. Check your connection and try again.</string>
     <string name="stock_analysis_error_server">Something went wrong on our end. Please try again.</string>
@@ -264,6 +262,26 @@
     <string name="stock_detail_metric_rsi">RSI</string>
     <string name="stock_detail_metric_rvol">RVOL</string>
     <string name="stock_detail_headline_metrics_title">HEADLINE METRICS</string>
+    <string name="stock_detail_momentum_trend_title">MOMENTUM &amp; TREND</string>
+    <string name="stock_detail_cluster_momentum">MOMENTUM</string>
+    <string name="stock_detail_cluster_trend">TREND</string>
+    <string name="stock_detail_cluster_volume">VOLUME</string>
+    <string name="stock_detail_metric_macd_signal">MACD</string>
+    <string name="stock_detail_metric_macd_histogram">MACD HIST</string>
+    <string name="stock_detail_metric_macd_bars">BARS SINCE CROSS</string>
+    <string name="stock_detail_metric_dist_sma20">DIST SMA20</string>
+    <string name="stock_detail_metric_dist_sma50">DIST SMA50</string>
+    <string name="stock_detail_metric_52w_high">52W HIGH</string>
+    <string name="stock_detail_metric_52w_low">52W LOW</string>
+    <string name="stock_detail_metric_up_down_volume">UP/DOWN VOL</string>
+    <string name="stock_detail_metric_vol_percentile">VOL PERCENTILE</string>
+    <string name="stock_detail_returns_title">RETURNS</string>
+    <string name="stock_detail_metric_return_1d">1D</string>
+    <string name="stock_detail_metric_return_1w">1W</string>
+    <string name="stock_detail_metric_return_1m">1M</string>
+    <string name="stock_detail_metric_return_3m">3M</string>
+    <string name="stock_detail_metric_return_6m">6M</string>
+    <string name="stock_detail_metric_return_1y">1Y</string>
     <string name="stock_detail_key_levels_title">KEY LEVELS</string>
     <string name="stock_detail_resistance_label">RESISTANCE</string>
     <string name="stock_detail_support_label">SUPPORT</string>
@@ -300,6 +318,16 @@
     <string name="stock_detail_cluster_profitability">PROFITABILITY</string>
     <string name="stock_detail_cluster_growth">GROWTH</string>
     <string name="stock_detail_cluster_analyst_view">ANALYST VIEW</string>
+    <string name="stock_detail_cluster_balance_sheet">BALANCE SHEET &amp; RISK</string>
+    <string name="stock_detail_metric_pe_5y_range">5Y PE RANGE</string>
+    <string name="stock_detail_metric_dividend_yield">DIVIDEND YIELD</string>
+    <string name="stock_detail_metric_market_cap">MARKET CAP</string>
+    <string name="stock_detail_metric_beta">BETA</string>
+    <string name="stock_detail_metric_debt_to_equity">DEBT/EQUITY</string>
+    <string name="stock_detail_metric_current_ratio">CURRENT RATIO</string>
+    <string name="stock_detail_metric_price_to_book">PRICE/BOOK</string>
+    <string name="stock_detail_metric_price_to_sales">PRICE/SALES</string>
+    <string name="stock_detail_metric_ev_revenue">EV/REVENUE</string>
     <string name="stock_detail_metric_trailing_pe">TRAILING PE</string>
     <string name="stock_detail_metric_forward_pe">FORWARD PE</string>
     <string name="stock_detail_metric_pe_vs_5y_med">PE VS 5Y MED</string>
@@ -319,6 +347,8 @@
     <string name="stock_detail_things_to_check_title">THINGS TO CHECK</string>
 
     <string name="stock_detail_macro_title">MACRO</string>
+    <string name="stock_detail_macro_benchmark_caption">vs. %1$s</string>
+    <string name="stock_detail_metric_excess_21d_definition">This stock\'s return over the last 21 trading days, minus %1$s\'s return over the same period.</string>
     <string name="stock_detail_metric_10y_yield">10Y YIELD</string>
     <string name="stock_detail_metric_excess_ey">EXCESS EY</string>
     <string name="stock_detail_metric_excess_21d">EXCESS 21D</string>
@@ -326,7 +356,14 @@
 
     <string name="stock_detail_forward_calls_title">FORWARD CALLS</string>
     <string name="stock_detail_calls_held_of_total">%1$d of %2$d recent calls held</string>
+    <string name="stock_detail_calls_hit_rate_suffix">(%1$d%%)</string>
+    <string name="stock_detail_calls_failed_suffix">, %1$d failed</string>
     <string name="stock_detail_call_made_resolves">Made %1$s · resolves %2$s</string>
+    <string name="stock_detail_resolved_calls_title">RESOLVED CALLS</string>
+    <string name="stock_detail_call_status_held">HELD</string>
+    <string name="stock_detail_call_status_failed">FAILED</string>
+    <string name="stock_detail_call_resolved_on">Resolved %1$s</string>
+    <string name="stock_detail_call_resolved_on_at">Resolved %1$s at $%2$s</string>
     <string name="stock_detail_predicate_close_above">Closes above</string>
     <string name="stock_detail_predicate_close_below">Closes below</string>
     <string name="stock_detail_predicate_holds_above">Holds above</string>
@@ -343,6 +380,18 @@
     <string name="stock_detail_forward_implication_label">Forward implication</string>
     <string name="stock_detail_transmission_mechanism_label">Transmission mechanism</string>
     <string name="stock_detail_view_definitions_content_description">View definitions for %1$s</string>
+    <string name="stock_detail_view_article_content_description">View article</string>
+
+    <!-- Detail screen tabs -->
+    <string name="stock_detail_tab_technicals">Technicals</string>
+    <string name="stock_detail_tab_fundamentals">Fundamentals</string>
+    <string name="stock_detail_tab_thesis">Thesis</string>
+    <string name="stock_detail_tab_timeline">Timeline</string>
+    <string name="stock_detail_tab_news">News</string>
+    <string name="stock_detail_tab_nothing_yet">Nothing yet</string>
+    <!-- Temporary visual stand-in for the reserved chart space, so the surrounding layout can be
+         eyeballed for alignment before the real chart exists; remove once the chart ships. -->
+    <string name="stock_detail_chart_placeholder">Charts here</string>
 
     <!-- Global top bar, floating nav, Settings screen, theme picker. -->
     <string name="app_top_bar_settings_content_description">Settings</string>

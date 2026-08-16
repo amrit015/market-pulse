@@ -32,17 +32,20 @@ import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.widgets.ChangeDirection
 import com.marketlabs.pulse.ui.components.widgets.DirectionalChangePill
+import com.marketlabs.pulse.ui.screens.stocks.detail.OutlinedBadge
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 import java.util.Locale
 import kotlin.math.abs
 
 /**
- * The Analysis tab's list card -- one `StockPreview` per tracked symbol. `PulseCard(SYNTHESIS)`
- * per the spec (this card leads with `plain_read`, an AI-generated interpretation of the day's
- * data, not a raw reading), with the same glyph+title treatment `DashboardScreen`'s Technical
- * Briefing card and `SummaryScreen`'s header already use for AI-authored content -- sized to the
- * symbol text's own font size rather than a fixed icon dimension, so it scales with the title.
+ * The Analysis tab's list card -- one `StockPreview` per tracked symbol. `PulseCard(DATA)`, the
+ * same background every other data-display card in the app uses -- was `SYNTHESIS` (this card
+ * leads with `plain_read`, an AI-generated interpretation of the day's data), but only a card
+ * presenting a direct AI verdict/conclusion (Summary's `VerdictCard`, Indicators' AI Executive
+ * Briefing) keeps that darker treatment now; a per-symbol list card reads like this app's other
+ * list cards (Equities, News) even though its body text is AI-authored. The glyph+title treatment
+ * itself (icon sized to the symbol text's own font size) is unrelated to card style and unchanged.
  *
  * Field-to-element mapping follows the spec's table exactly: symbol/name left, price/change pill
  * right, `plain_read` prose body, a muted `technical_setup` + chip-delta line, the top-4 condition
@@ -60,7 +63,7 @@ fun StockPreviewCard(
     val pulseColors = LocalPulseColors.current
 
     PulseCard(
-        style = PulseCardStyle.SYNTHESIS,
+        style = PulseCardStyle.DATA,
         modifier = modifier.fillMaxWidth(),
         onClick = onClick
     ) {
@@ -91,7 +94,7 @@ fun StockPreviewCard(
                         Text(
                             text = name,
                             style = MaterialTheme.typography.bodySmall,
-                            color = pulseColors.onSurfaceMuted,
+                            color = pulseColors.accentPrimary,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -139,28 +142,29 @@ fun StockPreviewCard(
                 )
             }
 
-            val chipsDeltaText = chipsDeltaText(added = preview.chipsAdded, removed = preview.chipsRemoved)
-            if (preview.technicalSetup != null || chipsDeltaText != null) {
-                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    preview.technicalSetup?.let { setup ->
-                        Text(
-                            text = setup.replace('_', ' '),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = pulseColors.onSurfaceMuted
-                        )
-                    }
-                    if (preview.technicalSetup != null && chipsDeltaText != null) {
-                        Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_medium)))
-                    }
-                    chipsDeltaText?.let { text ->
-                        Text(
-                            text = text,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = pulseColors.onSurfaceMuted
-                        )
-                    }
+            // 💡 Was a technical_setup label plus a separate "N new · M dropped" chip-delta count
+            // -- the delta counts didn't say which setup changed to which, just how many condition
+            // chips shifted underneath it (a different, less direct signal). Now: when the setup
+            // itself changed since the last analysis, show "OLD → NEW" directly; otherwise, just
+            // the current setup, same as before. `chipsAdded`/`chipsRemoved` still drive which
+            // condition chips render as "new" in the row below -- only this delta-count text is gone.
+            val setupText = preview.technicalSetup?.let { setup ->
+                val previousSetup = preview.previousSetup
+                if (preview.setupChanged == true && previousSetup != null && previousSetup != setup) {
+                    stringResource(
+                        id = R.string.stock_analysis_setup_changed_format,
+                        previousSetup.replace('_', ' ').uppercase(Locale.US),
+                        setup.replace('_', ' ').uppercase(Locale.US)
+                    )
+                } else {
+                    setup.replace('_', ' ').uppercase(Locale.US)
                 }
+            }
+            // 💡 Same `OutlinedBadge` pill `DetailHeader` uses for `technicalSetup` on the Detail
+            // screen -- was plain muted text here, reading as a lesser treatment for the same field.
+            setupText?.let {
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                OutlinedBadge(text = it)
             }
 
             val previewChips = preview.conditionChips?.let { chips ->
@@ -197,26 +201,6 @@ fun StockPreviewCard(
     }
 }
 
-/**
- * `null` when there's nothing to say (both lists empty/null) so the caller can skip the whole
- * metadata row rather than rendering an empty string.
- */
-@Composable
-private fun chipsDeltaText(added: List<String>?, removed: List<String>?): String? {
-    val addedCount = added?.size ?: 0
-    val removedCount = removed?.size ?: 0
-
-    return when {
-        addedCount > 0 && removedCount > 0 ->
-            stringResource(id = R.string.stock_analysis_chips_new_and_dropped, addedCount, removedCount)
-        addedCount > 0 ->
-            stringResource(id = R.string.stock_analysis_chips_new_only, addedCount)
-        removedCount > 0 ->
-            stringResource(id = R.string.stock_analysis_chips_dropped_only, removedCount)
-        else -> null
-    }
-}
-
 // ============================================================================
 // 🎨 PREVIEWS
 // ============================================================================
@@ -229,6 +213,8 @@ private val mockPreview = StockPreview(
     changePercent = 0.82,
     plainRead = "Amazon's stock sits at \$274.48, trading 16.04% above its 200-day average, while its cash flow yield of 0.78% is barely above the 0.47% risk-free rate.",
     technicalSetup = "MEAN_REVERSION",
+    previousSetup = "BREAKOUT",
+    setupChanged = true,
     chipsAdded = listOf("Firm momentum", "Cheaper than its own history"),
     chipsRemoved = listOf("Overbought"),
     conditionChips = listOf(

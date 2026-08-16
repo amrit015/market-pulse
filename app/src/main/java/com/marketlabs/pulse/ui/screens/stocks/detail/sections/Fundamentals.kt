@@ -62,7 +62,25 @@ fun Fundamentals(fundamentals: DomainFundamentals?, modifier: Modifier = Modifie
         fundamentals.peForward?.let { stat(R.string.stock_detail_metric_forward_pe, formatDecimal(it), "FORWARD_PE") },
         fundamentals.peVsMedianPct?.let { stat(R.string.stock_detail_metric_pe_vs_5y_med, formatSignedPercent(it), "PE_VS_5Y_MED") },
         fundamentals.evEbitda?.let { stat(R.string.stock_detail_metric_ev_ebitda, formatDecimal(it), "EV_EBITDA") },
-        fundamentals.pegRatio?.let { stat(R.string.stock_detail_metric_peg, formatDecimal(it), "PEG") }
+        fundamentals.pegRatio?.let { stat(R.string.stock_detail_metric_peg, formatDecimal(it), "PEG") },
+        // 💡 New field -- only present for dividend-paying symbols, so this naturally disappears
+        // for the (majority) non-dividend-paying stocks rather than needing its own null-state UI.
+        fundamentals.dividendYieldPct?.let { stat(R.string.stock_detail_metric_dividend_yield, formatPercent(it), "DIVIDEND_YIELD") },
+        // 💡 `pe_history_5y` as a lightweight min/max range rather than a sparkline -- a real chart
+        // is a bigger lift consistent with the deferred main price chart (`ChartPlaceholder` in
+        // `StockDetailScreen.kt`); this surfaces the data now without that scope.
+        fundamentals.peHistory5y?.takeIf { it.isNotEmpty() }?.let {
+            stat(R.string.stock_detail_metric_pe_5y_range, "$${formatDecimal(it.min())}–$${formatDecimal(it.max())}", "TRAILING_PE")
+        }
+    )
+    val balanceSheetStats = listOfNotNull(
+        fundamentals.marketCap?.let { stat(R.string.stock_detail_metric_market_cap, formatCompactCurrency(it), "MARKET_CAP") },
+        fundamentals.beta?.let { stat(R.string.stock_detail_metric_beta, formatDecimal(it), "BETA") },
+        fundamentals.debtToEquity?.let { stat(R.string.stock_detail_metric_debt_to_equity, formatDecimal(it), "DEBT_TO_EQUITY") },
+        fundamentals.currentRatio?.let { stat(R.string.stock_detail_metric_current_ratio, formatDecimal(it), "CURRENT_RATIO") },
+        fundamentals.priceToBook?.let { stat(R.string.stock_detail_metric_price_to_book, formatDecimal(it), "PRICE_TO_BOOK") },
+        fundamentals.priceToSales?.let { stat(R.string.stock_detail_metric_price_to_sales, formatDecimal(it), "PRICE_TO_SALES") },
+        fundamentals.evRevenue?.let { stat(R.string.stock_detail_metric_ev_revenue, formatDecimal(it), "EV_REVENUE") }
     )
     val profitabilityStats = listOfNotNull(
         fundamentals.roicPct?.let { stat(R.string.stock_detail_metric_roic, formatPercent(it), "ROIC") },
@@ -102,6 +120,11 @@ fun Fundamentals(fundamentals: DomainFundamentals?, modifier: Modifier = Modifie
                 Cluster(title = stringResource(id = R.string.stock_detail_cluster_growth), stats = growthStats)
                 precededByCluster = true
             }
+            if (balanceSheetStats.isNotEmpty()) {
+                if (precededByCluster) ClusterDivider()
+                Cluster(title = stringResource(id = R.string.stock_detail_cluster_balance_sheet), stats = balanceSheetStats)
+                precededByCluster = true
+            }
             if (hasAnalystView) {
                 if (precededByCluster) ClusterDivider()
                 AnalystView(fundamentals)
@@ -110,7 +133,7 @@ fun Fundamentals(fundamentals: DomainFundamentals?, modifier: Modifier = Modifie
     }
 
     if (showGlossary) {
-        val entries = (valuationStats + profitabilityStats + growthStats)
+        val entries = (valuationStats + profitabilityStats + growthStats + balanceSheetStats)
             .map { GlossaryEntry(stringResource(id = it.labelRes), it.term) }
         StockAnalysisGlossaryBottomSheet(title = title, entries = entries, onDismiss = { showGlossary = false })
     }
@@ -230,6 +253,17 @@ private fun formatWhole(value: Double): String = String.format(Locale.US, "%.0f"
 private fun formatPercent(value: Double): String = "${formatDecimal(value)}%"
 private fun formatSignedPercent(value: Double): String = "${if (value >= 0) "+" else ""}${formatDecimal(value)}%"
 
+/** `market_cap` arrives as a raw dollar figure (e.g. `2921415835648`) -- compacted to "$2.92T"/"$B"/"$M" rather than a long string of digits. */
+private fun formatCompactCurrency(value: Double): String {
+    val magnitude = kotlin.math.abs(value)
+    return when {
+        magnitude >= 1_000_000_000_000.0 -> "$${formatDecimal(value / 1_000_000_000_000.0)}T"
+        magnitude >= 1_000_000_000.0 -> "$${formatDecimal(value / 1_000_000_000.0)}B"
+        magnitude >= 1_000_000.0 -> "$${formatDecimal(value / 1_000_000.0)}M"
+        else -> "$${formatDecimal(value)}"
+    }
+}
+
 @Composable
 private fun Spacer() {
     androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
@@ -254,6 +288,15 @@ private val mockFundamentals = DomainFundamentals(
     peVsMedianPct = -72.98,
     evEbitda = 17.93,
     pegRatio = 1.46,
+    peHistory5y = listOf(80.8, 83.9, 54.93, 30.71, 598.17),
+    dividendYieldPct = 1.42,
+    marketCap = 2921415835648.0,
+    beta = 1.46,
+    debtToEquity = 0.4,
+    currentRatio = 1.03,
+    priceToBook = 6.61,
+    priceToSales = 3.7663,
+    evRevenue = 3.9,
     roicPct = 24.48,
     roePct = 30.56,
     grossMarginPct = 50.77,

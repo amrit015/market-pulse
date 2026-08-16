@@ -52,6 +52,16 @@ fun Macro(macro: DomainMacro?, modifier: Modifier = Modifier) {
     PulseCard(style = PulseCardStyle.DATA, modifier = modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
             DataCardTitleWithInfo(title = title, onInfoClick = { showGlossary = true })
+            // 💡 `benchmark` (e.g. "SPY") was fetched and mapped but never shown -- without it, the
+            // Excess Return/Excess EY stats below never said what they were excess *over*.
+            macro.benchmark?.let {
+                androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_tiny)))
+                Text(
+                    text = stringResource(id = R.string.stock_detail_macro_benchmark_caption, it),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = pulseColors.onSurfaceMuted
+                )
+            }
             androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
 
             // 💡 A fixed 4-item `Row(SpaceBetween)` squeezed "Rate Sens" against its neighbors --
@@ -98,8 +108,23 @@ fun Macro(macro: DomainMacro?, modifier: Modifier = Modifier) {
     if (showGlossary) {
         val entries = listOfNotNull(
             macro.riskFree10yPct?.let { GlossaryEntry(stringResource(id = R.string.stock_detail_metric_10y_yield), "10Y_YIELD") },
+            // 💡 EXCESS_EY compares against the 10-year Treasury yield (the risk-free rate), not
+            // against `benchmark` -- it stays on the static glossary definition. `benchmark` only
+            // applies to Excess Return 21D below, which is the one figure actually computed
+            // relative to it.
             macro.excessEarningsYieldPct?.let { GlossaryEntry(stringResource(id = R.string.stock_detail_metric_excess_ey), "EXCESS_EY") },
-            macro.excessReturn21dPct?.let { GlossaryEntry(stringResource(id = R.string.stock_detail_metric_excess_21d), "EXCESS_21D") },
+            macro.excessReturn21dPct?.let {
+                GlossaryEntry(
+                    label = stringResource(id = R.string.stock_detail_metric_excess_21d),
+                    term = "EXCESS_21D",
+                    // 💡 Names the actual benchmark (e.g. "SPY") instead of the static glossary's
+                    // generic "its benchmark" -- matches the "vs. SPY" caption under the card title
+                    // above. Falls back to that generic definition if `benchmark` is ever null.
+                    definitionOverride = macro.benchmark?.let { benchmark ->
+                        stringResource(id = R.string.stock_detail_metric_excess_21d_definition, benchmark)
+                    }
+                )
+            },
             macro.rateSensitivity?.let { GlossaryEntry(stringResource(id = R.string.stock_detail_metric_rate_sens), "RATE_SENS") }
         )
         StockAnalysisGlossaryBottomSheet(title = title, entries = entries, onDismiss = { showGlossary = false })
@@ -143,6 +168,7 @@ private fun formatSigned(value: Double): String = "${if (value >= 0) "+" else ""
 // ============================================================================
 
 private val mockMacro = DomainMacro(
+    benchmark = "SPY",
     riskFree10yPct = 0.47,
     excessEarningsYieldPct = 4.11,
     excessReturn21dPct = 8.24,

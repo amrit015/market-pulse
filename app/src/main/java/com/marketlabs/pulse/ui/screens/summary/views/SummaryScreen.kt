@@ -224,11 +224,14 @@ fun HeaderSection(type: ReportType, timestamp: Long) {
 fun LeadStoryCard(story: NewsItem) {
     val headline = story.headline ?: return
 
-    // 💡 SYNTHESIS style -- an AI-summarized lead story, not raw data. Replaces the old
+    // 💡 DATA style -- was SYNTHESIS (an AI-summarized lead story, treated as AI content). Only
+    // VerdictCard's own explicit verdict/call and Indicators' AI Executive Briefing keep the
+    // darker SYNTHESIS background now; every other card, including this one, reads as the same
+    // background every data-display card in the app uses. Replaces the old
     // `secondaryContainer.copy(alpha = 0.4f)` leftover from before this app had its own token
     // system.
     PulseCard(
-        style = PulseCardStyle.SYNTHESIS,
+        style = PulseCardStyle.DATA,
         modifier = Modifier.fillMaxWidth()
     ) {
         Column {
@@ -272,9 +275,9 @@ fun LeadStoryCard(story: NewsItem) {
 fun MacroCard(item: MacroItem) {
     val headline = item.headline ?: return
 
-    // 💡 SYNTHESIS style -- see LeadStoryCard above.
+    // 💡 DATA style -- see LeadStoryCard above.
     PulseCard(
-        style = PulseCardStyle.SYNTHESIS,
+        style = PulseCardStyle.DATA,
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(modifier = Modifier.height(IntrinsicSize.Min)) {
@@ -351,9 +354,9 @@ fun DominoCard(domino: DominoEffect) {
     val impact = domino.impact ?: return
     val outlook = domino.outlook ?: return
 
-    // 💡 SYNTHESIS style -- see LeadStoryCard above.
+    // 💡 DATA style -- see LeadStoryCard above.
     PulseCard(
-        style = PulseCardStyle.SYNTHESIS,
+        style = PulseCardStyle.DATA,
         modifier = Modifier.fillMaxWidth()
     ) {
         Column {
@@ -451,11 +454,13 @@ private fun DominoTimelineStep(title: String, text: String, isLast: Boolean) {
  */
 @Composable
 fun OutlookCard(outlook: MarketOutlook) {
-    // 💡 SYNTHESIS style -- an AI-written market outlook, not raw data. Replaces the old
-    // `secondaryContainer.copy(alpha = 0.4f)` fill and its matching (same-color, essentially
-    // invisible) border -- both leftovers from before this app had its own token system.
+    // 💡 DATA style -- was SYNTHESIS (an AI-written market outlook, treated as AI content) -- see
+    // LeadStoryCard above for why only VerdictCard and the Executive Briefing keep that treatment
+    // now. Replaces the old `secondaryContainer.copy(alpha = 0.4f)` fill and its matching
+    // (same-color, essentially invisible) border -- both leftovers from before this app had its
+    // own token system.
     PulseCard(
-        style = PulseCardStyle.SYNTHESIS,
+        style = PulseCardStyle.DATA,
         modifier = Modifier.fillMaxWidth()
     ) {
         Column {
@@ -581,12 +586,13 @@ fun VerdictCard(verdict: Verdict, onClick: () -> Unit) {
  */
 @Composable
 fun ActionFooter(action: String) {
-    // 💡 SYNTHESIS style -- the AI report's closing action plan. Replaces the old
-    // `secondaryContainer.copy(alpha = 0.4f)` fill and its bold `primary`-colored border with the
-    // same softer hairline every other synthesis card uses -- both leftovers from before this app
-    // had its own token system.
+    // 💡 DATA style -- was SYNTHESIS (the AI report's closing action plan, treated as AI content)
+    // -- see LeadStoryCard above for why only VerdictCard and the Executive Briefing keep that
+    // treatment now. Replaces the old `secondaryContainer.copy(alpha = 0.4f)` fill and its bold
+    // `primary`-colored border with the same hairline every other card in the app uses -- both
+    // leftovers from before this app had its own token system.
     PulseCard(
-        style = PulseCardStyle.SYNTHESIS,
+        style = PulseCardStyle.DATA,
         modifier = Modifier.fillMaxWidth()
     ) {
         Column {

@@ -61,6 +61,7 @@ class StockDetailViewModel @Inject constructor(
     private val _error = MutableStateFlow<UiError?>(null)
     private val _expandedChipIds = MutableStateFlow<Set<String>>(emptySet())
     private val _expandedNewsIds = MutableStateFlow<Set<String>>(emptySet())
+    private val _selectedTabIndex = MutableStateFlow(0)
 
     private val matchingPreview: Flow<StockPreview?> = repository.getStockPreviewsStream()
         .map { previews -> previews.firstOrNull { it.symbol == symbol } }
@@ -74,8 +75,9 @@ class StockDetailViewModel @Inject constructor(
     val uiState: StateFlow<StockDetailUiState> = combine(
         repository.getStockDetailStream(symbol),
         matchingPreview,
-        uiFlags
-    ) { detail, preview, flags ->
+        uiFlags,
+        _selectedTabIndex
+    ) { detail, preview, flags, selectedTabIndex ->
         StockDetailUiState(
             symbol = symbol,
             detail = detail,
@@ -84,6 +86,7 @@ class StockDetailViewModel @Inject constructor(
             isRefreshing = flags.isRefreshing,
             expandedChipIds = flags.expandedChipIds,
             expandedNewsIds = flags.expandedNewsIds,
+            selectedTabIndex = selectedTabIndex,
             error = flags.error
         )
     }.stateIn(
@@ -118,6 +121,11 @@ class StockDetailViewModel @Inject constructor(
     /** Toggles a DirectNews item's expanded (tap-to-show-implication) state, keyed by its URL. */
     fun toggleNewsExpanded(newsUrl: String) {
         _expandedNewsIds.value = _expandedNewsIds.value.toggled(newsUrl)
+    }
+
+    /** Called when the user taps a tab in the pinned `PrimaryTabRow`. Index into `DetailTab.entries`. */
+    fun onTabSelected(index: Int) {
+        _selectedTabIndex.value = index
     }
 
     private fun fetchDetail(force: Boolean) {

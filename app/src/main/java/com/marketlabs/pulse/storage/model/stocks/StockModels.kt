@@ -174,6 +174,7 @@ data class DomainFundamentals(
     val consensusStrengthPct: Double? = null,
     val currentRatio: Double? = null,
     val debtToEquity: Double? = null,
+    val dividendYieldPct: Double? = null,
     val earningsEpsEstimate: Double? = null,
     val earningsYieldPct: Double? = null,
     val epsGrowthYoyPct: Double? = null,

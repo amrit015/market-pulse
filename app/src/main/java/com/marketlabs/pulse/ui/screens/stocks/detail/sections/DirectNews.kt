@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -36,13 +38,16 @@ import java.util.Locale
  * `top_news_stream[]` -- tap "Read the analysis" to expand and reveal `forward_implication` +
  * `transmission_mechanism`. Expansion state is keyed by `url` (per `StockDetailUiState`'s doc), so
  * an item with no `url` can't be expanded -- its row renders without the expand affordance rather
- * than toggling state that has no stable id to key on.
+ * than toggling state that has no stable id to key on. Separately, tapping the card itself (or its
+ * chevron) opens the article's `url` in the same in-app webview `NewsScreen`'s article cards use --
+ * an independent action from the in-place "Read the analysis" expansion, not a replacement for it.
  */
 @Composable
 fun DirectNews(
     newsStream: List<DomainStockNewsItem>?,
     expandedNewsIds: Set<String>,
     onToggleNews: (String) -> Unit,
+    onArticleClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val items = newsStream.orEmpty()
@@ -56,7 +61,8 @@ fun DirectNews(
                 NewsCard(
                     item = item,
                     isExpanded = item.url != null && expandedNewsIds.contains(item.url),
-                    onToggle = { item.url?.let(onToggleNews) }
+                    onToggle = { item.url?.let(onToggleNews) },
+                    onArticleClick = onArticleClick
                 )
             }
         }
@@ -64,10 +70,22 @@ fun DirectNews(
 }
 
 @Composable
-private fun NewsCard(item: DomainStockNewsItem, isExpanded: Boolean, onToggle: () -> Unit) {
+private fun NewsCard(item: DomainStockNewsItem, isExpanded: Boolean, onToggle: () -> Unit, onArticleClick: (String) -> Unit) {
     val pulseColors = LocalPulseColors.current
+    val url = item.url
 
-    PulseCard(style = PulseCardStyle.SYNTHESIS, modifier = Modifier.fillMaxWidth().animateContentSize()) {
+    // 💡 DATA style -- a direct news item is an external article, not an AI's own interpretation
+    // of one, so it reads with the same background every other data-display card in the app uses;
+    // only the AI's verdict/briefing-style cards keep the darker SYNTHESIS background.
+    PulseCard(
+        style = PulseCardStyle.DATA,
+        modifier = Modifier.fillMaxWidth().animateContentSize(),
+        // 💡 The whole card opens the article, matching `NewsArticleCard`'s click target on the
+        // News screen -- the nested "Read the analysis" row below has its own `clickable`, which
+        // intercepts taps on itself before they reach this outer one, so the two actions don't
+        // fight over the same tap.
+        onClick = if (url != null) ({ onArticleClick(url) }) else null
+    ) {
         Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 item.impactMagnitude?.let {
@@ -83,18 +101,50 @@ private fun NewsCard(item: DomainStockNewsItem, isExpanded: Boolean, onToggle: (
                 }
             }
 
-            item.headline?.let {
+            item.headline?.let { headline ->
                 Spacer()
-                Text(
-                    text = it,
-                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface
+                // 💡 Title + chevron row, same layout `NewsArticleCard` uses on the News screen --
+                // the chevron is only a visual affordance for the whole-card tap above, not its own
+                // separate click target, so it only renders (no click handler of its own) when
+                // there's actually a `url` to open.
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = headline,
+                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.weight(1f)
+                    )
+                    if (url != null) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_chevron_forward),
+                            contentDescription = stringResource(id = R.string.stock_detail_view_article_content_description),
+                            tint = pulseColors.accentPrimary,
+                            modifier = Modifier
+                                .padding(start = dimensionResource(id = R.dimen.padding_small))
+                                .size(dimensionResource(id = R.dimen.padding_large))
+                        )
+                    }
+                }
+                // 💡 The line separating the headline from the body content below it, per the
+                // Design request -- only drawn alongside the headline itself, since there's nothing
+                // to separate it from when there's no headline to begin with.
+                Spacer()
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                    thickness = dimensionResource(id = R.dimen.border_thin)
                 )
             }
 
             item.articleSynthesis?.let {
                 Spacer()
-                Text(text = it, style = MaterialTheme.typography.bodyMedium, color = pulseColors.onSurfaceMuted)
+                // 💡 onSurface, not onSurfaceMuted -- a full analytical sentence reads as this
+                // app's normal body-text color everywhere else, matching forwardImplication and
+                // transmissionMechanism below (both already onSurface).
+                Text(text = it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
             }
 
             if (isExpanded) {
@@ -179,7 +229,7 @@ private val mockNews = listOf(
 @Composable
 private fun PreviewDirectNewsLight() {
     MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
-        DirectNews(newsStream = mockNews, expandedNewsIds = setOf("https://example.com/a"), onToggleNews = {})
+        DirectNews(newsStream = mockNews, expandedNewsIds = setOf("https://example.com/a"), onToggleNews = {}, onArticleClick = {})
     }
 }
 
@@ -187,6 +237,6 @@ private fun PreviewDirectNewsLight() {
 @Composable
 private fun PreviewDirectNewsDark() {
     MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
-        DirectNews(newsStream = mockNews, expandedNewsIds = emptySet(), onToggleNews = {})
+        DirectNews(newsStream = mockNews, expandedNewsIds = emptySet(), onToggleNews = {}, onArticleClick = {})
     }
 }

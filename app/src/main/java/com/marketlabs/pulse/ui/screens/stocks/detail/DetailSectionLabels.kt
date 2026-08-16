@@ -47,7 +47,14 @@ fun SectionDividerLabel(title: String, trailing: String? = null) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(
             text = title,
-            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+            // 💡 titleLarge (Montserrat, 20sp, bold) -- was `labelLarge` (Inter, 14sp), the small
+            // terminal-style label font this app's type system reserves for meta text like "Last
+            // updated," not a page-level section heading. Every other screen's equivalent heading
+            // (Dashboard's "Sector Rotation," Summary's section titles, Insights' "Weekly
+            // Playbook"/"Institutional Posture," News, Indicators) already uses `titleLarge`, so
+            // this brought Stock Detail's section headings in line with the rest of the app instead
+            // of reading in a smaller, different typeface.
+            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
             color = pulseColors.accentPrimary,
             modifier = Modifier.weight(1f, fill = false)
         )
@@ -66,8 +73,14 @@ fun SectionDividerLabel(title: String, trailing: String? = null) {
 fun DataCardTitleLabel(title: String) {
     Text(
         text = title,
-        style = MaterialTheme.typography.labelLarge,
-        color = LocalPulseColors.current.onSurfaceMuted
+        // 💡 titleMedium bold (Montserrat, 17sp), onSurface -- was `labelLarge` (Inter, 14sp) in
+        // `onSurfaceMuted`. This is the same DATA-card-title role Dashboard's `AssetCard` (the
+        // Equities price card) already uses, and that card's title is titleMedium-bold/onSurface,
+        // not a muted small label -- so KEY LEVELS/FUNDAMENTALS/etc. now read at the same weight
+        // and contrast Equities' card titles do, instead of the washed-out-grey look this app's
+        // other cards already moved away from for the same reason.
+        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+        color = MaterialTheme.colorScheme.onSurface
     )
 }
 
@@ -100,7 +113,11 @@ fun DataCardTitleWithInfo(title: String, onInfoClick: () -> Unit) {
 @Composable
 fun SynthesisCardHeader(title: String) {
     val pulseColors = LocalPulseColors.current
-    val titleStyle = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
+    // 💡 titleMedium bold (Montserrat, 17sp) -- was `labelLarge` (Inter, 14sp). Matches the same
+    // AI-glyph + title treatment this function's own doc comment above cites as its model --
+    // Dashboard's Technical Briefing card and `StockPreviewCard` -- both of which size their glyph
+    // and title off `titleMedium.copy(Bold)`, not the small Inter label font.
+    val titleStyle = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
     val glyphSize = with(LocalDensity.current) { titleStyle.fontSize.toDp() }
 
     Row(verticalAlignment = Alignment.CenterVertically) {
