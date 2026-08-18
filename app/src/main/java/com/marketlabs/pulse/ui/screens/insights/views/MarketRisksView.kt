@@ -168,12 +168,14 @@ private fun TailRiskCard(risk: MarketRiskFactor) {
         else -> MaterialTheme.colorScheme.surfaceVariant
     }
 
-    // 💡 SYNTHESIS style -- an AI-assessed tail risk, not raw data. Replaces the old
-    // `secondaryContainer.copy(alpha = 0.4f)` leftover from before this app had its own token
-    // system. `elevation = 0.dp` dropped along with it -- PulseCard never adds elevation, matching
-    // this app's flat, no-shadow convention everywhere else.
+    // 💡 DATA style -- was SYNTHESIS (an AI-assessed tail risk, treated as AI content). This app's
+    // darker SYNTHESIS background is now reserved for the one AI briefing/verdict hero card per
+    // screen, so a risk-list card reads with the same background every other data-display card in
+    // the app uses. Replaces the old `secondaryContainer.copy(alpha = 0.4f)` leftover from before
+    // this app had its own token system. `elevation = 0.dp` dropped along with it -- PulseCard
+    // never adds elevation, matching this app's flat, no-shadow convention everywhere else.
     PulseCard(
-        style = PulseCardStyle.SYNTHESIS,
+        style = PulseCardStyle.DATA,
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(modifier = Modifier.height(IntrinsicSize.Min)) {

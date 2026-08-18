@@ -76,12 +76,15 @@ fun WeeklyPlaybookSection(playbook: WeeklyPlaybook) {
 
 @Composable
 fun WeeklyEventCard(event: WeeklyEvent) {
-    // 💡 SYNTHESIS style -- calendar events with AI-written market context, the same kind of
-    // curated content as the briefing and news cards. Replaces the old
+    // 💡 DATA style -- was SYNTHESIS (calendar events with AI-written market context, grouped
+    // with the briefing/news cards as "curated content"). This app's darker SYNTHESIS background
+    // is now reserved for the one AI briefing/verdict hero card per screen (Dashboard's Technical
+    // Briefing, Indicators' AI Executive Briefing, Summary's VerdictCard); an events list reads
+    // with the same background every other data-display card in the app uses. Replaces the old
     // `secondaryContainer.copy(alpha = 0.4f)` leftover from before this app had its own token
     // system.
     PulseCard(
-        style = PulseCardStyle.SYNTHESIS,
+        style = PulseCardStyle.DATA,
         modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.padding_medium))
     ) {
         Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {

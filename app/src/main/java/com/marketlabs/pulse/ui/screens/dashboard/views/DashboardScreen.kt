@@ -617,10 +617,15 @@ fun TechnicalSummaryCard(summaryText: String?, timestamp: Long?, isEquityOpen: B
         if (isEquityOpen) pulseColors.signalBullishText else MaterialTheme.colorScheme.onSurfaceVariant
 
     // 💡 This is the AI-generated "Technical Briefing" card -- interpreted, editorial content, not
-    // raw market data. SYNTHESIS style, the same treatment as AI analysis and news cards.
-    // Contrast this with UnifiedScoreHeaderCard, whose colors are all passed in by the caller as
-    // real signal colors (bullish/bearish/neutral pillar scores) -- that one stays signal-colored
-    // on purpose, since it is showing raw computed data, not an AI's interpretation of it.
+    // raw market data. SYNTHESIS style, the same darker background as Indicators' AI Executive
+    // Briefing and Summary's VerdictCard -- these three are this app's "AI briefing/verdict" hero
+    // cards, one per screen, and share the same treatment for that reason. This is narrower than
+    // SYNTHESIS used to be applied (news articles, list-style AI content, and per-symbol preview
+    // cards all moved to the plain DATA background since only a screen's single leading AI
+    // conclusion keeps the darker tint now). Contrast this with UnifiedScoreHeaderCard, whose
+    // colors are all passed in by the caller as real signal colors (bullish/bearish/neutral pillar
+    // scores) -- that one stays signal-colored on purpose, since it is showing raw computed data,
+    // not an AI's interpretation of it.
     PulseCard(
         style = PulseCardStyle.SYNTHESIS,
         modifier = Modifier

@@ -72,7 +72,7 @@ fun FloatingBottomNav(
     // independently of the bottom margin. Bottom margin (the gap above the system nav bar) went the
     // other way, down to `padding_small` (4dp) -- 12dp read as an oversized gap once seen against
     // the rest of the app's tighter spacing.
-    val horizontalMargin = dimensionResource(id = R.dimen.padding_large)
+    val horizontalMargin = dimensionResource(id = R.dimen.padding_medium)
     val bottomMargin = 0.dp
     val borderWidth = dimensionResource(id = R.dimen.border_thin)
 

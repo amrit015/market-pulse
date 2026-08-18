@@ -6,6 +6,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.marketlabs.pulse.core.stocks.StockAnalysisRepository
 import com.marketlabs.pulse.core.sync.SyncManager
+import com.marketlabs.pulse.storage.model.stocks.StockPreview
+import com.marketlabs.pulse.ui.common.UiError
+import com.marketlabs.pulse.ui.common.toUiError
+import com.marketlabs.pulse.utils.extensions.toAnalyzedAsOfString
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -39,19 +43,20 @@ class StockAnalysisViewModel @Inject constructor(
 
     private val _isLoading = MutableStateFlow(false)
     private val _isRefreshing = MutableStateFlow(false)
-    private val _errorMessage = MutableStateFlow<String?>(null)
+    private val _error = MutableStateFlow<UiError?>(null)
 
     val uiState: StateFlow<StockAnalysisUiState> = combine(
         repository.getStockPreviewsStream(),
         _isLoading,
         _isRefreshing,
-        _errorMessage
+        _error
     ) { previews, loading, refreshing, error ->
         StockAnalysisUiState(
             previews = previews,
             isLoading = loading && previews.isEmpty(),
             isRefreshing = refreshing,
-            errorMessage = error
+            analyzedAsOf = previews.newestAnalyzedAsOf(),
+            error = error
         )
     }.stateIn(
         scope = viewModelScope,
@@ -75,24 +80,35 @@ class StockAnalysisViewModel @Inject constructor(
         fetchPreviews(force = true)
     }
 
-    /** Clears any active error message (e.g. after a Snackbar is dismissed). */
+    /** Clears any active error (e.g. after a Snackbar is dismissed). */
     fun clearError() {
-        _errorMessage.value = null
+        _error.value = null
     }
 
     private fun fetchPreviews(force: Boolean) {
         viewModelScope.launch {
             if (force) _isRefreshing.value = true else _isLoading.value = true
-            _errorMessage.value = null
+            _error.value = null
 
             val result = repository.refreshPreviews(force)
 
             if (result.isFailure) {
-                _errorMessage.value = result.exceptionOrNull()?.localizedMessage ?: "Failed to load stock previews"
+                _error.value = result.exceptionOrNull().toUiError()
             }
 
             _isLoading.value = false
             _isRefreshing.value = false
         }
     }
+}
+
+/**
+ * The newest `timestamp` across all previews, formatted the same "Aug 07, 6:15 PM" way every
+ * other screen's "analyzed as of" line already does (`toAnalyzedAsOfString()`). Derived here (not
+ * `last_updated` -- see `NetworkStockPreview.kt`'s doc comment on why that field is deliberately
+ * unmodeled) each time `previews` changes, rather than stored redundantly per-preview.
+ */
+private fun List<StockPreview>.newestAnalyzedAsOf(): String? {
+    val newestTimestamp = mapNotNull { it.timestamp }.maxOrNull() ?: return null
+    return newestTimestamp.toAnalyzedAsOfString()
 }

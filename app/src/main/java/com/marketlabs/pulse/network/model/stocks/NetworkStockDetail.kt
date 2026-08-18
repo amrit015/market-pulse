@@ -226,6 +226,10 @@ data class NetworkFundamentals(
     @Json(name = "debt_to_equity")
     val debtToEquity: Double? = null,
 
+    /** Only present for dividend-paying symbols; null/absent otherwise. */
+    @Json(name = "dividend_yield_pct")
+    val dividendYieldPct: Double? = null,
+
     @Json(name = "earnings_eps_estimate")
     val earningsEpsEstimate: Double? = null,
 

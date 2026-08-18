@@ -70,11 +70,15 @@ enum class MarketPulseTheme(val displayName: String, val isDark: Boolean) {
             accentOn = accent.on,
             accentSurface = accent.surface,
             accentSurfaceBorder = accent.surfaceBorder,
-            // 💡 AI/News cards need to read as clearly darker than price cards, not just a
-            // different hue -- blended 42% from `surface` toward `surfaceBorder` (the next step
-            // further in the same direction that border color already moves, per mode) rather
-            // than a new hand-picked hex.
-            accentSurfaceStrong = lerp(accent.surface, accent.surfaceBorder, 0.42f),
+            // 💡 AI/News cards start from the same `tinted` base as price cards below (so both
+            // card types read as the same underlying color family) but blend 55% toward
+            // `surfaceBorder` instead of `surface` -- `surfaceBorder` is the stronger, more
+            // saturated anchor of the two (it's already one step further from `tinted` than
+            // `surface` is, in the same direction), and the higher blend factor pushes further
+            // still. That combination lands this reliably darker and more saturated than
+            // `surfaceTinted` below in every preset, in both modes, without hand-picking a
+            // separate hex per preset.
+            accentSurfaceStrong = lerp(accent.tinted, accent.surfaceBorder, 0.55f),
             // 💡 Blended 45% from the literal Token Contract `tinted` value toward `surface` --
             // the raw `tinted` value alone reads as too close to the page background to register
             // as a distinct card (35% was an earlier attempt, still a bit too subtle once judged

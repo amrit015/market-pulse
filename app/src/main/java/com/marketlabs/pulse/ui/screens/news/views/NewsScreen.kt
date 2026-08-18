@@ -155,13 +155,14 @@ fun NewsArticleCard(
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
     val cardShape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card))
 
-    // 💡 News cards are curated + AI-filtered, not raw feed -- SYNTHESIS style, same as the AI
-    // briefing card, so a reader can tell interpreted/curated content apart from raw market data at
-    // a glance. The highlighted border (thicker, full accent) draws on top of PulseCard's own
-    // hairline border -- Added with Claude Code assistance: frames the card a Dashboard news
-    // preview linked to.
+    // 💡 DATA style -- was SYNTHESIS (grouped with the AI briefing card as "curated content"), but
+    // a news article card is just displaying an external item, not an AI's own interpretation of
+    // one, so it now reads with the same background every other data-display card in the app uses.
+    // The highlighted border (thicker, full accent) draws on top of PulseCard's own hairline
+    // border -- Added with Claude Code assistance: frames the card a Dashboard news preview
+    // linked to.
     PulseCard(
-        style = PulseCardStyle.SYNTHESIS,
+        style = PulseCardStyle.DATA,
         shape = cardShape,
         modifier = Modifier
             .fillMaxWidth()
@@ -346,9 +347,9 @@ fun NewsPreviewCard(
     val pulseColors = LocalPulseColors.current
     val (sentimentColor, sentimentBgColor) = sentimentColors(pulseColors, sentiment)
 
-    // 💡 SYNTHESIS style -- matches NewsArticleCard's above.
+    // 💡 DATA style -- matches NewsArticleCard's above.
     PulseCard(
-        style = PulseCardStyle.SYNTHESIS,
+        style = PulseCardStyle.DATA,
         modifier = Modifier.fillMaxWidth(),
         onClick = if (url.isNotBlank()) ({ onClick(url) }) else null
     ) {

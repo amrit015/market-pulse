@@ -96,7 +96,13 @@ object PulseTokens {
             surfaceElevated = Color(0xFFFFFFFF),
             onBackground = Color(0xFF14161B),
             onSurface = Color(0xFF14161B),
-            onSurfaceMuted = Color(0xFF6B6E76),
+            // 💡 Darkened from the literal Token Contract value (was 0xFF6B6E76) -- this is the one
+            // muted-text color every preset in both modes shares (dates, "52W LOW"-style stat
+            // labels, subtitles -- 130+ call sites via `onSurfaceMuted`/`colorScheme.onSurfaceVariant`,
+            // both of which read this same value), and it read too light/washed-out against light
+            // backgrounds. Converted to HLS, lightness dropped ~0.08, hue/saturation untouched --
+            // same technique already used for the `tinted` desaturation elsewhere in this file.
+            onSurfaceMuted = Color(0xFF585A61),
             outline = Color(0xFFE4E2DC)
         )
 
@@ -106,7 +112,10 @@ object PulseTokens {
             surfaceElevated = Color(0xFF1F2026),
             onBackground = Color(0xFFF0EEF3),
             onSurface = Color(0xFFF0EEF3),
-            onSurfaceMuted = Color(0xFF9A9BA3),
+            // 💡 Lightened from the literal Token Contract value (was 0xFF9A9BA3) -- same reasoning
+            // as light mode's `onSurfaceMuted` above, mirrored: too dark/washed-out against dark
+            // backgrounds. Lightness raised ~0.08 via the same HLS method.
+            onSurfaceMuted = Color(0xFFAFB0B6),
             outline = Color(0xFF2A2B31)
         )
     }
@@ -124,13 +133,17 @@ object PulseTokens {
             val on = Color(0xFFFFFFFF)
             val surface = Color(0xFFEBDFF3)
             val surfaceBorder = Color(0xFFD8C3E4)
-            // 💡 This is the literal Token Contract value, unmodified. Price cards need a stronger
-            // version of this for their actual background -- that adjustment now happens as a
+            // 💡 Grey-desaturated from the literal Token Contract value (was 0xFFF3EEF6) -- text
+            // sitting on price cards read with too little contrast against the full-saturation
+            // tint, across every preset in both modes. Converted to HSL, saturation halved, hue
+            // and lightness left untouched, converted back -- keeps each preset's accent hue
+            // faintly recognizable while pushing it toward neutral grey. Price cards need a
+            // stronger version of this for their actual background -- that adjustment happens as a
             // runtime blend toward `surface` in `MarketPulseTheme.toPulseColors()` rather than
             // baked into this constant, specifically so the blend factor is a one-line tweak
             // instead of hand-recomputing ten hex values every time it needs to change (which
             // happened three times across two sessions before this was worth doing properly).
-            val tinted = Color(0xFFF3EEF6)
+            val tinted = Color(0xFFF2F0F4)
         }
 
         object Navy {
@@ -138,7 +151,7 @@ object PulseTokens {
             val on = Color(0xFFFFFFFF)
             val surface = Color(0xFFE3E9F3)
             val surfaceBorder = Color(0xFFC7D3E5)
-            val tinted = Color(0xFFEDF0F5)
+            val tinted = Color(0xFFEFF0F3)
         }
 
         object Fuchsia {
@@ -146,7 +159,7 @@ object PulseTokens {
             val on = Color(0xFFFFFFFF)
             val surface = Color(0xFFF5E1EE)
             val surfaceBorder = Color(0xFFECC7DE)
-            val tinted = Color(0xFFF5EBF1)
+            val tinted = Color(0xFFF3EDF0)
         }
 
         object Graphite {
@@ -154,7 +167,7 @@ object PulseTokens {
             val on = Color(0xFFFFFFFF)
             val surface = Color(0xFFE9E9EB)
             val surfaceBorder = Color(0xFFDDDCD8)
-            val tinted = Color(0xFFEFEDEA)
+            val tinted = Color(0xFFEEEDEB)
         }
 
         object Teal {
@@ -162,7 +175,7 @@ object PulseTokens {
             val on = Color(0xFFFFFFFF)
             val surface = Color(0xFFDDECED)
             val surfaceBorder = Color(0xFFC1DEDE)
-            val tinted = Color(0xFFEBF0F0)
+            val tinted = Color(0xFFECEFEF)
         }
 
         object Lilac {
@@ -170,7 +183,7 @@ object PulseTokens {
             val on = Color(0xFF1A0F2E)
             val surface = Color(0xFF2C2338)
             val surfaceBorder = Color(0xFF3B2E4B)
-            val tinted = Color(0xFF1E1B27)
+            val tinted = Color(0xFF201E24)
         }
 
         object Sky {
@@ -178,7 +191,7 @@ object PulseTokens {
             val on = Color(0xFF08192E)
             val surface = Color(0xFF1E2A3B)
             val surfaceBorder = Color(0xFF2A3B54)
-            val tinted = Color(0xFF171C25)
+            val tinted = Color(0xFF1A1D22)
         }
 
         object Sand {
@@ -186,7 +199,7 @@ object PulseTokens {
             val on = Color(0xFF1F1A11)
             val surface = Color(0xFF2B261E)
             val surfaceBorder = Color(0xFF3C3325)
-            val tinted = Color(0xFF1D1C18)
+            val tinted = Color(0xFF1C1B19)
         }
 
         object Rose {
@@ -194,7 +207,7 @@ object PulseTokens {
             val on = Color(0xFF2B0F22)
             val surface = Color(0xFF331F2C)
             val surfaceBorder = Color(0xFF452838)
-            val tinted = Color(0xFF1E1A1E)
+            val tinted = Color(0xFF1D1B1D)
         }
 
         object Aqua {
@@ -202,7 +215,7 @@ object PulseTokens {
             val on = Color(0xFF062120)
             val surface = Color(0xFF1B2E2D)
             val surfaceBorder = Color(0xFF294241)
-            val tinted = Color(0xFF141D1D)
+            val tinted = Color(0xFF161B1B)
         }
     }
 }

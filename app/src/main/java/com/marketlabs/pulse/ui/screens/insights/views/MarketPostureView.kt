@@ -100,11 +100,13 @@ fun InstitutionalPostureSection(postureData: DomainMarketPosture) {
 private fun PostureDisclaimerCard() {
     var expanded by remember { mutableStateOf(false) }
 
-    // 💡 SYNTHESIS style -- a disclaimer about externally-sourced research data, editorial content
-    // rather than a raw reading. Replaces the old `surfaceVariant.copy(alpha = 0.5f)` leftover from
-    // before this app had its own token system.
+    // 💡 DATA style -- was SYNTHESIS (a disclaimer about externally-sourced research data, treated
+    // as editorial content). This app's darker SYNTHESIS background is now reserved for the one
+    // AI briefing/verdict hero card per screen, so this reads with the same background every other
+    // data-display card in the app uses. Replaces the old `surfaceVariant.copy(alpha = 0.5f)`
+    // leftover from before this app had its own token system.
     PulseCard(
-        style = PulseCardStyle.SYNTHESIS,
+        style = PulseCardStyle.DATA,
         modifier = Modifier.fillMaxWidth(),
         onClick = { expanded = !expanded }
     ) {
@@ -145,11 +147,14 @@ private fun PostureDisclaimerCard() {
 
 @Composable
 private fun NaaimExposureCard(naaim: DomainNaaimExposure) {
-    // 💡 SYNTHESIS style -- externally-sourced institutional positioning data, presented with
-    // AI-written context, not a raw price. Replaces the old `secondaryContainer.copy(alpha = 0.4f)`
-    // leftover from before this app had its own token system.
+    // 💡 DATA style -- was SYNTHESIS (externally-sourced institutional positioning data,
+    // presented with AI-written context). This app's darker SYNTHESIS background is now reserved
+    // for the one AI briefing/verdict hero card per screen, so this reads with the same background
+    // every other data-display card in the app uses -- the same one Equities' price cards use.
+    // Replaces the old `secondaryContainer.copy(alpha = 0.4f)` leftover from before this app had
+    // its own token system.
     PulseCard(
-        style = PulseCardStyle.SYNTHESIS,
+        style = PulseCardStyle.DATA,
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
@@ -277,9 +282,9 @@ private fun NaaimExposureCard(naaim: DomainNaaimExposure) {
 
 @Composable
 private fun DarkPoolCard(dix: DomainDarkPoolIndex) {
-    // 💡 SYNTHESIS style -- see NaaimExposureCard above.
+    // 💡 DATA style -- see NaaimExposureCard above.
     PulseCard(
-        style = PulseCardStyle.SYNTHESIS,
+        style = PulseCardStyle.DATA,
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
@@ -343,9 +348,9 @@ private fun DarkPoolCard(dix: DomainDarkPoolIndex) {
 
 @Composable
 private fun NetLiquidityCard(liquidity: DomainNetLiquidity) {
-    // 💡 SYNTHESIS style -- see NaaimExposureCard above.
+    // 💡 DATA style -- see NaaimExposureCard above.
     PulseCard(
-        style = PulseCardStyle.SYNTHESIS,
+        style = PulseCardStyle.DATA,
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {

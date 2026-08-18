@@ -211,6 +211,7 @@ fun NetworkFundamentals.toDomain(): DomainFundamentals {
         consensusStrengthPct = consensusStrengthPct,
         currentRatio = currentRatio,
         debtToEquity = debtToEquity,
+        dividendYieldPct = dividendYieldPct,
         earningsEpsEstimate = earningsEpsEstimate,
         earningsYieldPct = earningsYieldPct,
         epsGrowthYoyPct = epsGrowthYoyPct,

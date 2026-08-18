@@ -6,9 +6,11 @@ Design reference extracted from source. Every color, type, spacing, and shape va
 
 - Package: `com.marketlabs.pulse`
 - Stack: Kotlin · Jetpack Compose · Material 3
-- Snapshot: 2026-08-10 · branch `feat-design-migration`
+- Snapshot: 2026-08-16 · branch `feat-stock-analysis`
 
-**Since the previous snapshot of this doc**, the entire color system was rebuilt: the old flat single-theme palette (`PulseBlue`/`PulseBlack`/`PulseGold`/`PulseOrange`/`AlertRed`, `PulseStatusColors`, `ColorGreen`/`ColorRed`/`ColorNeutral`) is gone — not deprecated, deleted — replaced by a 10-preset system described below. Most of §1–§3 in the old version of this doc no longer applies to anything in the running app.
+**2026-08-10 snapshot:** the entire color system was rebuilt: the old flat single-theme palette (`PulseBlue`/`PulseBlack`/`PulseGold`/`PulseOrange`/`AlertRed`, `PulseStatusColors`, `ColorGreen`/`ColorRed`/`ColorNeutral`) is gone — not deprecated, deleted — replaced by a 10-preset system described below. Most of §1–§3 in the version of this doc before that no longer applied to anything in the running app.
+
+**Since that snapshot:** building Stock Analysis end-to-end put real, dense card content against these tokens for the first time, and surfaced three more fixes — this time verified with actual contrast math per preset instead of eyeballed. `Accent.*.tinted` was desaturated ~50% across all 10 presets (§4) — it read too saturated once real content sat on top of it. `onSurfaceMuted` (§3) had its lightness shifted for contrast — it's the one shared grey behind dates, stat labels, and every muted subtitle app-wide. `accentSurfaceStrong` (§5) was reformulated to derive from `tinted` too, at a stronger blend, instead of an unrelated `surface`/`surfaceBorder` computation. Separately — a UI decision, not a token one — `PulseCardStyle.SYNTHESIS` itself was narrowed from roughly two dozen cards down to exactly 3 app-wide (§6): most cards that used to read as "curated/AI content" now read as plain `DATA` instead, since having most cards on a screen wear the accent tint had stopped meaning anything.
 
 ---
 
@@ -55,10 +57,12 @@ Shared neutral scale — one instance for all 5 light presets, one for all 5 dar
 | `surface` | `#FBFAF7` | `#17181D` |
 | `surfaceElevated` | `#FFFFFF` | `#1F2026` |
 | `onBackground` / `onSurface` | `#14161B` | `#F0EEF3` |
-| `onSurfaceMuted` | `#6B6E76` | `#9A9BA3` |
+| `onSurfaceMuted` | `#585A61` | `#AFB0B6` |
 | `outline` | `#E4E2DC` | `#2A2B31` |
 
 `background` (light mode) was hand-tuned once already — nudged lighter (was `#F4F2ED`) after the global top bar started sharing this exact color, so it needed to read as a clean "greyish-white," not visibly cream. Dark mode's background was untouched.
+
+`onSurfaceMuted` was hand-tuned a second time (2026-08-16): darkened ~8% in light mode, lightened ~8% in dark mode (HLS, lightness only), after this token's contrast against real card backgrounds was measured — not eyeballed — across all 10 presets while building Stock Analysis. It's the single highest-traffic token in this doc: 130+ call sites app-wide via `onSurfaceMuted`/`colorScheme.onSurfaceVariant`, which resolve to the same value (§5).
 
 ---
 
@@ -68,16 +72,18 @@ The one layer that actually differs per preset. `PulseTokens.Accent` in `Color.k
 
 | Preset | Mode | `primary` | `on` | `surface` | `surfaceBorder` | `tinted` (raw) |
 |---|---|---|---|---|---|---|
-| Plum | Light | `#5B2A82` | `#FFFFFF` | `#EBDFF3` | `#D8C3E4` | `#F3EEF6` |
-| Navy | Light | `#14315E` | `#FFFFFF` | `#E3E9F3` | `#C7D3E5` | `#EDF0F5` |
-| Fuchsia | Light | `#9C1A6B` | `#FFFFFF` | `#F5E1EE` | `#ECC7DE` | `#F5EBF1` |
-| Graphite | Light | `#2B303A` | `#FFFFFF` | `#E9E9EB` | `#DDDCD8` | `#EFEDEA` |
-| Teal | Light | `#05555C` | `#FFFFFF` | `#DDECED` | `#C1DEDE` | `#EBF0F0` |
-| Lilac | Dark | `#C7A9FF` | `#1A0F2E` | `#2C2338` | `#3B2E4B` | `#1E1B27` |
-| Sky | Dark | `#7BC0FF` | `#08192E` | `#1E2A3B` | `#2A3B54` | `#171C25` |
-| Sand | Dark | `#C9B49A` | `#1F1A11` | `#2B261E` | `#3C3325` | `#1D1C18` |
-| Rose | Dark | `#E9A2D8` | `#2B0F22` | `#331F2C` | `#452838` | `#1E1A1E` |
-| Aqua | Dark | `#7ED9D6` | `#062120` | `#1B2E2D` | `#294241` | `#141D1D` |
+| Plum | Light | `#5B2A82` | `#FFFFFF` | `#EBDFF3` | `#D8C3E4` | `#F2F0F4` |
+| Navy | Light | `#14315E` | `#FFFFFF` | `#E3E9F3` | `#C7D3E5` | `#EFF0F3` |
+| Fuchsia | Light | `#9C1A6B` | `#FFFFFF` | `#F5E1EE` | `#ECC7DE` | `#F3EDF0` |
+| Graphite | Light | `#2B303A` | `#FFFFFF` | `#E9E9EB` | `#DDDCD8` | `#EEEDEB` |
+| Teal | Light | `#05555C` | `#FFFFFF` | `#DDECED` | `#C1DEDE` | `#ECEFEF` |
+| Lilac | Dark | `#C7A9FF` | `#1A0F2E` | `#2C2338` | `#3B2E4B` | `#201E24` |
+| Sky | Dark | `#7BC0FF` | `#08192E` | `#1E2A3B` | `#2A3B54` | `#1A1D22` |
+| Sand | Dark | `#C9B49A` | `#1F1A11` | `#2B261E` | `#3C3325` | `#1C1B19` |
+| Rose | Dark | `#E9A2D8` | `#2B0F22` | `#331F2C` | `#452838` | `#1D1B1D` |
+| Aqua | Dark | `#7ED9D6` | `#062120` | `#1B2E2D` | `#294241` | `#161B1B` |
+
+`tinted` was desaturated ~50% (2026-08-16, HLS, saturation only — hue and lightness untouched) across all 10 rows above. It read too saturated once real card content sat on top of it. `primary`/`on`/`surface`/`surfaceBorder` are untouched.
 
 ---
 
@@ -87,10 +93,12 @@ Two extended tokens on `PulseColors` (read via `LocalPulseColors.current`) aren'
 
 | Token | Formula | Blend factor | Used by |
 |---|---|---|---|
-| `surfaceTinted` | `lerp(accent.tinted, accent.surface, f)` | **0.45** | Every `PulseCard(style = DATA)` — Equities' price cards, Indicators' metric cards, VIX, Fear & Greed, Put/Call. |
-| `accentSurfaceStrong` | `lerp(accent.surface, accent.surfaceBorder, f)` | **0.42** | Every `PulseCard(style = SYNTHESIS)` — AI briefings, news, verdicts, curated/externally-sourced cards. |
+| `surfaceTinted` | `lerp(accent.tinted, accent.surface, f)` | **0.45** | Every `PulseCard(style = DATA)` — the large majority of cards app-wide as of 2026-08-16 (§6). |
+| `accentSurfaceStrong` | `lerp(accent.tinted, accent.surfaceBorder, f)` | **0.55** | Every `PulseCard(style = SYNTHESIS)` — now exactly 3 cards app-wide (§6). |
 
-Both blend *toward* an already-defined, already-vetted value in the same hue family (not toward an arbitrary new hex), so the result stays visually coherent with the preset regardless of which direction a future tweak needs to go. `accentSurfaceStrong` is intentionally the more saturated of the two — curated/AI content is meant to read as visibly "more accented" than a plain price card sitting next to it, not just a different token name.
+Both blend *toward* an already-defined, already-vetted value in the same hue family (not toward an arbitrary new hex), so the result stays visually coherent with the preset regardless of which direction a future tweak needs to go. `accentSurfaceStrong` is intentionally the more saturated of the two — curated/AI content is meant to read as visibly "more accented" than a plain data card sitting next to it, not just a different token name.
+
+`accentSurfaceStrong`'s formula changed 2026-08-16: it used to blend `accent.surface` toward `accent.surfaceBorder` (0.42), entirely independent of `tinted`. It now starts from the same `accent.tinted` base `surfaceTinted` does, blended toward the stronger `surfaceBorder` anchor at a higher factor (0.55 vs. `surfaceTinted`'s 0.45) — so the two `PulseCard` styles read as the same underlying color family at two intensities, rather than two unrelated computations that happened to land in the same hue.
 
 `colorScheme.primary`/`onPrimary` also mirror `accentPrimary`/`accentOn` exactly (not a second source of truth) — purely so built-in M3 components (ripples, default `Switch` tinting) that only know how to read `colorScheme.*` stay coherent with the accent without individual migration. App code should always read `LocalPulseColors.current`, never `MaterialTheme.colorScheme` for anything this token system defines.
 
@@ -106,8 +114,10 @@ Every content card in the app now goes through one shared composable, `PulseCard
 
 | Style | Background | Border | Corner radius | Used by |
 |---|---|---|---|---|
-| `DATA` | `surfaceTinted` | `accentSurfaceBorder`, 1dp | `corner_radius_card_large` (16dp) | Equities' `AssetCard`, Indicators' `UniversalMetricCard`, VIX, Fear & Greed, Put/Call |
-| `SYNTHESIS` | `accentSurfaceStrong` | `accentSurfaceBorder`, 1dp | `corner_radius_card` (12dp) | Technical Briefing, News (both variants), Weekly Playbook events, Tail Risk, NAAIM/Dark Pool/Net Liquidity, Lead Story/Macro/Domino/Outlook/Action Footer, Verdict |
+| `DATA` | `surfaceTinted` | `accentSurfaceBorder`, 1dp | `corner_radius_card_large` (16dp) | Everything not in the `SYNTHESIS` row — Equities' `AssetCard`, Indicators' `UniversalMetricCard`, VIX, Fear & Greed, Put/Call, News (both card variants), Summary's Lead Story/Macro/Domino/Outlook/Action Footer, Insights' Weekly Playbook/Institutional Posture/Market Risks cards, and Stock Analysis' list card + `TechnicalRead`/Deep Study/Scenarios/Direct News |
+| `SYNTHESIS` | `accentSurfaceStrong` | `accentSurfaceBorder`, 1dp | `corner_radius_card` (12dp) | **Narrowed 2026-08-16 to exactly 3 cards app-wide:** Summary's `VerdictCard`, Indicators' AI Executive Briefing, Dashboard's Technical Briefing — one AI-conclusion hero card per screen |
+
+**2026-08-16:** `SYNTHESIS` used to cover roughly two dozen cards (Technical Briefing, News, Weekly Playbook events, Tail Risk, NAAIM/Dark Pool/Net Liquidity, Lead Story/Macro/Domino/Outlook/Action Footer, Verdict, and Stock Analysis' own list card + `TechnicalRead`/Deep Study/Scenarios/Direct News). A contrast pass across all 10 presets found the two styles read as nearly indistinguishable on several of them, and with most cards on a screen wearing the "AI-authored" tint, it stopped signaling anything — it just meant "this app has two shades of card." Narrowed to one hero card per screen; everything else moved to `DATA`.
 
 A third style, `NEUTRAL` (plain white/elevated background, no accent wash — used briefly for VIX/Fear & Greed/Put-Call on the theory a computed reading shouldn't look like raw price data), existed and was retired once that distinction stopped being wanted; those cards moved onto `DATA`.
 
@@ -285,8 +295,9 @@ The nine items from the previous snapshot, with what's actually happened to each
 New items worth a decision, surfaced by this round of work:
 
 10. **`signal.unknown` still has no resolved hex.** Placeholder-mapped to `onSurfaceMuted` since the very first pass of the migration. Needs a real value from Design before the data-missing state can look intentional rather than "we forgot this."
-11. **`accentSurfaceStrong`'s 0.42 and `surfaceTinted`'s 0.45 blend factors were tuned by eye, not against a contrast target.** Both are documented as one-line changes for exactly this reason, but neither has been checked against WCAG for every one of the 10 presets × both text colors that sit on top of them.
-12. **`SignalPill`'s dark-mode text blend (40% toward white) was tuned live, mid-session, well past the initial 12–15% estimate.** Worth a second look against real content on a device — a jump that large usually means the original blend was under-corrected, but it's also possible 40% overshoots for some of the 5 dark presets specifically.
+11. ~~**`accentSurfaceStrong`'s 0.42 and `surfaceTinted`'s 0.45 blend factors were tuned by eye, not against a contrast target.**~~ **Resolved 2026-08-16.** Both formulas were checked against measured contrast ratios per preset while building Stock Analysis (not exhaustively against both text colors sitting on top of them, but against the card-background-vs-page-background pairing that motivated the original concern) — `accentSurfaceStrong` was reformulated as a result (§5), `surfaceTinted`'s 0.45 was left as-is since it measured adequately.
+12. **`SignalPill`'s dark-mode text blend (40% toward white) was tuned live, mid-session, well past the initial 12–15% estimate.** Worth a second look against real content on a device — a jump that large usually means the original blend was under-corrected, but it's also possible 40% overshoots for some of the 5 dark presets specifically. Not touched this round.
+13. **`onSurfaceMuted`'s new 2026-08-16 lightness values (§3) haven't been re-checked against `SignalPill`'s dark-mode text-blend logic (item 12) or against `signal.unknown`'s placeholder mapping (item 10), both of which read `onSurfaceMuted` directly.** Worth confirming neither drifted out of the range that made sense when they were last tuned.
 
 ---
 
