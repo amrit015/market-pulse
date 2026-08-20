@@ -36,7 +36,8 @@ import com.marketlabs.pulse.utils.glossary.MarketGlossary
 fun MarketGlossaryBottomSheet(
     currentRegime: String? = null,
     currentSetup: String? = null,
-    currentCall: String? = null,
+    currentDirection: String? = null,
+    currentCycleZone: String? = null,
     currentAction: String? = null,
     description: String? = null,
     onDismiss: () -> Unit
@@ -73,7 +74,7 @@ fun MarketGlossaryBottomSheet(
                 }
 
                 // 💡 NEW: Only show the "Current Verdict" section header and divider if at least one status is present
-                if (currentRegime != null || currentSetup != null || currentCall != null || currentAction != null) {
+                if (currentRegime != null || currentSetup != null || currentDirection != null || currentCycleZone != null || currentAction != null) {
                     Text(
                         text = stringResource(id = R.string.current_verdict),
                         style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
@@ -87,8 +88,11 @@ fun MarketGlossaryBottomSheet(
                     if (currentSetup != null) {
                         CurrentStatusRow(stringResource(id = R.string.technical_setup_label), currentSetup, MarketGlossary.setups)
                     }
-                    if (currentCall != null) {
-                        CurrentStatusRow(stringResource(id = R.string.action_call_label), currentCall, MarketGlossary.calls)
+                    if (currentDirection != null) {
+                        CurrentStatusRow(stringResource(id = R.string.direction_label), currentDirection, MarketGlossary.directions)
+                    }
+                    if (currentCycleZone != null) {
+                        CurrentStatusRow(stringResource(id = R.string.cycle_zone_label), currentCycleZone, MarketGlossary.cycleZones)
                     }
                     if (currentAction != null) {
                         CurrentStatusRow(stringResource(id = R.string.action_signal_label), currentAction, MarketGlossary.actions)
@@ -113,8 +117,12 @@ fun MarketGlossaryBottomSheet(
                 item { GlossarySection(stringResource(id = R.string.setup_glossary_title), MarketGlossary.setups, currentSetup) }
             }
 
-            if (currentCall != null) {
-                item { GlossarySection(stringResource(id = R.string.action_call_glossary_title), MarketGlossary.calls, currentCall) }
+            if (currentDirection != null) {
+                item { GlossarySection(stringResource(id = R.string.direction_glossary_title), MarketGlossary.directions, currentDirection) }
+            }
+
+            if (currentCycleZone != null) {
+                item { GlossarySection(stringResource(id = R.string.cycle_zone_glossary_title), MarketGlossary.cycleZones, currentCycleZone) }
             }
 
             item { Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars)) }

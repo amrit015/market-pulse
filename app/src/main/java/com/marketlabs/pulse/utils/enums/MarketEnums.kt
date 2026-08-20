@@ -53,21 +53,6 @@ enum class TechnicalSetup(val label: String) {
     }
 }
 
-enum class TradingCall(val label: String) {
-    CONTRARIAN_BUY("CONTRARIAN BUY"),
-    ACCUMULATE("ACCUMULATE"),
-    HOLD_TRAIL_STOPS("HOLD / TRAIL STOPS"),
-    CONTRARIAN_SELL("CONTRARIAN SELL"),
-    SELL_AVOID("SELL & AVOID"),
-    HEDGE_PROTECT("HEDGE / PROTECT"),
-    UNKNOWN("UNKNOWN");
-
-    companion object {
-        fun fromString(value: String?): TradingCall =
-            entries.find { it.label.equals(value, ignoreCase = true) } ?: UNKNOWN
-    }
-}
-
 // ==========================================
 // 🎯 3. TACTICAL ACTION & INDICATORS
 // ==========================================
@@ -145,8 +130,17 @@ enum class ReportType(val label: String) {
     UNKNOWN("Unknown");
 
     companion object {
-        fun fromString(value: String?): ReportType =
-            entries.find { it.label.equals(value, ignoreCase = true) } ?: UNKNOWN
+        // 💡 "After-Hours" is accepted as a synonym for DAILY_UPDATE even though it's not one of
+        // this enum's own labels -- the backend's source intends to always collapse after-hours
+        // runs into "Daily Update" (same trading day, just generated post-close) rather than
+        // surface a distinct report type to users, but the currently deployed Cloud Function is
+        // still emitting the older "After-Hours" value pre-dating that change. Without this, a
+        // report generated under the old deploy renders "Unknown" in the header until the next
+        // backend deploy catches up.
+        fun fromString(value: String?): ReportType {
+            if (value.equals("After-Hours", ignoreCase = true)) return DAILY_UPDATE
+            return entries.find { it.label.equals(value, ignoreCase = true) } ?: UNKNOWN
+        }
     }
 }
 
@@ -162,5 +156,52 @@ enum class NewsTag(val label: String) {
     companion object {
         fun fromString(value: String?): NewsTag =
             entries.find { it.label.equals(value, ignoreCase = true) } ?: UNKNOWN
+    }
+}
+
+// ==========================================
+// 🧭 5. MARKET PULSE V2 (Verdict direction/conviction, drivers, market position)
+// ==========================================
+
+// Code-derived (not AI-authored) top-of-report directional read — backend's
+// system/market_regime qualifiers collapsed to one of three values.
+enum class SignalDirection(val label: String) {
+    RISK_ON("RISK ON"), RISK_OFF("RISK OFF"), MIXED("MIXED"), UNKNOWN("UNKNOWN");
+
+    companion object {
+        fun fromString(value: String?): SignalDirection =
+            entries.find { it.name.equals(value, ignoreCase = true) } ?: UNKNOWN
+    }
+}
+
+// How many of the backend's four regime qualifiers (trend/breadth/vix/rate) agree.
+enum class Conviction {
+    LOW, MODERATE, HIGH, UNKNOWN;
+
+    companion object {
+        fun fromString(value: String?): Conviction =
+            entries.find { it.name.equals(value, ignoreCase = true) } ?: UNKNOWN
+    }
+}
+
+// A driver's centrality to that run's narrative, as judged by the model at selection time.
+enum class DriverImpact {
+    HIGH, MODERATE, UNKNOWN;
+
+    companion object {
+        fun fromString(value: String?): DriverImpact =
+            entries.find { it.name.equals(value, ignoreCase = true) } ?: UNKNOWN
+    }
+}
+
+// Which of the 4 indicator pillars a driver was pulled from. TACTICAL_MOMENTUM is
+// modeled for forward-compat even though the backend never selects a driver from it
+// (those 5 metrics are already standalone gauges elsewhere in the app).
+enum class IndicatorCategory {
+    TACTICAL_MOMENTUM, SYSTEMIC_RISK, VALUATION, MACRO_ECONOMY, UNKNOWN;
+
+    companion object {
+        fun fromString(value: String?): IndicatorCategory =
+            entries.find { it.name.equals(value, ignoreCase = true) } ?: UNKNOWN
     }
 }

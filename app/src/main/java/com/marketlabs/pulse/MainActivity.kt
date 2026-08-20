@@ -12,7 +12,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
@@ -94,6 +98,45 @@ class MainActivity : ComponentActivity() {
                     currentRoute?.startsWith("webview/") == true ||
                     currentRoute?.startsWith("${PulseRoutes.STOCK_ANALYSIS_DETAIL}/") == true
 
+                // 💡 scrollBehavior.state.heightOffset is one shared value driving the top bar's
+                // collapse amount across every tab (see this file's own header comment on why
+                // there's only one nestedScroll attachment point). Each tab's own LazyColumn
+                // scroll position is already correctly saved/restored per-route by Compose
+                // Navigation's `restoreState`/`saveState` -- but this offset isn't tied to that,
+                // so switching tabs used to carry the previous tab's collapsed-bar amount over
+                // onto whichever tab you landed on, even a tab visited for the first time this
+                // session (which should start fully expanded). Tracked here per-route instead:
+                // save the outgoing route's offset before it's overwritten, restore the incoming
+                // route's own last offset (or 0f/fully expanded, for a route with no history yet).
+                val routeHeightOffsets = remember { mutableMapOf<String, Float>() }
+                var lastRoute by remember { mutableStateOf<String?>(null) }
+                LaunchedEffect(currentRoute) {
+                    lastRoute?.let { routeHeightOffsets[it] = scrollBehavior.state.heightOffset }
+                    scrollBehavior.state.heightOffset = routeHeightOffsets[currentRoute] ?: 0f
+                    lastRoute = currentRoute
+                }
+
+                // 💡 Summary's Drivers section jumps straight to Indicators via the same tab-
+                // switch mechanism the bottom nav itself uses (see PulseNavGraph.kt's
+                // onNavigateToIndicators) -- so, as far as the back stack is concerned, it's
+                // indistinguishable from the user having tapped the Indicators tab directly, and
+                // default back behavior would return to Overview (the start destination), not
+                // Summary (where the user actually came from). This flag is the one place that
+                // distinction is tracked: cleared the moment the route becomes anything other
+                // than Indicators, so it never lingers into an unrelated, later visit to that tab
+                // reached some other way. The BackHandler that reads it lives inside
+                // PulseNavGraph's Indicators destination itself, not here -- NavHost registers
+                // its own internal back handling as part of composing itself, so a BackHandler
+                // declared up here (composed, and so added to the dispatcher, *before* NavHost)
+                // always lost to it; one composed *inside* the destination's own content is added
+                // after NavHost's, and only then actually takes priority for that screen.
+                var reachedIndicatorsFromDrivers by remember { mutableStateOf(false) }
+                LaunchedEffect(currentRoute) {
+                    if (currentRoute != PulseRoutes.MARKET_INDICATORS) {
+                        reachedIndicatorsFromDrivers = false
+                    }
+                }
+
                 Scaffold(
                     modifier = Modifier
                         .fillMaxSize()
@@ -157,7 +200,10 @@ class MainActivity : ComponentActivity() {
 
                     PulseNavGraph(
                         navController = navController,
-                        scaffoldPadding = dynamicScaffoldPadding
+                        scaffoldPadding = dynamicScaffoldPadding,
+                        onDriversNavigatedToIndicators = { reachedIndicatorsFromDrivers = true },
+                        reachedIndicatorsFromDrivers = reachedIndicatorsFromDrivers,
+                        onIndicatorsBackHandled = { reachedIndicatorsFromDrivers = false }
                     )
                 }
             }

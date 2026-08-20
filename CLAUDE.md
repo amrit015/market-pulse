@@ -110,7 +110,7 @@ Backend equivalents are documented in `Notion 10 — Architecture` and the backe
 ## Strict rules
 
 1. **Initialize as `null`, not arbitrary defaults.** Only add a default where it's genuinely necessary, and flag it before doing so.
-2. **`@Preview` on every composable.** No exceptions. Use inline mock data. The gap in `InsightsScreen`, `IndicatorsScreen`, `NewsScreen`, `SummaryScreen`, and every `*Route.kt` is legacy debt — don't extend it.
+2. **`@Preview` on every composable.** No exceptions. Use inline mock data. The gap in `InsightsScreen`, `IndicatorsScreen`, `NewsScreen`, and every `*Route.kt` is legacy debt — don't extend it. (`SummaryScreen.kt` now has full coverage — treat it as the model to copy, not the gap.) Wrap preview content in `MarketPulseTheme(theme = MarketPulseTheme.<PRESET>) { ... }`, never plain `MaterialTheme { ... }` — almost every component reads `LocalPulseColors.current` (directly or via `.textColor`/`.pillColor`), which throws ("PulseColors not provided") outside `MarketPulseTheme`. A preview that compiles but is wrapped in the wrong theme still fails to render in the IDE with no obvious compile error to point at.
 3. **No hardcoded strings or dimensions in Compose files.** Always `stringResource()` / `dimensionResource()`. `DashboardScreen.kt` has a hardcoded `"Sector Rotation"` and raw `dp` literals — don't propagate those into new code.
 4. **Comment thoroughly. Preserve existing comments** unless verifiably obsolete.
 5. **Explain before you code.** For every non-trivial change, start with a short paragraph on your approach and the choices you're making. Keep reasoning in prose, not comments.
@@ -122,7 +122,8 @@ Backend equivalents are documented in `Notion 10 — Architecture` and the backe
 
 Current state — none of these are the convention to follow. Fix opportunistically when the file is being touched for another reason; do not schedule cleanup work around them without an ADR.
 
-- **`@Preview` coverage is incomplete.** Only `DashboardScreen.kt`, `MarketPostureView.kt`, and `WeeklyPlaybookView.kt` have any previews, and even those are partial. Rule stands for new code regardless.
+- **`@Preview` coverage is incomplete.** Only `DashboardScreen.kt`, `MarketPostureView.kt`, `WeeklyPlaybookView.kt`, and (fully) `SummaryScreen.kt` have any previews — the rest are partial. Rule stands for new code regardless.
+- **Broken (not just missing) previews in `MarketPostureView.kt`, `WeeklyPlaybookView.kt`, `DashboardScreen.kt`, `NewsScreen.kt`, `UnifiedScoreHeaderCard.kt`.** All wrap preview content in plain `MaterialTheme { ... }` instead of `MarketPulseTheme { ... }` — if the composable inside reads `LocalPulseColors.current` (most do, directly or via `SignalColorExtensions`), the preview crashes at composition time with "PulseColors not provided" instead of rendering. Found while fixing the identical bug in `SummaryScreen.kt`'s own previews. Fix opportunistically per file, same as everything else in this list.
 - **Hardcoded strings/dims in `DashboardScreen.kt`.** `"Sector Rotation"` and raw `dp` literals bypass the resource system.
 - **`DatabaseModule` missing `@Singleton` on two DAO providers.** `provideMarketSummaryDao` and `provideMarketPostureDao` — every other DAO provider has it. Cosmetic if you're not touching that module.
 - **`NewsModule` / `MarketRiskModule` parameter naming.** Both name their repository impl parameter `marketSummaryRepositoryImpl` — copy-paste leftover from `SummaryModule`. Also cosmetic.
@@ -130,10 +131,10 @@ Current state — none of these are the convention to follow. Fix opportunistica
 
 ## Recent decisions (last 5)
 
+- **2026-08-19 — Summary tab rebuilt against `market_pulse` v2** (new `verdict.direction`/`.conviction`, `drivers[]`, `market_position`, `watch[]`, `risks[]`; full styled pass replacing the old `VerdictCard`/`call`-based design). Regime chip is tinted by `direction`, not a separate text pill; `setup` moved to Market Position; per-chip glossary chevrons replaced one card-wide tap. `drivers[].direction` means net effect on equities, not the underlying indicator's own reading (backend change, same date) — see `MarketDriver`'s doc comment in `SummaryModels.kt`. Contextual jumps into another tab's content (Drivers → Indicators) use the same tab-switch nav mechanism as the bottom bar, with a `BackHandler` placed *inside* the destination's own composable (not above `NavHost`) to return to the actual origin tab — see §6 "Navigation" in `ARCHITECTURE.md`.
 - **2026-08-16 — Stock Analysis UI: 10 post-spec refinements** (tab restructure, `SYNTHESIS` narrowed to 3 hero cards app-wide, `tinted`/`onSurfaceMuted` contrast fixes, field-coverage audit). See `ADR-2026-08-16-stock-analysis-post-spec-refinements.md`.
 - **2026-08-09 — Design System v1.0: signal-layer refinement, `surface.tinted`, 10 presets.**
 - **2026-08-08 — Redesign shell: global collapsing top bar, floating nav, full-screen Settings.**
 - **2026-08-08 — Theme model: baked-mode presets (count later revised to 10), gallery, overrides OS.**
-- **2026-08-08 — Two-layer color system: themeable accent + locked signal.**
 
 Full entries in Notion `50 — Decisions`.
