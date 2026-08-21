@@ -9,6 +9,7 @@ import com.marketlabs.pulse.storage.model.summary.MarketVerdict
 import com.marketlabs.pulse.storage.model.summary.NewsItem
 import com.marketlabs.pulse.storage.model.summary.RiskItem
 import com.marketlabs.pulse.storage.model.summary.WatchItem
+import com.marketlabs.pulse.storage.model.summary.WhatsNewItem
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 
@@ -127,5 +128,20 @@ class SummaryConverters {
         if (json.isNullOrBlank()) return null
         val type = Types.newParameterizedType(List::class.java, RiskItem::class.java)
         return moshi.adapter<List<RiskItem>>(type).fromJson(json)
+    }
+
+    // 9. What's New (List<WhatsNewItem>) Converter -- new 2026-08-21
+    @TypeConverter
+    fun fromWhatsNewList(list: List<WhatsNewItem>?): String? {
+        if (list == null) return null
+        val type = Types.newParameterizedType(List::class.java, WhatsNewItem::class.java)
+        return moshi.adapter<List<WhatsNewItem>>(type).toJson(list)
+    }
+
+    @TypeConverter
+    fun toWhatsNewList(json: String?): List<WhatsNewItem>? {
+        if (json.isNullOrBlank()) return null
+        val type = Types.newParameterizedType(List::class.java, WhatsNewItem::class.java)
+        return moshi.adapter<List<WhatsNewItem>>(type).fromJson(json)
     }
 }

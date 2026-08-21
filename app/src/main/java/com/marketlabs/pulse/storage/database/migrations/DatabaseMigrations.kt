@@ -402,10 +402,23 @@ object DatabaseMigrations {
         }
     }
 
+    // Migration from Version 15 to 16: market_pulse gained two new backend fields (2026-08-21) --
+    // drivers[].data_direction (a sibling field on the existing `drivers` JSON column, no schema
+    // change needed there) and the new top-level whats_new[] list, which gets its own column, same
+    // pattern as watch/risks/drivers rather than nesting inside an existing blob. Unlike
+    // MIGRATION_13_14/14_15, this is purely additive -- no existing column's JSON shape changed,
+    // so a plain `ADD COLUMN` preserves the existing cache instead of forcing a re-fetch; old rows
+    // just read back with `whatsNew` null until the next sync.
+    val MIGRATION_15_16 = object : Migration(15, 16) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE `market_pulse` ADD COLUMN `whatsNew` TEXT")
+        }
+    }
+
     val ALL_MIGRATIONS = arrayOf(
         MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5,
         MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9,
         MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13,
-        MIGRATION_13_14, MIGRATION_14_15 // 💡 Added to registry
+        MIGRATION_13_14, MIGRATION_14_15, MIGRATION_15_16 // 💡 Added to registry
     )
 }

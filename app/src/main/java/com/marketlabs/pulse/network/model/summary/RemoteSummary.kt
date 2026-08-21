@@ -19,6 +19,9 @@ data class NetworkMarketPulse(
     @Json(name = "watch") val watch: List<NetworkWatchItem>? = null,
     @Json(name = "risks") val risks: List<NetworkRiskItem>? = null,
     @Json(name = "what_changed") val whatChanged: String? = null,
+    // 💡 New 2026-08-21: a deterministic (non-AI) list of indicators whose data posted in the
+    // last 7 days, most-recent-first. Additive, no route change -- see NetworkWhatsNewEntry.
+    @Json(name = "whats_new") val whatsNew: List<NetworkWhatsNewEntry>? = null,
     // 💡 Present in the payload, deliberately never modeled past the mapper -- see
     // SummaryMappers.kt's toDomain(). Declared here (rather than left undeclared, which
     // Moshi would tolerate fine) so their absence from the domain model reads as an
@@ -49,6 +52,12 @@ data class NetworkVerdict(
 data class NetworkDriver(
     @Json(name = "label") val label: String? = null,
     @Json(name = "direction") val direction: String? = null,
+    // 💡 New 2026-08-21: the indicator's own natural/deterministic reading, independent of
+    // narrative -- e.g. contracting payrolls is always BEARISH here regardless of how the market
+    // is trading it that day. See MarketDriver's doc comment in SummaryModels.kt for how this
+    // differs from `direction` (the model's reconciled net-effect-on-equities call). Both fields
+    // are always present and can legitimately disagree.
+    @Json(name = "data_direction") val dataDirection: String? = null,
     @Json(name = "category") val category: String? = null,
     @Json(name = "impact") val impact: String? = null
 )
@@ -140,4 +149,20 @@ data class NetworkMacroCall(
 @JsonClass(generateAdapter = true)
 data class NetworkMarketOutlook(
     @Json(name = "summary") val summary: String? = null
+)
+
+// 💡 New 2026-08-21: one row of whats_new[] -- a deterministic (non-AI) list of indicators whose
+// data posted in the last 7 days, most-recent-first. label/release_date are always present
+// backend-side; everything else can be null. Kept fully nullable here anyway, same as every other
+// Network* DTO in this file -- this is a Retrofit response body, not a Firestore toObject() model,
+// so there's no no-arg-constructor constraint forcing cheap non-null defaults.
+@JsonClass(generateAdapter = true)
+data class NetworkWhatsNewEntry(
+    @Json(name = "label") val label: String? = null,
+    @Json(name = "category") val category: String? = null,
+    @Json(name = "value_display") val valueDisplay: String? = null,
+    @Json(name = "change_display") val changeDisplay: String? = null,
+    @Json(name = "signal_text") val signalText: String? = null,
+    @Json(name = "signal_color") val signalColor: String? = null,
+    @Json(name = "release_date") val releaseDate: String? = null
 )

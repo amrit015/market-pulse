@@ -116,7 +116,7 @@ Backend equivalents are documented in `Notion 10 — Architecture` and the backe
 5. **Explain before you code.** For every non-trivial change, start with a short paragraph on your approach and the choices you're making. Keep reasoning in prose, not comments.
 6. **Localized changes only.** Do not refactor, reformat, or "clean up" outside the requested change. If you see something wrong, flag it — don't silently fix it.
 7. **Ask before assuming.** Ambiguous requirement, missing color token, unclear data model, unfamiliar acronym — stop and ask.
-8. **Comments are self-contained — never cite a spec, ADR, or doc file by name.** No `spec-YYYYMMDD-*.md`, no "Token Contract," no "Design Direction," no "per the migration table." A comment has to make sense to someone with only this repo checked out, nothing else open. Document the thought process and the actual implementation directly: what the code does, why it does it that way, what it replaced and why that mattered. If a rule genuinely originates from an external doc, restate the rule itself in the comment — don't point at the doc.
+8. **Comments are self-contained — never cite a spec, ADR, or doc file by name or requested changes.** No `spec-YYYYMMDD-*.md`, no "Token Contract," no "Design Direction," no "per the migration table." A comment has to make sense to someone with only this repo checked out, nothing else open. Document the thought process and the actual implementation directly: what the code does, why it does it that way, what it replaced and why that mattered. If a rule genuinely originates from an external doc, restate the rule itself in the comment — don't point at the doc.
 
 ## Known gaps (don't propagate)
 

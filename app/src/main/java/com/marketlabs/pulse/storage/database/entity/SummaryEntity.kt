@@ -12,6 +12,7 @@ import com.marketlabs.pulse.storage.model.summary.MarketVerdict
 import com.marketlabs.pulse.storage.model.summary.NewsItem
 import com.marketlabs.pulse.storage.model.summary.RiskItem
 import com.marketlabs.pulse.storage.model.summary.WatchItem
+import com.marketlabs.pulse.storage.model.summary.WhatsNewItem
 
 // ============================================================================
 //  V3 ENTITY (Gemini 3.x Pro - Main Content)
@@ -32,5 +33,8 @@ data class MarketPulseEntity(
     val dominoEffect: DominoEffect? = null,
     val watch: List<WatchItem>? = null,
     val risks: List<RiskItem>? = null,
-    val whatChanged: String? = null
+    val whatChanged: String? = null,
+    // New 2026-08-21 -- own column (MIGRATION_15_16), same pattern as watch/risks/drivers rather
+    // than nested inside an existing JSON blob.
+    val whatsNew: List<WhatsNewItem>? = null
 )

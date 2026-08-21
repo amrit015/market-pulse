@@ -13,6 +13,7 @@ import com.marketlabs.pulse.network.model.summary.NetworkRiskItem
 import com.marketlabs.pulse.network.model.summary.NetworkValuation
 import com.marketlabs.pulse.network.model.summary.NetworkVerdict
 import com.marketlabs.pulse.network.model.summary.NetworkWatchItem
+import com.marketlabs.pulse.network.model.summary.NetworkWhatsNewEntry
 import com.marketlabs.pulse.storage.database.entity.MarketPulseEntity
 import com.marketlabs.pulse.storage.model.summary.DominoEffect
 import com.marketlabs.pulse.storage.model.summary.Horizon
@@ -27,6 +28,7 @@ import com.marketlabs.pulse.storage.model.summary.Positioning
 import com.marketlabs.pulse.storage.model.summary.RiskItem
 import com.marketlabs.pulse.storage.model.summary.Valuation
 import com.marketlabs.pulse.storage.model.summary.WatchItem
+import com.marketlabs.pulse.storage.model.summary.WhatsNewItem
 import com.marketlabs.pulse.utils.enums.Conviction
 import com.marketlabs.pulse.utils.enums.DriverImpact
 import com.marketlabs.pulse.utils.enums.IndicatorCategory
@@ -57,7 +59,8 @@ fun MarketPulse.toMarketPulseEntity(): MarketPulseEntity {
         dominoEffect = this.dominoEffect,
         watch = this.watch,
         risks = this.risks,
-        whatChanged = this.whatChanged
+        whatChanged = this.whatChanged,
+        whatsNew = this.whatsNew
     )
 }
 
@@ -79,7 +82,8 @@ fun MarketPulseEntity.toDomain(): MarketPulse {
         dominoEffect = this.dominoEffect,
         watch = this.watch,
         risks = this.risks,
-        whatChanged = this.whatChanged
+        whatChanged = this.whatChanged,
+        whatsNew = this.whatsNew
     )
 }
 
@@ -106,7 +110,8 @@ fun NetworkMarketPulse.toDomain(): MarketPulse {
         dominoEffect = this.dominoEffect?.toDomain(),
         watch = this.watch?.map { it.toDomain() },
         risks = this.risks?.map { it.toDomain() },
-        whatChanged = this.whatChanged
+        whatChanged = this.whatChanged,
+        whatsNew = this.whatsNew?.map { it.toDomain() } ?: emptyList()
     )
 }
 
@@ -127,23 +132,28 @@ fun NetworkVerdict.toDomain(): MarketVerdict {
     )
 }
 
-// direction is resolved straight to SignalColor (never a separate Direction enum). 💡 As of
-// 2026-08-18 this is the model's reconciled call on the driver's net effect on equities, not a
-// mechanical copy of the underlying indicator's own signal_color -- see MarketDriver's doc
-// comment in SummaryModels.kt for why that distinction matters (e.g. weak payrolls reading
-// BULLISH when they're fueling a dovish-pivot rally).
+// direction/dataDirection are both resolved straight to SignalColor (never a separate Direction
+// enum), sharing the one BULLISH/BEARISH/NEUTRAL mapping below. 💡 As of 2026-08-18 direction is
+// the model's reconciled call on the driver's net effect on equities, not a mechanical copy of
+// the underlying indicator's own reading -- see MarketDriver's doc comment in SummaryModels.kt
+// for why that distinction matters (e.g. weak payrolls reading BULLISH when they're fueling a
+// dovish-pivot rally). dataDirection (new 2026-08-21) is that raw reading, kept as a genuinely
+// separate field rather than a fallback -- the two can legitimately disagree.
 fun NetworkDriver.toDomain(): MarketDriver {
     return MarketDriver(
         label = this.label,
-        direction = when (this.direction?.uppercase()) {
-            "BULLISH" -> SignalColor.GREEN
-            "BEARISH" -> SignalColor.RED
-            "NEUTRAL" -> SignalColor.YELLOW
-            else -> SignalColor.UNKNOWN
-        },
+        direction = this.direction.toDriverSignalColor(),
+        dataDirection = this.dataDirection.toDriverSignalColor(),
         category = IndicatorCategory.fromString(this.category),
         impact = DriverImpact.fromString(this.impact)
     )
+}
+
+private fun String?.toDriverSignalColor(): SignalColor = when (this?.uppercase()) {
+    "BULLISH" -> SignalColor.GREEN
+    "BEARISH" -> SignalColor.RED
+    "NEUTRAL" -> SignalColor.YELLOW
+    else -> SignalColor.UNKNOWN
 }
 
 fun NetworkMarketPosition.toDomain(): MarketPosition {
@@ -224,5 +234,20 @@ fun NetworkRiskItem.toDomain(): RiskItem {
         risk = this.risk,
         severity = RiskImpactLevel.fromString(this.severity),
         note = this.note
+    )
+}
+
+// signalColor is pre-classified backend-side, same convention NetworkPositioning.toDomain()
+// already follows for its own signal_color -- resolved via SignalColor.fromString (GREEN/RED/
+// YELLOW), not the BULLISH/BEARISH/NEUTRAL vocabulary NetworkDriver's direction fields use.
+fun NetworkWhatsNewEntry.toDomain(): WhatsNewItem {
+    return WhatsNewItem(
+        label = this.label,
+        category = IndicatorCategory.fromString(this.category),
+        valueDisplay = this.valueDisplay,
+        changeDisplay = this.changeDisplay,
+        signalText = this.signalText,
+        signalColor = this.signalColor?.let { SignalColor.fromString(it) },
+        releaseDate = this.releaseDate
     )
 }

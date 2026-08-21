@@ -26,7 +26,11 @@ data class MarketPulse(
     val dominoEffect: DominoEffect? = null,
     val watch: List<WatchItem>? = null,
     val risks: List<RiskItem>? = null,
-    val whatChanged: String? = null
+    val whatChanged: String? = null,
+    // New 2026-08-21: deterministic (non-AI), most-recent-first list of indicators whose data
+    // posted in the last 7 days. Can legitimately be empty on a quiet week -- mapped to
+    // emptyList() rather than left null, same convention leadStories/macroMix already follow.
+    val whatsNew: List<WhatsNewItem>? = null
 )
 
 // Replaces the old Verdict/TheRead split -- the backend consolidated signal + the_read into
@@ -55,10 +59,19 @@ data class MarketVerdict(
 // here if it's fueling a dovish-pivot rally ("bad news is good news"); BEARISH means "currently
 // pressuring the market down," not "this data point was bad." Don't reintroduce copy, tooltips,
 // or logic that assumes the two are the same thing.
+// 💡 As of 2026-08-21, direction and dataDirection are two deliberately separate reads, not a
+// primary/fallback pair -- direction is the model's reconciled call on this driver's net effect
+// on equities right now (see this class's doc comment above), while dataDirection is the
+// indicator's own natural/deterministic reading, independent of narrative (e.g. contracting
+// payrolls is always BEARISH here regardless of how the market's trading it). Both are always
+// present and can legitimately disagree -- that disagreement is the interesting signal, not
+// noise. TODO(design-wiring): no visual treatment for dataDirection has landed yet; it's plumbed
+// through so it's available once one does, not rendered anywhere in SummaryScreen.kt today.
 @JsonClass(generateAdapter = true)
 data class MarketDriver(
     val label: String? = null,
     val direction: SignalColor? = null,
+    val dataDirection: SignalColor? = null,
     val category: IndicatorCategory? = null,
     val impact: DriverImpact? = null
 )
@@ -140,4 +153,19 @@ data class RiskItem(
     val risk: String? = null,
     val severity: RiskImpactLevel? = null,
     val note: String? = null
+)
+
+// One row of whats_new[] (new 2026-08-21) -- signalText/signalColor are pre-classified
+// backend-side, same convention Positioning's own signalText/signalColor pair already follows:
+// render directly, no client-side threshold logic. No hierarchy slot or visual design has landed
+// for this section yet -- see WhatsNewSection in SummaryScreen.kt for the placeholder rendering.
+@JsonClass(generateAdapter = true)
+data class WhatsNewItem(
+    val label: String? = null,
+    val category: IndicatorCategory? = null,
+    val valueDisplay: String? = null,
+    val changeDisplay: String? = null,
+    val signalText: String? = null,
+    val signalColor: SignalColor? = null,
+    val releaseDate: String? = null
 )

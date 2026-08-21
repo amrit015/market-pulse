@@ -56,6 +56,7 @@ import com.marketlabs.pulse.storage.model.summary.Positioning
 import com.marketlabs.pulse.storage.model.summary.RiskItem
 import com.marketlabs.pulse.storage.model.summary.Valuation
 import com.marketlabs.pulse.storage.model.summary.WatchItem
+import com.marketlabs.pulse.storage.model.summary.WhatsNewItem
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.bottomSheet.DriversInfoBottomSheet
@@ -74,6 +75,7 @@ import com.marketlabs.pulse.utils.enums.RiskImpactLevel
 import com.marketlabs.pulse.utils.enums.SignalColor
 import com.marketlabs.pulse.utils.enums.SignalDirection
 import com.marketlabs.pulse.utils.enums.TechnicalSetup
+import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -168,6 +170,19 @@ fun MarketSummaryScreen(
                         onCycleZoneClick = { glossaryTarget = GlossaryTarget.CYCLE_ZONE }
                     )
                 }
+            }
+
+            // 💡 New 2026-08-21, placed here as a reasonable default -- no hierarchy slot has
+            // been assigned for this section yet. See WhatsNewSection's doc comment below.
+            val whatsNew = validData.whatsNew
+            if (!whatsNew.isNullOrEmpty()) {
+                item {
+                    SectionTitle(
+                        title = stringResource(id = R.string.section_whats_new),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+                item { WhatsNewSection(whatsNew) }
             }
 
             val stories = validData.leadStories
@@ -360,7 +375,7 @@ fun SignalSection(verdict: MarketVerdict, onRegimeClick: () -> Unit) {
                 Text(
                     text = stringResource(id = R.string.section_signal),
                     style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.primary
                 )
 
                 verdict.regime?.let {
@@ -724,6 +739,83 @@ fun MarketPositionSection(
                 }
             }
         }
+    }
+}
+
+/**
+ * whats_new[] (new 2026-08-21) -- a deterministic (non-AI), most-recent-first list of indicators
+ * whose data posted in the last 7 days. Styled as one `DATA`-style card holding every row, split
+ * by a divider per entry -- same "one card, divided rows" structure [TheReadSection]'s
+ * analysis/posture split already uses, one step further since the row count here is dynamic.
+ * `changeDisplay` (the signed delta, e.g. "+0.3%"/"-5k" -- already carries its own up/down sign)
+ * is tinted by `signalColor`, the same pre-classified backend read [MarketPositionSection]'s gauge
+ * caption and [RisksSection]'s severity pill already render directly with no client-side
+ * threshold logic. `category` is deliberately not shown -- kept on the domain model for whichever
+ * screen ends up grouping by it, but redundant with `label` for a flat list like this one.
+ * TODO(hierarchy-placement): this section's placement (currently right after Market Position) is
+ * still a reasonable-default guess, not a confirmed design decision.
+ */
+@Composable
+fun WhatsNewSection(items: List<WhatsNewItem>) {
+    PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
+        Column {
+            items.forEachIndexed { index, item ->
+                val changeColor = item.signalColor.textColor
+
+                Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = item.label ?: "",
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.weight(1f)
+                        )
+                        item.changeDisplay?.let {
+                            Text(
+                                text = it,
+                                style = MaterialTheme.typography.titleSmall,
+                                color = changeColor
+                            )
+                        }
+                    }
+
+                    val detailLine = listOfNotNull(
+                        item.valueDisplay,
+                        item.signalText,
+                        item.releaseDate.toShortReleaseDate()
+                    ).joinToString(" · ")
+                    if (detailLine.isNotBlank()) {
+                        Text(
+                            text = detailLine,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_micro))
+                        )
+                    }
+                }
+
+                if (index != items.lastIndex) {
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                        thickness = dimensionResource(id = R.dimen.border_thin)
+                    )
+                }
+            }
+        }
+    }
+}
+
+// release_date is the backend's plain `yyyy-MM-dd` (confirmed against marketPulseComposer.ts,
+// which parses it as `${release_date}T00:00:00Z`) -- reformatted to "Aug 19" for display. Falls
+// back to the raw string on a parse miss rather than dropping the date, since this is external
+// data being parsed, not a value this app itself formatted.
+private fun String?.toShortReleaseDate(): String? {
+    if (this == null) return null
+    return try {
+        val parsed = SimpleDateFormat("yyyy-MM-dd", Locale.US).parse(this)
+        parsed?.let { SimpleDateFormat("MMM d", Locale.getDefault()).format(it) } ?: this
+    } catch (e: ParseException) {
+        this
     }
 }
 
@@ -1227,6 +1319,46 @@ private fun PreviewMarketPositionSection() {
                 whatChanged = "Retail sales missed, pulling forward Fed cut odds.",
                 onSetupClick = {},
                 onCycleZoneClick = {}
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF121212)
+@Composable
+private fun PreviewWhatsNewSection() {
+    MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            WhatsNewSection(
+                listOf(
+                    WhatsNewItem(
+                        label = "Retail Sales (MoM)",
+                        category = IndicatorCategory.MACRO_ECONOMY,
+                        valueDisplay = "-0.3%",
+                        changeDisplay = "-0.5%",
+                        signalText = "Below Consensus",
+                        signalColor = SignalColor.RED,
+                        releaseDate = "2026-08-20"
+                    ),
+                    WhatsNewItem(
+                        label = "Initial Jobless Claims",
+                        category = IndicatorCategory.MACRO_ECONOMY,
+                        valueDisplay = "235k",
+                        changeDisplay = "-5k",
+                        signalText = "In Line",
+                        signalColor = SignalColor.YELLOW,
+                        releaseDate = "2026-08-19"
+                    ),
+                    WhatsNewItem(
+                        label = "Core PCE (MoM)",
+                        category = IndicatorCategory.MACRO_ECONOMY,
+                        valueDisplay = "0.1%",
+                        changeDisplay = "-0.1%",
+                        signalText = "Cooler Than Expected",
+                        signalColor = SignalColor.GREEN,
+                        releaseDate = "2026-08-15"
+                    )
+                )
             )
         }
     }

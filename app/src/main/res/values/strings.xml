@@ -4,7 +4,7 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="analyzed_at">Analyzed as of: %1$s</string>
-    <string name="section_lead_stories">Lead Stories</string>
+    <string name="section_lead_stories">Market Movers</string>
     <string name="section_macro_mix">Macro Mix</string>
 
     <string name="section_domino_effect">The Domino Effect</string>
@@ -19,6 +19,10 @@
     <string name="section_watch">What to Watch</string>
     <string name="section_risks">Risks to Market</string>
     <string name="section_the_read">The Read</string>
+    <!-- New 2026-08-21: deterministic (non-AI) list of indicators posted in the last 7 days. No
+         hierarchy or visual design has landed for this section yet; see WhatsNewSection's doc
+         comment in SummaryScreen.kt. -->
+    <string name="section_whats_new">What\'s New</string>
     <string name="drivers_navigate_content_description">View drivers in Indicators</string>
     <string name="drivers_info_content_description">About drivers</string>
     <string name="drivers_info_title">About Drivers</string>
