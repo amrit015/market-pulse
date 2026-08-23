@@ -59,7 +59,7 @@ fun StockAnalysisScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background),
         contentPadding = PaddingValues(
-            top = scaffoldPadding.calculateTopPadding() + paddingLarge,
+            top = scaffoldPadding.calculateTopPadding(),
             bottom = scaffoldPadding.calculateBottomPadding() + paddingLarge,
             start = paddingLarge,
             end = paddingLarge

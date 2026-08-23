@@ -39,7 +39,7 @@ fun InsightsScreen(
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(
-                top = scaffoldPadding.calculateTopPadding() + paddingLarge,
+                top = scaffoldPadding.calculateTopPadding(),
                 bottom = scaffoldPadding.calculateBottomPadding() + paddingLarge,
                 start = paddingLarge,
                 end = paddingLarge
@@ -68,12 +68,26 @@ fun InsightsScreen(
                 item {
                     TailRisksSection(risksData = risksData)
                 }
+
+                item {
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                        modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_medium))
+                    )
+                }
             }
 
             // --- SECTION 3: INSTITUTIONAL POSTURE (NEW) ---
             uiState.marketPosture?.let { postureData ->
                 item {
                     InstitutionalPostureSection(postureData = postureData)
+                }
+
+                item {
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                        modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_medium))
+                    )
                 }
             }
         }

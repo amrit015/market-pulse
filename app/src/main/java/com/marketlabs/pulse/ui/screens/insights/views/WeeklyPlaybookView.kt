@@ -36,7 +36,9 @@ import com.marketlabs.pulse.storage.model.weeklyPlaybook.WeeklyPlaybook
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
+import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 
 @Composable
@@ -44,8 +46,7 @@ fun WeeklyPlaybookSection(playbook: WeeklyPlaybook) {
     if (playbook.events.isNullOrEmpty()) return
 
     Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_medium))
+        modifier = Modifier.fillMaxWidth()
     ) {
         // 💡 ALREADY PERFECT: Matches TailRisks exactly
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -67,6 +68,21 @@ fun WeeklyPlaybookSection(playbook: WeeklyPlaybook) {
                 color = MaterialTheme.colorScheme.primary
             )
         }
+
+        val date = playbook.lastUpdated?.let { Date(it) } ?: Date()
+        val format = SimpleDateFormat("MMM dd, h:mm a", Locale.getDefault())
+
+        Text(
+            text = stringResource(id = R.string.analyzed_at, format.format(date)),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(
+                top = dimensionResource(id = R.dimen.padding_micro),
+                bottom = dimensionResource(id = R.dimen.padding_large)
+            )
+        )
+
+        Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_medium)))
 
         playbook.events.forEach { event ->
             WeeklyEventCard(event)
@@ -268,7 +284,7 @@ private fun isValueAvailable(value: String?): Boolean {
 @Preview(showBackground = true, backgroundColor = 0xFF121212)
 @Composable
 fun PreviewWeeklyPlaybookSection() {
-    MaterialTheme {
+    MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
         val mockEvent = WeeklyEvent(
             eventName = stringResource(id = R.string.preview_event_name),
             date = "2026-06-12",

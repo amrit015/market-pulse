@@ -2,6 +2,8 @@ package com.marketlabs.pulse.ui.screens.indicators
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.marketlabs.pulse.core.glossary.MetricGlossaryEntry
+import com.marketlabs.pulse.core.glossary.MetricGlossaryProvider
 import com.marketlabs.pulse.core.indicators.IndicatorsRepository
 import com.marketlabs.pulse.core.sync.SyncManager
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,7 +18,8 @@ import javax.inject.Inject
 @HiltViewModel
 class IndicatorsViewModel @Inject constructor(
     private val repository: IndicatorsRepository,
-    private val syncManager: SyncManager
+    private val syncManager: SyncManager,
+    private val glossaryProvider: MetricGlossaryProvider
 ) : ViewModel() {
 
     private val _isLoading = MutableStateFlow(false)
@@ -71,6 +74,12 @@ class IndicatorsViewModel @Inject constructor(
     fun clearError() {
         _errorMessage.value = null
     }
+
+    /**
+     * Looks up the static glossary content (what it is / how to read / bands / gotchas) for a
+     * metric, keyed by its `metric_id`. Returns null for an id the bundle doesn't cover yet.
+     */
+    fun glossaryEntryFor(metricId: String): MetricGlossaryEntry? = glossaryProvider.get(metricId)
 
     private fun fetchIndicators(force: Boolean) {
         viewModelScope.launch {

@@ -1,0 +1,269 @@
+{
+  "fear_and_greed": {
+    "what_it_is": "CNN's blend of 7 indicators into a single 0-100 score of immediate market psychology -- how euphoric or panicked traders are right now.",
+    "how_to_read": "This is a contrarian gauge: extreme fear has historically marked good buying opportunities, and extreme greed has historically preceded pullbacks. It moves with sentiment, not fundamentals, so it can stay at an extreme for weeks.",
+    "bands": [
+      { "label": "Extreme Fear", "meaning": "Score of 25 or below. The crowd is panicking and dumping good assets alongside bad ones." },
+      { "label": "Fear", "meaning": "26-45. Sentiment is cautious but not yet capitulating." },
+      { "label": "Neutral", "meaning": "46-54. No strong emotional bias either way." },
+      { "label": "Greed", "meaning": "55-74. Sentiment is confident and buyers are in control." },
+      { "label": "Extreme Greed", "meaning": "75 or above. The crowd is euphoric and largely blind to risk." }
+    ],
+    "gotchas": "This index can sit at an extreme for a long stretch during a strong trend -- \"extreme greed\" alone isn't a sell signal, it's a reason to tighten risk management."
+  },
+  "put_call_ratio": {
+    "what_it_is": "The ratio of options volume betting on a decline (puts) to volume betting on a rise (calls) across the market.",
+    "how_to_read": "Read contrarian, same as Fear & Greed: a high ratio means traders are aggressively buying crash insurance, which has historically preceded bounces. A low ratio means traders are leveraged for more upside, which can set up a trap if sentiment reverses.",
+    "bands": [
+      { "label": "Extreme Greed", "meaning": "0.60 or below. Traders are heavily positioned for further gains with little hedging." },
+      { "label": "Greed", "meaning": "0.61-0.75. Call buying outweighs put buying." },
+      { "label": "Neutral", "meaning": "0.76-0.84. Puts and calls are roughly balanced." },
+      { "label": "Fear", "meaning": "0.85-0.99. Put buying is picking up relative to calls." },
+      { "label": "Extreme Fear", "meaning": "1.00 or above. Traders are aggressively buying downside protection." }
+    ],
+    "gotchas": "A single day's ratio is noisy -- large options expirations or a single institutional hedge can distort it without reflecting a broad shift in sentiment."
+  },
+  "spy_rsi": {
+    "what_it_is": "The 14-day Relative Strength Index on SPY -- a 0-100 score of how far and how fast price has moved recently.",
+    "how_to_read": "It measures momentum exhaustion, not direction. A high reading means the recent move has been unusually fast and may be due for a pause; a low reading means selling has been unusually fast and may be due for a bounce.",
+    "bands": [
+      { "label": "Oversold", "meaning": "30 or below. Selling has been sharp and mechanically overextended." },
+      { "label": "Neutral", "meaning": "31-69. Normal price action, no extension in either direction." },
+      { "label": "Overbought", "meaning": "70 or above. Buying has been sharp and mechanically overextended." }
+    ],
+    "gotchas": "In a strong trend, RSI can stay overbought or oversold for extended stretches -- treat it as a momentum reading, not a standalone reversal signal."
+  },
+  "sma_extension": {
+    "what_it_is": "The percentage difference between SPY's current price and its 200-day moving average.",
+    "how_to_read": "Price behaves like it's tethered to the 200-day average by a rubber band. The further it stretches in either direction, the more likely a snap back toward the average becomes.",
+    "bands": [
+      { "label": "Undervalued", "meaning": "-5% or lower. Price has stretched meaningfully below its long-term trend." },
+      { "label": "Trend Level", "meaning": "-4% to +9%. Price is trading in normal proximity to its 200-day average." },
+      { "label": "Overextended", "meaning": "+10% or higher. Price has stretched meaningfully above its long-term trend." }
+    ],
+    "gotchas": "\"Overextended\" describes distance from the average, not overvaluation -- a strong structural uptrend can stay stretched for a long time before mean-reverting."
+  },
+  "vix": {
+    "what_it_is": "The market's expectation of S&P 500 volatility over the next 30 days, derived from options prices -- Wall Street's \"fear gauge.\"",
+    "how_to_read": "Low VIX means options are cheap because traders expect calm markets. A rising VIX means traders are paying up for downside protection, which typically accompanies falling prices.",
+    "bands": [
+      { "label": "Calm", "meaning": "Below 20. Normal, low-anxiety market conditions." },
+      { "label": "Elevated", "meaning": "20-29. The market is nervous and choppier than usual." },
+      { "label": "Panic", "meaning": "30 or above. Extreme fear -- historically these spikes are short-lived." }
+    ],
+    "gotchas": "VIX spikes tend to mean-revert quickly once the triggering event passes -- a single panic reading says more about the moment than about the trend ahead."
+  },
+  "yield_curve": {
+    "what_it_is": "The gap between the 10-Year and 2-Year Treasury yields -- the classic recession-warning spread.",
+    "how_to_read": "Normally, longer-term debt pays a higher yield than short-term debt. When that relationship compresses or flips, it means investors expect the economy (and short rates) to weaken.",
+    "bands": [
+      { "label": "Deep Inversion", "meaning": "Below -0.50%. Short rates pay well above long rates -- historically a strong recession signal." },
+      { "label": "Inverted", "meaning": "-0.50% to just below 0%. Short-term rates pay more than long-term rates." },
+      { "label": "Flat", "meaning": "0% to 0.19%. The curve is transitioning toward a warning zone." },
+      { "label": "Normal", "meaning": "0.20% or above. The healthy, upward-sloping shape." }
+    ],
+    "gotchas": "The curve has historically inverted well before a recession actually starts -- and steepens again (un-inverts) right around when the recession begins, so \"un-inverting\" is not itself the all-clear."
+  },
+  "credit_spreads": {
+    "what_it_is": "The extra yield investors demand to hold high-yield (\"junk\") corporate bonds over safe Treasuries -- a direct read on how worried lenders are about defaults.",
+    "how_to_read": "Widening spreads mean lenders are pricing in more default risk and pulling back credit to weak borrowers, which has historically preceded stock market stress. Tight spreads mean credit is flowing freely.",
+    "bands": [
+      { "label": "Healthy", "meaning": "3.0% or below. Lenders are confident and credit is cheap." },
+      { "label": "Caution", "meaning": "3.01%-4.0%. Spreads are drifting wider than comfortable." },
+      { "label": "Stress", "meaning": "4.01%-5.0%. Default fears are rising and lending is tightening." },
+      { "label": "Crisis", "meaning": "Above 5.0%. Severe credit stress, historically coincident with sharp equity drawdowns." }
+    ],
+    "gotchas": "Credit markets tend to move before equities do -- this is one of the better early-warning metrics in the systemic risk pillar, not just a lagging confirmation of stress already visible in stocks."
+  },
+  "move_index": {
+    "what_it_is": "The bond-market equivalent of the VIX -- implied volatility on U.S. Treasuries.",
+    "how_to_read": "The bond market is often considered \"smarter\" and more institutionally driven than equities. A breakdown in bonds (a MOVE spike) has historically preceded stress showing up in stocks.",
+    "bands": [
+      { "label": "Calm", "meaning": "100 or below. The Treasury market is stable." },
+      { "label": "Elevated", "meaning": "101-130. Rising macro/rate uncertainty." },
+      { "label": "Panic", "meaning": "Above 130. Severe bond-market volatility, often alongside Fed intervention or a rates shock." }
+    ],
+    "gotchas": "Because MOVE reacts to rate-policy uncertainty specifically, it can spike around Fed meetings or major data prints independent of what equities are doing that same day."
+  },
+  "copper_gold": {
+    "what_it_is": "The price of copper (an industrial, \"Dr. Copper\") divided by the price of gold (the classic fear asset) -- a real-time read on global growth expectations.",
+    "how_to_read": "Copper outperforming gold means the market expects building and manufacturing to expand (risk-on). Gold outperforming copper means capital is rotating to safety on growth fears (risk-off).",
+    "bands": [
+      { "label": "Recessionary", "meaning": "Below 1.10. A steep skew toward gold, consistent with acute growth fear." },
+      { "label": "Risk-Aversion", "meaning": "1.10-1.34. Gold is outperforming; capital is playing defense." },
+      { "label": "Slowdown", "meaning": "1.35-1.54. A milder tilt toward caution." },
+      { "label": "Neutral", "meaning": "1.55-1.90 or the ratio doesn't clear the Expansion threshold. No strong growth signal either way." },
+      { "label": "Expansion", "meaning": "Above 1.90. Copper is outperforming, consistent with a building/manufacturing upswing." }
+    ],
+    "gotchas": "This ratio reflects two individually volatile commodities -- a short-term move can come from an idiosyncratic supply shock in either metal rather than a genuine shift in growth expectations."
+  },
+  "consumer_rotation": {
+    "what_it_is": "Discretionary stocks (XLY -- Amazon, Tesla, travel, luxury) versus Staples stocks (XLP -- Walmart, Procter & Gamble, essentials), tracking whether consumers and investors feel confident or defensive.",
+    "how_to_read": "Discretionary outperforming means investors expect consumers to keep spending on non-essentials (risk-on). Staples outperforming means investors are rotating into recession-resistant names ahead of an expected slowdown.",
+    "bands": [
+      { "label": "Flight to Safety", "meaning": "Below 1.25. A sharp rotation into defensive Staples names." },
+      { "label": "Defensive", "meaning": "1.25-1.44. A milder tilt toward safety." },
+      { "label": "Neutral", "meaning": "1.45-1.70. No strong rotation signal." },
+      { "label": "Offensive", "meaning": "Above 1.70. Investors are favoring growth-sensitive Discretionary names." }
+    ],
+    "gotchas": "Sector rotation ratios like this can be moved by a handful of mega-cap names within XLY -- it's a read on positioning, not a pure proxy for the average household's spending."
+  },
+  "market_breadth": {
+    "what_it_is": "The Equal-Weight S&P 500 (RSP) compared to the standard, market-cap-weighted S&P 500 (SPY) -- whether the average stock is actually participating in the market's move, or just a handful of mega-caps.",
+    "how_to_read": "This is a trend read, not a level read -- it compares today's ratio against its recent trajectory rather than an absolute value. Widening means the rally is broad and healthy; narrowing means the index is being propped up by a shrinking group of large stocks.",
+    "bands": [
+      { "label": "Widening", "meaning": "The equal-weight index is gaining on the cap-weight index -- most stocks are participating." },
+      { "label": "Stable", "meaning": "Breadth is holding roughly in line with recent trend." },
+      { "label": "Narrowing", "meaning": "The index is being carried by a small number of large stocks while the average stock lags." }
+    ],
+    "gotchas": "Unlike most metrics on this screen, breadth has no fixed absolute-value bands -- its signal comes from the day-over-day change in the ratio, not the ratio's raw level."
+  },
+  "dxy": {
+    "what_it_is": "The U.S. Dollar Index -- the dollar's strength against a basket of major foreign currencies.",
+    "how_to_read": "A strong dollar tightens global financial conditions: it pressures emerging markets, hurts U.S. exporters' earnings, and typically weighs on commodities and crypto. A weak dollar does the opposite, acting as a tailwind for risk assets broadly.",
+    "bands": [
+      { "label": "Supportive", "meaning": "Below 100. A weak dollar, generally favorable for global risk assets." },
+      { "label": "Stable", "meaning": "100-106. Normal conditions." },
+      { "label": "Wrecking Ball", "meaning": "Above 106. A strong dollar tightening global financial conditions." }
+    ],
+    "gotchas": "The dollar's effect shows up with a lag in corporate earnings (translated foreign revenue) more than in same-day price action -- a strong DXY print rarely moves stocks immediately on its own."
+  },
+  "oil": {
+    "what_it_is": "The global price of crude oil, which flows through into shipping, manufacturing input costs, and prices at the pump.",
+    "how_to_read": "High oil acts as a tax on consumers and businesses and complicates the inflation picture. Very low oil is unusual and often reflects serious demand weakness somewhere in the global economy, not just cheap energy.",
+    "bands": [
+      { "label": "Deflationary", "meaning": "Below $60. Unusually low prices, often a symptom of weak global demand." },
+      { "label": "Stable", "meaning": "$60-$90. Normal economic functioning." },
+      { "label": "Inflationary", "meaning": "Above $90. A meaningful tax on consumers that complicates the inflation fight." }
+    ],
+    "gotchas": "The \"Deflationary\" band is a caution, not a green light -- unusually cheap oil is read here as a demand-weakness warning, not as unambiguously good news the way it is for the other systemic-risk metrics."
+  },
+  "pe_ratio": {
+    "what_it_is": "Trailing twelve-month price divided by trailing earnings for the S&P 500.",
+    "how_to_read": "Higher readings mean investors are paying more per dollar of past earnings -- a stretched multiple leaves less room for disappointment.",
+    "bands": [
+      { "label": "Cheap", "meaning": "16x or below -- earnings priced for pessimism." },
+      { "label": "Fair Value", "meaning": "16x-22x -- in line with typical historical norms." },
+      { "label": "Expensive", "meaning": "22x or above -- priced for a largely benign outcome." }
+    ],
+    "gotchas": "Earnings can be revised after the fact, which quietly moves this ratio without any price change."
+  },
+  "pb_ratio": {
+    "what_it_is": "The S&P 500's market price compared to the accounting book value (assets minus liabilities) of its constituent companies.",
+    "how_to_read": "A high P/B means investors are paying a large premium for future growth promises rather than current hard assets. When it compresses toward historical norms, it typically signals a genuine value opportunity.",
+    "bands": [
+      { "label": "Discount", "meaning": "3.0x or below -- trading near or below net asset value." },
+      { "label": "Fair Value", "meaning": "3.0x-4.5x -- a typical historical premium to book." },
+      { "label": "Premium", "meaning": "4.5x or above -- a steep premium to accounting net worth." }
+    ],
+    "gotchas": "Book value understates the worth of asset-light, IP-heavy businesses (software, brands), so this ratio structurally trends higher as the index's sector mix shifts toward those companies -- it isn't purely a valuation signal."
+  },
+  "erp": {
+    "what_it_is": "The Equity Risk Premium: the S&P 500's earnings yield (1 / P/E) minus the risk-free 10-Year Treasury yield -- how much extra compensation stocks offer over safe bonds.",
+    "how_to_read": "A high premium means stocks pay well for the risk you're taking versus just holding Treasuries. A low or negative premium means you're taking on real equity volatility for little to no extra expected reward compared to a risk-free bond.",
+    "bands": [
+      { "label": "Dangerous", "meaning": "Below 2.0%. Minimal extra compensation for equity risk over safe bonds." },
+      { "label": "Normal", "meaning": "2.0%-4.0%. Typical historical compensation." },
+      { "label": "Attractive", "meaning": "Above 4.0%. Stocks are cheap relative to bonds." }
+    ],
+    "gotchas": "This metric moves whenever Treasury yields move, even if nothing about equity valuations or earnings has changed -- a rate move alone can push it from Normal to Dangerous."
+  },
+  "div_yield": {
+    "what_it_is": "The percentage of the S&P 500's price paid out to shareholders annually as cash dividends.",
+    "how_to_read": "When prices fall sharply, this yield mechanically rises, which has historically attracted value buyers and helped put a floor under the market. It's a byproduct of price and payout policy, not a standalone growth signal.",
+    "bands": [
+      { "label": "Low", "meaning": "Below 1.5%. Payouts are thin relative to price -- often alongside stretched valuations." },
+      { "label": "Normal", "meaning": "1.5%-2.5%. Typical historical range for the index." },
+      { "label": "High", "meaning": "2.5% or above. Elevated cash return, often alongside depressed prices." }
+    ],
+    "gotchas": "A rising yield can mean either rising dividends (healthy) or falling prices (not healthy) -- the number alone doesn't tell you which is driving it."
+  },
+  "cpi_yoy": {
+    "what_it_is": "The Consumer Price Index, year-over-year -- the headline inflation rate covering the full basket of consumer goods and services.",
+    "how_to_read": "Hot CPI pressures the Fed to keep rates higher for longer, which is generally a headwind for stocks. Cooling CPI gives the Fed room to ease, which is generally supportive.",
+    "bands": [
+      { "label": "Cooling", "meaning": "Below 2.0% year-over-year." },
+      { "label": "Stable", "meaning": "2.0%-3.0% year-over-year -- near the Fed's target." },
+      { "label": "Hot", "meaning": "Above 3.0% year-over-year." }
+    ],
+    "gotchas": "Headline CPI includes food and energy, which are volatile month to month -- a single hot or cool print can be noise rather than a genuine trend change; Core PCE is the Fed's preferred, steadier read."
+  },
+  "core_pce_yoy": {
+    "what_it_is": "Core Personal Consumption Expenditures, year-over-year -- inflation with volatile food and energy prices stripped out, the Fed's own preferred gauge.",
+    "how_to_read": "The Fed's rate decisions lean on this number specifically. If it's stuck above target, the Fed has little room to cut regardless of what headline CPI shows.",
+    "bands": [
+      { "label": "Cooling", "meaning": "Below 2.0% year-over-year." },
+      { "label": "Stable", "meaning": "2.0%-3.0% year-over-year -- near the Fed's target." },
+      { "label": "Hot", "meaning": "Above 3.0% year-over-year." }
+    ],
+    "gotchas": "Because this is the Fed's own preferred gauge, markets often react more to this print than to headline CPI, even when the two point in different directions."
+  },
+  "core_pce_mom": {
+    "what_it_is": "Core PCE measured month-over-month rather than year-over-year -- a faster read on whether inflation is currently accelerating or decelerating.",
+    "how_to_read": "A single hot or cool month can move expectations for the next Fed decision even before the year-over-year trend shifts, since it's the freshest data point available.",
+    "bands": [
+      { "label": "Cooling", "meaning": "Below 2.0% on the same scale as the year-over-year read." },
+      { "label": "Stable", "meaning": "2.0%-3.0%." },
+      { "label": "Hot", "meaning": "Above 3.0%." }
+    ],
+    "gotchas": "A single monthly print is noisy by nature -- one hot or cool month doesn't necessarily change the underlying year-over-year trend, but markets often react to it as if it does."
+  },
+  "unemployment": {
+    "what_it_is": "The percentage of the labor force actively seeking work but currently without a job.",
+    "how_to_read": "A low, stable rate means consumers broadly have income to spend. A rising rate signals softening demand for labor and typically precedes weaker consumer spending and corporate earnings.",
+    "bands": [
+      { "label": "Low", "meaning": "4.2% or below -- a historically healthy labor market." },
+      { "label": "Rising", "meaning": "Above 4.2% -- softening labor demand." }
+    ],
+    "gotchas": "The unemployment rate is a lagging indicator -- it typically keeps rising for a while even after an economic downturn has already begun, so it confirms weakness more than it predicts it."
+  },
+  "nfp": {
+    "what_it_is": "Nonfarm Payrolls -- the total number of jobs added or lost across the U.S. economy each month, excluding farm workers.",
+    "how_to_read": "This reads the month-over-month change, not an absolute level: a rising trend signals labor demand is expanding, a falling trend signals it's contracting.",
+    "bands": [
+      { "label": "Contracting", "meaning": "Payrolls fell versus the prior reading." },
+      { "label": "Stable", "meaning": "Payrolls were roughly flat versus the prior reading." },
+      { "label": "Expanding", "meaning": "Payrolls rose versus the prior reading." }
+    ],
+    "gotchas": "This figure is frequently revised in subsequent months, sometimes substantially -- the initial headline print is a first estimate, not a final number."
+  },
+  "real_gdp": {
+    "what_it_is": "Real Gross Domestic Product, annualized -- the total value of goods and services the economy produced, adjusted for inflation.",
+    "how_to_read": "Two consecutive negative quarters is the traditional rule-of-thumb definition of a recession. Positive growth confirms the economy is still expanding.",
+    "bands": [
+      { "label": "Slowdown", "meaning": "Below 1.0% annualized growth." },
+      { "label": "Growing", "meaning": "1.0% or above annualized growth." }
+    ],
+    "gotchas": "GDP is reported with a significant lag and is revised more than once after the initial release -- the first print is an early estimate, not the final word on that quarter."
+  },
+  "retail_sales": {
+    "what_it_is": "Month-over-month change in consumer retail spending -- since consumer spending is roughly 70% of the U.S. economy, this is a real-time read on household demand.",
+    "how_to_read": "This reads the trend versus the prior month: expanding sales mean consumers are spending freely; contracting sales suggest households are pulling back.",
+    "bands": [
+      { "label": "Contracting", "meaning": "Sales fell versus the prior month." },
+      { "label": "Stable", "meaning": "Sales were roughly flat versus the prior month." },
+      { "label": "Expanding", "meaning": "Sales rose versus the prior month." }
+    ],
+    "gotchas": "This figure is not inflation-adjusted -- rising retail sales during a high-inflation stretch can mean consumers are paying more for the same goods, not necessarily buying more of them."
+  },
+  "fed_funds": {
+    "what_it_is": "The Federal Funds Rate -- the rate banks lend to each other overnight, which anchors the cost of nearly all other borrowing (mortgages, credit cards, corporate debt).",
+    "how_to_read": "Unlike most metrics here, a rising rate reads as Restrictive (a headwind for stocks) and a falling rate reads as Stimulative (a tailwind) -- this metric is read inverted relative to most \"more is better\" intuitions.",
+    "bands": [
+      { "label": "Stimulative", "meaning": "Rate cut versus the prior reading -- easier financial conditions." },
+      { "label": "Stable", "meaning": "Rate held versus the prior reading." },
+      { "label": "Restrictive", "meaning": "Rate hiked versus the prior reading -- tighter financial conditions." }
+    ],
+    "gotchas": "This tracks the direction of the most recent change, not the absolute level -- a rate that's high but was just cut still reads Stimulative, not Restrictive."
+  },
+  "yield_10y": {
+    "what_it_is": "The 10-Year Treasury yield -- the government's borrowing cost over a decade, and the baseline discount rate for most of global finance.",
+    "how_to_read": "Read inverted, same as the Fed Funds Rate: a rising 10-Year yield reads as Restrictive (higher gravity pulling down stock valuations, especially growth names), and a falling yield reads as Stimulative.",
+    "bands": [
+      { "label": "Stimulative", "meaning": "Yield fell versus the prior reading -- lower discount rate, a tailwind for valuations." },
+      { "label": "Stable", "meaning": "Yield held versus the prior reading." },
+      { "label": "Restrictive", "meaning": "Yield rose versus the prior reading -- higher discount rate, a headwind for valuations." }
+    ],
+    "gotchas": "This tracks the direction of the most recent move, not the absolute level -- a yield that's historically low but just ticked up still reads Restrictive, not Stimulative."
+  }
+}

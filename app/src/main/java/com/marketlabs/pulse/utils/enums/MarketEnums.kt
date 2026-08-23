@@ -205,3 +205,46 @@ enum class IndicatorCategory {
             entries.find { it.name.equals(value, ignoreCase = true) } ?: UNKNOWN
     }
 }
+
+// ==========================================
+// 🧭 6. INDICATOR SYNTHESIS V2 (schema_version 2 -- executive/scorecard/horizons)
+// ==========================================
+
+// Code-computed (not AI-authored) read of whether the 4 pillars' stances agree with what the
+// current market_regime would predict -- see indicatorSynthesis.ts's computeAlignmentWithMacro().
+// 💡 2026-08-22: backend replaced the single "TENSION" value with two directional variants --
+// which side of fundamentals the market's currently pricing ahead of/behind. `label` is the
+// pill's own display string, shorter than the raw enum name for the outlined alignment pill.
+enum class AlignmentState(val label: String) {
+    ALIGNED("ALIGNED"),
+    MARKET_AHEAD_OF_FUNDAMENTALS("AHEAD OF FUNDAMENTALS"),
+    MARKET_BEHIND_FUNDAMENTALS("BEHIND FUNDAMENTALS"),
+    UNKNOWN("UNKNOWN");
+
+    companion object {
+        fun fromString(value: String?): AlignmentState =
+            entries.find { it.name.equals(value, ignoreCase = true) } ?: UNKNOWN
+    }
+}
+
+// Code-computed day-over-day color-band change for a single metric (shiftsDetection.ts) -- the AI
+// only ever writes the accompanying note, never the direction itself.
+enum class ShiftDirection {
+    IMPROVED, DETERIORATED, UNKNOWN;
+
+    companion object {
+        fun fromString(value: String?): ShiftDirection =
+            entries.find { it.name.equals(value, ignoreCase = true) } ?: UNKNOWN
+    }
+}
+
+// Code-computed (pillarRollup.ts) read of how much a pillar's own metrics agree with each other --
+// distinct from AlignmentState above, which compares a pillar's stance against the macro regime.
+enum class AgreementState {
+    ALIGNED, MIXED, DIVERGENT, UNKNOWN;
+
+    companion object {
+        fun fromString(value: String?): AgreementState =
+            entries.find { it.name.equals(value, ignoreCase = true) } ?: UNKNOWN
+    }
+}

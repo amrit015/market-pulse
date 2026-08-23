@@ -34,6 +34,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.marketlabs.pulse.ui.screens.summary.SummaryUiState
 import com.marketlabs.pulse.ui.screens.summary.SummaryViewModel
+import com.marketlabs.pulse.utils.enums.ReportType
 
 /**
  * The Stateful Entry Point (The "Manager") for the Market Summary feature.
@@ -53,6 +54,12 @@ import com.marketlabs.pulse.ui.screens.summary.SummaryViewModel
 fun MarketSummaryRoute(
     scaffoldPadding: PaddingValues,
     onNavigateToIndicators: () -> Unit,
+    // 💡 Reports up to MainActivity so the global top bar can show the dynamic report-type label
+    // ("Daily Update"/"Weekend Update") instead of a fixed "Summary" -- MainActivity stays
+    // intentionally dumb about screen internals otherwise, so this one value is threaded up
+    // through PulseNavGraph rather than the top bar reaching into this screen's ViewModel
+    // directly. Same shape as onDriversNavigatedToIndicators's up-reporting.
+    onReportTypeLoaded: (ReportType?) -> Unit = {},
     viewModel: SummaryViewModel = hiltViewModel()
 ) {
     // 1. STATE COLLECTION
@@ -134,6 +141,10 @@ fun MarketSummaryRoute(
                 // Case B: Data Available
                 // We have data (either fresh or cached). We delegate rendering to the stateless screen.
                 is SummaryUiState.Success -> {
+
+                    LaunchedEffect(state.dataV3?.reportType) {
+                        onReportTypeLoaded(state.dataV3?.reportType)
+                    }
 
                     MarketSummaryScreen(
                         data = state.dataV3,

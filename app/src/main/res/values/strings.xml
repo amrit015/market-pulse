@@ -101,8 +101,9 @@
     <string name="indicators_framework_focus">"Focus: "</string>
     <string name="indicators_framework_indicators">"Indicators: "</string>
     <string name="indicators_framework_goal">"Goal: "</string>
-    <string name="indicators_detail_what_it_is">What it is:</string>
-    <string name="indicators_detail_how_to_read">How to read it:</string>
+    <string name="indicators_detail_what_it_is">What it is</string>
+    <string name="indicators_detail_how_to_read">How to read it</string>
+    <string name="indicators_detail_bands">Bands</string>
     <string name="indicators_glossary_desc">Glossary</string>
 
     <string name="dashboard_title">Market Dashboard</string>
@@ -249,6 +250,18 @@
     <string name="outlook_label">Outlook</string>
     <string name="driver_label">Key Driver</string>
     <string name="playbook_title">The Playbook</string>
+
+    <!-- Indicators tab, schema_version 2 revamp (2026-08-22): executive/pillar_scorecard/horizons. -->
+    <string name="indicators_todays_read">Today\'s Read</string>
+    <string name="indicators_horizons_title">Horizons</string>
+    <string name="indicators_horizons_subtitle">How this read plays out across short, medium and long term</string>
+    <string name="indicators_key_drivers_title">Key Drivers</string>
+    <string name="indicators_watch_for_title">Watch For</string>
+    <string name="indicators_horizons_screen_subtitle">How today\'s read plays out across three time horizons.</string>
+    <string name="indicators_horizons_unavailable">Briefing data unavailable.</string>
+    <string name="indicators_watch_for_line">Watch for: %1$s</string>
+    <string name="indicators_stance_label">Stance</string>
+    <string name="indicators_risk_label">Risk</string>
 
     <string name="pillar_tactical_momentum">Tactical Momentum</string>
     <string name="pillar_systemic_risk">Systemic Risk</string>
@@ -424,9 +437,9 @@
     <!-- Global top bar, floating nav, Settings screen, theme picker. -->
     <string name="app_top_bar_settings_content_description">Settings</string>
     <!-- Per-route titles the global top bar shows in place of the app wordmark, once a screen has left the Overview tab. -->
-    <string name="insights_screen_title">Insights</string>
-    <string name="summary_screen_title">Summary</string>
-    <string name="market_analysis_screen_title">Analysis</string>
+    <string name="insights_screen_title">Market Insights</string>
+    <string name="summary_screen_title">Market Summary</string>
+    <string name="market_analysis_screen_title">Stock Analysis</string>
     <string name="settings_screen_title">Settings</string>
     <string name="settings_section_theme">Theme</string>
     <string name="settings_section_more">More</string>

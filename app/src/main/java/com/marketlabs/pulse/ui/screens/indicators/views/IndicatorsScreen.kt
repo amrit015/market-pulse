@@ -1,16 +1,8 @@
 package com.marketlabs.pulse.ui.screens.indicators.views
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
@@ -26,21 +18,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -52,24 +36,35 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.core.glossary.MetricGlossaryEntry
 import com.marketlabs.pulse.storage.model.indicators.DomainAiSynthesis
-import com.marketlabs.pulse.storage.model.indicators.DomainHorizon
+import com.marketlabs.pulse.storage.model.indicators.DomainExecutiveBlock
+import com.marketlabs.pulse.storage.model.indicators.DomainHorizons
 import com.marketlabs.pulse.storage.model.indicators.DomainIndicatorPillar
+import com.marketlabs.pulse.storage.model.indicators.DomainPillarScorecardEntry
+import com.marketlabs.pulse.storage.model.indicators.DomainShift
+import com.marketlabs.pulse.storage.model.indicators.DomainUnifiedMetric
 import com.marketlabs.pulse.storage.model.indicators.MarketIndicators
+import com.marketlabs.pulse.ui.components.AnalyzedAtHeader
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.UniversalMetricCard
 import com.marketlabs.pulse.ui.components.bottomSheet.FrameworkSheet
 import com.marketlabs.pulse.ui.components.bottomSheet.IndicatorDetailSheet
+import com.marketlabs.pulse.ui.components.widgets.SignalPill
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
+import com.marketlabs.pulse.ui.theme.MarketPulseTheme
+import com.marketlabs.pulse.ui.theme.pillColor
+import com.marketlabs.pulse.ui.theme.textColor
+import com.marketlabs.pulse.utils.enums.AgreementState
+import com.marketlabs.pulse.utils.enums.AlignmentState
+import com.marketlabs.pulse.utils.enums.IndicatorCategory
+import com.marketlabs.pulse.utils.enums.ShiftDirection
+import com.marketlabs.pulse.utils.enums.SignalColor
 import com.marketlabs.pulse.utils.enums.SubcategoryEnums
-import com.marketlabs.pulse.utils.glossary.DictionaryItem
-import com.marketlabs.pulse.utils.glossary.IndicatorsDictionary
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 // ============================================================================
 // 📱 MASTER STATE CONTROLLER
@@ -77,23 +72,30 @@ import java.util.Locale
 @Composable
 fun IndicatorsScreen(
     data: MarketIndicators,
-    scaffoldPadding: PaddingValues
+    scaffoldPadding: PaddingValues,
+    glossaryLookup: (String) -> MetricGlossaryEntry?,
+    onNavigateToHorizons: () -> Unit
 ) {
-    var showHorizons by remember { mutableStateOf(false) }
-
-    if (showHorizons) {
-        HorizonBriefingsView(
-            aiSynthesis = data.aiSynthesis,
-            scaffoldPadding = scaffoldPadding,
-            onBackClick = { showHorizons = false }
-        )
-    } else {
-        IndicatorsMainFeed(
-            data = data,
-            scaffoldPadding = scaffoldPadding,
-            onShowHorizons = { showHorizons = true }
-        )
+    // 💡 metric_id -> display name, resolved once per composition from the already-loaded pillar
+    // lists. `executive.shifts[]` only ever carries a metric_id string -- the backend spec
+    // deliberately keeps that cross-reference a UI-layer concern (validated server-side, but never
+    // resolved to a display name server-side) so this app can render whatever name it's already
+    // showing on that metric's own card. (`horizons.*.key_drivers[]` used to need this same
+    // resolution but was removed from the backend schema entirely 2026-08-22 -- see
+    // IndicatorHorizonsScreen.kt.)
+    val metricNames = remember(data) {
+        listOfNotNull(data.tacticalMomentum, data.systemicRisk, data.valuation, data.macroVitals)
+            .flatMap { it.metrics }
+            .associate { it.id to it.name }
     }
+
+    IndicatorsMainFeed(
+        data = data,
+        metricNames = metricNames,
+        scaffoldPadding = scaffoldPadding,
+        glossaryLookup = glossaryLookup,
+        onShowHorizons = onNavigateToHorizons
+    )
 }
 
 // ============================================================================
@@ -102,37 +104,45 @@ fun IndicatorsScreen(
 @Composable
 private fun IndicatorsMainFeed(
     data: MarketIndicators,
+    metricNames: Map<String, String>,
     scaffoldPadding: PaddingValues,
+    glossaryLookup: (String) -> MetricGlossaryEntry?,
     onShowHorizons: () -> Unit
 ) {
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
 
     var showFrameworkSheet by remember { mutableStateOf(false) }
-    var selectedIndicator by remember { mutableStateOf<DictionaryItem?>(null) }
+    var selectedMetric by remember { mutableStateOf<DomainUnifiedMetric?>(null) }
 
     if (showFrameworkSheet) {
         FrameworkSheet(onDismiss = { showFrameworkSheet = false })
     }
 
-    selectedIndicator?.let { dictionaryItem ->
-        IndicatorDetailSheet(item = dictionaryItem, onDismiss = { selectedIndicator = null })
+    selectedMetric?.let { metric ->
+        IndicatorDetailSheet(
+            metric = metric,
+            glossaryEntry = glossaryLookup(metric.id),
+            onDismiss = { selectedMetric = null }
+        )
     }
 
     val allPillars = listOfNotNull(
         data.tacticalMomentum?.let {
-            PillarUIConfig(stringResource(id = R.string.pillar_tactical_momentum), it, data.aiSynthesis?.pillarGlances?.tactical)
+            PillarUIConfig(stringResource(id = R.string.pillar_tactical_momentum), IndicatorCategory.TACTICAL_MOMENTUM, it)
         },
         data.systemicRisk?.let {
-            PillarUIConfig(stringResource(id = R.string.pillar_systemic_risk), it, data.aiSynthesis?.pillarGlances?.systemicRisk)
+            PillarUIConfig(stringResource(id = R.string.pillar_systemic_risk), IndicatorCategory.SYSTEMIC_RISK, it)
         },
         data.valuation?.let {
-            PillarUIConfig(stringResource(id = R.string.pillar_valuation), it, data.aiSynthesis?.pillarGlances?.valuation)
+            PillarUIConfig(stringResource(id = R.string.pillar_valuation), IndicatorCategory.VALUATION, it)
         },
         data.macroVitals?.let {
             // 💡 FLAGGED AS MACRO: This allows us to conditionally render the release dates
-            PillarUIConfig(stringResource(id = R.string.pillar_macro_vitals), it, data.aiSynthesis?.pillarGlances?.macro, isMacro = true)
+            PillarUIConfig(stringResource(id = R.string.pillar_macro_vitals), IndicatorCategory.MACRO_ECONOMY, it, isMacro = true)
         }
     )
+
+    val scorecardByPillar = data.aiSynthesis?.pillarScorecard?.associateBy { it.pillar } ?: emptyMap()
 
     // 💡 The icon+"Market Indicators" row that used to open this screen is gone -- the title now
     // lives in the global top bar (MainActivity resolves it per-route), so keeping this row would
@@ -148,16 +158,23 @@ private fun IndicatorsMainFeed(
             contentPadding = PaddingValues(
                 start = paddingLarge,
                 end = paddingLarge,
-                top = scaffoldPadding.calculateTopPadding() + paddingLarge,
+                top = scaffoldPadding.calculateTopPadding(),
                 bottom = scaffoldPadding.calculateBottomPadding() + paddingLarge
             ),
             modifier = Modifier.fillMaxSize()
         ) {
+            data.aiSynthesis?.timestamp?.let { timestamp ->
+                item {
+                    AnalyzedAtHeader(timestamp = timestamp)
+                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
+                }
+            }
+
             item {
                 AiExecutiveBriefingHero(
-                    summaryText = data.aiSynthesis?.overarchingCondition,
-                    whatChanged = data.aiSynthesis?.whatChanged,
-                    timestamp = data.aiSynthesis?.timestamp
+                    executive = data.aiSynthesis?.executive,
+                    timestamp = data.aiSynthesis?.timestamp,
+                    metricNames = metricNames
                 )
                 Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
             }
@@ -165,12 +182,18 @@ private fun IndicatorsMainFeed(
             item {
                 HorizonNavigationCard(onClick = onShowHorizons)
                 Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                    thickness = dimensionResource(id = R.dimen.border_thin)
+                )
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
             }
 
             items(allPillars) { config ->
                 PillarSection(
                     config = config,
-                    onIndicatorClick = { selectedIndicator = it }
+                    scorecardEntry = scorecardByPillar[config.pillarCategory],
+                    onIndicatorClick = { selectedMetric = it }
                 )
             }
         }
@@ -182,21 +205,21 @@ private fun IndicatorsMainFeed(
 // ============================================================================
 
 @Composable
-private fun AiExecutiveBriefingHero(summaryText: String?, whatChanged: String?, timestamp: Long?) {
-    if (summaryText.isNullOrBlank() || timestamp == null) return
+private fun AiExecutiveBriefingHero(
+    executive: DomainExecutiveBlock?,
+    timestamp: Long?,
+    metricNames: Map<String, String>
+) {
+    if (executive == null || executive.headline.isBlank() || timestamp == null) return
 
     var isExpanded by remember { mutableStateOf(false) }
-    val date = Date(timestamp)
-    val format = SimpleDateFormat("MMM dd, h:mm a", Locale.getDefault())
 
     val paddingMedium = dimensionResource(id = R.dimen.padding_medium)
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
     val paddingSmall = dimensionResource(id = R.dimen.padding_small)
 
     // 💡 SYNTHESIS style -- this is the AI Executive Briefing, the same kind of AI-interpreted
-    // content as Dashboard's Technical Briefing and the News cards. Replaces the old
-    // `secondaryContainer.copy(alpha = 0.4f)` leftover from before this app had its own token
-    // system.
+    // content as Dashboard's Technical Briefing and the News cards.
     PulseCard(
         style = PulseCardStyle.SYNTHESIS,
         modifier = Modifier
@@ -210,34 +233,29 @@ private fun AiExecutiveBriefingHero(summaryText: String?, whatChanged: String?, 
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        val textStyle = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                        val iconSize = with(LocalDensity.current) { textStyle.fontSize.toDp() }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    val textStyle = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                    val iconSize = with(LocalDensity.current) { textStyle.fontSize.toDp() }
 
-                        // 💡 This eyebrow (icon + label) marks the card as AI-sourced, the same
-                        // role Dashboard's Technical Briefing eyebrow plays -- matches its
-                        // accentPrimary color instead of the muted `colorScheme.secondary` this
-                        // used before, for the same reason: an AI-source label is a deliberate
-                        // accent-colored exception to the plain onSurface every other card title
-                        // in this app uses.
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_engine_ai_sparkles),
-                            contentDescription = "Analysis Engine",
-                            tint = LocalPulseColors.current.accentPrimary,
-                            modifier = Modifier.size(iconSize)
-                        )
-                        Spacer(modifier = Modifier.width(paddingSmall))
-                        Text(
-                            text = stringResource(id = R.string.ai_executive_briefing),
-                            style = textStyle,
-                            color = LocalPulseColors.current.accentPrimary
-                        )
-                    }
+                    // 💡 This eyebrow (icon + label) marks the card as AI-sourced, the same
+                    // role Dashboard's Technical Briefing eyebrow plays -- matches its
+                    // accentPrimary color instead of the muted `colorScheme.secondary` this
+                    // used before. The "Analyzed as of" timestamp that used to sit under this
+                    // row moved out of the card entirely -- see AnalyzedAtHeader, now the first
+                    // item in the screen's own LazyColumn, matching how every other screen in
+                    // this app (Summary's HeaderSection, for instance) places its own timestamp
+                    // at the top of the content, not nested inside a card.
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_engine_ai_sparkles),
+                        contentDescription = "Analysis Engine",
+                        tint = LocalPulseColors.current.accentPrimary,
+                        modifier = Modifier.size(iconSize)
+                    )
+                    Spacer(modifier = Modifier.width(paddingSmall))
                     Text(
-                        text = stringResource(id = R.string.analyzed_at, format.format(date)),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        text = stringResource(id = R.string.indicators_todays_read),
+                        style = textStyle,
+                        color = LocalPulseColors.current.accentPrimary
                     )
                 }
                 Icon(
@@ -248,51 +266,66 @@ private fun AiExecutiveBriefingHero(summaryText: String?, whatChanged: String?, 
                 )
             }
 
+            // 💡 Card order: alignment_with_macro pill, then headline, then alignment_note --
+            // the code-computed read of whether the pillars agree with the macro regime frames
+            // the headline, and the AI's own explanation of that read follows the headline
+            // rather than sitting bundled with the pill above it.
             Spacer(modifier = Modifier.height(paddingMedium))
-            HorizontalDivider(
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                thickness = dimensionResource(id = R.dimen.border_thin)
+            SignalPill(
+                text = executive.alignmentWithMacro.label,
+                pillColor = executive.alignmentWithMacro.pillColor,
+                contentColor = executive.alignmentWithMacro.textColor,
+                outlined = true
             )
+
             Spacer(modifier = Modifier.height(paddingMedium))
 
+            // 💡 The headline is the primary heading of this card -- always shown in full, never
+            // clamped, the same way a news headline would be.
             Text(
-                text = summaryText,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = if (isExpanded) Int.MAX_VALUE else 3,
-                overflow = TextOverflow.Ellipsis,
-                lineHeight = MaterialTheme.typography.bodyMedium.lineHeight * 1.2f
+                text = executive.headline,
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurface
             )
 
-            if (!whatChanged.isNullOrBlank()) {
-                Spacer(modifier = Modifier.height(paddingMedium))
-                Row(
-                    verticalAlignment = Alignment.Top,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f),
-                            shape = RoundedCornerShape(6.dp)
-                        )
-                        .padding(paddingSmall)
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.shift_label),
-                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(end = 4.dp)
+            if (executive.alignmentNote.isNotBlank()) {
+                Spacer(modifier = Modifier.height(paddingLarge))
+                Text(
+                    text = executive.alignmentNote,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = if (isExpanded) Int.MAX_VALUE else 3,
+                    overflow = TextOverflow.Ellipsis,
+                    lineHeight = MaterialTheme.typography.bodyMedium.lineHeight * 1.2f
+                )
+            }
+
+            // 💡 what_changed and shifts[] are both "since yesterday" detail -- collapsed by
+            // default along with the rest of the card's supporting detail, not shown until the
+            // reader taps to expand.
+            if (isExpanded) {
+                if (executive.whatChanged.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(paddingMedium))
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                        thickness = dimensionResource(id = R.dimen.border_thin)
                     )
-                    // 💡 Explainer text, always onSurface -- was `onSurfaceVariant`, reserved for
-                    // genuine metadata like dates, not descriptive content. The "SHIFT" label next
-                    // to it stays `colorScheme.error` on purpose, a real alert color, not a muted
-                    // one.
+                    Spacer(modifier = Modifier.height(paddingMedium))
                     Text(
-                        text = whatChanged,
-                        style = MaterialTheme.typography.bodySmall,
+                        text = executive.whatChanged,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = if (isExpanded) Int.MAX_VALUE else 2,
-                        overflow = TextOverflow.Ellipsis
+                        lineHeight = MaterialTheme.typography.bodyMedium.lineHeight * 1.2f
                     )
+                }
+
+                if (executive.shifts.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(paddingMedium))
+                    Column(verticalArrangement = Arrangement.spacedBy(paddingSmall)) {
+                        executive.shifts.forEach { shift ->
+                            ShiftRow(shift = shift, metricName = metricNames[shift.metricId] ?: shift.metricId)
+                        }
+                    }
                 }
             }
         }
@@ -300,48 +333,91 @@ private fun AiExecutiveBriefingHero(summaryText: String?, whatChanged: String?, 
 }
 
 @Composable
-private fun HorizonNavigationCard(onClick: () -> Unit) {
-    Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f)),
-        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_pill)),
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() }
+private fun ShiftRow(shift: DomainShift, metricName: String) {
+    val paddingMedium = dimensionResource(id = R.dimen.padding_medium)
+    val paddingSmall = dimensionResource(id = R.dimen.padding_small)
+
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_small)),
+        modifier = Modifier.fillMaxWidth()
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(dimensionResource(id = R.dimen.padding_medium)),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Column(modifier = Modifier.padding(paddingMedium)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = metricName,
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f, fill = false)
+                )
+                Spacer(modifier = Modifier.width(paddingSmall))
+                SignalPill(
+                    text = shift.direction.name,
+                    pillColor = shift.direction.pillColor,
+                    contentColor = shift.direction.textColor,
+                    outlined = true
+                )
+            }
             Text(
-                text = "Show Horizon Briefings (Short, Medium, Long)",
-                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.padding_small))
-            )
-            Icon(
-                painter = painterResource(id = R.drawable.ic_chevron_forward),
-                contentDescription = "View Briefings",
-                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                text = shift.note,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
 }
 
-// 💡 Added isMacro flag to safely toggle date views
+@Composable
+private fun HorizonNavigationCard(onClick: () -> Unit) {
+    // 💡 SYNTHESIS style -- an AI-sourced entry point, same card family as the executive briefing
+    // above it, not the plain `primaryContainer` pill this used to be.
+    PulseCard(
+        style = PulseCardStyle.SYNTHESIS,
+        modifier = Modifier.fillMaxWidth(),
+        onClick = onClick
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(dimensionResource(id = R.dimen.padding_large)),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(id = R.string.indicators_horizons_title),
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_tiny)))
+                Text(
+                    text = stringResource(id = R.string.indicators_horizons_subtitle),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Icon(
+                painter = painterResource(id = R.drawable.ic_chevron_forward),
+                contentDescription = null,
+                tint = LocalPulseColors.current.accentPrimary,
+                modifier = Modifier.padding(start = dimensionResource(id = R.dimen.padding_medium))
+            )
+        }
+    }
+}
+
 data class PillarUIConfig(
     val title: String,
+    val pillarCategory: IndicatorCategory,
     val pillarData: DomainIndicatorPillar,
-    val glanceText: String?,
     val isMacro: Boolean = false
 )
 
 @Composable
 private fun PillarSection(
     config: PillarUIConfig,
-    onIndicatorClick: (DictionaryItem?) -> Unit
+    scorecardEntry: DomainPillarScorecardEntry?,
+    onIndicatorClick: (DomainUnifiedMetric) -> Unit
 ) {
     val paddingMedium = dimensionResource(id = R.dimen.padding_medium)
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
@@ -351,38 +427,11 @@ private fun PillarSection(
             text = config.title,
             style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
             color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(bottom = paddingMedium)
+            modifier = Modifier.padding(bottom = paddingLarge)
         )
 
-        config.glanceText?.let { glance ->
-            Surface(
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
-                shape = RoundedCornerShape(8.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = paddingMedium)
-            ) {
-                Row(
-                    modifier = Modifier.padding(paddingMedium),
-                    verticalAlignment = Alignment.Top
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_engine_ai_sparkles),
-                        contentDescription = "AI Glance",
-                        tint = MaterialTheme.colorScheme.secondary,
-                        modifier = Modifier
-                            .size(16.dp)
-                            .padding(top = 2.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = glance,
-                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        lineHeight = MaterialTheme.typography.bodyMedium.lineHeight * 1.2f
-                    )
-                }
-            }
+        scorecardEntry?.let { entry ->
+            PillarScorecardCard(entry = entry, modifier = Modifier.padding(bottom = paddingMedium))
         }
 
         val groupedMetrics = config.pillarData.metrics.groupBy { it.subcategory }
@@ -435,7 +484,7 @@ private fun PillarSection(
                             modifier = Modifier
                                 .weight(1f)
                                 .fillMaxHeight(),
-                            onClick = { onIndicatorClick(IndicatorsDictionary.getDefinitionFor(metric.name)) }
+                            onClick = { onIndicatorClick(metric) }
                         )
                     }
                     if (rowMetrics.size == 1) {
@@ -453,169 +502,72 @@ private fun PillarSection(
     }
 }
 
-// ============================================================================
-// 🔭 HORIZON BRIEFINGS SCREEN (EMBEDDED)
-// ============================================================================
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * Code-computed pillar-level rollup (`pillar_scorecard[]`) -- `agreement` (how much this pillar's
+ * own metrics agree with each other) on the left, `stance` (this pillar's own color, same
+ * [SignalColor] as its individual metric cards) on the right as a pill, `oneLiner` narrating the
+ * shape below. Replaces the old ad hoc "AI Glance" box, which only ever had a single free-text
+ * string with no structured agreement/stance to show.
+ */
 @Composable
-private fun HorizonBriefingsView(
-    aiSynthesis: DomainAiSynthesis?,
-    scaffoldPadding: PaddingValues,
-    onBackClick: () -> Unit
-) {
-    var selectedTabIndex by remember { mutableIntStateOf(0) }
-
-    val tabs = listOf(
-        stringResource(id = R.string.tab_short_term),
-        stringResource(id = R.string.tab_medium_term),
-        stringResource(id = R.string.tab_long_term)
-    )
-
-    // 💡 This sub-view's own back-button-plus-title row stays -- it is reached by tapping into
-    // Horizon Briefings from within the Indicators tab (local Compose state, not a NavGraph route),
-    // so the global top bar has no way to show a back affordance for it or react to this in-tab
-    // navigation. Its top padding uses `scaffoldPadding`'s real top-bar-aware value for the same
-    // reason as everywhere else, so it isn't rendered underneath the (collapsed) global bar.
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(top = scaffoldPadding.calculateTopPadding())
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = dimensionResource(id = R.dimen.padding_medium)),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = onBackClick) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_chevron_forward),
-                    contentDescription = "Back",
-                    tint = MaterialTheme.colorScheme.onBackground
-                )
-            }
-            Text(
-                text = "Horizon Briefings",
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onBackground
-            )
-        }
-
-        if (aiSynthesis == null) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Briefing data unavailable.", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            return
-        }
-
-        PrimaryTabRow(
-            selectedTabIndex = selectedTabIndex,
-            containerColor = MaterialTheme.colorScheme.background,
-            contentColor = MaterialTheme.colorScheme.primary,
-            indicator = {
-                TabRowDefaults.PrimaryIndicator(
-                    modifier = Modifier.tabIndicatorOffset(selectedTabIndex),
-                    width = dimensionResource(id = R.dimen.tab_indicator_width),
-                    height = dimensionResource(id = R.dimen.tab_indicator_height),
-                    shape = RoundedCornerShape(
-                        topStart = dimensionResource(id = R.dimen.tab_indicator_corner),
-                        topEnd = dimensionResource(id = R.dimen.tab_indicator_corner)
-                    )
-                )
-            },
-            divider = { HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)) }
-        ) {
-            tabs.forEachIndexed { index, title ->
-                Tab(
-                    selected = selectedTabIndex == index,
-                    onClick = { selectedTabIndex = index },
-                    text = {
-                        Text(
-                            text = title,
-                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
-                        )
-                    }
-                )
-            }
-        }
-
-        val currentHorizon = when (selectedTabIndex) {
-            0 -> aiSynthesis.shortTerm
-            1 -> aiSynthesis.mediumTerm
-            else -> aiSynthesis.longTerm
-        }
-
-        AnimatedContent(
-            targetState = currentHorizon,
-            transitionSpec = { fadeIn(tween(300)) togetherWith fadeOut(tween(300)) },
-            label = "horizon_animation",
-            modifier = Modifier.fillMaxSize()
-        ) { horizon ->
-            if (horizon != null) {
-                HorizonDetailPanel(horizon, scaffoldPadding)
-            }
-        }
-    }
-}
-
-@Composable
-private fun HorizonDetailPanel(horizon: DomainHorizon, scaffoldPadding: PaddingValues) {
+private fun PillarScorecardCard(entry: DomainPillarScorecardEntry, modifier: Modifier = Modifier) {
+    val paddingMedium = dimensionResource(id = R.dimen.padding_medium)
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
+    val paddingSmall = dimensionResource(id = R.dimen.padding_small)
 
-    LazyColumn(
-        contentPadding = PaddingValues(
-            start = paddingLarge,
-            end = paddingLarge,
-            top = paddingLarge,
-            bottom = scaffoldPadding.calculateBottomPadding() + paddingLarge
-        ),
-        modifier = Modifier.fillMaxWidth()
+    // 💡 SYNTHESIS style -- same AI-sourced card family as the executive briefing hero and the
+    // Horizons entry card, not the plain `surfaceVariant` box this used to be.
+    PulseCard(
+        style = PulseCardStyle.SYNTHESIS,
+        modifier = modifier.fillMaxWidth()
     ) {
-        item {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = "${stringResource(id = R.string.outlook_label)}: ${horizon.riskLevel}",
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    color = when (horizon.riskLevel.uppercase()) {
-                        "HIGH" -> MaterialTheme.colorScheme.error
-                        "MODERATE" -> MaterialTheme.colorScheme.primary
-                        else -> MaterialTheme.colorScheme.secondary
-                    }
-                )
-            }
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "${stringResource(id = R.string.driver_label)}: ${horizon.keyDriver}",
-                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
-
-            Text(
-                text = horizon.briefing,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-                lineHeight = MaterialTheme.typography.bodyLarge.lineHeight * 1.2f
-            )
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_xlarge)))
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.05f), RoundedCornerShape(12.dp))
-                    .padding(paddingLarge)
+        Column(modifier = Modifier.padding(paddingLarge)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = stringResource(id = R.string.playbook_title).uppercase(),
-                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.primary
+                SignalPill(
+                    text = entry.agreement.name,
+                    pillColor = entry.agreement.pillColor,
+                    contentColor = entry.agreement.textColor,
+                    outlined = true
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    // 💡 "STANCE" label -- unlike "ALIGNED"/"MIXED"/"DIVERGENT" on the left, the
+                    // stance pill alone just reads GREEN/YELLOW/RED with no context for what that
+                    // color is rating.
+                    Text(
+                        text = stringResource(id = R.string.indicators_stance_label),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.width(paddingSmall))
+                    SignalPill(
+                        text = entry.stance.name,
+                        pillColor = entry.stance.pillColor,
+                        contentColor = entry.stance.textColor
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(paddingMedium))
+            // 💡 `oneLiner` is AI-authored prose (the model narrates around the code-computed
+            // agreement/stance above it, never invents them) -- the same sparkle glyph the
+            // executive briefing hero's "Today's Read" eyebrow uses marks it as AI-sourced here
+            // too, rather than reading as a plain data label like the stance pill next to it.
+            Row(verticalAlignment = Alignment.Top) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_engine_ai_sparkles),
+                    contentDescription = stringResource(id = R.string.summary_analysis_engine_content_description),
+                    tint = LocalPulseColors.current.accentPrimary,
+                    modifier = Modifier
+                        .padding(top = 2.dp)
+                        .size(14.dp)
+                )
+                Spacer(modifier = Modifier.width(paddingSmall))
                 Text(
-                    text = horizon.whatToDo,
-                    style = MaterialTheme.typography.bodyMedium,
+                    text = entry.oneLiner,
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
                     color = MaterialTheme.colorScheme.onSurface,
                     lineHeight = MaterialTheme.typography.bodyMedium.lineHeight * 1.2f
                 )
@@ -623,3 +575,134 @@ private fun HorizonDetailPanel(horizon: DomainHorizon, scaffoldPadding: PaddingV
         }
     }
 }
+
+// ============================================================================
+// 🎨 PREVIEWS
+// ============================================================================
+
+private val previewExecutive = DomainExecutiveBlock(
+    headline = "Equities Maintain Upward Trajectory Amid Macroeconomic Divergence and Compressed Credit Spreads",
+    alignmentWithMacro = AlignmentState.MARKET_AHEAD_OF_FUNDAMENTALS,
+    alignmentNote = "A clear tension exists between the prevailing risk-on market regime and the underlying structural deterioration in macroeconomic indicators, though systemic risk remains well-contained.",
+    whatChanged = "Today's baseline is being established and day-over-day comparisons will be available starting tomorrow.",
+    shifts = listOf(
+        DomainShift(metricId = "pe_ratio", direction = ShiftDirection.DETERIORATED, note = "Crossed into Expensive territory as prices outran trailing earnings."),
+        DomainShift(metricId = "credit_spreads", direction = ShiftDirection.IMPROVED, note = "Tightened further into Healthy range, easing default-risk concerns.")
+    )
+)
+
+private val previewScorecardEntry = DomainPillarScorecardEntry(
+    pillar = IndicatorCategory.VALUATION,
+    stance = SignalColor.RED,
+    agreement = AgreementState.ALIGNED,
+    oneLiner = "Valuation metrics are uniformly stretched across all primary gauges, showing tight alignment in their historical expensiveness."
+)
+
+private val previewValuationPillar = DomainIndicatorPillar(
+    timestamp = 0L,
+    masterGauge = null,
+    metrics = listOf(
+        DomainUnifiedMetric(
+            id = "pe_ratio", name = "P/E Ratio (Trailing)", category = "VALUATION", subcategory = null,
+            valueRaw = 25.79, valueDisplay = "25.79x", previousValueRaw = null, previousValueDisplay = null,
+            changeRaw = 0.12, changeDisplay = "0.12%", signalText = "Expensive", signalColor = SignalColor.RED, releaseDate = null
+        ),
+        DomainUnifiedMetric(
+            id = "pb_ratio", name = "Price-to-Book", category = "VALUATION", subcategory = null,
+            valueRaw = 4.8, valueDisplay = "4.80x", previousValueRaw = null, previousValueDisplay = null,
+            changeRaw = 0.02, changeDisplay = "0.02%", signalText = "Premium", signalColor = SignalColor.RED, releaseDate = null
+        )
+    )
+)
+
+private val previewMarketIndicators = MarketIndicators(
+    dateId = "2026-08-22",
+    lastSyncedTimestamp = System.currentTimeMillis(),
+    aiSynthesis = DomainAiSynthesis(
+        timestamp = System.currentTimeMillis(),
+        contentFlags = emptyList(),
+        executive = previewExecutive,
+        pillarScorecard = listOf(previewScorecardEntry),
+        horizons = DomainHorizons(null, null, null)
+    ),
+    tacticalMomentum = null,
+    systemicRisk = null,
+    valuation = previewValuationPillar,
+    macroVitals = null
+)
+
+@Preview(showBackground = true, backgroundColor = 0xFF121212)
+@Composable
+private fun PreviewIndicatorsScreen() {
+    MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
+        IndicatorsScreen(
+            data = previewMarketIndicators,
+            scaffoldPadding = PaddingValues(0.dp),
+            glossaryLookup = { null },
+            onNavigateToHorizons = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF121212)
+@Composable
+private fun PreviewAiExecutiveBriefingHero() {
+    MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            AiExecutiveBriefingHero(
+                executive = previewExecutive,
+                timestamp = System.currentTimeMillis(),
+                metricNames = mapOf("pe_ratio" to "P/E Ratio (Trailing)", "credit_spreads" to "Credit Spreads (High Yield)")
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF121212)
+@Composable
+private fun PreviewHorizonNavigationCard() {
+    MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            HorizonNavigationCard(onClick = {})
+        }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF121212)
+@Composable
+private fun PreviewPillarSection() {
+    MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            PillarSection(
+                config = PillarUIConfig(
+                    title = "Valuation",
+                    pillarCategory = IndicatorCategory.VALUATION,
+                    pillarData = previewValuationPillar
+                ),
+                scorecardEntry = previewScorecardEntry,
+                onIndicatorClick = {}
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF121212)
+@Composable
+private fun PreviewPillarScorecardCard() {
+    MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            PillarScorecardCard(entry = previewScorecardEntry)
+        }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF121212)
+@Composable
+private fun PreviewShiftRow() {
+    MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            ShiftRow(shift = previewExecutive.shifts.first(), metricName = "P/E Ratio (Trailing)")
+        }
+    }
+}
+

@@ -28,6 +28,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -40,6 +41,7 @@ import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.widgets.SignalPill
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
+import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -50,8 +52,7 @@ fun InstitutionalPostureSection(postureData: DomainMarketPosture) {
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
 
     Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(paddingMedium)
+        modifier = Modifier.fillMaxWidth()
     ) {
         // --- SECTION HEADER ---
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -78,21 +79,33 @@ fun InstitutionalPostureSection(postureData: DomainMarketPosture) {
         val format = SimpleDateFormat("MMM dd, h:mm a", Locale.getDefault())
 
         Text(
-            text = "Updated: ${format.format(date)}",
+            text = stringResource(id = R.string.analyzed_at, format.format(date)),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(bottom = paddingSmall)
+            modifier = Modifier.padding(
+                top = dimensionResource(id = R.dimen.padding_micro),
+                bottom = dimensionResource(id = R.dimen.padding_large)
+            )
         )
+
+        Spacer(modifier = Modifier.height(paddingMedium))
 
         // --- DISCLAIMER BANNER ---
         PostureDisclaimerCard()
 
-        Spacer(modifier = Modifier.height(paddingSmall))
-
         // --- METRIC CARDS ---
-        postureData.naaimExposure?.let { NaaimExposureCard(it) }
-        postureData.darkPoolIndex?.let { DarkPoolCard(it) }
-        postureData.netLiquidity?.let { NetLiquidityCard(it) }
+        postureData.naaimExposure?.let {
+            Spacer(modifier = Modifier.height(paddingLarge))
+            NaaimExposureCard(it)
+        }
+        postureData.darkPoolIndex?.let {
+            Spacer(modifier = Modifier.height(paddingLarge))
+            DarkPoolCard(it)
+        }
+        postureData.netLiquidity?.let {
+            Spacer(modifier = Modifier.height(paddingLarge))
+            NetLiquidityCard(it)
+        }
     }
 }
 
@@ -269,12 +282,26 @@ private fun NaaimExposureCard(naaim: DomainNaaimExposure) {
             }
 
             Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("Cash (0%)", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text("Fully Invested (100%)", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text("Leveraged (150%+)", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    "Cash (0%)",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    "Fully Invested (100%)",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    "Leveraged (150%+)",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }
@@ -410,9 +437,17 @@ private fun NetLiquidityCard(liquidity: DomainNetLiquidity) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 LiquidityComponentCol("Fed Assets", liquidity.assetsT, isPositive = true)
-                Text("-", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    "-",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
                 LiquidityComponentCol("TGA", liquidity.tgaT, isPositive = false)
-                Text("-", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    "-",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
                 LiquidityComponentCol("Reverse Repo", liquidity.rrpT, isPositive = false)
             }
         }
@@ -443,11 +478,28 @@ val paddingSmall = 8.dp // Helper for file scope
 @Preview(showBackground = true, backgroundColor = 0xFF121212)
 @Composable
 fun PreviewInstitutionalPosture() {
-    MaterialTheme {
+    MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
         val mockData = DomainMarketPosture(
-            naaimExposure = DomainNaaimExposure(85.4, "BULLISH", "Tracks the average equity exposure..."),
-            darkPoolIndex = DomainDarkPoolIndex(46.2, "2026-06-26", "ACCUMULATION (BULLISH)", "Measures dark pool volume..."),
-            netLiquidity = DomainNetLiquidity(6.24, "UNKNOWN", 7.32, 0.65, 0.43, "2026-06-25", "Calculates actual fiat liquidity..."),
+            naaimExposure = DomainNaaimExposure(
+                85.4,
+                "BULLISH",
+                "Tracks the average equity exposure..."
+            ),
+            darkPoolIndex = DomainDarkPoolIndex(
+                46.2,
+                "2026-06-26",
+                "ACCUMULATION (BULLISH)",
+                "Measures dark pool volume..."
+            ),
+            netLiquidity = DomainNetLiquidity(
+                6.24,
+                "UNKNOWN",
+                7.32,
+                0.65,
+                0.43,
+                "2026-06-25",
+                "Calculates actual fiat liquidity..."
+            ),
             timestamp = System.currentTimeMillis()
         )
         Column(modifier = Modifier.padding(16.dp)) {
