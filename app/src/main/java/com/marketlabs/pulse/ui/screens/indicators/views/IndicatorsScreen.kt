@@ -246,7 +246,7 @@ private fun AiExecutiveBriefingHero(
                     // this app (Summary's HeaderSection, for instance) places its own timestamp
                     // at the top of the content, not nested inside a card.
                     Icon(
-                        painter = painterResource(id = R.drawable.ic_engine_ai_sparkles),
+                        painter = painterResource(id = R.drawable.ic_ai_sparkle_filled),
                         contentDescription = "Analysis Engine",
                         tint = LocalPulseColors.current.accentPrimary,
                         modifier = Modifier.size(iconSize)
@@ -557,7 +557,7 @@ private fun PillarScorecardCard(entry: DomainPillarScorecardEntry, modifier: Mod
             // too, rather than reading as a plain data label like the stance pill next to it.
             Row(verticalAlignment = Alignment.Top) {
                 Icon(
-                    painter = painterResource(id = R.drawable.ic_engine_ai_sparkles),
+                    painter = painterResource(id = R.drawable.ic_ai_sparkle_filled),
                     contentDescription = stringResource(id = R.string.summary_analysis_engine_content_description),
                     tint = LocalPulseColors.current.accentPrimary,
                     modifier = Modifier

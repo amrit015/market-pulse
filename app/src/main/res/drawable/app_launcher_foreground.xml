@@ -1,0 +1,54 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Shrinks the whole mark toward the viewport center so it sits inside the adaptive
+     icon safe zone with visible background margin, instead of nearly filling the
+     108x108 canvas edge-to-edge. -->
+    <group
+        android:name="scaled_mark"
+        android:pivotX="54"
+        android:pivotY="54"
+        android:scaleX="0.65"
+        android:scaleY="0.65">
+
+        <!-- Outermost concentric dark purple-grey rings (Tighter Radii: 42, 35, 28) -->
+        <path
+            android:pathData="M 54,12 A 42,42 0 1 1 54,96 A 42,42 0 1 1 54,12 Z"
+            android:strokeWidth="1.5"
+            android:strokeColor="#514E6B" />
+        <path
+            android:pathData="M 54,19 A 35,35 0 1 1 54,89 A 35,35 0 1 1 54,19 Z"
+            android:strokeWidth="1.5"
+            android:strokeColor="#514E6B" />
+        <path
+            android:pathData="M 54,26 A 28,28 0 1 1 54,82 A 28,28 0 1 1 54,26 Z"
+            android:strokeWidth="1.5"
+            android:strokeColor="#514E6B" />
+
+        <!-- Innermost concentric lighter purple ring (Tighter Radius: 21) -->
+        <path
+            android:pathData="M 54,33 A 21,21 0 1 1 54,75 A 21,21 0 1 1 54,33 Z"
+            android:strokeWidth="1.5"
+            android:strokeColor="#BFAEE3" />
+
+        <!-- Bar Chart (Preserving the 5dp spacing from the previous step) -->
+
+        <!-- Red tall bar (right) -->
+        <path
+            android:fillColor="#F08E8F"
+            android:pathData="M 68.5,35 H 75.5 A 3,3 0 0 1 78.5,38 V 73 A 3,3 0 0 1 75.5,76 H 68.5 A 3,3 0 0 1 65.5,73 V 38 A 3,3 0 0 1 68.5,35 Z" />
+
+        <!-- Green medium bar (center) -->
+        <path
+            android:fillColor="#92C17D"
+            android:pathData="M 50.5,45 H 57.5 A 3,3 0 0 1 60.5,48 V 73 A 3,3 0 0 1 57.5,76 H 50.5 A 3,3 0 0 1 47.5,73 V 48 A 3,3 0 0 1 50.5,45 Z" />
+
+        <!-- Green short bar (left) -->
+        <path
+            android:fillColor="#92C17D"
+            android:pathData="M 32.5,55 H 39.5 A 3,3 0 0 1 42.5,58 V 73 A 3,3 0 0 1 39.5,76 H 32.5 A 3,3 0 0 1 29.5,73 V 58 A 3,3 0 0 1 32.5,55 Z" />
+    </group>
+</vector>

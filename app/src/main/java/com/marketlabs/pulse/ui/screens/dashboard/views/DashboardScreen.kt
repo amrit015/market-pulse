@@ -646,7 +646,7 @@ fun TechnicalSummaryCard(summaryText: String?, timestamp: Long?, isEquityOpen: B
                         val iconSize = with(LocalDensity.current) { textStyle.fontSize.toDp() }
 
                         Icon(
-                            painter = painterResource(id = R.drawable.ic_engine_ai_sparkles),
+                            painter = painterResource(id = R.drawable.ic_ai_sparkle_filled),
                             contentDescription = "Analysis Engine",
                             tint = pulseColors.accentPrimary,
                             modifier = Modifier.size(iconSize)
