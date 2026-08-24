@@ -4,17 +4,42 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="analyzed_at">Analyzed as of: %1$s</string>
-    <string name="section_lead_stories">🚨 Lead Stories</string>
-    <string name="section_macro_mix">🌍 Macro Mix</string>
-    <string name="section_market_summary">🧠 Market Summary</string>
+    <string name="section_lead_stories">Market Movers</string>
+    <string name="section_macro_mix">Macro Mix</string>
 
-    <string name="section_domino_effect">THE DOMINO EFFECT</string>
-    <string name="section_market_outlook">MARKET OUTLOOK</string>
-    <string name="section_action_plan">ACTION PLAN</string>
+    <string name="section_domino_effect">The Domino Effect</string>
+    <string name="label_trigger">Trigger</string>
+    <string name="label_impact">Impact</string>
+    <string name="label_outlook">Outlook</string>
 
-    <string name="label_trigger">Trigger:</string>
-    <string name="label_impact">Impact:</string>
-    <string name="label_outlook">Outlook:</string>
+    <!-- market_pulse v2 (2026-08-17 backend revamp): verdict/drivers/market_position/watch/risks. -->
+    <string name="section_signal">Market Signal</string>
+    <string name="section_drivers">Drivers</string>
+    <string name="section_market_position">Market Position</string>
+    <string name="section_watch">What to Watch</string>
+    <string name="section_risks">Risks to Market</string>
+    <string name="section_the_read">The Read</string>
+    <!-- New 2026-08-21: deterministic (non-AI) list of indicators posted in the last 7 days. No
+         hierarchy or visual design has landed for this section yet; see WhatsNewSection's doc
+         comment in SummaryScreen.kt. -->
+    <string name="section_whats_new">What\'s New</string>
+    <string name="drivers_navigate_content_description">View drivers in Indicators</string>
+    <string name="drivers_info_content_description">About drivers</string>
+    <string name="drivers_info_title">About Drivers</string>
+    <string name="drivers_info_body_impact">Each driver\'s color shows how it\'s currently affecting the market read — green means it\'s supporting the case, red means it\'s working against it, and yellow means it\'s roughly neutral.</string>
+    <string name="drivers_info_body_caveat">This isn\'t always the same as whether the underlying number itself rose or fell. A weak report can still show as supportive if it\'s fueling expectations of a Fed rate cut — what\'s shown here is the net effect on stocks, not the raw data move.</string>
+
+    <string name="label_conviction">CONVICTION</string>
+    <string name="label_posture">WHERE CAPITAL\'S MOVING</string>
+    <string name="label_valuation">Valuation Percentile (5Y):</string>
+    <string name="label_pct_from_high">%1$s%% from %2$s high</string>
+    <string name="label_pct_from_low">%1$s%% from %2$s low</string>
+    <string name="label_window_fallback">range</string>
+    <string name="label_window_low">%1$s Low</string>
+    <string name="label_window_high">%1$s High</string>
+    <string name="label_what_changed">What Changed:</string>
+
+
     <string name="banner_viewing_legacy">Viewing Gemini 2.5 Pro</string>
     <string name="banner_viewing_test">Viewing Gemini 3.1 Pro (A/B Test)</string>
     <string name="banner_switch_latest">Switch to Latest Version</string>
@@ -169,10 +194,12 @@
     <string name="current_verdict">CURRENT VERDICT</string>
     <string name="market_regime_label">Market Regime:</string>
     <string name="technical_setup_label">Technical Setup:</string>
-    <string name="action_call_label">Action Call:</string>
+    <string name="direction_label">Direction:</string>
+    <string name="cycle_zone_label">Cycle Zone:</string>
     <string name="regime_glossary_title">REGIME GLOSSARY</string>
     <string name="setup_glossary_title">SETUP GLOSSARY</string>
-    <string name="action_call_glossary_title">ACTION CALL GLOSSARY</string>
+    <string name="direction_glossary_title">DIRECTION GLOSSARY</string>
+    <string name="cycle_zone_glossary_title">CYCLE ZONE GLOSSARY</string>
     <string name="status_current">CURRENT</string>
 
     <string name="score_label_action">Trade Score</string>
@@ -237,6 +264,7 @@
     <string name="dashboard_section_news">Latest News</string>
     <string name="dashboard_news_see_all">View all news</string>
     <string name="nav_back_content_description">Back</string>
+    <string name="summary_analysis_engine_content_description">Analysis Engine</string>
 
     <!-- Analysis tab (list): StockAnalysisScreen and StockPreviewCard. -->
     <string name="stock_analysis_subtitle">%1$d TRACKED · %2$s</string>
@@ -411,4 +439,5 @@
     <string name="settings_preset_mode_dark">Dark</string>
     <string name="settings_preset_sample_bullish">+2.4%</string>
     <string name="settings_preset_sample_bearish">-1.1%</string>
+    <string name="market_read">Market Read</string>
 </resources>

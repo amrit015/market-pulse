@@ -12,6 +12,8 @@ Design reference extracted from source. Every color, type, spacing, and shape va
 
 **Since that snapshot:** building Stock Analysis end-to-end put real, dense card content against these tokens for the first time, and surfaced three more fixes — this time verified with actual contrast math per preset instead of eyeballed. `Accent.*.tinted` was desaturated ~50% across all 10 presets (§4) — it read too saturated once real content sat on top of it. `onSurfaceMuted` (§3) had its lightness shifted for contrast — it's the one shared grey behind dates, stat labels, and every muted subtitle app-wide. `accentSurfaceStrong` (§5) was reformulated to derive from `tinted` too, at a stronger blend, instead of an unrelated `surface`/`surfaceBorder` computation. Separately — a UI decision, not a token one — `PulseCardStyle.SYNTHESIS` itself was narrowed from roughly two dozen cards down to exactly 3 app-wide (§6): most cards that used to read as "curated/AI content" now read as plain `DATA` instead, since having most cards on a screen wear the accent tint had stopped meaning anything.
 
+**2026-08-19 update:** Summary was rebuilt against the backend's `market_pulse` v2 shape, and its old single `VerdictCard` is gone — replaced by two separate `SYNTHESIS` cards, `SignalSection` (top of the report: regime chip, the one-sentence flash, conviction) and `TheReadSection` (bottom: the full narrative paragraph, posture). `SYNTHESIS` is now **4 cards app-wide, not 3** — see §6's updated table row. "One hero card per screen" no longer holds everywhere; Summary is the deliberate exception, carrying a hero card at both the top and bottom of the same report rather than one in the middle. `OutlookCard`/`ActionFooter` (both `DATA`-styled) are also gone — their fields (`market_outlook`, the old `action`) were dropped or renamed out of the verdict object entirely, not just restyled.
+
 ---
 
 ## 1. Theme architecture — 10 presets, three token layers
@@ -94,7 +96,7 @@ Two extended tokens on `PulseColors` (read via `LocalPulseColors.current`) aren'
 | Token | Formula | Blend factor | Used by |
 |---|---|---|---|
 | `surfaceTinted` | `lerp(accent.tinted, accent.surface, f)` | **0.45** | Every `PulseCard(style = DATA)` — the large majority of cards app-wide as of 2026-08-16 (§6). |
-| `accentSurfaceStrong` | `lerp(accent.tinted, accent.surfaceBorder, f)` | **0.55** | Every `PulseCard(style = SYNTHESIS)` — now exactly 3 cards app-wide (§6). |
+| `accentSurfaceStrong` | `lerp(accent.tinted, accent.surfaceBorder, f)` | **0.55** | Every `PulseCard(style = SYNTHESIS)` — 4 cards app-wide as of 2026-08-19 (§6). |
 
 Both blend *toward* an already-defined, already-vetted value in the same hue family (not toward an arbitrary new hex), so the result stays visually coherent with the preset regardless of which direction a future tweak needs to go. `accentSurfaceStrong` is intentionally the more saturated of the two — curated/AI content is meant to read as visibly "more accented" than a plain data card sitting next to it, not just a different token name.
 
@@ -114,10 +116,12 @@ Every content card in the app now goes through one shared composable, `PulseCard
 
 | Style | Background | Border | Corner radius | Used by |
 |---|---|---|---|---|
-| `DATA` | `surfaceTinted` | `accentSurfaceBorder`, 1dp | `corner_radius_card_large` (16dp) | Everything not in the `SYNTHESIS` row — Equities' `AssetCard`, Indicators' `UniversalMetricCard`, VIX, Fear & Greed, Put/Call, News (both card variants), Summary's Lead Story/Macro/Domino/Outlook/Action Footer, Insights' Weekly Playbook/Institutional Posture/Market Risks cards, and Stock Analysis' list card + `TechnicalRead`/Deep Study/Scenarios/Direct News |
-| `SYNTHESIS` | `accentSurfaceStrong` | `accentSurfaceBorder`, 1dp | `corner_radius_card` (12dp) | **Narrowed 2026-08-16 to exactly 3 cards app-wide:** Summary's `VerdictCard`, Indicators' AI Executive Briefing, Dashboard's Technical Briefing — one AI-conclusion hero card per screen |
+| `DATA` | `surfaceTinted` | `accentSurfaceBorder`, 1dp | `corner_radius_card_large` (16dp) | Everything not in the `SYNTHESIS` row — Equities' `AssetCard`, Indicators' `UniversalMetricCard`, VIX, Fear & Greed, Put/Call, News (both card variants), Summary's Lead Story/Macro/Domino/Watch/Risks/Market Position cards, Insights' Weekly Playbook/Institutional Posture/Market Risks cards, and Stock Analysis' list card + `TechnicalRead`/Deep Study/Scenarios/Direct News |
+| `SYNTHESIS` | `accentSurfaceStrong` | `accentSurfaceBorder`, 1dp | `corner_radius_card` (12dp) | **Narrowed 2026-08-16 to exactly 3 cards app-wide, then 4 as of 2026-08-19:** Summary's `SignalSection` + `TheReadSection` (replacing the old single `VerdictCard`), Indicators' AI Executive Briefing, Dashboard's Technical Briefing — "one hero card per screen" no longer strictly holds; Summary is the deliberate exception, one hero card at the top of the report and another at the bottom |
 
 **2026-08-16:** `SYNTHESIS` used to cover roughly two dozen cards (Technical Briefing, News, Weekly Playbook events, Tail Risk, NAAIM/Dark Pool/Net Liquidity, Lead Story/Macro/Domino/Outlook/Action Footer, Verdict, and Stock Analysis' own list card + `TechnicalRead`/Deep Study/Scenarios/Direct News). A contrast pass across all 10 presets found the two styles read as nearly indistinguishable on several of them, and with most cards on a screen wearing the "AI-authored" tint, it stopped signaling anything — it just meant "this app has two shades of card." Narrowed to one hero card per screen; everything else moved to `DATA`.
+
+**2026-08-19:** Summary's `market_pulse` v2 rebuild replaced `VerdictCard` with two `SYNTHESIS` cards instead of one, and dropped `OutlookCard`/`ActionFooter` (both `DATA`) entirely — their backing fields (`market_outlook`, the old `action`) were removed or renamed out of the API response, not just restyled. `DominoCard` stayed `DATA` but lost its own internal title row; every Summary section (including Domino and the closing "The Read") now gets its section title from one shared external `SectionTitle`, rather than some sections titling themselves internally and others not.
 
 A third style, `NEUTRAL` (plain white/elevated background, no accent wash — used briefly for VIX/Fear & Greed/Put-Call on the theory a computed reading shouldn't look like raw price data), existed and was retired once that distinction stopped being wanted; those cards moved onto `DATA`.
 

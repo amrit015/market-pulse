@@ -2,8 +2,8 @@ package com.marketlabs.pulse.utils.glossary
 
 import com.marketlabs.pulse.utils.enums.ActionSignal
 import com.marketlabs.pulse.utils.enums.MarketRegime
+import com.marketlabs.pulse.utils.enums.SignalDirection
 import com.marketlabs.pulse.utils.enums.TechnicalSetup
-import com.marketlabs.pulse.utils.enums.TradingCall
 
 // Data class to hold the dictionary terms
 data class GlossaryTerm(
@@ -31,13 +31,25 @@ object MarketGlossary {
         GlossaryTerm(TechnicalSetup.BEARISH_DIVERGENCE.label, "Price is making new highs, but underlying momentum and participation are failing.")
     )
 
-    val calls = listOf(
-        GlossaryTerm(TradingCall.CONTRARIAN_BUY.label, "Begin aggressively buying high-quality assets at deep discounts while the crowd is panicking."),
-        GlossaryTerm(TradingCall.ACCUMULATE.label, "Deploy capital steadily into market leaders on minor dips."),
-        GlossaryTerm(TradingCall.HOLD_TRAIL_STOPS.label, "Maintain your current exposure but tighten stop losses to protect profits."),
-        GlossaryTerm(TradingCall.HEDGE_PROTECT.label, "Reduce leverage, buy protective puts, and increase cash reserves."),
-        GlossaryTerm(TradingCall.SELL_AVOID.label, "Exit long positions. Capital preservation is the priority."),
-        GlossaryTerm(TradingCall.CONTRARIAN_SELL.label, "The market is in absolute euphoria. Take profits immediately and rotate to defensive positioning.")
+    // 💡 direction is code-derived (system/market_regime's four qualifiers -- trend, breadth,
+    // VIX, rate -- voted and reconciled), not AI-authored, but it's still a term worth explaining
+    // the same way regime/setup are: it's the tint on the Signal card's regime chip, and a user
+    // tapping that card for more context should be able to look it up same as regime/setup.
+    val directions = listOf(
+        GlossaryTerm(SignalDirection.RISK_ON.label, "A majority of the underlying signals (trend, breadth, volatility, rates) agree conditions currently favor risk-taking."),
+        GlossaryTerm(SignalDirection.RISK_OFF.label, "A majority of the underlying signals agree conditions currently favor caution or defensive positioning."),
+        GlossaryTerm(SignalDirection.MIXED.label, "The underlying signals are split, with no clear majority favoring either risk-on or risk-off conditions.")
+    )
+
+    // 💡 cycle_zone (market_position) and direction (verdict) are the same underlying
+    // system/market_regime.regime value (risk_on/risk_off/neutral), just relabeled for two
+    // different display contexts -- see marketPulseComposer.ts's deriveCycleZone and
+    // pulseSignal.ts's deriveDirection, both keyed off the same field. Definitions here
+    // deliberately echo the direction ones above rather than inventing a second concept.
+    val cycleZones = listOf(
+        GlossaryTerm("EXPANSION ZONE", "The same underlying signal behind a RISK ON read: a majority of the underlying signals (trend, breadth, volatility, rates) agree conditions currently favor risk-taking."),
+        GlossaryTerm("CONTRACTION ZONE", "The same underlying signal behind a RISK OFF read: a majority of the underlying signals agree conditions currently favor caution or defensive positioning."),
+        GlossaryTerm("TRANSITION ZONE", "The same underlying signal behind a MIXED read: the underlying signals are split, with no clear majority favoring either risk-on or risk-off conditions.")
     )
 
     val actions = listOf(

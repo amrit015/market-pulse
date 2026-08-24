@@ -52,6 +52,7 @@ import com.marketlabs.pulse.ui.screens.summary.SummaryViewModel
 @Composable
 fun MarketSummaryRoute(
     scaffoldPadding: PaddingValues,
+    onNavigateToIndicators: () -> Unit,
     viewModel: SummaryViewModel = hiltViewModel()
 ) {
     // 1. STATE COLLECTION
@@ -136,7 +137,8 @@ fun MarketSummaryRoute(
 
                     MarketSummaryScreen(
                         data = state.dataV3,
-                        scaffoldPadding = scaffoldPadding
+                        scaffoldPadding = scaffoldPadding,
+                        onNavigateToIndicators = onNavigateToIndicators
                     )
                 }
 

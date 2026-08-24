@@ -354,9 +354,71 @@ object DatabaseMigrations {
         }
     }
 
+    // Migration from Version 13 to 14: the 2026-08-17 backend revamp consolidated
+    // market_pulse's verdict/signal/the_read split into one verdict object (dropping `call`,
+    // renaming `action` to `posture`) and added drivers[], market_position, watch[], risks[]
+    // as new sibling fields, while market_outlook is no longer modeled client-side at all.
+    // verdict/leadStories/macroMix/dominoEffect are stored as JSON TEXT columns whose shape
+    // changed, so a copied old row would carry stale/incompatible JSON for those columns --
+    // no data-preserving copy, same as MIGRATION_12_13: the old cache is just re-fetched on
+    // next sync.
+    val MIGRATION_13_14 = object : Migration(13, 14) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("DROP TABLE IF EXISTS `market_pulse`")
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `market_pulse` (
+                    `dateId` TEXT NOT NULL,
+                    `lastSyncedTimestamp` INTEGER NOT NULL,
+                    `lastUpdated` INTEGER NOT NULL,
+                    `reportType` TEXT NOT NULL,
+                    `verdict` TEXT,
+                    `drivers` TEXT,
+                    `position` TEXT,
+                    `leadStories` TEXT,
+                    `macroMix` TEXT,
+                    `dominoEffect` TEXT,
+                    `watch` TEXT,
+                    `risks` TEXT,
+                    `whatChanged` TEXT,
+                    PRIMARY KEY(`dateId`)
+                )
+                """.trimIndent()
+            )
+        }
+    }
+
+    // Migration from Version 14 to 15: Horizon.riskLevel moved from a raw String to the
+    // RiskImpactLevel enum (reusing the market_risk domain's severity vocabulary instead of a
+    // second one) so it colors the same way RiskItem.severity does. Room's SQL schema for
+    // `market_pulse` doesn't change -- `position` is still one JSON TEXT column -- but a row
+    // cached by the previous version holds the raw backend string (e.g. "MODERATE") at
+    // horizons.*.riskLevel, which isn't one of RiskImpactLevel's declared constant names
+    // (EXTREME/HIGH/MEDIUM/LOW/UNKNOWN) and crashes Moshi's default enum adapter on read. Same
+    // "no data-preserving copy, just force a re-fetch" fix as MIGRATION_12_13/13_14.
+    val MIGRATION_14_15 = object : Migration(14, 15) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("DELETE FROM `market_pulse`")
+        }
+    }
+
+    // Migration from Version 15 to 16: market_pulse gained two new backend fields (2026-08-21) --
+    // drivers[].data_direction (a sibling field on the existing `drivers` JSON column, no schema
+    // change needed there) and the new top-level whats_new[] list, which gets its own column, same
+    // pattern as watch/risks/drivers rather than nesting inside an existing blob. Unlike
+    // MIGRATION_13_14/14_15, this is purely additive -- no existing column's JSON shape changed,
+    // so a plain `ADD COLUMN` preserves the existing cache instead of forcing a re-fetch; old rows
+    // just read back with `whatsNew` null until the next sync.
+    val MIGRATION_15_16 = object : Migration(15, 16) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE `market_pulse` ADD COLUMN `whatsNew` TEXT")
+        }
+    }
+
     val ALL_MIGRATIONS = arrayOf(
         MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5,
         MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9,
-        MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13 // 💡 Added to registry
+        MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13,
+        MIGRATION_13_14, MIGRATION_14_15, MIGRATION_15_16 // 💡 Added to registry
     )
 }

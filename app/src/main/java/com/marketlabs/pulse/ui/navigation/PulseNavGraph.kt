@@ -1,5 +1,6 @@
 package com.marketlabs.pulse.ui.navigation
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -8,6 +9,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -93,6 +95,15 @@ val bottomNavItems = listOf(
 fun PulseNavGraph(
     navController: NavHostController,
     scaffoldPadding: PaddingValues,
+    // 💡 MainActivity owns the "did we arrive at Indicators via Drivers" flag -- this graph
+    // reports the event up (onDriversNavigatedToIndicators) and reads the flag back down
+    // (reachedIndicatorsFromDrivers) to place the BackHandler that consumes it, since that
+    // handler has to live *inside* the Indicators destination's own content to take priority
+    // over NavHost's own internal back handling (see the composable(MARKET_INDICATORS) block
+    // below for why) -- it can't be composed up in MainActivity itself.
+    onDriversNavigatedToIndicators: () -> Unit = {},
+    reachedIndicatorsFromDrivers: Boolean = false,
+    onIndicatorsBackHandled: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     // Added with Claude Code assistance: one-shot signal set right before navigating to the News
@@ -107,7 +118,30 @@ fun PulseNavGraph(
         modifier = modifier.fillMaxSize()
     ) {
         composable(PulseRoutes.MARKET_SUMMARY) {
-            MarketSummaryRoute(scaffoldPadding = scaffoldPadding)
+            MarketSummaryRoute(
+                scaffoldPadding = scaffoldPadding,
+                // 💡 Back to the same tab-preserving popUpTo/saveState/restoreState dance
+                // FloatingBottomNav's onItemClick uses -- a plain push here (tried first) reached
+                // Indicators through a different code path than the bottom nav ever uses for that
+                // same route, and mixing "plain push" and "restoreState tab switch" navigation to
+                // one destination left Navigation-Compose's saved-state bookkeeping confused:
+                // tapping the Summary tab afterward silently did nothing, staying on Indicators.
+                // Going back to this identical mechanism makes the Drivers jump indistinguishable
+                // from an ordinary tab switch as far as the nav library is concerned. "Back should
+                // return to Summary, not Overview" is handled separately now, by the BackHandler
+                // inside the MARKET_INDICATORS destination below, rather than by the navigation
+                // *mechanism* itself.
+                onNavigateToIndicators = {
+                    onDriversNavigatedToIndicators()
+                    navController.navigate(PulseRoutes.MARKET_INDICATORS) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                }
+            )
         }
         composable(PulseRoutes.MARKET_OVERVIEW) {
             DashboardRoute(
@@ -126,6 +160,23 @@ fun PulseNavGraph(
             )
         }
         composable(PulseRoutes.MARKET_INDICATORS) {
+            // 💡 Composed here, inside the destination's own content, not up in MainActivity --
+            // NavHost registers its own internal back handling as part of composing itself, so a
+            // BackHandler composed (and thus added to the back-press dispatcher) *before* NavHost
+            // always loses to it; one added *after*, from inside the active destination's own
+            // content, is what actually takes priority for that screen. Only enabled when Drivers
+            // was the way here (see PulseNavGraph's onNavigateToIndicators above) -- an ordinary
+            // tab-click arrival at Indicators keeps default back behavior (back to Overview).
+            BackHandler(enabled = reachedIndicatorsFromDrivers) {
+                onIndicatorsBackHandled()
+                navController.navigate(PulseRoutes.MARKET_SUMMARY) {
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        saveState = true
+                    }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            }
             IndicatorsRoute(scaffoldPadding = scaffoldPadding)
         }
         composable(PulseRoutes.MARKET_INSIGHTS) {

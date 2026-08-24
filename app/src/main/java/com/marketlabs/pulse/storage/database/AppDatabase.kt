@@ -43,7 +43,7 @@ import com.marketlabs.pulse.storage.database.entity.WeeklyPlaybookEntity
         StockPreviewEntity::class,
         StockDetailEntity::class
     ],
-    version = 13,
+    version = 16,
     exportSchema = true
 )
 @TypeConverters(

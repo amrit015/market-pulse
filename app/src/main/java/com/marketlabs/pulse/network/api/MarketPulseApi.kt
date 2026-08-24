@@ -11,6 +11,6 @@ interface MarketPulseApi {
     suspend fun getLatestMarketPulse(): NetworkMarketPulse
 
     // fetching by specific date (Optional)
-    @GET("daily_pulse/{dateId}")
+    @GET("pulse/v3/{dateId}")
     suspend fun getPulseByDate(@Path("dateId") dateId: String): NetworkMarketPulse
 }
