@@ -34,7 +34,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -57,6 +56,7 @@ import com.marketlabs.pulse.storage.model.summary.RiskItem
 import com.marketlabs.pulse.storage.model.summary.Valuation
 import com.marketlabs.pulse.storage.model.summary.WatchItem
 import com.marketlabs.pulse.storage.model.summary.WhatsNewItem
+import com.marketlabs.pulse.ui.components.AnalyzedAtHeader
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.bottomSheet.DriversInfoBottomSheet
@@ -70,14 +70,12 @@ import com.marketlabs.pulse.utils.enums.Conviction
 import com.marketlabs.pulse.utils.enums.DriverImpact
 import com.marketlabs.pulse.utils.enums.IndicatorCategory
 import com.marketlabs.pulse.utils.enums.MarketRegime
-import com.marketlabs.pulse.utils.enums.ReportType
 import com.marketlabs.pulse.utils.enums.RiskImpactLevel
 import com.marketlabs.pulse.utils.enums.SignalColor
 import com.marketlabs.pulse.utils.enums.SignalDirection
 import com.marketlabs.pulse.utils.enums.TechnicalSetup
 import java.text.ParseException
 import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
 
 /**
@@ -114,7 +112,7 @@ fun MarketSummaryScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background),
         contentPadding = PaddingValues(
-            top = scaffoldPadding.calculateTopPadding() + paddingLarge,
+            top = scaffoldPadding.calculateTopPadding(),
             bottom = scaffoldPadding.calculateBottomPadding() + paddingLarge,
             start = paddingLarge,
             end = paddingLarge
@@ -124,11 +122,14 @@ fun MarketSummaryScreen(
 
         data?.let { validData ->
 
-            val type = validData.reportType
-            val timestamp = validData.lastUpdated
-            if (type != null) {
-                item { HeaderSection(type, timestamp) }
-            }
+            // 💡 The old in-content header (icon + report-type label + "Analyzed as of") is gone
+            // -- the report-type label now lives in the global top bar (MainActivity resolves it
+            // dynamically per the loaded ReportType, see MarketSummaryRoute's onReportTypeLoaded),
+            // so keeping it here would have said the same thing twice. Only the timestamp stays,
+            // via the same shared AnalyzedAtHeader the Indicators tab uses, so both screens' "as
+            // of" line sits at the exact same pixel offset from the top bar (same content-padding
+            // formula, same component, no internal padding of its own).
+            item { AnalyzedAtHeader(timestamp = validData.lastUpdated) }
 
             // 💡 market_pulse v2 hierarchy (2026-08-17 backend revamp): signal -> drivers ->
             // position -> lead stories -> macro mix -> domino -> watch & risks -> the read.
@@ -296,52 +297,6 @@ private enum class GlossaryTarget { REGIME, SETUP, CYCLE_ZONE }
 // ---------------------------------------------------------
 
 /**
- * Header section - Market Summary
- */
-@Composable
-fun HeaderSection(type: ReportType, timestamp: Long) {
-    Column {
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // 1. Extract the exact text style you are using
-            val textStyle = MaterialTheme.typography.headlineMedium
-
-            // 2. Convert its font size (sp) into a Compose dimension (dp)
-            val iconSize = with(LocalDensity.current) { textStyle.fontSize.toDp() }
-
-            Icon(
-                painter = painterResource(id = R.drawable.ic_engine_ai_sparkles),
-                contentDescription = stringResource(id = R.string.summary_analysis_engine_content_description),
-                tint = MaterialTheme.colorScheme.onBackground,
-                // 3. Apply the calculated size here
-                modifier = Modifier.size(iconSize)
-            )
-
-            Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
-
-            Text(
-                text = type.label,
-                // 4. Use the exact same style reference here
-                style = textStyle,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-        }
-
-        val date = Date(timestamp)
-        val format = SimpleDateFormat("MMM dd, h:mm a", Locale.getDefault())
-
-        Text(
-            text = stringResource(id = R.string.analyzed_at, format.format(date)),
-            style = MaterialTheme.typography.bodySmall,
-            // 💡 ACTION: Replaced hardcoded Color.Gray with Theme's semantic variant text color
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_micro))
-        )
-    }
-}
-
-/**
  * The top-of-screen Signal card and the closing "The Read" card both read from the same
  * [MarketVerdict] (the backend folded the old signal + the_read split into one object). This one
  * renders the glanceable top flash: `regime` as the one headline chip, tinted and arrow-marked by
@@ -366,6 +321,7 @@ fun SignalSection(verdict: MarketVerdict, onRegimeClick: () -> Unit) {
         SignalDirection.UNKNOWN, null -> null
     }
 
+    val paddingMedium = dimensionResource(id = R.dimen.padding_medium)
     PulseCard(
         style = PulseCardStyle.SYNTHESIS,
         modifier = Modifier.fillMaxWidth()
@@ -374,10 +330,11 @@ fun SignalSection(verdict: MarketVerdict, onRegimeClick: () -> Unit) {
             Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
                 Text(
                     text = stringResource(id = R.string.section_signal),
-                    style = MaterialTheme.typography.titleSmall,
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.primary
                 )
 
+                Spacer(modifier = Modifier.height(paddingMedium))
                 verdict.regime?.let {
                     SignalPill(
                         text = it.label,
@@ -393,20 +350,21 @@ fun SignalSection(verdict: MarketVerdict, onRegimeClick: () -> Unit) {
                             }
                         },
                         trailingIcon = { GlossaryChevron(tint = directionColor.textColor) },
-                        onClick = onRegimeClick,
-                        modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_small))
+                        onClick = onRegimeClick
                     )
                 }
+                Spacer(modifier = Modifier.height(paddingMedium))
 
                 // 💡 The flash -- largest prose on the card, no callout box around it; a headline
-                // doesn't need to be quoted. bodyMedium, not titleSmall/bold -- a full ~170-char
-                // sentence read as too heavy at the bolder title weight.
+                // doesn't need to be quoted. headlineSmall/bold, matching the Indicators tab's
+                // "Today's Read" headline (AiExecutiveBriefingHero) -- both are the single
+                // AI-authored flash statement at the top of their domain's executive card, so they
+                // read at the same weight across the app.
                 verdict.signalLine?.let {
                     Text(
                         text = it,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_medium))
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
             }

@@ -34,6 +34,7 @@ import com.marketlabs.pulse.ui.navigation.PulseNavGraph
 import com.marketlabs.pulse.ui.navigation.PulseRoutes
 import com.marketlabs.pulse.ui.navigation.bottomNavItems
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
+import com.marketlabs.pulse.utils.enums.ReportType
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -80,10 +81,11 @@ class MainActivity : ComponentActivity() {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route
 
-                // 💡 News, Settings, the in-app web view, and the stock detail screen are pushed,
-                // full-screen destinations reached by tapping something on a bottom-nav tab, not a
-                // tab themselves -- they already own their own top-of-screen chrome (see
-                // NewsRoute.kt, SettingsScreen.kt, WebViewScreen.kt, StockDetailRoute.kt's pinned
+                // 💡 News, Settings, Indicator Horizons, the in-app web view, and the stock detail
+                // screen are pushed, full-screen destinations reached by tapping something on a
+                // bottom-nav tab, not a tab themselves -- they already own their own
+                // top-of-screen chrome (see NewsRoute.kt, SettingsScreen.kt,
+                // IndicatorHorizonsRoute.kt, WebViewScreen.kt, StockDetailRoute.kt's pinned
                 // DetailHeader) and have no "current tab" for the floating nav to highlight.
                 // Rendering the global collapsing bar on top of those was showing two bars stacked
                 // at once and fighting the local one's back affordance, and the floating nav below
@@ -95,6 +97,7 @@ class MainActivity : ComponentActivity() {
                 // collapsing top bar for this route" instruction.
                 val isPushedDestination = currentRoute == PulseRoutes.MARKET_NEWS ||
                     currentRoute == PulseRoutes.SETTINGS ||
+                    currentRoute == PulseRoutes.INDICATOR_HORIZONS ||
                     currentRoute?.startsWith("webview/") == true ||
                     currentRoute?.startsWith("${PulseRoutes.STOCK_ANALYSIS_DETAIL}/") == true
 
@@ -137,6 +140,13 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
+                // 💡 Summary's own in-content header is gone (the report-type label used to live
+                // there) -- the global top bar shows it instead now, reported up via
+                // PulseNavGraph's onSummaryReportTypeLoaded (see MarketSummaryRoute.kt). Null
+                // until that screen's data has loaded at least once this session, in which case
+                // topBarTitle falls back to the fixed "Summary" string below.
+                var summaryReportType by remember { mutableStateOf<ReportType?>(null) }
+
                 Scaffold(
                     modifier = Modifier
                         .fillMaxSize()
@@ -144,7 +154,7 @@ class MainActivity : ComponentActivity() {
                     topBar = {
                         if (!isPushedDestination) {
                             AppTopBar(
-                                title = topBarTitle(currentRoute),
+                                title = topBarTitle(currentRoute, summaryReportType),
                                 scrollBehavior = scrollBehavior,
                                 onSettingsClick = { navController.navigate(PulseRoutes.SETTINGS) }
                             )
@@ -203,7 +213,8 @@ class MainActivity : ComponentActivity() {
                         scaffoldPadding = dynamicScaffoldPadding,
                         onDriversNavigatedToIndicators = { reachedIndicatorsFromDrivers = true },
                         reachedIndicatorsFromDrivers = reachedIndicatorsFromDrivers,
-                        onIndicatorsBackHandled = { reachedIndicatorsFromDrivers = false }
+                        onIndicatorsBackHandled = { reachedIndicatorsFromDrivers = false },
+                        onSummaryReportTypeLoaded = { summaryReportType = it }
                     )
                 }
             }
@@ -212,22 +223,21 @@ class MainActivity : ComponentActivity() {
 }
 
 /**
- * Resolves the global top bar's title from the current back-stack route. A static per-route
- * mapping, not read from any screen's own ViewModel state -- `MainActivity` owns app-wide chrome
- * and stays intentionally dumb about what any one screen is doing internally. Market Summary's own
- * in-content header shows a data-dependent report-type label (only known once that screen's data
- * loads) that this can't replicate without reaching into its state, so it gets a fixed "Summary"
- * here instead; that in-content label stays exactly as it is, unlike Indicators/Insights' redundant
- * page-title rows, which are gone now that this bar carries the title.
+ * Resolves the global top bar's title from the current back-stack route. Mostly a static per-route
+ * mapping -- `MainActivity` owns app-wide chrome and stays intentionally dumb about what any one
+ * screen is doing internally -- with one exception: Market Summary's report type is only known
+ * once that screen's data loads, so it's reported up via PulseNavGraph's
+ * onSummaryReportTypeLoaded (see MarketSummaryRoute.kt) instead of a second static string here.
+ * Falls back to the fixed "Summary" string until that first load completes.
  *
  * News and Settings have no branch here -- `isPushedDestination` above means this bar is never
  * composed for those routes at all, so a title for them would never be read.
  */
 @Composable
-private fun topBarTitle(route: String?): String = when (route) {
+private fun topBarTitle(route: String?, summaryReportType: ReportType?): String = when (route) {
     PulseRoutes.MARKET_INDICATORS -> stringResource(id = R.string.indicators_screen_title)
     PulseRoutes.MARKET_INSIGHTS -> stringResource(id = R.string.insights_screen_title)
-    PulseRoutes.MARKET_SUMMARY -> stringResource(id = R.string.summary_screen_title)
+    PulseRoutes.MARKET_SUMMARY -> summaryReportType?.label ?: stringResource(id = R.string.summary_screen_title)
     PulseRoutes.MARKET_ANALYSIS -> stringResource(id = R.string.market_analysis_screen_title)
     else -> stringResource(id = R.string.app_name)
 }

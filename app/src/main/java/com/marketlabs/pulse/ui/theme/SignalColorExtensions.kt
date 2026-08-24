@@ -2,7 +2,10 @@ package com.marketlabs.pulse.ui.theme
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import com.marketlabs.pulse.utils.enums.AgreementState
+import com.marketlabs.pulse.utils.enums.AlignmentState
 import com.marketlabs.pulse.utils.enums.RiskImpactLevel
+import com.marketlabs.pulse.utils.enums.ShiftDirection
 import com.marketlabs.pulse.utils.enums.SignalColor
 
 /**
@@ -57,4 +60,70 @@ val RiskImpactLevel?.pillColor: Color
         RiskImpactLevel.MEDIUM -> LocalPulseColors.current.signalWarningPill
         RiskImpactLevel.LOW -> LocalPulseColors.current.signalBullishPill
         RiskImpactLevel.UNKNOWN, null -> LocalPulseColors.current.signalUnknown
+    }
+
+/**
+ * Indicators domain, schema_version 2: `executive.alignment_with_macro` -- whether the 4 pillars'
+ * stances agree with what the current macro regime would predict. Both non-ALIGNED variants are a
+ * flag to look closer, not themselves a bad signal, so they read as the same neutral/caution tone
+ * -- the same `signalNeutralText`/`signalNeutralPill` tokens `SignalColor.YELLOW` already uses
+ * everywhere else, not `signalWarningText`/`signalWarningPill` (a deep amber-red token this app
+ * otherwise only uses for `RiskImpactLevel.MEDIUM`'s graded-severity read, and too close to the
+ * bearish red at small sizes). MARKET_AHEAD_OF_FUNDAMENTALS and MARKET_BEHIND_FUNDAMENTALS aren't
+ * given a bullish/bearish split here -- the backend doesn't (yet) treat one as better than the
+ * other, just two different directions of the same "pricing has drifted from fundamentals" flag.
+ */
+val AlignmentState?.textColor: Color
+    @Composable get() = when (this) {
+        AlignmentState.ALIGNED -> LocalPulseColors.current.signalBullishText
+        AlignmentState.MARKET_AHEAD_OF_FUNDAMENTALS,
+        AlignmentState.MARKET_BEHIND_FUNDAMENTALS -> LocalPulseColors.current.signalNeutralText
+        AlignmentState.UNKNOWN, null -> LocalPulseColors.current.signalUnknown
+    }
+
+val AlignmentState?.pillColor: Color
+    @Composable get() = when (this) {
+        AlignmentState.ALIGNED -> LocalPulseColors.current.signalBullishPill
+        AlignmentState.MARKET_AHEAD_OF_FUNDAMENTALS,
+        AlignmentState.MARKET_BEHIND_FUNDAMENTALS -> LocalPulseColors.current.signalNeutralPill
+        AlignmentState.UNKNOWN, null -> LocalPulseColors.current.signalUnknown
+    }
+
+/**
+ * Indicators domain, schema_version 2: `pillar_scorecard[].agreement` -- how much a single
+ * pillar's own contributing metrics agree with each other (distinct from [AlignmentState] above,
+ * which compares a pillar's stance against the macro regime). DIVERGENT is a genuine warning
+ * (real internal contradiction) and stays bearish red; MIXED is the neutral middle and uses the
+ * same `signalNeutralText`/`signalNeutralPill` tokens [AlignmentState]'s non-ALIGNED variants use
+ * above, for the same reason -- see that doc comment.
+ */
+val AgreementState?.textColor: Color
+    @Composable get() = when (this) {
+        AgreementState.ALIGNED -> LocalPulseColors.current.signalBullishText
+        AgreementState.MIXED -> LocalPulseColors.current.signalNeutralText
+        AgreementState.DIVERGENT -> LocalPulseColors.current.signalBearishText
+        AgreementState.UNKNOWN, null -> LocalPulseColors.current.signalUnknown
+    }
+
+val AgreementState?.pillColor: Color
+    @Composable get() = when (this) {
+        AgreementState.ALIGNED -> LocalPulseColors.current.signalBullishPill
+        AgreementState.MIXED -> LocalPulseColors.current.signalNeutralPill
+        AgreementState.DIVERGENT -> LocalPulseColors.current.signalBearishPill
+        AgreementState.UNKNOWN, null -> LocalPulseColors.current.signalUnknown
+    }
+
+/** Indicators domain, schema_version 2: `executive.shifts[].direction` -- a metric's day-over-day color-band move. */
+val ShiftDirection?.textColor: Color
+    @Composable get() = when (this) {
+        ShiftDirection.IMPROVED -> LocalPulseColors.current.signalBullishText
+        ShiftDirection.DETERIORATED -> LocalPulseColors.current.signalBearishText
+        ShiftDirection.UNKNOWN, null -> LocalPulseColors.current.signalUnknown
+    }
+
+val ShiftDirection?.pillColor: Color
+    @Composable get() = when (this) {
+        ShiftDirection.IMPROVED -> LocalPulseColors.current.signalBullishPill
+        ShiftDirection.DETERIORATED -> LocalPulseColors.current.signalBearishPill
+        ShiftDirection.UNKNOWN, null -> LocalPulseColors.current.signalUnknown
     }

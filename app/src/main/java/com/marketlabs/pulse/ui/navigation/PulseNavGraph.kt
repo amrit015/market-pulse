@@ -16,6 +16,7 @@ import androidx.navigation.compose.composable
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.components.PulseWebViewScreen
 import com.marketlabs.pulse.ui.screens.dashboard.views.DashboardRoute
+import com.marketlabs.pulse.ui.screens.indicators.views.IndicatorHorizonsRoute
 import com.marketlabs.pulse.ui.screens.indicators.views.IndicatorsRoute
 import com.marketlabs.pulse.ui.screens.insights.views.InsightsRoute
 import com.marketlabs.pulse.ui.screens.news.views.NewsRoute
@@ -23,6 +24,7 @@ import com.marketlabs.pulse.ui.screens.stocks.detail.StockDetailRoute
 import com.marketlabs.pulse.ui.screens.stocks.views.StockAnalysisRoute
 import com.marketlabs.pulse.ui.screens.summary.views.MarketSummaryRoute
 import com.marketlabs.pulse.ui.settings.SettingsRoute
+import com.marketlabs.pulse.utils.enums.ReportType
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -47,6 +49,12 @@ object PulseRoutes {
 
     // Reached from the gear icon on the global top bar.
     const val SETTINGS = "settings"
+
+    // Pushed from the Indicators tab's "Horizons" entry card. Was local Compose state inside
+    // IndicatorsScreen.kt; promoted to a real destination so it gets the same pushed-screen
+    // treatment as Settings/News/Stock Detail -- its own header, no global top bar or floating
+    // nav stacked underneath it.
+    const val INDICATOR_HORIZONS = "indicator_horizons"
 }
 
 /** * 💡 UPDATED: Added a second icon resource for the 'selected' filled state
@@ -104,6 +112,10 @@ fun PulseNavGraph(
     onDriversNavigatedToIndicators: () -> Unit = {},
     reachedIndicatorsFromDrivers: Boolean = false,
     onIndicatorsBackHandled: () -> Unit = {},
+    // 💡 Same up-reporting shape as onDriversNavigatedToIndicators above -- MainActivity's top bar
+    // needs the loaded ReportType to show "Daily Update"/"Weekend Update" instead of a fixed
+    // "Summary", but can't reach into MarketSummaryViewModel's state directly.
+    onSummaryReportTypeLoaded: (ReportType?) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     // Added with Claude Code assistance: one-shot signal set right before navigating to the News
@@ -120,6 +132,7 @@ fun PulseNavGraph(
         composable(PulseRoutes.MARKET_SUMMARY) {
             MarketSummaryRoute(
                 scaffoldPadding = scaffoldPadding,
+                onReportTypeLoaded = onSummaryReportTypeLoaded,
                 // 💡 Back to the same tab-preserving popUpTo/saveState/restoreState dance
                 // FloatingBottomNav's onItemClick uses -- a plain push here (tried first) reached
                 // Indicators through a different code path than the bottom nav ever uses for that
@@ -177,7 +190,14 @@ fun PulseNavGraph(
                     restoreState = true
                 }
             }
-            IndicatorsRoute(scaffoldPadding = scaffoldPadding)
+            IndicatorsRoute(
+                scaffoldPadding = scaffoldPadding,
+                onNavigateToHorizons = { navController.navigate(PulseRoutes.INDICATOR_HORIZONS) }
+            )
+        }
+        // Pushed from the Indicators tab's "Horizons" entry card -- see PulseRoutes.INDICATOR_HORIZONS.
+        composable(PulseRoutes.INDICATOR_HORIZONS) {
+            IndicatorHorizonsRoute(onNavigateUp = { navController.popBackStack() })
         }
         composable(PulseRoutes.MARKET_INSIGHTS) {
             InsightsRoute(scaffoldPadding = scaffoldPadding)
