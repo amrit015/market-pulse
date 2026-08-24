@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dedicated monochrome layer for Android 13+ themed icons. The system discards this
+     drawable's own color and uses only its shape/alpha as a mask, tinted with a single
+     color from the user's wallpaper, so the concentric rings from app_launcher_foreground
+     are dropped here rather than reused: once flattened to one flat tone at the small sizes
+     themed-icon shells actually render at, 4 thin rings collapse into a muddy blob around
+     the bars instead of reading as distinct accents. The 3-bar chart motif is kept identical
+     to the color foreground (same geometry, single flat fill) so the mark stays recognizable
+     whether or not the user has icon theming turned on. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <group
+        android:name="scaled_mark"
+        android:pivotX="54"
+        android:pivotY="54"
+        android:scaleX="0.65"
+        android:scaleY="0.65">
+
+        <!-- Tall bar (right) -->
+        <path
+            android:fillColor="#FF000000"
+            android:pathData="M 68.5,35 H 75.5 A 3,3 0 0 1 78.5,38 V 73 A 3,3 0 0 1 75.5,76 H 68.5 A 3,3 0 0 1 65.5,73 V 38 A 3,3 0 0 1 68.5,35 Z" />
+
+        <!-- Medium bar (center) -->
+        <path
+            android:fillColor="#FF000000"
+            android:pathData="M 50.5,45 H 57.5 A 3,3 0 0 1 60.5,48 V 73 A 3,3 0 0 1 57.5,76 H 50.5 A 3,3 0 0 1 47.5,73 V 48 A 3,3 0 0 1 50.5,45 Z" />
+
+        <!-- Short bar (left) -->
+        <path
+            android:fillColor="#FF000000"
+            android:pathData="M 32.5,55 H 39.5 A 3,3 0 0 1 42.5,58 V 73 A 3,3 0 0 1 39.5,76 H 32.5 A 3,3 0 0 1 29.5,73 V 58 A 3,3 0 0 1 32.5,55 Z" />
+
+    </group>
+</vector>

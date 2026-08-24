@@ -122,7 +122,7 @@ fun SynthesisCardHeader(title: String) {
 
     Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(
-            painter = painterResource(id = R.drawable.ic_engine_ai_sparkles),
+            painter = painterResource(id = R.drawable.ic_ai_sparkle_filled),
             contentDescription = stringResource(id = R.string.stock_analysis_ai_glyph_content_description),
             tint = pulseColors.accentPrimary,
             modifier = Modifier.size(glyphSize)

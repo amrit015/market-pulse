@@ -135,7 +135,7 @@ private val previewItems = listOf(
     BottomNavItem.Overview,
     BottomNavItem.Indicators,
     BottomNavItem.Summary,
-    BottomNavItem.MarketRisk,
+    BottomNavItem.Insights,
     BottomNavItem.Analysis
 )
 

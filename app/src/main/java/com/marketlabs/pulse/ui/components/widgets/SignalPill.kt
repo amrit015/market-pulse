@@ -55,14 +55,14 @@ import com.marketlabs.pulse.ui.theme.MarketPulseTheme
  * component. Both default to null/no-op, so every existing call site is unaffected.
  *
  * `outlined` (added for the Indicators domain's alignment/agreement/shift-direction states) swaps
- * the solid tinted fill for a transparent fill + a stroke -- a lighter-weight treatment for a state
- * that's supporting context next to a card's main content, not the card's own primary data pill
- * (which stays filled). The stroke uses `contentColor`, not `pillColor` -- `pillColor` is a
- * deliberately pale background-tint token meant to sit *behind* bright text, so at a 1dp stroke
- * width it read as washed-out against the card background; `contentColor` is the saturated
- * foreground-strength token these signal colors already use for plain text, and `border_medium`
- * (3dp, not `border_thin`'s 1dp) gives it enough weight to actually read as a ring rather than a
- * hairline. Text uses `contentColor` at full strength too, rather than the light/dark blend below,
+ * the solid tinted fill for a transparent fill + a `border_thin` stroke -- a lighter-weight
+ * treatment for a state that's supporting context next to a card's main content, not the card's
+ * own primary data pill (which stays filled). The stroke uses `contentColor`, not `pillColor` --
+ * `pillColor` is a deliberately pale background-tint token meant to sit *behind* bright text, so
+ * even at a hairline width it reads as washed-out against the card background; `contentColor` is
+ * the saturated foreground-strength token these signal colors already use for plain text, and
+ * reads clearly as a ring at `border_thin` once it's the stroke color doing the work rather than
+ * the width. Text uses `contentColor` at full strength too, rather than the light/dark blend below,
  * since it's no longer sitting on top of a strong tinted fill that needed correcting for.
  */
 @Composable
@@ -85,7 +85,7 @@ fun SignalPill(
 
     Surface(
         color = if (outlined) Color.Transparent else pillColor,
-        border = if (outlined) BorderStroke(dimensionResource(id = R.dimen.border_thinner), contentColor) else null,
+        border = if (outlined) BorderStroke(dimensionResource(id = R.dimen.border_thin), contentColor) else null,
         shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_pill)),
         modifier = if (onClick != null) modifier.clickable(onClick = onClick) else modifier
     ) {

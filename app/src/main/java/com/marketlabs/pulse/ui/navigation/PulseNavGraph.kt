@@ -62,21 +62,21 @@ object PulseRoutes {
  */
 sealed class BottomNavItem(val route: String, val label: String, val unselectedIconRes: Int, val selectedIconRes: Int) {
     internal object Overview :
-        BottomNavItem(PulseRoutes.MARKET_OVERVIEW, "Overview", R.drawable.ic_overview, R.drawable.ic_overview_filled)
+        BottomNavItem(PulseRoutes.MARKET_OVERVIEW, "Overview", R.drawable.ic_dashboard_grid, R.drawable.ic_dashboard_grid_filled)
 
     internal object Indicators :
         BottomNavItem(PulseRoutes.MARKET_INDICATORS, "Indicators", R.drawable.ic_indicators, R.drawable.ic_indicators_filled)
 
     internal object Summary :
-        BottomNavItem(PulseRoutes.MARKET_SUMMARY, "Summary", R.drawable.ic_engine_ai_sparkles, R.drawable.ic_engine_ai_sparkles)
+        BottomNavItem(PulseRoutes.MARKET_SUMMARY, "Summary", R.drawable.ic_ai_sparkle, R.drawable.ic_ai_sparkle_filled)
 
-    internal object MarketRisk :
-        BottomNavItem(PulseRoutes.MARKET_INSIGHTS, "Insights", R.drawable.ic_risk, R.drawable.ic_risk_filled)
+    internal object Insights :
+        BottomNavItem(PulseRoutes.MARKET_INSIGHTS, "Insights", R.drawable.ic_insights, R.drawable.ic_insights_filled)
 
     // Added with Claude Code assistance: replaces News on the bottom bar. No filled variant
     // exists for this icon, so it's reused for both states — same as `Summary` above.
     internal object Analysis :
-        BottomNavItem(PulseRoutes.MARKET_ANALYSIS, "Analysis", R.drawable.ic_engine_quant, R.drawable.ic_engine_quant)
+        BottomNavItem(PulseRoutes.MARKET_ANALYSIS, "Analysis", R.drawable.ic_analysis_trend, R.drawable.ic_analysis_trend_filled)
 }
 
 /**
@@ -88,7 +88,7 @@ val bottomNavItems = listOf(
     BottomNavItem.Overview,
     BottomNavItem.Indicators,
     BottomNavItem.Summary,
-    BottomNavItem.MarketRisk,
+    BottomNavItem.Insights,
     BottomNavItem.Analysis
 )
 

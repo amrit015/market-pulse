@@ -76,7 +76,7 @@ private fun RiskAssessmentHeader(data: MarketRiskAssessment) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
-                painter = painterResource(id = R.drawable.ic_engine_ai_sparkles),
+                painter = painterResource(id = R.drawable.ic_ai_sparkle_filled),
                 contentDescription = "Analysis Engine",
                 tint = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.size(iconSize)
