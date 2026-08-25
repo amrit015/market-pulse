@@ -41,6 +41,7 @@ import com.marketlabs.pulse.ui.screens.indicators.IndicatorsViewModel
 fun IndicatorsRoute(
     scaffoldPadding: PaddingValues,
     onNavigateToHorizons: () -> Unit,
+    onNavigateToMetricDetail: (String) -> Unit,
     viewModel: IndicatorsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -92,8 +93,8 @@ fun IndicatorsRoute(
                     IndicatorsScreen(
                         data = uiState.data!!,
                         scaffoldPadding = scaffoldPadding,
-                        glossaryLookup = viewModel::glossaryEntryFor,
-                        onNavigateToHorizons = onNavigateToHorizons
+                        onNavigateToHorizons = onNavigateToHorizons,
+                        onNavigateToMetricDetail = onNavigateToMetricDetail
                     )
                 }
 

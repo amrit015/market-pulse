@@ -118,7 +118,7 @@
     <string name="dashboard_macd_label">MACD:</string>
 
     <string name="dashboard_current_price">Current</string>
-    <string name="dashboard_prev_close">Prev Close</string>
+    <string name="dashboard_prev_close">Previous Close</string>
     <string name="dashboard_ai_summary">AI Summary</string>
     <string name="dashboard_no_analysis">No analysis available.</string>
     <string name="dashboard_technical_breakdown">Technical Breakdown</string>
@@ -430,9 +430,9 @@
     <string name="stock_detail_tab_timeline">Timeline</string>
     <string name="stock_detail_tab_news">News</string>
     <string name="stock_detail_tab_nothing_yet">Nothing yet</string>
-    <!-- Temporary visual stand-in for the reserved chart space, so the surrounding layout can be
-         eyeballed for alignment before the real chart exists; remove once the chart ships. -->
-    <string name="stock_detail_chart_placeholder">Charts here</string>
+    <!-- Shown in place of the period chart when the symbol has no chart doc yet or the selected
+         range hasn't loaded yet; a 404 from GET /charts/:symbol is treated as "no data", not an error. -->
+    <string name="stock_detail_chart_empty_state">No chart history yet</string>
 
     <!-- Global top bar, floating nav, Settings screen, theme picker. -->
     <string name="app_top_bar_settings_content_description">Settings</string>

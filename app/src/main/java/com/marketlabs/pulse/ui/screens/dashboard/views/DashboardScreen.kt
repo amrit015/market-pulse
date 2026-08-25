@@ -45,24 +45,30 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.core.intraday.DashboardIntradayEligibility
 import com.marketlabs.pulse.storage.model.dashboard.AssetOverview
 import com.marketlabs.pulse.storage.model.dashboard.MarketState
 import com.marketlabs.pulse.storage.model.news.NewsArticle
+import com.marketlabs.pulse.storage.model.intraday.IntradaySeries
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
-import com.marketlabs.pulse.ui.components.bottomSheet.AssetDetailBottomSheet
 import com.marketlabs.pulse.ui.components.bottomSheet.MarketGlossaryBottomSheet
 import com.marketlabs.pulse.ui.components.widgets.ChangeDirection
 import com.marketlabs.pulse.ui.components.widgets.DirectionalChangePill
 import com.marketlabs.pulse.ui.components.widgets.PutCallHorizontalBar
 import com.marketlabs.pulse.ui.components.widgets.SignalPill
+import com.marketlabs.pulse.ui.components.widgets.SparklineChart
 import com.marketlabs.pulse.ui.components.widgets.SpeedometerGauge
 import com.marketlabs.pulse.ui.components.widgets.VixFullWidthCard
 import com.marketlabs.pulse.ui.screens.news.views.NewsPreviewSection
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
+import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 import com.marketlabs.pulse.utils.enums.AssetType
 import dev.jeziellago.compose.markdowntext.MarkdownText
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -77,7 +83,9 @@ fun DashboardScreen(
     scaffoldPadding: PaddingValues,
     newsArticles: List<NewsArticle>,
     onNewsArticleClick: (String) -> Unit,
-    onNavigateToNews: () -> Unit
+    onNavigateToNews: () -> Unit,
+    onAssetClick: (String) -> Unit = {},
+    getIntradayStream: (String) -> Flow<IntradaySeries?> = { emptyFlow() }
 ) {
     val scrollState = rememberScrollState()
 
@@ -123,7 +131,6 @@ fun DashboardScreen(
     val sectorAssets = assets
         .filter { it?.type?.name == "SECTOR" || it?.symbol in sectorSymbols }
 
-    var selectedAsset by remember { mutableStateOf<AssetOverview?>(null) }
     var selectedRegimeForGlossary by remember { mutableStateOf<String?>(null) }
 
     // 💡 Top padding uses `scaffoldPadding`'s top component (the Scaffold's own measurement of
@@ -161,7 +168,7 @@ fun DashboardScreen(
 
                 val vixAsset = sentimentAssets.find { it?.symbol == "^VIX" }
                 if (vixAsset != null) {
-                    VixFullWidthCard(asset = vixAsset, onClick = { selectedAsset = vixAsset })
+                    VixFullWidthCard(asset = vixAsset, onClick = { onAssetClick(vixAsset.symbol) })
                     Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
                 }
 
@@ -187,7 +194,7 @@ fun DashboardScreen(
                                     status = greedAsset.rsiStatus
                                 )
                             },
-                            onClick = { selectedAsset = greedAsset }
+                            onClick = { onAssetClick(greedAsset.symbol) }
                         )
                     }
 
@@ -204,7 +211,7 @@ fun DashboardScreen(
                                     status = putCallAsset.rsiStatus
                                 )
                             },
-                            onClick = { selectedAsset = putCallAsset }
+                            onClick = { onAssetClick(putCallAsset.symbol) }
                         )
                     } else if (greedAsset != null) {
                         Spacer(modifier = Modifier.weight(1f))
@@ -218,7 +225,8 @@ fun DashboardScreen(
             AssetSection(
                 title = stringResource(id = R.string.dashboard_section_futures),
                 items = futureAssets,
-                onAssetClick = { selectedAsset = it },
+                onAssetClick = { onAssetClick(it.symbol) },
+                getIntradayStream = getIntradayStream,
                 columnNum = 3
             )
         }
@@ -228,7 +236,8 @@ fun DashboardScreen(
             AssetSection(
                 title = stringResource(id = R.string.dashboard_section_equities),
                 items = equityAssets,
-                onAssetClick = { selectedAsset = it },
+                onAssetClick = { onAssetClick(it.symbol) },
+                getIntradayStream = getIntradayStream,
                 columnNum = 3
             )
         }
@@ -238,7 +247,8 @@ fun DashboardScreen(
             AssetSection(
                 title = stringResource(id = R.string.dashboard_section_crypto),
                 items = otherAssets,
-                onAssetClick = { selectedAsset = it },
+                onAssetClick = { onAssetClick(it.symbol) },
+                getIntradayStream = getIntradayStream,
                 columnNum = 3
             )
         }
@@ -248,7 +258,7 @@ fun DashboardScreen(
             SectorHeatmapSection(
                 title = "Sector Rotation", // Consider moving to strings.xml later!
                 items = sectorAssets,
-                onAssetClick = { selectedAsset = it }
+                onAssetClick = { onAssetClick(it.symbol) }
             )
         }
 
@@ -260,13 +270,6 @@ fun DashboardScreen(
                 onSeeAllClick = onNavigateToNews
             )
         }
-    }
-
-    if (selectedAsset != null) {
-        AssetDetailBottomSheet(
-            asset = selectedAsset!!,
-            onDismiss = { selectedAsset = null }
-        )
     }
 
     if (selectedRegimeForGlossary != null) {
@@ -353,11 +356,11 @@ fun SectorBlock(
     // full-saturation treatment now, uniformly, regardless of how large the move is.
     when {
         change > 0.0 -> {
-            bgColor = pulseColors.signalBullishText
+            bgColor = pulseColors.signalBullishPill
             textColor = Color.White
         }
         change < 0.0 -> {
-            bgColor = pulseColors.signalBearishText
+            bgColor = pulseColors.signalBearishPill
             textColor = Color.White
         }
         else -> {
@@ -383,7 +386,7 @@ fun SectorBlock(
         ) {
             Text(
                 text = asset.name ?: asset.symbol,
-                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
                 color = textColor,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center, // 💡 NEW: Centers multi-line text nicely
                 maxLines = 3, // 💡 NEW: Prevents extreme overflow just in case
@@ -407,7 +410,8 @@ fun AssetSection(
     title: String,
     items: List<AssetOverview?>,
     onAssetClick: (AssetOverview) -> Unit,
-    columnNum: Int = 2
+    columnNum: Int = 2,
+    getIntradayStream: (String) -> Flow<IntradaySeries?> = { emptyFlow() }
 ) {
     val paddingMedium = dimensionResource(id = R.dimen.padding_medium)
 
@@ -433,6 +437,7 @@ fun AssetSection(
                             modifier = Modifier
                                 .weight(1f)
                                 .fillMaxHeight(),
+                            intradayStream = getIntradayStream(it.symbol),
                             onClick = { onAssetClick(it) }
                         )
                     }
@@ -459,6 +464,7 @@ fun AssetCard(
     asset: AssetOverview,
     modifier: Modifier = Modifier,
     customVisual: @Composable (() -> Unit)? = null,
+    intradayStream: Flow<IntradaySeries?> = emptyFlow(),
     onClick: () -> Unit
 ) {
     val isSentimentAsset = asset.symbol == "FEAR_GREED" || asset.symbol == "PUT_CALL"
@@ -529,11 +535,19 @@ fun AssetCard(
         modifier = modifier,
         onClick = onClick
     ) {
+        // 💡 Horizontal padding moved off this Column and onto each child individually (instead
+        // of the usual single `.padding(padding_large)` every side) so the sparkline below can
+        // sit flush with the card's left/right edges -- a small chart reads noticeably better
+        // full-bleed than inset, and the card's rounded corners already clip it back into shape
+        // at the bottom. Every other child still gets the same horizontal inset it always had.
+        val horizontalContentPadding = dimensionResource(id = R.dimen.padding_large)
         Column(
-            modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))
+            modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.padding_large))
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = horizontalContentPadding),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -556,19 +570,23 @@ fun AssetCard(
                 Text(
                     text = it,
                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(horizontal = horizontalContentPadding)
                 )
             }
 
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
 
             if (customVisual != null) {
-                customVisual()
+                Box(modifier = Modifier.padding(horizontal = horizontalContentPadding)) {
+                    customVisual()
+                }
             } else {
                 Text(
                     text = String.format("%.2f", asset.price),
                     style = livePriceTextSize.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(horizontal = horizontalContentPadding)
                 )
 
                 val changeForDisplay = asset.changePercent ?: 0.0
@@ -591,8 +609,27 @@ fun AssetCard(
                     changeText = "${String.format("%.2f", abs(changeForDisplay))}%",
                     direction = changeDirection,
                     pillColor = if (isFlat) pulseColors.signalNeutralPill else pillColor,
-                    contentColor = if (isFlat) pulseColors.signalNeutralText else baseColor
+                    contentColor = if (isFlat) pulseColors.signalNeutralText else baseColor,
+                    modifier = Modifier.padding(horizontal = horizontalContentPadding)
                 )
+
+                // Live intraday sparkline -- only for the 23 symbols the backend actually polls
+                // bars for (plain equities/ETFs, crypto, gold/silver; not futures/oil/copper,
+                // which fall through to this same default branch but have no live feed). VIX and
+                // sentiment never reach this branch at all (their own cards above use
+                // `customVisual` or a dedicated `VixFullWidthCard`), so no separate exclusion is
+                // needed for those here.
+                if (DashboardIntradayEligibility.isEligible(asset.symbol)) {
+                    val intradaySeries by intradayStream.collectAsStateWithLifecycle(initialValue = null)
+                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
+                    SparklineChart(
+                        points = intradaySeries?.points.orEmpty(),
+                        previousClose = intradaySeries?.previousClose ?: asset.previousClose,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(dimensionResource(id = R.dimen.dashboard_asset_sparkline_height))
+                    )
+                }
             }
         }
     }
@@ -842,7 +879,7 @@ fun PreviewTechnicalSummaryCard() {
 @Preview(showBackground = true, backgroundColor = 0xFF121212)
 @Composable
 fun PreviewSectorHeatmapSection() {
-    MaterialTheme {
+    MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
         // Mocking a diverse set of sector performances to visualize the full heatmap gradient
         val mockAssets = listOf(
             AssetOverview(

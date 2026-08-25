@@ -38,6 +38,7 @@ import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.widgets.SignalPill
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
+import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 import com.marketlabs.pulse.ui.theme.PulseColors
 import com.marketlabs.pulse.utils.extensions.toRelativeTimeString
 import java.text.SimpleDateFormat
@@ -395,7 +396,7 @@ fun NewsPreviewCard(
 @Preview(showBackground = true, backgroundColor = 0xFF121212)
 @Composable
 private fun PreviewNewsPreviewSection() {
-    MaterialTheme {
+    MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
         NewsPreviewSection(
             articles = listOf(
                 NewsArticle(

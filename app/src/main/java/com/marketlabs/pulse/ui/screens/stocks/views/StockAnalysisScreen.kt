@@ -26,8 +26,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.storage.model.intraday.IntradaySeries
 import com.marketlabs.pulse.storage.model.stocks.StockPreview
 import com.marketlabs.pulse.ui.common.UiError
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.screens.stocks.components.StockPreviewCard
@@ -46,6 +49,7 @@ fun StockAnalysisScreen(
     analyzedAsOf: String?,
     onCardClick: (String) -> Unit,
     scaffoldPadding: PaddingValues,
+    getIntradayStream: (String) -> Flow<IntradaySeries?> = { emptyFlow() },
     modifier: Modifier = Modifier
 ) {
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
@@ -70,7 +74,11 @@ fun StockAnalysisScreen(
             StockAnalysisHeader(trackedCount = previews.size, analyzedAsOf = analyzedAsOf)
         }
         items(previews, key = { it.symbol }) { preview ->
-            StockPreviewCard(preview = preview, onClick = { onCardClick(preview.symbol) })
+            StockPreviewCard(
+                preview = preview,
+                onClick = { onCardClick(preview.symbol) },
+                intradayStream = getIntradayStream(preview.symbol)
+            )
         }
     }
 }

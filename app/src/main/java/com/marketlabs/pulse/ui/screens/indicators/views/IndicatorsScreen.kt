@@ -39,7 +39,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.marketlabs.pulse.R
-import com.marketlabs.pulse.core.glossary.MetricGlossaryEntry
 import com.marketlabs.pulse.storage.model.indicators.DomainAiSynthesis
 import com.marketlabs.pulse.storage.model.indicators.DomainExecutiveBlock
 import com.marketlabs.pulse.storage.model.indicators.DomainHorizons
@@ -53,7 +52,6 @@ import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.UniversalMetricCard
 import com.marketlabs.pulse.ui.components.bottomSheet.FrameworkSheet
-import com.marketlabs.pulse.ui.components.bottomSheet.IndicatorDetailSheet
 import com.marketlabs.pulse.ui.components.widgets.SignalPill
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
@@ -73,8 +71,8 @@ import com.marketlabs.pulse.utils.enums.SubcategoryEnums
 fun IndicatorsScreen(
     data: MarketIndicators,
     scaffoldPadding: PaddingValues,
-    glossaryLookup: (String) -> MetricGlossaryEntry?,
-    onNavigateToHorizons: () -> Unit
+    onNavigateToHorizons: () -> Unit,
+    onNavigateToMetricDetail: (String) -> Unit
 ) {
     // 💡 metric_id -> display name, resolved once per composition from the already-loaded pillar
     // lists. `executive.shifts[]` only ever carries a metric_id string -- the backend spec
@@ -93,8 +91,8 @@ fun IndicatorsScreen(
         data = data,
         metricNames = metricNames,
         scaffoldPadding = scaffoldPadding,
-        glossaryLookup = glossaryLookup,
-        onShowHorizons = onNavigateToHorizons
+        onShowHorizons = onNavigateToHorizons,
+        onNavigateToMetricDetail = onNavigateToMetricDetail
     )
 }
 
@@ -106,24 +104,15 @@ private fun IndicatorsMainFeed(
     data: MarketIndicators,
     metricNames: Map<String, String>,
     scaffoldPadding: PaddingValues,
-    glossaryLookup: (String) -> MetricGlossaryEntry?,
-    onShowHorizons: () -> Unit
+    onShowHorizons: () -> Unit,
+    onNavigateToMetricDetail: (String) -> Unit
 ) {
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
 
     var showFrameworkSheet by remember { mutableStateOf(false) }
-    var selectedMetric by remember { mutableStateOf<DomainUnifiedMetric?>(null) }
 
     if (showFrameworkSheet) {
         FrameworkSheet(onDismiss = { showFrameworkSheet = false })
-    }
-
-    selectedMetric?.let { metric ->
-        IndicatorDetailSheet(
-            metric = metric,
-            glossaryEntry = glossaryLookup(metric.id),
-            onDismiss = { selectedMetric = null }
-        )
     }
 
     val allPillars = listOfNotNull(
@@ -193,7 +182,7 @@ private fun IndicatorsMainFeed(
                 PillarSection(
                     config = config,
                     scorecardEntry = scorecardByPillar[config.pillarCategory],
-                    onIndicatorClick = { selectedMetric = it }
+                    onIndicatorClick = { metric -> onNavigateToMetricDetail(metric.id) }
                 )
             }
         }
@@ -638,8 +627,8 @@ private fun PreviewIndicatorsScreen() {
         IndicatorsScreen(
             data = previewMarketIndicators,
             scaffoldPadding = PaddingValues(0.dp),
-            glossaryLookup = { null },
-            onNavigateToHorizons = {}
+            onNavigateToHorizons = {},
+            onNavigateToMetricDetail = {}
         )
     }
 }

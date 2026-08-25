@@ -98,6 +98,7 @@ fun StockAnalysisRoute(
                         previews = uiState.previews,
                         analyzedAsOf = uiState.analyzedAsOf,
                         onCardClick = onNavigateToDetail,
+                        getIntradayStream = viewModel::getIntradayStream,
                         scaffoldPadding = scaffoldPadding
                     )
                 }

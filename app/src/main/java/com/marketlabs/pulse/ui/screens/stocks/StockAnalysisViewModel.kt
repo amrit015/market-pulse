@@ -4,17 +4,23 @@ package com.marketlabs.pulse.ui.screens.stocks
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.marketlabs.pulse.core.intraday.IntradayRepository
 import com.marketlabs.pulse.core.stocks.StockAnalysisRepository
 import com.marketlabs.pulse.core.sync.SyncManager
+import com.marketlabs.pulse.storage.model.intraday.IntradaySeries
 import com.marketlabs.pulse.storage.model.stocks.StockPreview
 import com.marketlabs.pulse.ui.common.UiError
 import com.marketlabs.pulse.ui.common.toUiError
 import com.marketlabs.pulse.utils.extensions.toAnalyzedAsOfString
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -38,12 +44,15 @@ import javax.inject.Inject
 @HiltViewModel
 class StockAnalysisViewModel @Inject constructor(
     private val repository: StockAnalysisRepository,
-    private val syncManager: SyncManager
+    private val syncManager: SyncManager,
+    private val intradayRepository: IntradayRepository
 ) : ViewModel() {
 
     private val _isLoading = MutableStateFlow(false)
     private val _isRefreshing = MutableStateFlow(false)
     private val _error = MutableStateFlow<UiError?>(null)
+    private var intradayTrackingJob: Job? = null
+    private var trackedSymbols: Set<String> = emptySet()
 
     val uiState: StateFlow<StockAnalysisUiState> = combine(
         repository.getStockPreviewsStream(),
@@ -68,12 +77,35 @@ class StockAnalysisViewModel @Inject constructor(
     fun onStart() {
         syncManager.startListening()
         fetchPreviews(force = false)
+
+        // Tracks the intraday sparkline for every visible preview, re-diffing whenever the
+        // preview list itself changes (a new sync-driven refresh). Every tracked stock is
+        // eligible -- the backend polls `resolveActiveSymbols()` unconditionally (spec Part B1),
+        // unlike the dashboard's gated ~23-symbol set.
+        intradayTrackingJob = viewModelScope.launch {
+            repository.getStockPreviewsStream()
+                .map { previews -> previews.map { it.symbol } }
+                .distinctUntilChanged()
+                .collect { symbols ->
+                    val newSymbols = symbols.toSet()
+                    (trackedSymbols - newSymbols).forEach { intradayRepository.untrackSymbol(it) }
+                    (newSymbols - trackedSymbols).forEach { intradayRepository.trackSymbol(it) }
+                    trackedSymbols = newSymbols
+                }
+        }
     }
 
     /** Called by the UI when the app goes to the background. */
     fun onStop() {
         syncManager.stopListening()
+        intradayTrackingJob?.cancel()
+        trackedSymbols.forEach { intradayRepository.untrackSymbol(it) }
+        trackedSymbols = emptySet()
     }
+
+    /** Thin pass-through so `StockPreviewCard` can collect its own symbol's polled intraday bars. */
+    fun getIntradayStream(symbol: String): Flow<IntradaySeries?> =
+        intradayRepository.getIntradayStream(symbol)
 
     /** Called by pull-to-refresh. */
     fun refresh() {

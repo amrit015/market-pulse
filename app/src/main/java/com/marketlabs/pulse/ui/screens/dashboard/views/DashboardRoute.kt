@@ -34,6 +34,7 @@ fun DashboardRoute(
     scaffoldPadding: PaddingValues,
     onNavigateToNews: () -> Unit, // Added with Claude Code assistance.
     onNavigateToNewsArticle: (String) -> Unit, // Added with Claude Code assistance.
+    onNavigateToAssetDetail: (String) -> Unit,
     viewModel: DashboardViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -84,7 +85,9 @@ fun DashboardRoute(
                         scaffoldPadding = scaffoldPadding,
                         newsArticles = latestNewsPreview,
                         onNewsArticleClick = onNavigateToNewsArticle,
-                        onNavigateToNews = onNavigateToNews
+                        onNavigateToNews = onNavigateToNews,
+                        onAssetClick = onNavigateToAssetDetail,
+                        getIntradayStream = viewModel::getIntradayStream
                     )
                 }
                 uiState.isLoading -> {

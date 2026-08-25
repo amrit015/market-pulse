@@ -16,6 +16,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
@@ -25,16 +26,21 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.storage.model.intraday.IntradaySeries
 import com.marketlabs.pulse.storage.model.stocks.DomainConditionChip
 import com.marketlabs.pulse.storage.model.stocks.StockPreview
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.widgets.ChangeDirection
 import com.marketlabs.pulse.ui.components.widgets.DirectionalChangePill
+import com.marketlabs.pulse.ui.components.widgets.SparklineChart
 import com.marketlabs.pulse.ui.screens.stocks.detail.OutlinedBadge
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import java.util.Locale
 import kotlin.math.abs
 
@@ -49,18 +55,23 @@ import kotlin.math.abs
  *
  * Field-to-element mapping follows the spec's table exactly: symbol/name left, price/change pill
  * right, `plain_read` prose body, a muted `technical_setup` + chip-delta line, the top-4 condition
- * chips, and (only when `hasDirectNews` is true) a small NEWS footer line. A vertical `Spacer`
- * sized to `stock_preview_sparkline_space` sits under the price block -- the preview payload has
- * no chart series yet, so this reserves the sparkline's footprint without rendering anything, per
- * the spec's explicit "reserve space, don't render a placeholder" instruction.
+ * chips, and (only when `hasDirectNews` is true) a small NEWS footer line. A live `SparklineChart`
+ * sized to `stock_preview_sparkline_space` sits under the price block -- `intradayStream` is fed
+ * by `IntradayRepository` (backend-polled `/intraday/:symbol` bars), not the preview payload
+ * itself, since `market_stock_previews` has no chart series of its own. The sparkline's baseline
+ * prefers the intraday response's own `prev_close` (`IntradaySeries.previousClose`) and only falls
+ * back to the preview's `previousClose` while no intraday data has loaded yet, so the dashed
+ * reference line still has something to show immediately.
  */
 @Composable
 fun StockPreviewCard(
     preview: StockPreview,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    intradayStream: Flow<IntradaySeries?> = emptyFlow()
 ) {
     val pulseColors = LocalPulseColors.current
+    val intradaySeries by intradayStream.collectAsStateWithLifecycle(initialValue = null)
 
     PulseCard(
         style = PulseCardStyle.DATA,
@@ -128,8 +139,14 @@ fun StockPreviewCard(
                             contentColor = textColor
                         )
                     }
-                    // TODO: add a sparkline later here
-                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
+                    SparklineChart(
+                        points = intradaySeries?.points.orEmpty(),
+                        previousClose = intradaySeries?.previousClose ?: preview.previousClose,
+                        modifier = Modifier
+                            .width(dimensionResource(id = R.dimen.stock_preview_sparkline_width))
+                            .height(dimensionResource(id = R.dimen.stock_preview_sparkline_space))
+                    )
                 }
             }
 

@@ -22,13 +22,11 @@ android {
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // load the key for the Finnhub through the local properties
         val properties = Properties()
         val localPropertiesFile = rootProject.file("local.properties")
         if (localPropertiesFile.exists()) {
             properties.load(localPropertiesFile.inputStream())
         }
-        buildConfigField("String", "FINNHUB_KEY", properties.getProperty("FINNHUB_KEY", "\"\""))
         buildConfigField("String", "DEBUG_SECRET_UUID", properties.getProperty("DEBUG_SECRET_UUID", "\"\""))
     }
 

@@ -27,8 +27,14 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.storage.model.charts.ChartRange
+import com.marketlabs.pulse.storage.model.charts.ChartSeries
+import com.marketlabs.pulse.storage.model.intraday.IntradaySeries
 import com.marketlabs.pulse.storage.model.stocks.StockDetail
 import com.marketlabs.pulse.storage.model.stocks.StockPreview
+import com.marketlabs.pulse.ui.components.charts.ChartRangePicker
+import com.marketlabs.pulse.ui.components.charts.IntradayPeriodChart
+import com.marketlabs.pulse.ui.components.charts.PeriodChart
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.Consider
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.DeepStudy
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.DirectNews
@@ -75,9 +81,9 @@ enum class DetailTab(val labelRes: Int) {
  * they're general context, not specific to any one tab.
  *
  * Section composables are unchanged -- only which tab calls them (and, for `DirectNews`, the sort
- * order of what's passed in) changed. The chart-reserved-space filler (deferred per the
- * stock-analysis-ui spec) stays in its original position between SetupReasoning and
- * HeadlineMetricsStrip, inside the Technicals tab.
+ * order of what's passed in) changed. The period chart (`PeriodChart` + `ChartRangePicker`) sits
+ * in its original reserved position between SetupReasoning and HeadlineMetricsStrip, inside the
+ * Technicals tab -- previously a `ChartPlaceholder` stand-in, now real data from `ChartsRepository`.
  */
 @Composable
 fun StockDetailScreen(
@@ -86,6 +92,12 @@ fun StockDetailScreen(
     selectedTabIndex: Int,
     expandedChipIds: Set<String>,
     expandedNewsIds: Set<String>,
+    chartSeries: ChartSeries?,
+    selectedChartRange: ChartRange,
+    isChartLoading: Boolean,
+    intradaySeries: IntradaySeries?,
+    availableChartRanges: List<ChartRange>,
+    onChartRangeSelected: (ChartRange) -> Unit,
     onToggleChip: (String) -> Unit,
     onToggleNews: (String) -> Unit,
     onArticleClick: (String) -> Unit,
@@ -114,6 +126,12 @@ fun StockDetailScreen(
             DetailTab.TECHNICALS -> TechnicalsTabContent(
                 detail = detail,
                 preview = preview,
+                chartSeries = chartSeries,
+                selectedChartRange = selectedChartRange,
+                isChartLoading = isChartLoading,
+                intradaySeries = intradaySeries,
+                availableChartRanges = availableChartRanges,
+                onChartRangeSelected = onChartRangeSelected,
                 lazyListState = lazyListStates[DetailTab.TECHNICALS.ordinal],
                 contentPadding = contentPadding,
                 sectionSpacing = sectionSpacing
@@ -160,6 +178,12 @@ fun StockDetailScreen(
 private fun TechnicalsTabContent(
     detail: StockDetail?,
     preview: StockPreview?,
+    chartSeries: ChartSeries?,
+    selectedChartRange: ChartRange,
+    isChartLoading: Boolean,
+    intradaySeries: IntradaySeries?,
+    availableChartRanges: List<ChartRange>,
+    onChartRangeSelected: (ChartRange) -> Unit,
     lazyListState: LazyListState,
     contentPadding: PaddingValues,
     sectionSpacing: Dp
@@ -185,13 +209,36 @@ private fun TechnicalsTabContent(
             }
         }
 
-        // Chart space reserved for a future design + spec pass -- see the stock-analysis-ui
-        // spec's "Deferred" section. [ChartPlaceholder] is a temporary visual stand-in (labeled
-        // "Charts here") so this space's alignment can be eyeballed against the rest of the tab
-        // before a real chart exists -- swap it back out for the reserved-but-empty Spacer once
-        // the chart itself is built. Rendered unconditionally (not data-driven) between
-        // SetupReasoning and HeadlineMetricsStrip, matching the Design mockup's layout.
-        item { ChartPlaceholder() }
+        // Period chart (5D/1M/6M/YTD/1Y), between SetupReasoning and HeadlineMetricsStrip, matching
+        // the Design mockup's layout -- previously reserved-but-empty space (`ChartPlaceholder`),
+        // now real data from `ChartsRepository`. `PeriodChart` itself handles the loading/empty
+        // states at a fixed height (see its own doc comment) -- switching ranges used to swap this
+        // out for a shorter empty-state block and back, visibly shifting everything below it.
+        item {
+            Column {
+                if (selectedChartRange == ChartRange.ONE_DAY) {
+                    IntradayPeriodChart(
+                        points = intradaySeries?.points.orEmpty(),
+                        previousClose = intradaySeries?.previousClose,
+                        date = intradaySeries?.date,
+                        isLoading = isChartLoading,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                } else {
+                    PeriodChart(
+                        points = chartSeries?.points.orEmpty(),
+                        isLoading = isChartLoading,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                ChartRangePicker(
+                    selectedRange = selectedChartRange,
+                    onRangeSelected = onChartRangeSelected,
+                    availableRanges = availableChartRanges
+                )
+            }
+        }
 
         if (hasHeadlineMetrics) {
             item { HeadlineMetricsStrip(indicators = detail?.technicalIndicators) }
@@ -324,31 +371,6 @@ private fun NewsTabContent(
                     onArticleClick = onArticleClick
                 )
             }
-        }
-    }
-}
-
-/**
- * Temporary stand-in for the reserved chart space -- a plain tinted box labeled "Charts here" so
- * the layout around it (spacing to SetupReasoning above and HeadlineMetricsStrip below) can be
- * checked visually before a real chart exists. Remove once the chart itself ships; the spec's own
- * instruction is "reserve space, don't render a placeholder," so this is deliberately temporary.
- */
-@Composable
-private fun ChartPlaceholder() {
-    Surface(
-        color = LocalPulseColors.current.surfaceTinted,
-        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card_large)),
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(dimensionResource(id = R.dimen.stock_detail_chart_reserved_height))
-    ) {
-        Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-            Text(
-                text = stringResource(id = R.string.stock_detail_chart_placeholder),
-                style = MaterialTheme.typography.bodyMedium,
-                color = LocalPulseColors.current.onSurfaceMuted
-            )
         }
     }
 }

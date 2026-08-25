@@ -1,7 +1,9 @@
 package com.marketlabs.pulse.network.retrofit
 
+import com.marketlabs.pulse.network.api.ChartsApi
 import com.marketlabs.pulse.network.api.DashboardApi
 import com.marketlabs.pulse.network.api.IndicatorsApi
+import com.marketlabs.pulse.network.api.IntradayApi
 import com.marketlabs.pulse.network.api.MarketPostureApi
 import com.marketlabs.pulse.network.api.MarketPulseApi
 import com.marketlabs.pulse.network.api.MarketRiskApi
@@ -39,7 +41,7 @@ object NetworkApiModule {
 
     @Provides
     @Singleton
-    @Named("MarketPulseClient") // specific name to avoid conflict with FinnHub client
+    @Named("MarketPulseClient")
     fun provideMarketPulseOkHttpClient(
         appCheckInterceptor: AppCheckInterceptor, // Make sure this is injected
         headerLoggingInterceptor: HeaderLoggingInterceptor // The one we just added
@@ -59,7 +61,7 @@ object NetworkApiModule {
     // 💡 NEW: A dedicated Retrofit provider
     @Provides
     @Singleton
-    @Named("MarketPulseRetrofit") // Separates this from the FinnHub Retrofit
+    @Named("MarketPulseRetrofit")
     fun provideMarketPulseRetrofit(
         @Named("MarketPulseClient") client: OkHttpClient,
         moshi: Moshi
@@ -138,5 +140,23 @@ object NetworkApiModule {
         @Named("MarketPulseRetrofit") retrofit: Retrofit
     ): StocksApi {
         return retrofit.create(StocksApi::class.java)
+    }
+
+    /** Provides the Retrofit client for `GET /charts/:symbol` — period charts (5D/1M/6M/YTD/1Y). */
+    @Provides
+    @Singleton
+    fun provideChartsApi(
+        @Named("MarketPulseRetrofit") retrofit: Retrofit
+    ): ChartsApi {
+        return retrofit.create(ChartsApi::class.java)
+    }
+
+    /** Provides the Retrofit client for `GET /intraday/:symbol` — today's sparkline bars. */
+    @Provides
+    @Singleton
+    fun provideIntradayApi(
+        @Named("MarketPulseRetrofit") retrofit: Retrofit
+    ): IntradayApi {
+        return retrofit.create(IntradayApi::class.java)
     }
 }
