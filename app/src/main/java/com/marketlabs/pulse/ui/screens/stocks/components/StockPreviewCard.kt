@@ -56,12 +56,14 @@ import kotlin.math.abs
  * Field-to-element mapping follows the spec's table exactly: symbol/name left, price/change pill
  * right, `plain_read` prose body, a muted `technical_setup` + chip-delta line, the top-4 condition
  * chips, and (only when `hasDirectNews` is true) a small NEWS footer line. A live `SparklineChart`
- * sized to `stock_preview_sparkline_space` sits under the price block -- `intradayStream` is fed
- * by `IntradayRepository` (backend-polled `/intraday/:symbol` bars), not the preview payload
- * itself, since `market_stock_previews` has no chart series of its own. The sparkline's baseline
- * prefers the intraday response's own `prev_close` (`IntradaySeries.previousClose`) and only falls
- * back to the preview's `previousClose` while no intraday data has loaded yet, so the dashed
- * reference line still has something to show immediately.
+ * sized to `stock_preview_sparkline_space` sits between the symbol/name block and the price/change
+ * block, its own fixed-width column in that header row -- `intradayStream` is fed by
+ * `IntradayRepository` (backend-polled `/intraday/:symbol` bars), not the preview payload itself,
+ * since `market_stock_previews` has no chart series of its own. The sparkline's baseline prefers
+ * the intraday response's own `prev_close` (`IntradaySeries.previousClose`) and only falls back to
+ * the preview's `previousClose` while no intraday data has loaded yet, so the dashed reference line
+ * still has something to show immediately. `name` now wraps to 2 lines (was 1 + ellipsis) since the
+ * symbol/name column gives up some of its width to the sparkline column next to it.
  */
 @Composable
 fun StockPreviewCard(
@@ -81,7 +83,7 @@ fun StockPreviewCard(
         Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -102,15 +104,29 @@ fun StockPreviewCard(
                         )
                     }
                     preview.name?.let { name ->
+                        // 💡 2 lines now (was 1 + ellipsis) -- this column gives up width to the
+                        // sparkline next to it, so a long name is more likely to need the room.
                         Text(
                             text = name,
                             style = MaterialTheme.typography.bodySmall,
                             color = pulseColors.accentPrimary,
-                            maxLines = 1,
+                            maxLines = 2,
                             overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
+
+                Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_medium)))
+
+                SparklineChart(
+                    points = intradaySeries?.points.orEmpty(),
+                    previousClose = intradaySeries?.previousClose ?: preview.previousClose,
+                    modifier = Modifier
+                        .width(dimensionResource(id = R.dimen.stock_preview_sparkline_width))
+                        .height(dimensionResource(id = R.dimen.stock_preview_sparkline_space))
+                )
+
+                Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_medium)))
 
                 Column(horizontalAlignment = Alignment.End) {
                     preview.price?.let { price ->
@@ -139,14 +155,6 @@ fun StockPreviewCard(
                             contentColor = textColor
                         )
                     }
-                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
-                    SparklineChart(
-                        points = intradaySeries?.points.orEmpty(),
-                        previousClose = intradaySeries?.previousClose ?: preview.previousClose,
-                        modifier = Modifier
-                            .width(dimensionResource(id = R.dimen.stock_preview_sparkline_width))
-                            .height(dimensionResource(id = R.dimen.stock_preview_sparkline_space))
-                    )
                 }
             }
 

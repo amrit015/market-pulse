@@ -25,7 +25,6 @@ import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 import com.marketlabs.pulse.ui.theme.textColor
 import com.marketlabs.pulse.utils.enums.SignalColor
-import com.patrykandpatrick.vico.core.cartesian.axis.HorizontalAxis
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianValueFormatter
 import kotlin.math.roundToInt
 
@@ -109,12 +108,15 @@ private fun IndicatorHistoryChartPlot(
             points[index].date.toShortDateLabel()
         }
     }
+    // Second line: percent change from the series' own first point to whichever point is touched.
     val marker = rememberPeriodChartMarker(points.size) { index ->
         val point = points[index]
-        "${point.date.toShortDateLabel()}  ${point.valueDisplay ?: point.value.toString()}"
+        "${point.date.toShortDateLabel()}, ${point.valueDisplay ?: point.value.toString()}\n${percentChangeFrom(points.first().value, point.value)}"
     }
-    val xAxisSpacing = remember(points) { (points.size / 5).coerceAtLeast(1) }
-    val itemPlacer = remember(xAxisSpacing) { HorizontalAxis.ItemPlacer.aligned(spacing = { xAxisSpacing }) }
+    // Up to 5 labels, always including both endpoints -- see FixedItemPlacer's doc comment
+    // (PeriodChart.kt, same package) for why this isn't Vico's own spacing-based aligned() placer.
+    val labelIndices = remember(points) { evenlySpacedIndices(points.size, LABEL_COUNT) }
+    val itemPlacer = remember(labelIndices) { FixedItemPlacer(labelIndices) }
 
     VicoLinePlot(
         prices = points.map { it.value },

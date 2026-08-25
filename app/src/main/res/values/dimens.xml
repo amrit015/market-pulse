@@ -59,8 +59,11 @@
     <dimen name="stock_preview_sparkline_space">48dp</dimen>
     <dimen name="stock_preview_sparkline_width">96dp</dimen>
 
-    <!-- Dashboard asset card: live intraday sparkline height, under the price/change pill. -->
-    <dimen name="dashboard_asset_sparkline_height">48dp</dimen>
+    <!-- Dashboard asset card: live intraday sparkline height, under the price/change pill, flush
+         with the card's bottom edge. Taller than the stock-preview sparkline above: this one
+         renders edge-to-edge at the card's own bottom, so it needs more vertical room for the
+         curve to read as smooth rather than cramped right where it touches that edge. -->
+    <dimen name="dashboard_asset_sparkline_height">64dp</dimen>
 
     <!-- Loading-skeleton placeholder bars on StockAnalysisLoadingSkeleton, roughly matching a real
          StockPreviewCard's symbol/name line lengths so the swap-in on load doesn't visibly jump. -->

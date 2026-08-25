@@ -88,7 +88,14 @@ enum class MarketPulseTheme(val displayName: String, val isDark: Boolean) {
             // (Equities' AssetCard, Indicators' UniversalMetricCard) reads it through the same
             // `PulseCard` component.
             surfaceTinted = lerp(accent.tinted, accent.surface, 0.45f),
-            onSurfaceMuted = surface.onSurfaceMuted
+            onSurfaceMuted = surface.onSurfaceMuted,
+            // 💡 2026-08-25: was signal.bullishText/bearishText in every mode (committed), then
+            // briefly signal.bullishPill/bearishPill in every mode (an in-progress edit to fix how
+            // dark mode looked) -- the pill tone reads well as a dark-mode tile fill but washed out
+            // in light mode, so this picks a different source per mode instead of one token family
+            // for both. See PulseColors' own doc comment on these two fields.
+            sectorHeatmapBullish = if (isDark) signal.bullishPill else signal.bullishText,
+            sectorHeatmapBearish = if (isDark) signal.bearishPill else signal.bearishText
         )
     }
 

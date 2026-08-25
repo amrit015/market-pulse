@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -354,13 +355,17 @@ fun SectorBlock(
     // white text on top for contrast. The old two-tier intensity scale (full-saturation only past
     // +-1% change, a softer background below that) is gone -- every non-flat tile uses the same
     // full-saturation treatment now, uniformly, regardless of how large the move is.
+    //
+    // 💡 `sectorHeatmapBullish`/`sectorHeatmapBearish`, not `signalBullishPill`/`signalBearishPill`
+    // directly -- a full-tile background needs a different source token per mode (see PulseColors'
+    // doc comment on these two fields), not one shared family across both.
     when {
         change > 0.0 -> {
-            bgColor = pulseColors.signalBullishPill
+            bgColor = pulseColors.sectorHeatmapBullish
             textColor = Color.White
         }
         change < 0.0 -> {
-            bgColor = pulseColors.signalBearishPill
+            bgColor = pulseColors.sectorHeatmapBearish
             textColor = Color.White
         }
         else -> {
@@ -540,9 +545,24 @@ fun AssetCard(
         // sit flush with the card's left/right edges -- a small chart reads noticeably better
         // full-bleed than inset, and the card's rounded corners already clip it back into shape
         // at the bottom. Every other child still gets the same horizontal inset it always had.
+        //
+        // 💡 Bottom padding moved off this Column too (top-only now) -- a card ending in a
+        // sparkline applies its own bottom padding conditionally below (see the `else` branch),
+        // since that card wants the sparkline flush with the card's bottom edge, same reasoning
+        // as the horizontal edges above. Every other ending (customVisual, or the no-sparkline
+        // fallback) still gets the same padding_large gap it always had, just added explicitly at
+        // its own tail instead of inherited from here.
+        // 💡 `fillMaxHeight()` so this Column actually occupies the full, row-matched card height
+        // (siblings in the same row can be taller, e.g. one with a longer subtitle -- see the
+        // `Row(Modifier.height(IntrinsicSize.Max))` call sites below) rather than sizing itself to
+        // its own natural content height and leaving dead space below. The sparkline is the one
+        // child that actually stretches into that extra room (`weight(1f)` below); everything
+        // else keeps its natural size.
         val horizontalContentPadding = dimensionResource(id = R.dimen.padding_large)
         Column(
-            modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.padding_large))
+            modifier = Modifier
+                .fillMaxHeight()
+                .padding(top = dimensionResource(id = R.dimen.padding_large))
         ) {
             Row(
                 modifier = Modifier
@@ -578,7 +598,11 @@ fun AssetCard(
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
 
             if (customVisual != null) {
-                Box(modifier = Modifier.padding(horizontal = horizontalContentPadding)) {
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = horizontalContentPadding)
+                        .padding(bottom = dimensionResource(id = R.dimen.padding_large))
+                ) {
                     customVisual()
                 }
             } else {
@@ -622,13 +646,26 @@ fun AssetCard(
                 if (DashboardIntradayEligibility.isEligible(asset.symbol)) {
                     val intradaySeries by intradayStream.collectAsStateWithLifecycle(initialValue = null)
                     Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
+                    // No bottom padding here -- this is the card's last element, and it should sit
+                    // flush with the card's bottom edge (edge-to-edge on every side now, not just
+                    // left/right), same as the sparkline's own edge-to-edge width above.
+                    //
+                    // 💡 `weight(1f)` instead of a fixed `height(...)` -- when a taller sibling in
+                    // the same row (e.g. one with a longer subtitle) stretches this card beyond its
+                    // own natural size, the sparkline is what grows to fill that extra room instead
+                    // of leaving blank space between it and the card's now-lower bottom edge.
+                    // `heightIn(min = ...)` keeps it at today's size as a floor -- it only ever
+                    // grows from there, never shrinks below it.
                     SparklineChart(
                         points = intradaySeries?.points.orEmpty(),
                         previousClose = intradaySeries?.previousClose ?: asset.previousClose,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(dimensionResource(id = R.dimen.dashboard_asset_sparkline_height))
+                            .weight(1f)
+                            .heightIn(min = dimensionResource(id = R.dimen.dashboard_asset_sparkline_height))
                     )
+                } else {
+                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
                 }
             }
         }

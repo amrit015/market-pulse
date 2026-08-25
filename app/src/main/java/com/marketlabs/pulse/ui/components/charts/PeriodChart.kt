@@ -178,16 +178,19 @@ private fun PeriodChartPlot(
             points[index].date.toShortDateLabel()
         }
     }
+    // Second line: percent change from the range's own first point (same baseline the caption
+    // row and periodChartLineColor already use) to whichever point is touched -- not a fixed
+    // day-over-day delta, since that's not what this chart's baseline means (see PeriodChart's
+    // own doc comment on why the first point in the returned range is the only correct baseline
+    // for a multi-day series).
     val marker = rememberPeriodChartMarker(points.size) { index ->
-        "${points[index].date.toShortDateLabel()}  ${priceFormat.format(points[index].price)}"
+        val point = points[index]
+        "${point.date.toShortDateLabel()}, ${priceFormat.format(point.price)}\n${percentChangeFrom(points.first().price, point.price)}"
     }
-    // Roughly 5 labels spread evenly across the series, regardless of how many points it holds
-    // (5 for a 5D range, ~252 for 1Y) -- a label per point would be unreadable on the longer
-    // ranges. [IntradayPeriodChart] uses a different placer (real clock-hour boundaries, not
-    // index spacing) since evenly-spaced indices don't line up with the same wall-clock time
-    // when a bar is missing -- see [HourBoundaryItemPlacer].
-    val xAxisSpacing = remember(points) { (points.size / 5).coerceAtLeast(1) }
-    val itemPlacer = remember(xAxisSpacing) { HorizontalAxis.ItemPlacer.aligned(spacing = { xAxisSpacing }) }
+    // Up to 5 labels spread evenly across the series, always including both endpoints -- see
+    // FixedItemPlacer's doc comment for why this isn't Vico's own spacing-based aligned() placer.
+    val labelIndices = remember(points) { evenlySpacedIndices(points.size, LABEL_COUNT) }
+    val itemPlacer = remember(labelIndices) { FixedItemPlacer(labelIndices) }
     VicoLinePlot(
         prices = points.map { it.price },
         lineColor = lineColor,
@@ -234,8 +237,10 @@ internal fun VicoLinePlot(
     val gradientBrush = Brush.verticalGradient(
         // Stronger, less-faded wash than a typical sparkline's gradient -- this is the chart's
         // only bullish/bearish cue besides the line itself, so the tint needs to read clearly
-        // across the whole area, not just hug the line at the top.
-        colors = listOf(lineColor.copy(alpha = 0.45f), lineColor.copy(alpha = 0.1f))
+        // across the whole area, not just hug the line at the top. (Was 0.45f/0.1f -- bumped up
+        // further for the same reason SparklineChart's own gradient was: too faded to read as an
+        // actual color, especially toward the bottom.)
+        colors = listOf(lineColor.copy(alpha = 0.6f), lineColor.copy(alpha = 0.25f))
     )
 
     val lineSpec = remember(lineColorInt, gradientBrush) {
@@ -351,7 +356,13 @@ fun IntradayPeriodChart(
         ) {
             when {
                 points.isNotEmpty() && lineColor != null ->
-                    IntradayChartPlot(points = points, date = date, lineColor = lineColor, modifier = Modifier.fillMaxSize())
+                    IntradayChartPlot(
+                        points = points,
+                        date = date,
+                        previousClose = previousClose,
+                        lineColor = lineColor,
+                        modifier = Modifier.fillMaxSize()
+                    )
                 isLoading -> CircularProgressIndicator()
                 else -> Text(
                     text = stringResource(id = R.string.stock_detail_chart_empty_state),
@@ -395,37 +406,46 @@ private fun intradayChartLineColor(points: List<IntradayPoint>, previousClose: D
 }
 
 /**
- * Builds [IntradayPeriodChart]'s local-time x-axis/marker text and a clock-hour-aligned axis
- * placer, then delegates to [VicoLinePlot].
+ * Builds [IntradayPeriodChart]'s local-time x-axis/marker text and delegates to [VicoLinePlot].
+ *
+ * Labels are evenly spaced by index (up to 5 across the series, always including both endpoints --
+ * see [evenlySpacedIndices]/[FixedItemPlacer]), not placed at real clock-hour boundaries -- an
+ * earlier version labeled every hour, which reads fine for a 6.5-hour equity session but crowds
+ * into an unreadable wall of labels for a 24-hour one (crypto's `12 AM`...`11 PM` span). Since
+ * labels don't necessarily land exactly on the hour, both the axis and the marker show minute
+ * precision.
  */
 @Composable
 private fun IntradayChartPlot(
     points: List<IntradayPoint>,
     date: String?,
+    previousClose: Double?,
     lineColor: Color,
     modifier: Modifier = Modifier
 ) {
     val localTimes = remember(points, date) { points.toLocalTimes(date) }
 
-    // Real clock-hour boundaries (12 AM, 1 AM, ...) computed from each bar's actual converted
-    // timestamp, not an evenly-spaced index formula -- bars aren't guaranteed perfectly
-    // contiguous (a missed poll tick, or the commodities session's daily maintenance gap), so an
-    // index-spacing placer would silently drift out of alignment with real clock hours the moment
-    // a bar is missing.
-    val hourBoundaryValues = remember(localTimes) {
-        localTimes.indices.filter { localTimes[it].minute == 0 }.map { it.toDouble() }
-    }
-    val itemPlacer = remember(hourBoundaryValues) { HourBoundaryItemPlacer(hourBoundaryValues) }
-
     val xValueFormatter = remember(localTimes) {
         CartesianValueFormatter { _, value, _ ->
             val index = value.roundToInt().coerceIn(0, localTimes.size - 1)
-            hourAxisTimeFormatter.format(localTimes[index])
+            markerTimeFormatter.format(localTimes[index])
         }
     }
+    // Second line: percent change from previousClose, not today's own first tick -- unlike every
+    // other range (where the first point in the shown series is the only baseline that exists),
+    // 1D's line color/direction is already anchored to previousClose (see intradayChartLineColor),
+    // and computing the marker's percent against a different baseline (the open) could disagree
+    // with that color -- e.g. read green while showing a negative percent, if today opened above
+    // previousClose but the touched point sits below the open. Falls back to the open only if
+    // previousClose is unavailable, same fallback intradayChartLineColor itself uses.
     val marker = rememberPeriodChartMarker(points.size) { index ->
-        "${markerTimeFormatter.format(localTimes[index])}  ${priceFormat.format(points[index].price)}"
+        val point = points[index]
+        val baseline = previousClose ?: points.first().price
+        "${markerTimeFormatter.format(localTimes[index])}, ${priceFormat.format(point.price)}\n${percentChangeFrom(baseline, point.price)}"
     }
+    val labelIndices = remember(points) { evenlySpacedIndices(points.size, LABEL_COUNT) }
+    val itemPlacer = remember(labelIndices) { FixedItemPlacer(labelIndices) }
+
     VicoLinePlot(
         prices = points.map { it.price },
         lineColor = lineColor,
@@ -436,25 +456,57 @@ private fun IntradayChartPlot(
     )
 }
 
+/** How many x-axis labels [PeriodChartPlot]/[IntradayChartPlot]/`IndicatorHistoryChartPlot` each aim for. */
+internal const val LABEL_COUNT = 5
+
 /**
- * A [HorizontalAxis.ItemPlacer] that only labels the indices in [hourBoundaryValues] -- see
- * [IntradayChartPlot]'s comment on why this is computed from real timestamps rather than a fixed
- * spacing formula. `getWidthMeasurementLabelValues`/`getHeightMeasurementLabelValues` fall back to
- * a single dummy value when there are no hour boundaries in view (e.g. the first few minutes of a
- * session): Vico's own [HorizontalAxis] calls `.maxOf` (not `maxOfOrNull`) on the height list, so
- * an empty list would crash rather than just render no labels.
+ * Picks up to [count] indices evenly spread across `[0, size)`, always including both endpoints
+ * (`0` and `size - 1`) once `size >= 2`. Deliberately not Vico's own spacing-based `aligned()`
+ * placer: that one lays labels out as an arithmetic progression from the series' first index (`0`,
+ * `spacing`, `2*spacing`, ...), which has no reason to ever land on the *last* index -- in practice
+ * the chart's newest point often ended up with no x-axis label at all, or whatever became the
+ * rightmost label got squeezed into an unreadable "…" right at the chart's true edge (its reserved
+ * end-padding is computed from a modular-arithmetic value that doesn't necessarily match any label
+ * actually being drawn). Reserving the endpoints explicitly, with real measured padding for them
+ * (see [FixedItemPlacer.getFirstLabelValue]/[getLastLabelValue]), fixes both. `internal`, not
+ * `private` -- `IndicatorHistoryChart` (separate file, same package) uses this too.
  */
-private class HourBoundaryItemPlacer(
-    private val hourBoundaryValues: List<Double>
+internal fun evenlySpacedIndices(size: Int, count: Int): List<Double> {
+    if (size <= 0) return emptyList()
+    if (size <= count) return (0 until size).map { it.toDouble() }
+    val step = (size - 1).toDouble() / (count - 1)
+    return (0 until count).map { i -> (i * step).roundToInt().toDouble() }.distinct()
+}
+
+/**
+ * A [HorizontalAxis.ItemPlacer] that labels exactly the indices in [labelValues] -- see
+ * [evenlySpacedIndices]'s doc comment for why this replaces Vico's own `aligned()` placer.
+ * `getFirstLabelValue`/`getLastLabelValue` (both `null` by default, meaning "no reserved padding")
+ * are overridden so the axis actually measures and reserves real space for the first/last labels,
+ * the same way `AlignedHorizontalAxisItemPlacer`'s own `addExtremeLabelPadding` does -- without
+ * this, the endpoint labels are positioned correctly but can still get clipped since half their
+ * text width would otherwise extend past the chart's plotted edge into unreserved space.
+ * `getWidthMeasurementLabelValues`/`getHeightMeasurementLabelValues` fall back to a single dummy
+ * value when [labelValues] is empty: Vico's own `HorizontalAxis` calls `.maxOf` (not `maxOfOrNull`)
+ * on the height list, so an empty list would crash rather than just render no labels.
+ */
+internal class FixedItemPlacer(
+    private val labelValues: List<Double>
 ) : HorizontalAxis.ItemPlacer {
-    private val measurementValues = hourBoundaryValues.ifEmpty { listOf(0.0) }
+    private val measurementValues = labelValues.ifEmpty { listOf(0.0) }
+
+    override fun getFirstLabelValue(context: CartesianMeasuringContext, maxLabelWidth: Float): Double? =
+        labelValues.firstOrNull()
+
+    override fun getLastLabelValue(context: CartesianMeasuringContext, maxLabelWidth: Float): Double? =
+        labelValues.lastOrNull()
 
     override fun getLabelValues(
         context: CartesianDrawingContext,
         visibleXRange: ClosedFloatingPointRange<Double>,
         fullXRange: ClosedFloatingPointRange<Double>,
         maxLabelWidth: Float
-    ): List<Double> = hourBoundaryValues.filter { it in visibleXRange }
+    ): List<Double> = labelValues.filter { it in visibleXRange }
 
     override fun getWidthMeasurementLabelValues(
         context: CartesianMeasuringContext,
@@ -469,19 +521,36 @@ private class HourBoundaryItemPlacer(
         maxLabelWidth: Float
     ): List<Double> = measurementValues
 
+    // Same formula AlignedHorizontalAxisItemPlacer uses: the tick's own space, minus whatever
+    // padding getFirstLabelValue/getLastLabelValue already reserved for the endpoint label's text,
+    // so the two don't double up.
     override fun getStartLayerMargin(
         context: CartesianMeasuringContext,
         layerDimensions: CartesianLayerDimensions,
         tickThickness: Float,
         maxLabelWidth: Float
-    ): Float = tickThickness
+    ): Float = (tickThickness - layerDimensions.unscalableStartPadding).coerceAtLeast(0f)
 
     override fun getEndLayerMargin(
         context: CartesianMeasuringContext,
         layerDimensions: CartesianLayerDimensions,
         tickThickness: Float,
         maxLabelWidth: Float
-    ): Float = tickThickness
+    ): Float = (tickThickness - layerDimensions.unscalableEndPadding).coerceAtLeast(0f)
+}
+
+/**
+ * `"+5.23%"` / `"-3.10%"` -- signed percent change from [baseline] to [value], the marker's second
+ * line across all three chart types. `internal`, not `private` -- `IndicatorHistoryChart`
+ * (separate file, same package) uses this too. `"--"` on a zero baseline rather than dividing by
+ * it -- a metric reading of exactly 0 is a real possibility (e.g. a rate at 0%), not just a
+ * defensive edge case.
+ */
+internal fun percentChangeFrom(baseline: Double, value: Double): String {
+    if (baseline == 0.0) return "--"
+    val percent = (value - baseline) / baseline * 100
+    val sign = if (percent >= 0) "+" else ""
+    return "$sign${"%.2f".format(percent)}%"
 }
 
 /** Shared with `PeriodChartMarker.kt` (same package) so the caption and the marker balloon format identically. */
@@ -497,10 +566,7 @@ internal fun String.toShortDateLabel(): String = try {
 
 private val easternZoneId = ZoneId.of("America/New_York")
 
-/** Hour-boundary axis labels: `"12 AM"`, `"1 AM"`, ... `"11 PM"`. No minutes -- only ever used at :00. */
-private val hourAxisTimeFormatter = DateTimeFormatter.ofPattern("h a", Locale.US)
-
-/** Marker/touch labels, minute-precise: `"12:01 AM"`, `"9:34 AM"`. */
+/** Axis and marker labels, minute-precise: `"12:01 AM"`, `"9:34 AM"`. */
 private val markerTimeFormatter = DateTimeFormatter.ofPattern("h:mm a", Locale.US)
 
 /**

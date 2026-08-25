@@ -5,9 +5,10 @@ import java.time.LocalDate
 /**
  * The clean, UI-ready form of a `GET /charts/:symbol` response — one series for one
  * `(symbol, range)` pair. Cached per-range (see `ChartEntity`) rather than as one full series
- * sliced client-side: `?days=30` returns roughly 21 trading days, not literally the last 30
- * stored points, so `days` isn't a simple point-count trim that's safely reproducible outside the
- * backend — only the backend's own filtering per range is trustworthy.
+ * sliced client-side: `?days=N` trims to the last N *stored points* server-side, one point per
+ * trading day (not N calendar days) — so `days` isn't a simple client-computable calendar window,
+ * only the backend's own filtering per range is trustworthy. See `ChartRange`'s own doc comment
+ * for the trading-day counts each range actually sends.
  */
 data class ChartSeries(
     val symbol: String,
@@ -29,6 +30,17 @@ data class ChartPoint(
  * params; no 5Y/MAX since both would exceed the backend's stored retention cap of ~2 trading years
  * for stocks, less for dashboard assets.
  *
+ * `days` is a **trading-day point count**, not a calendar-day count (`market_charts` stores one
+ * point per trading day, and `?days=N` trims to the last N of them server-side) -- so getting a
+ * range that actually spans its named calendar period means sending the trading-day count that
+ * period corresponds to, not the calendar-day number itself. `ONE_MONTH`/`SIX_MONTH`/`ONE_YEAR` use
+ * ~21 trading days/calendar month (the standard ~252-trading-day/year convention: 252 ÷ 12 ≈ 21).
+ * **2026-08-25 fix:** these were previously `30`/`180`/`365` (i.e. the calendar-day numbers,
+ * misread as if `days` meant calendar days) -- confirmed on-device that `?days=30` for "1M" was
+ * rendering roughly 6 calendar weeks (e.g. Jul 14-Aug 24) instead of the expected ~1 calendar month
+ * (Jul 24-Aug 24), exactly the ~42-vs-30-day gap `30` trading days (not calendar days) predicts.
+ * `FIVE_DAY` doesn't need this correction -- 5 trading days is already the plain meaning of "5D."
+ *
  * `ONE_DAY` is the exception: both its fields are `null` because it's never sent to
  * `/charts/:symbol` at all -- the ViewModel routes it to `IntradayRepository`'s already-polling
  * stream instead (the same bars the sparkline draws from), since that's real intraday data and
@@ -38,10 +50,10 @@ data class ChartPoint(
 enum class ChartRange(val days: Int?, val queryRange: String?, val rangeKey: String) {
     ONE_DAY(days = null, queryRange = null, rangeKey = "1D"),
     FIVE_DAY(days = 5, queryRange = null, rangeKey = "5D"),
-    ONE_MONTH(days = 30, queryRange = null, rangeKey = "1M"),
-    SIX_MONTH(days = 180, queryRange = null, rangeKey = "6M"),
+    ONE_MONTH(days = 21, queryRange = null, rangeKey = "1M"),
+    SIX_MONTH(days = 126, queryRange = null, rangeKey = "6M"),
     YTD(days = null, queryRange = "ytd", rangeKey = "YTD"),
-    ONE_YEAR(days = 365, queryRange = null, rangeKey = "1Y")
+    ONE_YEAR(days = 252, queryRange = null, rangeKey = "1Y")
 }
 
 /**

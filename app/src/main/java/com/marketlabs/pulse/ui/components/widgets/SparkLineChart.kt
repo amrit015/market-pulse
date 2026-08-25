@@ -108,9 +108,12 @@ fun SparklineChart(
             lineTo(offsets.first().x, height)
             close()
         }
+        // Less-faded wash than before -- was 0.35f/0.02f, which read as barely-there at the
+        // bottom of the fill. Stronger through the whole gradient so the card's own accent color
+        // actually registers instead of fading almost to nothing.
         drawPath(
             path = fillPath,
-            brush = Brush.verticalGradient(listOf(lineColor.copy(alpha = 0.35f), lineColor.copy(alpha = 0.02f)))
+            brush = Brush.verticalGradient(listOf(lineColor.copy(alpha = 0.55f), lineColor.copy(alpha = 0.18f)))
         )
         drawPath(path = linePath, color = lineColor, style = Stroke(width = 2.dp.toPx()))
 
