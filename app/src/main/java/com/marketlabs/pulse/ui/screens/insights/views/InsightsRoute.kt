@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -45,6 +46,27 @@ fun InsightsRoute(
     val snackbarHostState = remember { SnackbarHostState() }
     val pullRefreshState = rememberPullToRefreshState()
     val lifecycleOwner = LocalLifecycleOwner.current
+
+    // 💡 Insights-only swipe (2026-08-29) -- see InsightsScreen.kt's own doc comment for why this
+    // lives here rather than inside PulseTabRow. Two one-directional effects keep `pagerState` and
+    // the ViewModel's `selectedTabIndex` in sync without fighting each other: tapping a PulseTabRow
+    // chip changes `selectedTabIndex` first, which animates the pager to match; swiping the pager
+    // changes `pagerState.currentPage` first, which tells the ViewModel so the tab row's
+    // highlighted chip follows. Each effect no-ops when the two are already equal, so one side
+    // settling never bounces back into re-triggering the other.
+    val pagerState = rememberPagerState(initialPage = uiState.selectedTabIndex) { InsightsTab.entries.size }
+
+    LaunchedEffect(uiState.selectedTabIndex) {
+        if (pagerState.currentPage != uiState.selectedTabIndex) {
+            pagerState.animateScrollToPage(uiState.selectedTabIndex)
+        }
+    }
+
+    LaunchedEffect(pagerState.currentPage) {
+        if (pagerState.currentPage != uiState.selectedTabIndex) {
+            viewModel.onTabSelected(pagerState.currentPage)
+        }
+    }
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -111,7 +133,7 @@ fun InsightsRoute(
                         uiState.marketPosture != null || uiState.marketPositioning != null -> {
                         InsightsScreen(
                             uiState = uiState,
-                            selectedTabIndex = uiState.selectedTabIndex,
+                            pagerState = pagerState,
                             scaffoldPadding = PaddingValues(bottom = scaffoldPadding.calculateBottomPadding()),
                             onNavigateToGlossaryDetail = onNavigateToGlossaryDetail,
                             onDismissPositioningIntro = viewModel::dismissPositioningIntro,

@@ -518,11 +518,60 @@ object DatabaseMigrations {
         }
     }
 
+    // Migration from Version 19 to 20: Risks/Events revision (2026-08-29) -- both
+    // market_insights/current_risks and market_insights/weekly_playbook gain the same synthesis
+    // narrative block Posture/Positioning already carry, stored as the same 5 flat nullable
+    // columns MIGRATION_18_19 added to `market_posture` (synthesisHeadline/Detail/GeneratedAt/
+    // ContentFlags/State). `weekly_playbook` gets a purely additive `ADD COLUMN` set, same style
+    // as MIGRATION_18_19. `market_tail_risks` also drops its `summary` column (backend
+    // hard-deleted the field; its content is now synthesis.detail) -- SQLite's `ADD COLUMN` can't
+    // drop a column, so this rebuilds the table instead, preserving every row's remaining columns
+    // (same recreate-with-copy shape as MIGRATION_6_7), rather than force a re-fetch the way
+    // MIGRATION_12_13/13_14/14_15 do for their incompatible-JSON-shape cases -- this table's
+    // surviving columns didn't change shape, only one column is gone.
+    val MIGRATION_19_20 = object : Migration(19, 20) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `market_tail_risks_new` (
+                    `date` TEXT NOT NULL,
+                    `lastSyncedTimestamp` INTEGER NOT NULL,
+                    `lastUpdated` INTEGER,
+                    `risks` TEXT,
+                    `sourceNarrative` TEXT,
+                    `synthesisHeadline` TEXT,
+                    `synthesisDetail` TEXT,
+                    `synthesisGeneratedAt` INTEGER,
+                    `synthesisContentFlags` TEXT,
+                    `synthesisState` TEXT,
+                    PRIMARY KEY(`date`)
+                )
+                """.trimIndent()
+            )
+            db.execSQL(
+                """
+                INSERT INTO `market_tail_risks_new`
+                (`date`, `lastSyncedTimestamp`, `lastUpdated`, `risks`, `sourceNarrative`)
+                SELECT `date`, `lastSyncedTimestamp`, `lastUpdated`, `risks`, `sourceNarrative`
+                FROM `market_tail_risks`
+                """.trimIndent()
+            )
+            db.execSQL("DROP TABLE `market_tail_risks`")
+            db.execSQL("ALTER TABLE `market_tail_risks_new` RENAME TO `market_tail_risks`")
+
+            db.execSQL("ALTER TABLE `weekly_playbook` ADD COLUMN `synthesisHeadline` TEXT")
+            db.execSQL("ALTER TABLE `weekly_playbook` ADD COLUMN `synthesisDetail` TEXT")
+            db.execSQL("ALTER TABLE `weekly_playbook` ADD COLUMN `synthesisGeneratedAt` INTEGER")
+            db.execSQL("ALTER TABLE `weekly_playbook` ADD COLUMN `synthesisContentFlags` TEXT")
+            db.execSQL("ALTER TABLE `weekly_playbook` ADD COLUMN `synthesisState` TEXT")
+        }
+    }
+
     val ALL_MIGRATIONS = arrayOf(
         MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5,
         MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9,
         MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13,
         MIGRATION_13_14, MIGRATION_14_15, MIGRATION_15_16, MIGRATION_16_17,
-        MIGRATION_17_18, MIGRATION_18_19 // 💡 Added to registry
+        MIGRATION_17_18, MIGRATION_18_19, MIGRATION_19_20 // 💡 Added to registry
     )
 }

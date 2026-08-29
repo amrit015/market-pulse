@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,6 +26,14 @@ import com.marketlabs.pulse.ui.screens.insights.InsightsUiState
  * `StockDetailScreen`'s `DetailTab` pattern exactly: an enum with a `labelRes`, a `selectedTabIndex`
  * driven by the ViewModel, and each tab as its own `LazyColumn` with its own `LazyListState` so
  * scroll position is preserved per tab when switching back and forth.
+ *
+ * 💡 Insights-only swipe (2026-08-29): the tab content is now a `HorizontalPager` rather than a
+ * plain `when` switch on `selectedTabIndex`, so a reader can swipe left/right between sections in
+ * addition to tapping `PulseTabRow`. `pagerState` is created and kept in sync with the ViewModel's
+ * `selectedTabIndex` up in `InsightsRoute` (tap -> animateScrollToPage; swipe -> onTabSelected),
+ * since that's the one place both `PulseTabRow` and this screen are composed together. Deliberately
+ * NOT pushed into `PulseTabRow` itself -- that component is shared with Stock Analysis detail,
+ * which doesn't ask for swipe, so this stays local to Insights for now.
  */
 enum class InsightsTab(val labelRes: Int) {
     PLAYBOOK(R.string.insights_tab_playbook),
@@ -35,7 +45,7 @@ enum class InsightsTab(val labelRes: Int) {
 @Composable
 fun InsightsScreen(
     uiState: InsightsUiState,
-    selectedTabIndex: Int,
+    pagerState: PagerState,
     scaffoldPadding: PaddingValues,
     onNavigateToGlossaryDetail: (metricIds: List<String>, title: String, description: String?, status: String?) -> Unit,
     onDismissPositioningIntro: () -> Unit,
@@ -59,73 +69,78 @@ fun InsightsScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        when (InsightsTab.entries[selectedTabIndex]) {
-            InsightsTab.PLAYBOOK -> LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                state = lazyListStates[InsightsTab.PLAYBOOK.ordinal],
-                contentPadding = contentPadding
-            ) {
-                item {
-                    val playbook = uiState.weeklyPlaybook
-                    if (playbook != null && !playbook.events.isNullOrEmpty()) {
-                        WeeklyPlaybookSection(playbook = playbook)
-                    } else {
-                        InsightsTabEmptyState()
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxSize()
+        ) { page ->
+            when (InsightsTab.entries[page]) {
+                InsightsTab.PLAYBOOK -> LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    state = lazyListStates[InsightsTab.PLAYBOOK.ordinal],
+                    contentPadding = contentPadding
+                ) {
+                    item {
+                        val playbook = uiState.weeklyPlaybook
+                        if (playbook != null && !playbook.events.isNullOrEmpty()) {
+                            WeeklyPlaybookSection(playbook = playbook)
+                        } else {
+                            InsightsTabEmptyState()
+                        }
                     }
                 }
-            }
 
-            InsightsTab.RISKS -> LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                state = lazyListStates[InsightsTab.RISKS.ordinal],
-                contentPadding = contentPadding
-            ) {
-                item {
-                    val risksData = uiState.tailRisks
-                    if (risksData != null) {
-                        TailRisksSection(risksData = risksData)
-                    } else {
-                        InsightsTabEmptyState()
+                InsightsTab.RISKS -> LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    state = lazyListStates[InsightsTab.RISKS.ordinal],
+                    contentPadding = contentPadding
+                ) {
+                    item {
+                        val risksData = uiState.tailRisks
+                        if (risksData != null) {
+                            TailRisksSection(risksData = risksData)
+                        } else {
+                            InsightsTabEmptyState()
+                        }
                     }
                 }
-            }
 
-            InsightsTab.POSTURE -> LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                state = lazyListStates[InsightsTab.POSTURE.ordinal],
-                contentPadding = contentPadding
-            ) {
-                item {
-                    val postureData = uiState.marketPosture
-                    if (postureData != null) {
-                        InstitutionalPostureSection(
-                            postureData = postureData,
-                            onNavigateToGlossaryDetail = onNavigateToGlossaryDetail,
-                            isIntroDismissed = uiState.isPostureIntroDismissed,
-                            onDismissIntro = onDismissPostureIntro
-                        )
-                    } else {
-                        InsightsTabEmptyState()
+                InsightsTab.POSTURE -> LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    state = lazyListStates[InsightsTab.POSTURE.ordinal],
+                    contentPadding = contentPadding
+                ) {
+                    item {
+                        val postureData = uiState.marketPosture
+                        if (postureData != null) {
+                            InstitutionalPostureSection(
+                                postureData = postureData,
+                                onNavigateToGlossaryDetail = onNavigateToGlossaryDetail,
+                                isIntroDismissed = uiState.isPostureIntroDismissed,
+                                onDismissIntro = onDismissPostureIntro
+                            )
+                        } else {
+                            InsightsTabEmptyState()
+                        }
                     }
                 }
-            }
 
-            InsightsTab.POSITIONING -> LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                state = lazyListStates[InsightsTab.POSITIONING.ordinal],
-                contentPadding = contentPadding
-            ) {
-                item {
-                    val positioningData = uiState.marketPositioning
-                    if (positioningData != null) {
-                        MarketPositioningSection(
-                            positioningData = positioningData,
-                            onNavigateToGlossaryDetail = onNavigateToGlossaryDetail,
-                            isIntroDismissed = uiState.isPositioningIntroDismissed,
-                            onDismissIntro = onDismissPositioningIntro
-                        )
-                    } else {
-                        InsightsTabEmptyState()
+                InsightsTab.POSITIONING -> LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    state = lazyListStates[InsightsTab.POSITIONING.ordinal],
+                    contentPadding = contentPadding
+                ) {
+                    item {
+                        val positioningData = uiState.marketPositioning
+                        if (positioningData != null) {
+                            MarketPositioningSection(
+                                positioningData = positioningData,
+                                onNavigateToGlossaryDetail = onNavigateToGlossaryDetail,
+                                isIntroDismissed = uiState.isPositioningIntroDismissed,
+                                onDismissIntro = onDismissPositioningIntro
+                            )
+                        } else {
+                            InsightsTabEmptyState()
+                        }
                     }
                 }
             }
