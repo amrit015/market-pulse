@@ -458,11 +458,71 @@ object DatabaseMigrations {
         }
     }
 
+    // Migration from Version 18 to 19: Posture/Positioning revamp (2026-08-26) -- Posture's three
+    // existing gauges (naaim_exposure, dark_pool_index, net_liquidity) each gain a
+    // last_observation/delta/delta_direction/fetched_at/stale_since envelope, and the document
+    // gains a new synthesis narrative block. Kept as flat nullable columns, same shape this entity
+    // already used for every existing field, rather than restructuring onto JSON-blob columns like
+    // Indicators/Stocks -- purely additive `ADD COLUMN`s, same style as MIGRATION_15_16, no
+    // existing column touched. The new sibling `market_positioning` table (greenfield domain) is
+    // created here too since both land in the same revamp.
+    val MIGRATION_18_19 = object : Migration(18, 19) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE `market_posture` ADD COLUMN `naaimLastObsValue` REAL")
+            db.execSQL("ALTER TABLE `market_posture` ADD COLUMN `naaimLastObsStatus` TEXT")
+            db.execSQL("ALTER TABLE `market_posture` ADD COLUMN `naaimLastObsObservedAt` INTEGER")
+            db.execSQL("ALTER TABLE `market_posture` ADD COLUMN `naaimDelta` REAL")
+            db.execSQL("ALTER TABLE `market_posture` ADD COLUMN `naaimDeltaDirection` TEXT")
+            db.execSQL("ALTER TABLE `market_posture` ADD COLUMN `naaimFetchedAt` INTEGER")
+            db.execSQL("ALTER TABLE `market_posture` ADD COLUMN `naaimStaleSince` INTEGER")
+
+            db.execSQL("ALTER TABLE `market_posture` ADD COLUMN `dixLastObsValue` REAL")
+            db.execSQL("ALTER TABLE `market_posture` ADD COLUMN `dixLastObsStatus` TEXT")
+            db.execSQL("ALTER TABLE `market_posture` ADD COLUMN `dixLastObsObservedAt` INTEGER")
+            db.execSQL("ALTER TABLE `market_posture` ADD COLUMN `dixDelta` REAL")
+            db.execSQL("ALTER TABLE `market_posture` ADD COLUMN `dixDeltaDirection` TEXT")
+            db.execSQL("ALTER TABLE `market_posture` ADD COLUMN `dixFetchedAt` INTEGER")
+            db.execSQL("ALTER TABLE `market_posture` ADD COLUMN `dixStaleSince` INTEGER")
+
+            db.execSQL("ALTER TABLE `market_posture` ADD COLUMN `netLiqLastObsValue` REAL")
+            db.execSQL("ALTER TABLE `market_posture` ADD COLUMN `netLiqLastObsStatus` TEXT")
+            db.execSQL("ALTER TABLE `market_posture` ADD COLUMN `netLiqLastObsObservedAt` INTEGER")
+            db.execSQL("ALTER TABLE `market_posture` ADD COLUMN `netLiqDelta` REAL")
+            db.execSQL("ALTER TABLE `market_posture` ADD COLUMN `netLiqDeltaDirection` TEXT")
+            db.execSQL("ALTER TABLE `market_posture` ADD COLUMN `netLiqFetchedAt` INTEGER")
+            db.execSQL("ALTER TABLE `market_posture` ADD COLUMN `netLiqStaleSince` INTEGER")
+
+            db.execSQL("ALTER TABLE `market_posture` ADD COLUMN `synthesisHeadline` TEXT")
+            db.execSQL("ALTER TABLE `market_posture` ADD COLUMN `synthesisDetail` TEXT")
+            db.execSQL("ALTER TABLE `market_posture` ADD COLUMN `synthesisGeneratedAt` INTEGER")
+            db.execSQL("ALTER TABLE `market_posture` ADD COLUMN `synthesisContentFlags` TEXT")
+            db.execSQL("ALTER TABLE `market_posture` ADD COLUMN `synthesisState` TEXT")
+
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `market_positioning` (
+                    `id` TEXT NOT NULL,
+                    `retailSentiment` TEXT,
+                    `institutionalPositioning` TEXT,
+                    `shortInterest` TEXT,
+                    `synthesisHeadline` TEXT,
+                    `synthesisDetail` TEXT,
+                    `synthesisGeneratedAt` INTEGER,
+                    `synthesisContentFlags` TEXT,
+                    `synthesisState` TEXT,
+                    `timestamp` INTEGER,
+                    PRIMARY KEY(`id`)
+                )
+                """.trimIndent()
+            )
+        }
+    }
+
     val ALL_MIGRATIONS = arrayOf(
         MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5,
         MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9,
         MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13,
         MIGRATION_13_14, MIGRATION_14_15, MIGRATION_15_16, MIGRATION_16_17,
-        MIGRATION_17_18 // 💡 Added to registry
+        MIGRATION_17_18, MIGRATION_18_19 // 💡 Added to registry
     )
 }

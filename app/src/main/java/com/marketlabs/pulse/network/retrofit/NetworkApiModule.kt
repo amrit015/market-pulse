@@ -4,6 +4,7 @@ import com.marketlabs.pulse.network.api.ChartsApi
 import com.marketlabs.pulse.network.api.DashboardApi
 import com.marketlabs.pulse.network.api.IndicatorsApi
 import com.marketlabs.pulse.network.api.IntradayApi
+import com.marketlabs.pulse.network.api.MarketPositioningApi
 import com.marketlabs.pulse.network.api.MarketPostureApi
 import com.marketlabs.pulse.network.api.MarketPulseApi
 import com.marketlabs.pulse.network.api.MarketRiskApi
@@ -131,6 +132,15 @@ object NetworkApiModule {
         @Named("MarketPulseRetrofit") retrofit: Retrofit
     ): MarketPostureApi {
         return retrofit.create(MarketPostureApi::class.java)
+    }
+
+    /** Provides the Retrofit client for `GET /insights/positioning` (retail sentiment / COT / short interest). */
+    @Provides
+    @Singleton
+    fun provideMarketPositioningApi(
+        @Named("MarketPulseRetrofit") retrofit: Retrofit
+    ): MarketPositioningApi {
+        return retrofit.create(MarketPositioningApi::class.java)
     }
 
     /** Provides the Retrofit client for the "Individual Stock Analysis" endpoints in marketPulse.ts. */

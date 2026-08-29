@@ -441,8 +441,8 @@ private fun SignalDirection?.toSignalColor(): SignalColor = when (this) {
 
 // 💡 The backend doesn't send a color for `setup` the way it does for driver direction or
 // market_position's signal_color -- setup is read contrarian throughout this app (see
-// MarketGlossary.kt's definitions: EXHAUSTED_OVERSOLD/OVERSOLD read as buying opportunities,
-// OVERBOUGHT/BLOW_OFF_TOP as danger), so the color has to be derived client-side from that same
+// assets/market_glossary.json's "setups" definitions: EXHAUSTED OVERSOLD/OVERSOLD read as buying
+// opportunities, OVERBOUGHT/BLOW-OFF TOP as danger), so the color has to be derived client-side from that same
 // contrarian reading, not a literal "up = green" mapping. `regime` no longer gets an equivalent
 // mapping here -- its chip is tinted by `direction` (the code-derived aggregate read) instead of
 // a second, client-guessed color for the same card.

@@ -8,6 +8,7 @@ import com.google.firebase.firestore.ListenerRegistration
 import com.marketlabs.pulse.core.indicators.IndicatorsRepository
 import com.marketlabs.pulse.core.marketRisk.MarketRiskRepository
 import com.marketlabs.pulse.core.news.NewsRepository
+import com.marketlabs.pulse.core.positioning.MarketPositioningRepository
 import com.marketlabs.pulse.core.posture.MarketPostureRepository
 import com.marketlabs.pulse.core.stocks.StockAnalysisRepository
 import com.marketlabs.pulse.core.summary.SummaryRepository
@@ -27,6 +28,7 @@ class SyncManager @Inject constructor(
     private val marketRiskRepository: MarketRiskRepository,
     private val summaryRepository: SummaryRepository,
     private val postureRepository: MarketPostureRepository,
+    private val positioningRepository: MarketPositioningRepository,
     private val stockAnalysisRepository: StockAnalysisRepository
 ) {
     private var listenerRegistration: ListenerRegistration? = null
@@ -127,7 +129,19 @@ class SyncManager @Inject constructor(
                         }
 
                         // ==========================================
-                        // 7. STOCK ANALYSIS SYNC (previews only — detail is fetched on demand)
+                        // 7. MARKET POSITIONING SYNC (NEW) -- retail sentiment / COT / short interest
+                        // ==========================================
+                        val newPositioningTime = snapshot.getLong("market_positioning_updated") ?: 0L
+                        val localPositioningTime = positioningRepository.getLastSyncedTimestamp() ?: 0L
+
+                        if (newPositioningTime > localPositioningTime) {
+                            Log.d("SyncManager", "New Market Positioning detected! Fetching...")
+                            positioningRepository.refreshPositioning(force = true)
+                            positioningRepository.updateLastSyncedTimestamp(newPositioningTime)
+                        }
+
+                        // ==========================================
+                        // 8. STOCK ANALYSIS SYNC (previews only — detail is fetched on demand)
                         // ==========================================
                         // 💡 Updated with Claude Code assistance: the backend no longer writes
                         // stock_analysis_eod/stock_analysis_after_hours at all — both were replaced

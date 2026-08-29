@@ -37,6 +37,7 @@ import com.marketlabs.pulse.storage.model.marketRisk.MarketRiskAssessment
 import com.marketlabs.pulse.storage.model.marketRisk.MarketRiskFactor
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
+import com.marketlabs.pulse.ui.components.widgets.MetricInfoAction
 import com.marketlabs.pulse.ui.components.widgets.SignalPill
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.utils.enums.RiskImpactLevel
@@ -86,6 +87,11 @@ private fun RiskAssessmentHeader(data: MarketRiskAssessment) {
                 text = stringResource(id = R.string.risk_assessment),
                 style = textStyle,
                 color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+            MetricInfoAction(
+                title = stringResource(id = R.string.risk_assessment),
+                description = stringResource(id = R.string.risk_assessment_description)
             )
         }
 

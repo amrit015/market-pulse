@@ -97,10 +97,6 @@
     <string name="indicators_empty_value">--</string>
     <string name="glossary">Glossary</string>
 
-    <string name="indicators_framework_title">The Framework</string>
-    <string name="indicators_framework_focus">"Focus: "</string>
-    <string name="indicators_framework_indicators">"Indicators: "</string>
-    <string name="indicators_framework_goal">"Goal: "</string>
     <string name="indicators_detail_what_it_is">What it is</string>
     <string name="indicators_detail_how_to_read">How to read it</string>
     <string name="indicators_detail_bands">Bands</string>
@@ -135,10 +131,9 @@
     <string name="put_call_index_title">Put/Call Ratio</string>
 
     <string name="dashboard_technical_glossary_title">Technical Glossary</string>
-    <string name="dashboard_glossary_rsi_def">A score measuring if an asset moved too far, too fast. &gt;70 means Euphoria (high risk of a drop). &lt;30 means Panic (high probability of a bounce).</string>
-    <string name="dashboard_glossary_macd_def">Shows the momentum of a trend. A Bullish crossover means buyers have taken control. A Bearish crossover means sellers are overwhelming the market.</string>
-    <string name="dashboard_glossary_trend_def">The AI\'s objective evaluation of the current price action versus its historical moving averages, telling you who is currently winning the tug-of-war.</string>
-    <string name="dashboard_glossary_sma_def">The average price over a set number of days. These act as invisible magnets. When price falls to a major SMA, institutional computers automatically buy to defend that level (Support).</string>
+    <!-- 2026-08-27: the 4 dashboard_glossary_*_def strings that used to live here moved to
+         assets/dashboard_glossary.json (DashboardGlossaryProvider), same migration as
+         MarketGlossary/RiskGlossary/StockAnalysisGlossary; see core/glossary/. -->
 
     <string name="market_score">Market Score</string>
     <string name="market_posture">Market Posture</string>
@@ -223,6 +218,7 @@
     <string name="tab_tail_risks">Market Risks</string>
     <string name="no_tail_risks_available">No tail risks available.</string>
     <string name="risk_assessment">Risk Assessment</string>
+    <string name="risk_assessment_description">Risk Assessment is an AI-identified list of potential risks that could derail the current market narrative, each scored by potential impact and explained against today\'s macro regime. It refreshes several times a day and closes with a one-sentence read on overall market fragility. This describes potential threats, not a forecast or recommendation.</string>
     <string name="unknown_risk">Unknown</string>
 
     <string name="source_narrative_title">Source Narrative</string>
@@ -230,6 +226,13 @@
     <string name="action_show_less">Show Less</string>
 
     <string name="section_weekly_playbook">The Weekly Playbook</string>
+    <string name="weekly_playbook_description">The Weekly Playbook is an AI-curated shortlist of the economic releases most likely to move markets this week, drawn from the upcoming economic calendar and regenerated every Sunday. Each event\'s context explains how it could confirm or challenge the current macro outlook; actual figures and their market impact are added mid-week as each release happens. This is scheduling context, not a trading signal or recommendation.</string>
+    <string name="insights_tab_playbook">Events</string>
+    <string name="insights_tab_risks">Risks</string>
+    <string name="insights_tab_posture">Posture</string>
+    <string name="insights_tab_positioning">Positioning</string>
+    <string name="insights_tab_empty_state">No data available yet. Pull to refresh.</string>
+
     <string name="label_estimate">Estimate</string>
     <string name="label_previous">Previous</string>
     <string name="label_actual">Actual</string>
@@ -453,4 +456,96 @@
     <string name="settings_preset_sample_bullish">+2.4%</string>
     <string name="settings_preset_sample_bearish">-1.1%</string>
     <string name="market_read">Market Read</string>
+
+    <!-- Institutional Posture / Market Positioning (2026-08-26 revamp) -->
+    <string name="insights_label_status">Status</string>
+    <string name="insights_label_trend">Trend</string>
+    <string name="insights_label_sentiment">Sentiment</string>
+    <string name="insights_label_positioning">Positioning</string>
+    <string name="insights_synthesis_label">SYNTHESIS</string>
+    <string name="insights_synthesis_unavailable">Synthesis unavailable for this run.</string>
+    <string name="insights_metric_info_action">About %1$s</string>
+    <string name="insights_metric_info_dismiss">Got it</string>
+    <string name="insights_status_unknown">UNKNOWN</string>
+    <string name="insights_value_unavailable">N/A</string>
+    <string name="insights_as_of">As of %1$s</string>
+    <string name="insights_pts_suffix">%1$s pts</string>
+    <string name="glossary_entry_unavailable">No definition available for this value yet.</string>
+    <string name="insights_explainer_dismiss">Got it</string>
+    <!-- 2026-08-27 convergence: the section info icon and the first-time explainer card now show
+         this SAME merged string (was two separate, overlapping paragraphs) ; one coherent
+         sentence covering both "what this section is" and "what it isn't" instead of the reader
+         seeing near-duplicate copy in two places. -->
+    <string name="positioning_explainer_text">Positioning shows where retail sentiment (AAII), large speculators (CFTC COT futures positioning), and short sellers (FINRA short interest) currently stand — three different lenses on who\'s leaning which way. A crowded reading in either direction has historically preceded a reversal as that positioning unwinds. None of these are predictions or recommendations; they describe current positioning, which can shift or reverse without warning.</string>
+    <string name="posture_explainer_text">Posture tracks how professional money managers, institutional order flow, and system-wide liquidity are positioned beneath the surface of daily price moves — active manager equity exposure (NAAIM), dark pool accumulation (DIX), and the Fed\'s net liquidity backdrop. Like Positioning, this describes current conditions, not a forecast or recommendation.</string>
+    <string name="insights_shares_millions">%1$s million shares short</string>
+    <string name="insights_shares_thousands">%1$s thousand shares short</string>
+    <string name="insights_shares_plain">%1$s shares</string>
+
+    <string name="posture_section_title">Institutional Posture</string>
+    <string name="posture_naaim_title">NAAIM Exposure</string>
+    <string name="posture_naaim_caption">Manager equity exposure</string>
+    <!-- 2026-08-27: backend removed naaim_exposure.description from Firestore (FieldValue.delete() on the next successful run) ; this replaces it as the client-authored "what is this" text, verbatim from the backend team's own copy. -->
+    <string name="posture_naaim_description" formatted="false">Tracks the average equity exposure of active money managers. 0% represents cash/short, 100% is fully invested, and &gt;100% indicates leveraged long positioning.</string>
+    <string name="posture_dix_title">Dark Pool Index</string>
+    <string name="posture_dix_caption">% of dark pool volume, institutional buying</string>
+    <string name="posture_dix_description">Measures the percentage of total dark pool volume that was institutional buying. A reading above 45% suggests heavy institutional accumulation under the surface.</string>
+    <string name="posture_net_liquidity_title">Net Liquidity</string>
+    <string name="posture_net_liquidity_caption">Fed balance sheet − TGA − reverse repo</string>
+    <string name="posture_net_liquidity_description">Calculates the actual fiat liquidity flowing through the financial system. Rising liquidity generally acts as a tailwind for equities and crypto, while falling liquidity acts as a headwind.</string>
+    <string name="posture_net_liquidity_fed_assets">Fed Assets</string>
+    <string name="posture_net_liquidity_tga">TGA</string>
+    <string name="posture_net_liquidity_rrp">Reverse Repo</string>
+    <string name="posture_net_liquidity_separator">-</string>
+
+    <string name="positioning_section_title">Market Positioning</string>
+    <string name="positioning_retail_sentiment_section">RETAIL SENTIMENT · AAII</string>
+    <string name="positioning_institutional_section">INSTITUTIONAL POSITIONING · CFTC COT</string>
+    <string name="positioning_short_interest_section">SHORT INTEREST · FINRA</string>
+    <!-- 2026-08-27: backend removed retail_sentiment/institutional_positioning/short_interest .description from Firestore ; these three replace them, verbatim from the backend team's own copy, and also back the new section-header info icons (previously only the top-level Positioning icon existed; these three sub-sections had none). -->
+    <string name="positioning_retail_sentiment_description">Weekly AAII survey of individual investor sentiment. The bull-bear spread is a classic contrarian indicator — extreme optimism or pessimism among retail investors has historically preceded a reversal.</string>
+    <string name="positioning_institutional_description">Speculative net futures positioning as a percentage of open interest, framed against a trailing ~1-year percentile per contract. A crowded long or short reading has historically preceded a reversal as that positioning unwinds — first-pass framing, not backtested. Reflects the prior Tuesday\'s book, not the report\'s Friday release date. ES/NQ/RTY use CFTC\'s Legacy non-commercial category; DIA uses TFF\'s Leveraged Funds category instead (Dow futures aren\'t reported under Legacy) — see each contract\'s own methodology before comparing DIA directly against the other three.</string>
+    <string name="positioning_short_interest_description">FINRA-reported short interest in SPY/QQQ/IWM/DIA/RSP/MAGS as index/style-ETF proxies — not literal \'market short interest.\' Includes authorized-participant creation/redemption arbitrage flow, not purely directional bearish positioning. Settlement-date data, always roughly 8 business days stale by the time FINRA publishes it (see each instrument\'s settlement date vs. this gauge\'s fetched-at time).</string>
+    <string name="positioning_retail_sentiment_title">Bull – Bear Spread</string>
+    <string name="positioning_retail_bull">Bull</string>
+    <string name="positioning_retail_neutral">Neutral</string>
+    <string name="positioning_retail_bear">Bear</string>
+    <string name="positioning_futures_es">E-mini S&amp;P 500 (ES)</string>
+    <string name="positioning_futures_nq">E-mini Nasdaq-100 (NQ)</string>
+    <string name="positioning_futures_rty">E-mini Russell 2000 (RTY)</string>
+    <!-- New 2026-08-27, live-verified: a 4th COT contract, sourced from a different CFTC report/category than the other three (see positioning_institutional_description). -->
+    <string name="positioning_futures_dia">E-mini Dow (DIA)</string>
+    <string name="positioning_futures_methodology_legacy">CFTC Legacy · Non-Commercial</string>
+    <string name="positioning_futures_methodology_tff">CFTC TFF · Leveraged Funds</string>
+    <string name="positioning_futures_caption">Net spec. position (% OI)</string>
+    <!-- Layer 2 (2026-08-27 interpretive-layer spec): the raw % and the percentile only mean something read TOGETHER; this pairs them in one on-card line rather than requiring a tap into two separate glossary entries to connect them. -->
+    <string name="positioning_futures_reading_extreme_long">%1$s percentile — among the most long-leaning readings in the past year.</string>
+    <string name="positioning_futures_reading_extreme_short">%1$s percentile — among the most short-leaning readings in the past year.</string>
+    <string name="positioning_futures_reading_neutral">%1$s percentile — within the typical range for the past year.</string>
+    <string name="positioning_futures_reading_insufficient_history">Not enough trailing history yet to rank this reading.</string>
+    <string name="positioning_futures_percentile">Percentile %1$d</string>
+    <string name="positioning_cot_percentile_title">Percentile</string>
+    <string name="positioning_percentile_min">0</string>
+    <string name="positioning_percentile_max">100</string>
+    <string name="positioning_futures_report_date">Week of %1$s</string>
+    <string name="positioning_etf_spy">SPDR S&amp;P 500 (SPY)</string>
+    <string name="positioning_etf_qqq">Invesco QQQ Trust (QQQ)</string>
+    <string name="positioning_etf_iwm">iShares Russell 2000 (IWM)</string>
+    <!-- New 2026-08-27, live-verified: three more index/style-ETF short-interest proxies alongside SPY/QQQ/IWM. -->
+    <string name="positioning_etf_dia">SPDR Dow Jones Industrial Average (DIA)</string>
+    <string name="positioning_etf_rsp">Invesco S&amp;P 500 Equal Weight (RSP)</string>
+    <string name="positioning_etf_mags">Roundhill Magnificent Seven (MAGS)</string>
+    <!-- 2026-08-27: was "Days to cover · %1$s" while actually substituting the SHARE count, not a
+         days-to-cover value; read as a duplicate of the real days-to-cover figure already shown
+         in the headline number above and in positioning_short_interest_reading_* below it. -->
+    <string name="positioning_short_interest_caption">%1$s shares short</string>
+    <string name="positioning_days_to_cover_title">Days to Cover</string>
+    <string name="positioning_short_shares_title">Short Shares</string>
+    <string name="positioning_mom_change_title">Month-over-Month Change</string>
+    <!-- Layer 2 (2026-08-27 interpretive-layer spec): pairs days-to-cover/mom-change/status into one on-card reading line, same reasoning as the futures_reading_* strings above. -->
+    <string name="positioning_short_interest_reading_elevated">%1$sx days to cover — among the more crowded short positions here.</string>
+    <string name="positioning_short_interest_reading_covering">Short interest fell %1$s%% since the last settlement — shorts appear to be exiting.</string>
+    <string name="positioning_short_interest_reading_building">Short interest rose %1$s%% since the last settlement — shorts appear to be adding.</string>
+    <string name="positioning_short_interest_reading_neutral">%1$sx days to cover, little changed since the last settlement.</string>
+    <string name="positioning_short_interest_settled">Settled %1$s</string>
 </resources>

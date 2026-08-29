@@ -4,11 +4,12 @@ import android.content.Context
 import androidx.room.Room
 import com.marketlabs.pulse.storage.database.AppDatabase
 import com.marketlabs.pulse.storage.database.dao.ChartsDao
-import com.marketlabs.pulse.storage.database.dao.MetricHistoryDao
 import com.marketlabs.pulse.storage.database.dao.DashboardDao
 import com.marketlabs.pulse.storage.database.dao.IndicatorsDao
+import com.marketlabs.pulse.storage.database.dao.MarketPositioningDao
 import com.marketlabs.pulse.storage.database.dao.MarketPostureDao
 import com.marketlabs.pulse.storage.database.dao.MarketRiskDao
+import com.marketlabs.pulse.storage.database.dao.MetricHistoryDao
 import com.marketlabs.pulse.storage.database.dao.NewsDao
 import com.marketlabs.pulse.storage.database.dao.StocksDao
 import com.marketlabs.pulse.storage.database.dao.SummaryDao
@@ -73,9 +74,21 @@ object DatabaseModule {
         return database.weeklyPlaybookDao()
     }
 
+    // 💡 Added @Singleton -- this provider was one of two DAO providers in this module missing it
+    // (the other, provideMarketSummaryDao, is left alone since this touch is scoped to the
+    // Posture/Positioning revamp, not a summary-domain change). Every other DAO provider here
+    // already has it; this was a documented copy-paste gap, not an intentional exception.
     @Provides
+    @Singleton
     fun provideMarketPostureDao(database: AppDatabase): MarketPostureDao {
         return database.marketPostureDao()
+    }
+
+    /** Provides the DAO for the `market_positioning` table backing retail sentiment / COT / short interest. */
+    @Provides
+    @Singleton
+    fun provideMarketPositioningDao(database: AppDatabase): MarketPositioningDao {
+        return database.marketPositioningDao()
     }
 
     /** Provides the DAO for the stocks domain's `market_stocks` Room cache. */

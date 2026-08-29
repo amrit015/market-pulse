@@ -1,0 +1,35 @@
+{
+  "regimes": {
+    "HEALTHY UPTREND": "The market is steadily rising with low volatility and broad participation across sectors. A safe environment for long positions.",
+    "DISTRIBUTION PHASE": "The market remains near its highs, but smart money is secretly selling into strength. Volatility is rising beneath the surface.",
+    "CRASH OPPORTUNITY": "Absolute panic and capitulation. The market is flashing a rare, high-conviction contrarian buying opportunity.",
+    "DANGEROUS DOWNTREND": "The market is in a sustained decline characterized by lower highs and lower lows. Cash is the safest position.",
+    "ACCUMULATION PHASE": "Deep fear is subsiding, and institutional investors are quietly buying high-quality assets at discounted prices.",
+    "SIDEWAYS RANGE": "The market is trendless, chopping back and forth between support and resistance as it awaits a macro catalyst."
+  },
+  "setups": {
+    "EXHAUSTED OVERSOLD": "Sellers are entirely depleted. An extreme mechanical bounce is highly probable.",
+    "OVERSOLD": "The asset is trading well below its recent historical average, offering a good entry zone.",
+    "NEUTRAL / MEAN": "Price is resting near its average. There is no clear momentum edge in either direction.",
+    "OVERBOUGHT": "The asset has rallied too far, too fast. A short-term pullback is likely.",
+    "BLOW-OFF TOP": "A euphoric buying climax. It is extremely dangerous to chase prices at these levels.",
+    "BEARISH DIVERGENCE": "Price is making new highs, but underlying momentum and participation are failing."
+  },
+  "directions": {
+    "RISK ON": "A majority of the underlying signals (trend, breadth, volatility, rates) agree conditions currently favor risk-taking.",
+    "RISK OFF": "A majority of the underlying signals agree conditions currently favor caution or defensive positioning.",
+    "MIXED": "The underlying signals are split, with no clear majority favoring either risk-on or risk-off conditions."
+  },
+  "cycle_zones": {
+    "EXPANSION ZONE": "The same underlying signal behind a RISK ON read: a majority of the underlying signals (trend, breadth, volatility, rates) agree conditions currently favor risk-taking.",
+    "CONTRACTION ZONE": "The same underlying signal behind a RISK OFF read: a majority of the underlying signals agree conditions currently favor caution or defensive positioning.",
+    "TRANSITION ZONE": "The same underlying signal behind a MIXED read: the underlying signals are split, with no clear majority favoring either risk-on or risk-off conditions."
+  },
+  "actions": {
+    "STRONG BUY": "Extreme capitulation detected. High probability of a mechanical bounce.",
+    "ACCUMULATE": "Market is cooling off. Good zone for dollar-cost averaging.",
+    "NEUTRAL": "Market is balanced. Hold current positions.",
+    "CAUTION": "Market is heavily extended. Consider trimming profits or tightening stops.",
+    "STRONG SELL": "Euphoria and overbought technicals. High probability of a violent pullback."
+  }
+}

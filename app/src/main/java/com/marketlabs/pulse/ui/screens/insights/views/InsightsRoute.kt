@@ -4,11 +4,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -34,12 +31,14 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.ui.components.PulseTabRow
 import com.marketlabs.pulse.ui.screens.insights.InsightsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InsightsRoute(
     scaffoldPadding: PaddingValues,
+    onNavigateToGlossaryDetail: (metricIds: List<String>, title: String, description: String?, status: String?) -> Unit,
     viewModel: InsightsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -66,65 +65,89 @@ fun InsightsRoute(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        PullToRefreshBox(
-            isRefreshing = uiState.isLoading,
-            onRefresh = { viewModel.refreshInsights(force = true) },
-            state = pullRefreshState,
-            indicator = {
-                Indicator(
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .padding(top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()),
-                    isRefreshing = uiState.isLoading,
-                    state = pullRefreshState
-                )
-            }
-        ) {
-            when {
-                // Initial Load
-                uiState.weeklyPlaybook == null && uiState.tailRisks == null && uiState.isLoading -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
-                    }
-                }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(top = scaffoldPadding.calculateTopPadding())
+    ) {
+        // 💡 Pinned above the pull-to-refresh area, same shape as StockDetailRoute's pinned
+        // DetailHeader + tab row -- the tabs stay reachable and in place regardless of which tab's
+        // content is loading/erroring/showing below, and pulling down works from any tab.
+        PulseTabRow(
+            tabs = InsightsTab.entries.map { stringResource(id = it.labelRes) },
+            selectedTabIndex = uiState.selectedTabIndex,
+            onTabSelected = viewModel::onTabSelected
+        )
 
-                // Data Available
-                uiState.weeklyPlaybook != null || uiState.tailRisks != null -> {
-                    InsightsScreen(
-                        uiState = uiState,
-                        scaffoldPadding = scaffoldPadding
+        Box(modifier = Modifier.fillMaxSize()) {
+            PullToRefreshBox(
+                isRefreshing = uiState.isLoading,
+                onRefresh = { viewModel.refreshInsights(force = true) },
+                state = pullRefreshState,
+                indicator = {
+                    Indicator(
+                        modifier = Modifier.align(Alignment.TopCenter),
+                        isRefreshing = uiState.isLoading,
+                        state = pullRefreshState
                     )
                 }
+            ) {
+                // 💡 Checks all 4 tabs' data now, not just Playbook/Risks -- with tabs, a reader can
+                // land directly on Posture or Positioning, so gating "is anything available" on only
+                // the first two sections meant a run where only Posture/Positioning had loaded (both
+                // Playbook and Risks null) fell through this `when` with nothing rendered at all.
+                when {
+                    // Initial Load
+                    uiState.weeklyPlaybook == null && uiState.tailRisks == null &&
+                        uiState.marketPosture == null && uiState.marketPositioning == null &&
+                        uiState.isLoading -> {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator()
+                        }
+                    }
 
-                // Error
-                uiState.errorMessage != null -> {
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "${stringResource(id = R.string.error_prefix)} ${uiState.errorMessage}",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.error
+                    // Data Available
+                    uiState.weeklyPlaybook != null || uiState.tailRisks != null ||
+                        uiState.marketPosture != null || uiState.marketPositioning != null -> {
+                        InsightsScreen(
+                            uiState = uiState,
+                            selectedTabIndex = uiState.selectedTabIndex,
+                            scaffoldPadding = PaddingValues(bottom = scaffoldPadding.calculateBottomPadding()),
+                            onNavigateToGlossaryDetail = onNavigateToGlossaryDetail,
+                            onDismissPositioningIntro = viewModel::dismissPositioningIntro,
+                            onDismissPostureIntro = viewModel::dismissPostureIntro
                         )
-                        Button(
-                            onClick = { viewModel.refreshInsights(force = true) },
-                            modifier = Modifier.padding(top = 16.dp)
+                    }
+
+                    // Error
+                    uiState.errorMessage != null -> {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Text(stringResource(id = R.string.action_retry))
+                            Text(
+                                text = "${stringResource(id = R.string.error_prefix)} ${uiState.errorMessage}",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                            Button(
+                                onClick = { viewModel.refreshInsights(force = true) },
+                                modifier = Modifier.padding(top = 16.dp)
+                            ) {
+                                Text(stringResource(id = R.string.action_retry))
+                            }
                         }
                     }
                 }
             }
-        }
 
-        SnackbarHost(
-            hostState = snackbarHostState,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = scaffoldPadding.calculateBottomPadding())
-        )
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = scaffoldPadding.calculateBottomPadding())
+            )
+        }
     }
 }

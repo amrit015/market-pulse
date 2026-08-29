@@ -101,7 +101,8 @@ class MainActivity : ComponentActivity() {
                     currentRoute?.startsWith("webview/") == true ||
                     currentRoute?.startsWith("${PulseRoutes.STOCK_ANALYSIS_DETAIL}/") == true ||
                     currentRoute?.startsWith("${PulseRoutes.ASSET_DETAIL}/") == true ||
-                    currentRoute?.startsWith("${PulseRoutes.METRIC_DETAIL}/") == true
+                    currentRoute?.startsWith("${PulseRoutes.METRIC_DETAIL}/") == true ||
+                    currentRoute?.startsWith("${PulseRoutes.GLOSSARY_DETAIL}/") == true
 
                 // 💡 scrollBehavior.state.heightOffset is one shared value driving the top bar's
                 // collapse amount across every tab (see this file's own header comment on why

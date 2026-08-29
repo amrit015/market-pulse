@@ -16,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -25,6 +26,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.core.glossary.DashboardGlossaryProvider
 import com.marketlabs.pulse.storage.model.charts.ChartPoint
 import com.marketlabs.pulse.storage.model.charts.ChartRange
 import com.marketlabs.pulse.storage.model.charts.ChartSeries
@@ -60,6 +62,7 @@ fun AssetDetailScreen(
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
     val paddingMedium = dimensionResource(id = R.dimen.padding_medium)
     val scrollState = rememberScrollState()
+    val context = LocalContext.current
 
     val showTechnicals = asset.symbol !in listOf("^VIX", "FEAR_GREED", "PUT_CALL")
     val currentPrice = String.format("%.2f", asset.price ?: 0.0)
@@ -232,10 +235,10 @@ fun AssetDetailScreen(
                 modifier = Modifier.padding(bottom = paddingMedium)
             )
             Column {
-                GlossaryItem("RSI", stringResource(id = R.string.dashboard_glossary_rsi_def))
-                GlossaryItem("MACD", stringResource(id = R.string.dashboard_glossary_macd_def))
-                GlossaryItem("Trend", stringResource(id = R.string.dashboard_glossary_trend_def))
-                GlossaryItem("SMA", stringResource(id = R.string.dashboard_glossary_sma_def))
+                DashboardGlossaryProvider.definitionFor(context, "RSI")?.let { GlossaryItem("RSI", it) }
+                DashboardGlossaryProvider.definitionFor(context, "MACD")?.let { GlossaryItem("MACD", it) }
+                DashboardGlossaryProvider.definitionFor(context, "Trend")?.let { GlossaryItem("Trend", it) }
+                DashboardGlossaryProvider.definitionFor(context, "SMA")?.let { GlossaryItem("SMA", it) }
             }
         }
     }

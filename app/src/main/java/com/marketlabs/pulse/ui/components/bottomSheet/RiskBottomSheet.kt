@@ -24,12 +24,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import com.marketlabs.pulse.R
-import com.marketlabs.pulse.utils.glossary.GlossaryTerm
-import com.marketlabs.pulse.utils.glossary.RiskGlossary
+import com.marketlabs.pulse.core.glossary.GlossaryTerm
+import com.marketlabs.pulse.core.glossary.RiskGlossaryProvider
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,6 +40,7 @@ fun RiskGlossaryBottomSheet(
     onDismiss: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val glossary = RiskGlossaryProvider.get(LocalContext.current)
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -107,14 +109,14 @@ fun RiskGlossaryBottomSheet(
                     RiskStatusRow(
                         stringResource(id = R.string.risk_status_label),
                         currentStatus,
-                        RiskGlossary.statuses
+                        glossary.statuses
                     )
                 }
                 if (currentTrend != null) {
                     RiskStatusRow(
                         stringResource(id = R.string.risk_trend_label),
                         currentTrend,
-                        RiskGlossary.trends
+                        glossary.trends
                     )
                 }
 
@@ -126,14 +128,14 @@ fun RiskGlossaryBottomSheet(
             item {
                 RiskGlossarySection(
                     stringResource(id = R.string.risk_status_glossary_title),
-                    RiskGlossary.statuses,
+                    glossary.statuses,
                     currentStatus
                 )
             }
             item {
                 RiskGlossarySection(
                     stringResource(id = R.string.risk_trend_glossary_title),
-                    RiskGlossary.trends,
+                    glossary.trends,
                     currentTrend
                 )
             }

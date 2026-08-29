@@ -14,6 +14,8 @@ Design reference extracted from source. Every color, type, spacing, and shape va
 
 **2026-08-19 update:** Summary was rebuilt against the backend's `market_pulse` v2 shape, and its old single `VerdictCard` is gone — replaced by two separate `SYNTHESIS` cards, `SignalSection` (top of the report: regime chip, the one-sentence flash, conviction) and `TheReadSection` (bottom: the full narrative paragraph, posture). `SYNTHESIS` is now **4 cards app-wide, not 3** — see §6's updated table row. "One hero card per screen" no longer holds everywhere; Summary is the deliberate exception, carrying a hero card at both the top and bottom of the same report rather than one in the middle. `OutlookCard`/`ActionFooter` (both `DATA`-styled) are also gone — their fields (`market_outlook`, the old `action`) were dropped or renamed out of the verdict object entirely, not just restyled.
 
+**2026-08-27 update:** A new domain, `positioning` (AAII retail sentiment, CFTC COT futures, FINRA short interest), shipped as Insights' 4th tab, adding more `DATA`-styled cards to §6's list. A third shared component system, `PulseTabRow` (§15, new), was extracted from Stock Analysis detail's tab bar and is now the one tab-bar pattern app-wide.
+
 ---
 
 ## 1. Theme architecture — 10 presets, three token layers
@@ -116,7 +118,7 @@ Every content card in the app now goes through one shared composable, `PulseCard
 
 | Style | Background | Border | Corner radius | Used by |
 |---|---|---|---|---|
-| `DATA` | `surfaceTinted` | `accentSurfaceBorder`, 1dp | `corner_radius_card_large` (16dp) | Everything not in the `SYNTHESIS` row — Equities' `AssetCard`, Indicators' `UniversalMetricCard`, VIX, Fear & Greed, Put/Call, News (both card variants), Summary's Lead Story/Macro/Domino/Watch/Risks/Market Position cards, Insights' Weekly Playbook/Institutional Posture/Market Risks cards, and Stock Analysis' list card + `TechnicalRead`/Deep Study/Scenarios/Direct News |
+| `DATA` | `surfaceTinted` | `accentSurfaceBorder`, 1dp | `corner_radius_card_large` (16dp) | Everything not in the `SYNTHESIS` row — Equities' `AssetCard`, Indicators' `UniversalMetricCard`, VIX, Fear & Greed, Put/Call, News (both card variants), Summary's Lead Story/Macro/Domino/Watch/Risks/Market Position cards, Insights' Weekly Playbook/Institutional Posture/Market Risks/Market Positioning cards, and Stock Analysis' list card + `TechnicalRead`/Deep Study/Scenarios/Direct News |
 | `SYNTHESIS` | `accentSurfaceStrong` | `accentSurfaceBorder`, 1dp | `corner_radius_card` (12dp) | **Narrowed 2026-08-16 to exactly 3 cards app-wide, then 4 as of 2026-08-19:** Summary's `SignalSection` + `TheReadSection` (replacing the old single `VerdictCard`), Indicators' AI Executive Briefing, Dashboard's Technical Briefing — "one hero card per screen" no longer strictly holds; Summary is the deliberate exception, one hero card at the top of the report and another at the bottom |
 
 **2026-08-16:** `SYNTHESIS` used to cover roughly two dozen cards (Technical Briefing, News, Weekly Playbook events, Tail Risk, NAAIM/Dark Pool/Net Liquidity, Lead Story/Macro/Domino/Outlook/Action Footer, Verdict, and Stock Analysis' own list card + `TechnicalRead`/Deep Study/Scenarios/Direct News). A contrast pass across all 10 presets found the two styles read as nearly indistinguishable on several of them, and with most cards on a screen wearing the "AI-authored" tint, it stopped signaling anything — it just meant "this app has two shades of card." Narrowed to one hero card per screen; everything else moved to `DATA`.
@@ -305,4 +307,26 @@ New items worth a decision, surfaced by this round of work:
 
 ---
 
-*Sourced from `ui/theme/Color.kt`, `MarketPulseTheme.kt`, `PulseColors.kt`, `Type.kt`, `ui/components/PulseCard.kt`, `ui/components/widgets/SignalPill.kt`, `res/values{,-w600dp,-w936dp}/dimens.xml`, `res/values{,-night}/themes.xml`, and fresh grep sweeps of `ui/` for shape, elevation, border, and alpha usage.*
+## 15. Tab system — `PulseTabRow` (new, 2026-08-27)
+
+Every screen that switches between a handful of sibling sections — not a range picker, see below — goes through one shared composable, `PulseTabRow` (`ui/components/PulseTabRow.kt`). Established on Stock Analysis detail as a private `DetailPillTabRow`, pulled out into a shared component once Insights needed the identical pattern.
+
+| Element | Value |
+|---|---|
+| Selected chip fill | `accentPrimary` |
+| Selected chip text | `accentOn` |
+| Unselected chip fill | `colorScheme.background` (transparent-reading against the page) |
+| Unselected chip border | `accentSurfaceBorder`, `border_thin` (1dp) |
+| Unselected chip text | `onSurfaceMuted` |
+| Shape | `corner_radius_small` (8dp) — not the fully-rounded `corner_radius_pill`, so the tab row doesn't read as one more badge next to a pinned header's pills sitting above it |
+| Chip label text | `labelMedium`, bold |
+| Chip padding | `padding_large` horizontal / `padding_medium` vertical |
+| Row behavior | `horizontalScroll` — chip width follows each label's own content, not split into N equal columns |
+
+**Not the same component as `ChartRangePicker`**, despite sharing the identical fill/outline/shape/type treatment: `ChartRangePicker` is an evenly-weighted range selector (`Modifier.weight(1f)` per button, no scrolling, always a small fixed set of ranges), a different layout shape for a different job. Both are intentionally the same *visual language*, deliberately not the same *component* — one switches sibling page sections, the other picks a chart's time window.
+
+Current callers: Stock Analysis detail (`DetailTab` — Technicals/Fundamentals/Thesis/Timeline/News), Insights (`InsightsTab` — Playbook/Risks/Posture/Positioning).
+
+---
+
+*Sourced from `ui/theme/Color.kt`, `MarketPulseTheme.kt`, `PulseColors.kt`, `Type.kt`, `ui/components/PulseCard.kt`, `ui/components/widgets/SignalPill.kt`, `ui/components/PulseTabRow.kt`, `res/values{,-w600dp,-w936dp}/dimens.xml`, `res/values{,-night}/themes.xml`, and fresh grep sweeps of `ui/` for shape, elevation, border, and alpha usage.*

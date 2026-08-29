@@ -4,8 +4,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import com.marketlabs.pulse.utils.enums.AgreementState
 import com.marketlabs.pulse.utils.enums.AlignmentState
+import com.marketlabs.pulse.utils.enums.CotPositioningStatus
+import com.marketlabs.pulse.utils.enums.DixStatus
+import com.marketlabs.pulse.utils.enums.NaaimStatus
+import com.marketlabs.pulse.utils.enums.NetLiquidityStatus
+import com.marketlabs.pulse.utils.enums.RetailSentimentStatus
 import com.marketlabs.pulse.utils.enums.RiskImpactLevel
 import com.marketlabs.pulse.utils.enums.ShiftDirection
+import com.marketlabs.pulse.utils.enums.ShortInterestStatus
 import com.marketlabs.pulse.utils.enums.SignalColor
 
 /**
@@ -126,4 +132,128 @@ val ShiftDirection?.pillColor: Color
         ShiftDirection.IMPROVED -> LocalPulseColors.current.signalBullishPill
         ShiftDirection.DETERIORATED -> LocalPulseColors.current.signalBearishPill
         ShiftDirection.UNKNOWN, null -> LocalPulseColors.current.signalUnknown
+    }
+
+// ============================================================================
+// 📊 MARKET POSTURE / POSITIONING (2026-08-26 revamp)
+// ============================================================================
+
+/** Posture: NAAIM Exposure Index -- rising manager exposure reads bullish, falling reads bearish. */
+val NaaimStatus?.textColor: Color
+    @Composable get() = when (this) {
+        NaaimStatus.EXTREME_GREED_LEVERAGED, NaaimStatus.BULLISH -> LocalPulseColors.current.signalBullishText
+        NaaimStatus.BEARISH, NaaimStatus.EXTREME_FEAR_HEDGED -> LocalPulseColors.current.signalBearishText
+        NaaimStatus.NEUTRAL -> LocalPulseColors.current.signalNeutralText
+        NaaimStatus.UNKNOWN, null -> LocalPulseColors.current.signalUnknown
+    }
+
+val NaaimStatus?.pillColor: Color
+    @Composable get() = when (this) {
+        NaaimStatus.EXTREME_GREED_LEVERAGED, NaaimStatus.BULLISH -> LocalPulseColors.current.signalBullishPill
+        NaaimStatus.BEARISH, NaaimStatus.EXTREME_FEAR_HEDGED -> LocalPulseColors.current.signalBearishPill
+        NaaimStatus.NEUTRAL -> LocalPulseColors.current.signalNeutralPill
+        NaaimStatus.UNKNOWN, null -> LocalPulseColors.current.signalUnknown
+    }
+
+/** Posture: Dark Pool Index -- heavy institutional buying under the surface reads bullish. */
+val DixStatus?.textColor: Color
+    @Composable get() = when (this) {
+        DixStatus.ACCUMULATION_BULLISH -> LocalPulseColors.current.signalBullishText
+        DixStatus.DISTRIBUTION_BEARISH -> LocalPulseColors.current.signalBearishText
+        DixStatus.NEUTRAL -> LocalPulseColors.current.signalNeutralText
+        DixStatus.UNKNOWN, null -> LocalPulseColors.current.signalUnknown
+    }
+
+val DixStatus?.pillColor: Color
+    @Composable get() = when (this) {
+        DixStatus.ACCUMULATION_BULLISH -> LocalPulseColors.current.signalBullishPill
+        DixStatus.DISTRIBUTION_BEARISH -> LocalPulseColors.current.signalBearishPill
+        DixStatus.NEUTRAL -> LocalPulseColors.current.signalNeutralPill
+        DixStatus.UNKNOWN, null -> LocalPulseColors.current.signalUnknown
+    }
+
+/** Posture: Net Liquidity trend -- expanding fiat liquidity is a tailwind, draining is a headwind. */
+val NetLiquidityStatus?.textColor: Color
+    @Composable get() = when (this) {
+        NetLiquidityStatus.EXPANDING -> LocalPulseColors.current.signalBullishText
+        NetLiquidityStatus.DRAINING -> LocalPulseColors.current.signalBearishText
+        NetLiquidityStatus.NEUTRAL -> LocalPulseColors.current.signalNeutralText
+        NetLiquidityStatus.UNKNOWN, null -> LocalPulseColors.current.signalUnknown
+    }
+
+val NetLiquidityStatus?.pillColor: Color
+    @Composable get() = when (this) {
+        NetLiquidityStatus.EXPANDING -> LocalPulseColors.current.signalBullishPill
+        NetLiquidityStatus.DRAINING -> LocalPulseColors.current.signalBearishPill
+        NetLiquidityStatus.NEUTRAL -> LocalPulseColors.current.signalNeutralPill
+        NetLiquidityStatus.UNKNOWN, null -> LocalPulseColors.current.signalUnknown
+    }
+
+/**
+ * Positioning: AAII retail sentiment is read CONTRARIAN, not literally -- the backend's own
+ * parenthetical qualifiers say so directly ("CONTRARIAN CAUTION"/"CONTRARIAN OPPORTUNITY"). Extreme
+ * retail bullishness (euphoria) is a caution flag for equities, so it reads warning/amber, not
+ * bullish green; extreme retail bearishness (despondency) reads as a contrarian opportunity, so it
+ * gets the bullish tone. This mirrors DirectionalChangePill's own documented VIX-style inversion
+ * principle -- the raw label's sign and the color it should read as are two different things.
+ */
+val RetailSentimentStatus?.textColor: Color
+    @Composable get() = when (this) {
+        RetailSentimentStatus.EXTREME_BULLISH_CONTRARIAN_CAUTION -> LocalPulseColors.current.signalWarningText
+        RetailSentimentStatus.EXTREME_BEARISH_CONTRARIAN_OPPORTUNITY -> LocalPulseColors.current.signalBullishText
+        RetailSentimentStatus.NEUTRAL -> LocalPulseColors.current.signalNeutralText
+        RetailSentimentStatus.UNKNOWN, null -> LocalPulseColors.current.signalUnknown
+    }
+
+val RetailSentimentStatus?.pillColor: Color
+    @Composable get() = when (this) {
+        RetailSentimentStatus.EXTREME_BULLISH_CONTRARIAN_CAUTION -> LocalPulseColors.current.signalWarningPill
+        RetailSentimentStatus.EXTREME_BEARISH_CONTRARIAN_OPPORTUNITY -> LocalPulseColors.current.signalBullishPill
+        RetailSentimentStatus.NEUTRAL -> LocalPulseColors.current.signalNeutralPill
+        RetailSentimentStatus.UNKNOWN, null -> LocalPulseColors.current.signalUnknown
+    }
+
+/**
+ * Positioning: CFTC COT futures positioning -- a crowded reading in EITHER direction (long or
+ * short) is the backend's own flagged caution ("has historically preceded a reversal"), not a
+ * directional bullish/bearish call, so both extremes share the same warning/amber tone.
+ * INSUFFICIENT_HISTORY (fewer than 8 trailing weekly readings) reads as unknown/muted, same as a
+ * gauge with no status at all -- there isn't yet enough of a trailing window to call it anything.
+ */
+val CotPositioningStatus?.textColor: Color
+    @Composable get() = when (this) {
+        CotPositioningStatus.EXTREME_LONG_CROWDED, CotPositioningStatus.EXTREME_SHORT_CROWDED -> LocalPulseColors.current.signalWarningText
+        CotPositioningStatus.NEUTRAL -> LocalPulseColors.current.signalNeutralText
+        CotPositioningStatus.INSUFFICIENT_HISTORY, CotPositioningStatus.UNKNOWN, null -> LocalPulseColors.current.signalUnknown
+    }
+
+val CotPositioningStatus?.pillColor: Color
+    @Composable get() = when (this) {
+        CotPositioningStatus.EXTREME_LONG_CROWDED, CotPositioningStatus.EXTREME_SHORT_CROWDED -> LocalPulseColors.current.signalWarningPill
+        CotPositioningStatus.NEUTRAL -> LocalPulseColors.current.signalNeutralPill
+        CotPositioningStatus.INSUFFICIENT_HISTORY, CotPositioningStatus.UNKNOWN, null -> LocalPulseColors.current.signalUnknown
+    }
+
+/**
+ * Positioning: FINRA short interest on the index-ETF proxies -- ELEVATED (>=5x days-to-cover) is a
+ * squeeze-risk caution flag (amber, not a directional call); shorts actively COVERING reads
+ * bullish (a supportive flow leaving the market), shorts actively BUILDING reads bearish (growing
+ * bearish conviction).
+ */
+val ShortInterestStatus?.textColor: Color
+    @Composable get() = when (this) {
+        ShortInterestStatus.ELEVATED_CROWDED_SHORT -> LocalPulseColors.current.signalWarningText
+        ShortInterestStatus.COVERING_SHORTS_EXITING -> LocalPulseColors.current.signalBullishText
+        ShortInterestStatus.BUILDING_SHORTS_ADDING -> LocalPulseColors.current.signalBearishText
+        ShortInterestStatus.NEUTRAL -> LocalPulseColors.current.signalNeutralText
+        ShortInterestStatus.UNKNOWN, null -> LocalPulseColors.current.signalUnknown
+    }
+
+val ShortInterestStatus?.pillColor: Color
+    @Composable get() = when (this) {
+        ShortInterestStatus.ELEVATED_CROWDED_SHORT -> LocalPulseColors.current.signalWarningPill
+        ShortInterestStatus.COVERING_SHORTS_EXITING -> LocalPulseColors.current.signalBullishPill
+        ShortInterestStatus.BUILDING_SHORTS_ADDING -> LocalPulseColors.current.signalBearishPill
+        ShortInterestStatus.NEUTRAL -> LocalPulseColors.current.signalNeutralPill
+        ShortInterestStatus.UNKNOWN, null -> LocalPulseColors.current.signalUnknown
     }

@@ -81,4 +81,11 @@
 
     <!-- Detail screen: fixed width for each stat item in a FlowRow metric grid (Fundamentals, Macro). -->
     <dimen name="detail_stat_width">96dp</dimen>
+
+    <!-- Institutional Posture / Market Positioning (2026-08-26 revamp) -->
+    <dimen name="gauge_size_small">56dp</dimen>
+    <dimen name="gauge_stroke_width_small">6dp</dimen>
+    <dimen name="tri_segment_bar_height">12dp</dimen>
+    <dimen name="percentile_bar_track_height">6dp</dimen>
+    <dimen name="percentile_bar_marker_radius">7dp</dimen>
 </resources>
