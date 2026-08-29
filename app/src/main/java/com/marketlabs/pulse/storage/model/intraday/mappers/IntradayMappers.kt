@@ -6,11 +6,14 @@ import com.marketlabs.pulse.storage.model.intraday.IntradayPoint
 import com.marketlabs.pulse.storage.model.intraday.IntradaySeries
 
 /**
- * `symbol`/`date` are trusted from the caller (the requested symbol, and "today" as ET) rather
- * than the response body, mirroring `RemoteStockDataSourceImpl`'s "the caller already knows what
- * it asked for" reasoning -- this mapper is only ever called after the repository has already
- * confirmed the response's own `date` matches today, so by the time this runs the distinction is
- * moot, but it keeps the domain model's `date` field unambiguous either way.
+ * `symbol` is trusted from the caller (the requested symbol) rather than the response body,
+ * mirroring `RemoteStockDataSourceImpl`'s "the caller already knows what it asked for" reasoning.
+ * `date` is the response's own `date` field, passed in explicitly rather than re-read from
+ * `this.date` here -- `IntradayRepositoryImpl.fetchOnce` needs that value non-null before it even
+ * decides whether to call this mapper at all, and the resulting series is *not* assumed to be
+ * "today"'s: a response dated before today's session has started (pre-9:30am ET, weekends,
+ * holidays) is the last completed session's real data, and is mapped and cached under its own
+ * real date rather than being discarded.
  */
 fun NetworkIntradayResponse.toDomain(symbol: String, date: String): IntradaySeries {
     return IntradaySeries(
