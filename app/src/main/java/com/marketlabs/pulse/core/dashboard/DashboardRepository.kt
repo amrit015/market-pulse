@@ -11,6 +11,4 @@ interface DashboardRepository {
     fun getDashboardAssetsStream(): Flow<List<AssetOverview?>>
 
     suspend fun refreshDashboard(force: Boolean = false)
-
-    fun closeWebSockets()
 }

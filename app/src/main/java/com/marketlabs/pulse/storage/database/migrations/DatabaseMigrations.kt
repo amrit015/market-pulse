@@ -415,10 +415,54 @@ object DatabaseMigrations {
         }
     }
 
+    // Migration from Version 16 to 17: new `market_charts` table backing period charts
+    // (5D/1M/6M/YTD/1Y), one row per `(symbol, rangeKey)` pair rather than one row per symbol --
+    // switching the range picker is a different cached row, not a client-side slice of one full
+    // series (the backend's `?days=N` isn't a literal point-count trim, so only the backend's own
+    // per-range filtering is trustworthy -- see `ChartModels.kt`'s doc comment). Purely additive,
+    // no existing table touched.
+    val MIGRATION_16_17 = object : Migration(16, 17) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `market_charts` (
+                    `symbol` TEXT NOT NULL,
+                    `rangeKey` TEXT NOT NULL,
+                    `lastSyncedTimestamp` INTEGER NOT NULL,
+                    `name` TEXT,
+                    `type` TEXT,
+                    `points` TEXT,
+                    PRIMARY KEY(`symbol`, `rangeKey`)
+                )
+                """.trimIndent()
+            )
+        }
+    }
+
+    // Migration from Version 17 to 18: new `metric_history` table backing the indicator
+    // detail page's history chart -- one row per `metricId` (no range key, unlike
+    // `market_charts`: the spec explicitly says not to build a range picker for this yet, so
+    // each metric only ever has one cached series). Purely additive, no existing table touched.
+    val MIGRATION_17_18 = object : Migration(17, 18) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `metric_history` (
+                    `metricId` TEXT NOT NULL,
+                    `lastSyncedTimestamp` INTEGER NOT NULL,
+                    `points` TEXT,
+                    PRIMARY KEY(`metricId`)
+                )
+                """.trimIndent()
+            )
+        }
+    }
+
     val ALL_MIGRATIONS = arrayOf(
         MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5,
         MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9,
         MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13,
-        MIGRATION_13_14, MIGRATION_14_15, MIGRATION_15_16 // 💡 Added to registry
+        MIGRATION_13_14, MIGRATION_14_15, MIGRATION_15_16, MIGRATION_16_17,
+        MIGRATION_17_18 // 💡 Added to registry
     )
 }

@@ -5,20 +5,29 @@ package com.marketlabs.pulse.ui.screens.stocks
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.marketlabs.pulse.core.charts.ChartsRepository
+import com.marketlabs.pulse.core.intraday.IntradayRepository
 import com.marketlabs.pulse.core.stocks.StockAnalysisRepository
+import com.marketlabs.pulse.storage.model.charts.ChartRange
+import com.marketlabs.pulse.storage.model.charts.ChartSeries
+import com.marketlabs.pulse.storage.model.charts.isCoveredByHistory
+import com.marketlabs.pulse.storage.model.intraday.IntradaySeries
 import com.marketlabs.pulse.storage.model.stocks.StockPreview
 import com.marketlabs.pulse.ui.common.UiError
 import com.marketlabs.pulse.ui.common.toUiError
 import com.marketlabs.pulse.ui.screens.stocks.StockDetailViewModel.Companion.ARG_SYMBOL
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import javax.inject.Inject
 
 /**
@@ -46,9 +55,12 @@ import javax.inject.Inject
  * fields of its own, only the preview does, so `DetailHeader` and the "what changed since last
  * run" box both read off this same cross-referenced preview rather than the detail stream.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class StockDetailViewModel @Inject constructor(
     private val repository: StockAnalysisRepository,
+    private val chartsRepository: ChartsRepository,
+    private val intradayRepository: IntradayRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -62,6 +74,8 @@ class StockDetailViewModel @Inject constructor(
     private val _expandedChipIds = MutableStateFlow<Set<String>>(emptySet())
     private val _expandedNewsIds = MutableStateFlow<Set<String>>(emptySet())
     private val _selectedTabIndex = MutableStateFlow(0)
+    private val _selectedChartRange = MutableStateFlow(ChartRange.FIVE_DAY)
+    private val _isChartLoading = MutableStateFlow(false)
 
     private val matchingPreview: Flow<StockPreview?> = repository.getStockPreviewsStream()
         .map { previews -> previews.firstOrNull { it.symbol == symbol } }
@@ -72,12 +86,48 @@ class StockDetailViewModel @Inject constructor(
         DetailUiFlags(isLoading, isRefreshing, error, expandedChipIds, expandedNewsIds)
     }
 
+    /**
+     * The period chart's own stream — a separate `ChartsRepository` (its own `GET /charts/:symbol`
+     * endpoint) re-queried via `flatMapLatest` every time `_selectedChartRange` changes, since each
+     * range is cached as its own row (see `ChartsRepository`'s doc comment on why a full series
+     * isn't fetched once and sliced client-side). `intradayRepository.getIntradayStream(symbol)`
+     * rides along here too -- it's not range-gated (the poll started in `onStart()` runs
+     * regardless of which range is selected), but it belongs to this same "period chart section"
+     * slice of state, and `IntradayPeriodChart` only ever renders it when `ChartRange.ONE_DAY` is
+     * selected.
+     *
+     * `chartsRepository.getChartStream(symbol, ChartRange.ONE_YEAR)` is read here too, independent
+     * of whatever range is actually selected -- it's how `availableChartRanges` learns the
+     * symbol's real history depth (see `prefetchHistoryCoverage()`, which is what actually fetches
+     * it), so `ChartRangePicker` can hide 6M/YTD/1Y for a recently-listed symbol instead of
+     * showing three buttons that'd all render the same fully-clipped series.
+     */
+    private val chartFlow: Flow<ChartUiSlice> = combine(
+        _selectedChartRange.flatMapLatest { range -> chartsRepository.getChartStream(symbol, range) },
+        _selectedChartRange,
+        _isChartLoading,
+        intradayRepository.getIntradayStream(symbol),
+        chartsRepository.getChartStream(symbol, ChartRange.ONE_YEAR)
+    ) { series, range, isChartLoading, intradaySeries, oneYearSeries ->
+        val earliestAvailableDate = oneYearSeries?.points?.firstOrNull()?.date?.let {
+            runCatching { LocalDate.parse(it) }.getOrNull()
+        }
+        ChartUiSlice(
+            series = series,
+            range = range,
+            isLoading = isChartLoading,
+            intradaySeries = intradaySeries,
+            availableChartRanges = ChartRange.entries.filter { it.isCoveredByHistory(earliestAvailableDate) }
+        )
+    }
+
     val uiState: StateFlow<StockDetailUiState> = combine(
         repository.getStockDetailStream(symbol),
         matchingPreview,
         uiFlags,
-        _selectedTabIndex
-    ) { detail, preview, flags, selectedTabIndex ->
+        _selectedTabIndex,
+        chartFlow
+    ) { detail, preview, flags, selectedTabIndex, chart ->
         StockDetailUiState(
             symbol = symbol,
             detail = detail,
@@ -87,6 +137,11 @@ class StockDetailViewModel @Inject constructor(
             expandedChipIds = flags.expandedChipIds,
             expandedNewsIds = flags.expandedNewsIds,
             selectedTabIndex = selectedTabIndex,
+            chartSeries = chart.series,
+            selectedChartRange = chart.range,
+            isChartLoading = chart.isLoading,
+            intradaySeries = chart.intradaySeries,
+            availableChartRanges = chart.availableChartRanges,
             error = flags.error
         )
     }.stateIn(
@@ -98,10 +153,18 @@ class StockDetailViewModel @Inject constructor(
     /** Called by the UI when the screen becomes visible. Triggers the version-checked fetch described above. */
     fun onStart() {
         fetchDetail(force = false)
+        fetchChart(_selectedChartRange.value, force = false)
+        prefetchHistoryCoverage()
+        // Every stock is intraday-eligible (the backend polls all tracked symbols
+        // unconditionally, unlike the dashboard's gated set -- see `StockAnalysisViewModel`'s
+        // identical reasoning for the preview-card sparklines), so this always starts polling.
+        intradayRepository.trackSymbol(symbol)
     }
 
-    /** No shared listener to stop — present only for parity with every other screen's Route wiring. */
-    fun onStop() = Unit
+    /** Stops this screen's own intraday poll -- the list screen's tracking (if still open) is unaffected. */
+    fun onStop() {
+        intradayRepository.untrackSymbol(symbol)
+    }
 
     /** Called by pull-to-refresh — bypasses the cached-version check and always hits the network. */
     fun refresh() {
@@ -126,6 +189,41 @@ class StockDetailViewModel @Inject constructor(
     /** Called when the user taps a tab in the pinned `PrimaryTabRow`. Index into `DetailTab.entries`. */
     fun onTabSelected(index: Int) {
         _selectedTabIndex.value = index
+    }
+
+    /** Called when the user taps a range button on the period chart's `ChartRangePicker`. */
+    fun selectChartRange(range: ChartRange) {
+        _selectedChartRange.value = range
+        // ONE_DAY has no `/charts/:symbol` fetch to do -- the intraday poll started in onStart()
+        // is already live regardless of which range is selected.
+        if (range != ChartRange.ONE_DAY) {
+            fetchChart(range, force = false)
+        }
+    }
+
+    private fun fetchChart(range: ChartRange, force: Boolean) {
+        viewModelScope.launch {
+            _isChartLoading.value = true
+            // Deliberately silent on failure -- the chart is a supporting element on this screen,
+            // not its main content, so a fetch failure just leaves the last-cached (or empty)
+            // series showing rather than surfacing a Snackbar over the whole detail screen.
+            chartsRepository.refreshChart(symbol, range, force)
+            _isChartLoading.value = false
+        }
+    }
+
+    /**
+     * Silently fetches the widest backend-fetchable range purely to learn how far back this
+     * symbol's history actually goes (see `availableChartRanges`' doc comment) -- does not touch
+     * `_isChartLoading`, since toggling that here would race with whatever range the user is
+     * actually looking at and flash its own loading indicator off prematurely. Skipped when
+     * `ONE_YEAR` is already the selected range, since `fetchChart` is already fetching it.
+     */
+    private fun prefetchHistoryCoverage() {
+        if (_selectedChartRange.value == ChartRange.ONE_YEAR) return
+        viewModelScope.launch {
+            chartsRepository.refreshChart(symbol, ChartRange.ONE_YEAR, force = false)
+        }
     }
 
     private fun fetchDetail(force: Boolean) {
@@ -156,6 +254,14 @@ private data class DetailUiFlags(
     val error: UiError?,
     val expandedChipIds: Set<String>,
     val expandedNewsIds: Set<String>
+)
+
+private data class ChartUiSlice(
+    val series: ChartSeries?,
+    val range: ChartRange,
+    val isLoading: Boolean,
+    val intradaySeries: IntradaySeries?,
+    val availableChartRanges: List<ChartRange>
 )
 
 private fun Set<String>.toggled(id: String): Set<String> =

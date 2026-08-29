@@ -3,14 +3,20 @@ package com.marketlabs.pulse.ui.screens.dashboard
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.marketlabs.pulse.core.dashboard.DashboardRepository
+import com.marketlabs.pulse.core.intraday.DashboardIntradayEligibility
+import com.marketlabs.pulse.core.intraday.IntradayRepository
 import com.marketlabs.pulse.core.news.NewsRepository
 import com.marketlabs.pulse.core.sync.SyncManager
+import com.marketlabs.pulse.storage.model.intraday.IntradaySeries
 import com.marketlabs.pulse.storage.model.news.NewsArticle
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -22,12 +28,15 @@ import javax.inject.Inject
 class DashboardViewModel @Inject constructor(
     private val repository: DashboardRepository,
     private val syncManager: SyncManager,
-    private val newsRepository: NewsRepository
+    private val newsRepository: NewsRepository,
+    private val intradayRepository: IntradayRepository
 ) : ViewModel() {
 
     private val _isLoading = MutableStateFlow(false)
     private val _isRefreshing = MutableStateFlow(false)
     private val _errorMessage = MutableStateFlow<String?>(null)
+    private var intradayTrackingJob: Job? = null
+    private var trackedIntradaySymbols: Set<String> = emptySet()
 
     val uiState: StateFlow<DashboardUiState> = combine(
         repository.getMarketStateStream(),
@@ -55,12 +64,34 @@ class DashboardViewModel @Inject constructor(
     fun onStart() {
         syncManager.startListening()
         fetchDashboard(force = false)
+
+        // Same "track whatever's currently visible, diff on every list change" shape
+        // `StockAnalysisViewModel` uses -- `DashboardIntradayEligibility` gates this to the 23
+        // symbols the backend actually polls; everything else would just be a guaranteed 404 on
+        // `/intraday/:symbol`, so there's no point tracking it.
+        intradayTrackingJob = viewModelScope.launch {
+            repository.getDashboardAssetsStream()
+                .map { assets -> assets.filterNotNull().map { it.symbol } }
+                .distinctUntilChanged()
+                .collect { symbols ->
+                    val newSymbols = symbols.filter { DashboardIntradayEligibility.isEligible(it) }.toSet()
+                    (trackedIntradaySymbols - newSymbols).forEach { intradayRepository.untrackSymbol(it) }
+                    (newSymbols - trackedIntradaySymbols).forEach { intradayRepository.trackSymbol(it) }
+                    trackedIntradaySymbols = newSymbols
+                }
+        }
     }
 
     fun onStop() {
-        repository.closeWebSockets()
         syncManager.stopListening()
+        intradayTrackingJob?.cancel()
+        trackedIntradaySymbols.forEach { intradayRepository.untrackSymbol(it) }
+        trackedIntradaySymbols = emptySet()
     }
+
+    /** Thin pass-through so `AssetCard` can collect its own symbol's polled intraday bars. */
+    fun getIntradayStream(symbol: String): Flow<IntradaySeries?> =
+        intradayRepository.getIntradayStream(symbol)
 
     fun refreshDashboard() {
         fetchDashboard(force = true)

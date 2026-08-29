@@ -51,11 +51,19 @@
          shadow visual language. See CLAUDE.md. -->
     <dimen name="nav_elevation">2dp</dimen>
 
-    <!-- Stock Analysis preview card: empty space held open next to the price/change block for the
-         sparkline a future pass will add (no backend chart series yet, see the stock-analysis-ui
-         spec's "Deferred" section). Sized to roughly match the sparkline's height in the Design
-         mockups so the card doesn't reflow once it's added. -->
-    <dimen name="stock_preview_sparkline_space">32dp</dimen>
+    <!-- Stock Analysis preview card: the live intraday sparkline's footprint, under the
+         price/change block. Height matches the Design mockups; width is fixed rather than
+         fillMaxWidth since this sits in the Row's unweighted (price/pill) column; fillMaxWidth
+         there would claim the whole Row's width before the weighted symbol/name column gets a
+         chance to size itself. -->
+    <dimen name="stock_preview_sparkline_space">48dp</dimen>
+    <dimen name="stock_preview_sparkline_width">96dp</dimen>
+
+    <!-- Dashboard asset card: live intraday sparkline height, under the price/change pill, flush
+         with the card's bottom edge. Taller than the stock-preview sparkline above: this one
+         renders edge-to-edge at the card's own bottom, so it needs more vertical room for the
+         curve to read as smooth rather than cramped right where it touches that edge. -->
+    <dimen name="dashboard_asset_sparkline_height">64dp</dimen>
 
     <!-- Loading-skeleton placeholder bars on StockAnalysisLoadingSkeleton, roughly matching a real
          StockPreviewCard's symbol/name line lengths so the swap-in on load doesn't visibly jump. -->
@@ -66,11 +74,10 @@
          the descriptions that follow line up regardless of which label is longer. -->
     <dimen name="setup_reasoning_label_width">76dp</dimen>
 
-    <!-- Detail screen: vertical space reserved between SetupReasoning and HeadlineMetricsStrip for
-         the price chart a future design + spec pass will add (see the stock-analysis-ui spec's
-         "Deferred" section, same reserve-space-don't-render-placeholder treatment as the preview
-         card's sparkline). -->
-    <dimen name="stock_detail_chart_reserved_height">180dp</dimen>
+    <!-- PeriodChart's plotted height (Detail screen's Technicals tab and the dashboard asset
+         detail page). Taller than the original reserved-space placeholder so price movement
+         actually reads at a glance instead of compressing into a thin strip. -->
+    <dimen name="stock_detail_chart_reserved_height">260dp</dimen>
 
     <!-- Detail screen: fixed width for each stat item in a FlowRow metric grid (Fundamentals, Macro). -->
     <dimen name="detail_stat_width">96dp</dimen>

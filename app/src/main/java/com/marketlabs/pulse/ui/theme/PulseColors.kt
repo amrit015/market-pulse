@@ -44,7 +44,19 @@ data class PulseColors(
     val surfaceTinted: Color,
 
     // --- Layer 2 — surface ramp (shared per mode) ---
-    val onSurfaceMuted: Color
+    val onSurfaceMuted: Color,
+
+    /**
+     * Sector Rotation heatmap tile backgrounds (`SectorBlock`, Dashboard) — deliberately its own
+     * tokens, not a reuse of `signalBullishText`/`signalBullishPill` above. A full-tile background
+     * needs a different color per *mode* than either general-purpose token gives uniformly across
+     * both modes: the pill tone reads as a clean saturated fill in dark mode but washed-out/low-
+     * contrast as a full tile in light mode, while the text tone (originally used here) was the
+     * reverse — fine in light mode, too flat in dark. See `MarketPulseTheme.toPulseColors()` for
+     * which source each mode actually draws from.
+     */
+    val sectorHeatmapBullish: Color,
+    val sectorHeatmapBearish: Color
 )
 
 val LocalPulseColors = staticCompositionLocalOf<PulseColors> {

@@ -15,7 +15,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.components.PulseWebViewScreen
+import com.marketlabs.pulse.ui.screens.dashboard.detail.AssetDetailRoute
 import com.marketlabs.pulse.ui.screens.dashboard.views.DashboardRoute
+import com.marketlabs.pulse.ui.screens.indicators.detail.MetricDetailRoute
 import com.marketlabs.pulse.ui.screens.indicators.views.IndicatorHorizonsRoute
 import com.marketlabs.pulse.ui.screens.indicators.views.IndicatorsRoute
 import com.marketlabs.pulse.ui.screens.insights.views.InsightsRoute
@@ -55,6 +57,17 @@ object PulseRoutes {
     // treatment as Settings/News/Stock Detail -- its own header, no global top bar or floating
     // nav stacked underneath it.
     const val INDICATOR_HORIZONS = "indicator_horizons"
+
+    // Pushed from a dashboard tile tap (indices/sectors/crypto/commodities/VIX/sentiment) on the
+    // Overview tab. Replaces the old AssetDetailBottomSheet -- "symbol" is a required nav
+    // argument, not a query param, same shape as STOCK_ANALYSIS_DETAIL above.
+    const val ASSET_DETAIL = "assetDetail"
+
+    // Pushed from an indicator card tap on the Indicators tab. Replaces the old
+    // IndicatorDetailSheet -- "metricId" is a required nav argument, same shape as ASSET_DETAIL
+    // above. Metric ids are plain snake_case (e.g. "pe_ratio"), so unlike ASSET_DETAIL's symbols
+    // this doesn't need URL-encoding.
+    const val METRIC_DETAIL = "metricDetail"
 }
 
 /** * 💡 UPDATED: Added a second icon resource for the 'selected' filled state
@@ -169,7 +182,25 @@ fun PulseNavGraph(
                 onNavigateToNewsArticle = { url ->
                     highlightedNewsArticleUrl = url
                     navController.navigate(PulseRoutes.MARKET_NEWS)
+                },
+                // Dashboard symbols aren't all plain tickers -- `^VIX`, `GC=F`, `SI=F`, `CL=F`,
+                // `HG=F`, `ES=F`, `NQ=F`, `YM=F` all reach this callback too, and `navigate(String)`
+                // parses the route as a Uri internally. `^` isn't a legal URI character at all, so
+                // an unencoded symbol here could crash or silently fail to match the destination --
+                // same class of problem `webview/{encodedUrl}` below already works around; encoded
+                // here, decoded back in `AssetDetailViewModel`'s `SavedStateHandle` read.
+                onNavigateToAssetDetail = { symbol ->
+                    val encodedSymbol = URLEncoder.encode(symbol, StandardCharsets.UTF_8.toString())
+                    navController.navigate("${PulseRoutes.ASSET_DETAIL}/$encodedSymbol")
                 }
+            )
+        }
+        // Pushed from a dashboard tile tap -- replaces AssetDetailBottomSheet. "symbol" is read
+        // out of SavedStateHandle by AssetDetailViewModel itself, same as Stock Detail below.
+        composable("${PulseRoutes.ASSET_DETAIL}/{symbol}") {
+            AssetDetailRoute(
+                scaffoldPadding = scaffoldPadding,
+                onNavigateUp = { navController.popBackStack() }
             )
         }
         composable(PulseRoutes.MARKET_INDICATORS) {
@@ -192,12 +223,23 @@ fun PulseNavGraph(
             }
             IndicatorsRoute(
                 scaffoldPadding = scaffoldPadding,
-                onNavigateToHorizons = { navController.navigate(PulseRoutes.INDICATOR_HORIZONS) }
+                onNavigateToHorizons = { navController.navigate(PulseRoutes.INDICATOR_HORIZONS) },
+                onNavigateToMetricDetail = { metricId ->
+                    navController.navigate("${PulseRoutes.METRIC_DETAIL}/$metricId")
+                }
             )
         }
         // Pushed from the Indicators tab's "Horizons" entry card -- see PulseRoutes.INDICATOR_HORIZONS.
         composable(PulseRoutes.INDICATOR_HORIZONS) {
             IndicatorHorizonsRoute(onNavigateUp = { navController.popBackStack() })
+        }
+        // Pushed from an indicator card tap -- replaces IndicatorDetailSheet. "metricId" is read
+        // out of SavedStateHandle by MetricDetailViewModel itself, same as Asset Detail above.
+        composable("${PulseRoutes.METRIC_DETAIL}/{metricId}") {
+            MetricDetailRoute(
+                scaffoldPadding = scaffoldPadding,
+                onNavigateUp = { navController.popBackStack() }
+            )
         }
         composable(PulseRoutes.MARKET_INSIGHTS) {
             InsightsRoute(scaffoldPadding = scaffoldPadding)
