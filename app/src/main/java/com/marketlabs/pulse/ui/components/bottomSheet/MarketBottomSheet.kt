@@ -24,12 +24,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import com.marketlabs.pulse.R
-import com.marketlabs.pulse.utils.glossary.GlossaryTerm
-import com.marketlabs.pulse.utils.glossary.MarketGlossary
+import com.marketlabs.pulse.core.glossary.GlossaryTerm
+import com.marketlabs.pulse.core.glossary.MarketGlossaryProvider
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,6 +44,7 @@ fun MarketGlossaryBottomSheet(
     onDismiss: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val glossary = MarketGlossaryProvider.get(LocalContext.current)
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -83,19 +85,19 @@ fun MarketGlossaryBottomSheet(
                     )
 
                     if (currentRegime != null) {
-                        CurrentStatusRow(stringResource(id = R.string.market_regime_label), currentRegime, MarketGlossary.regimes)
+                        CurrentStatusRow(stringResource(id = R.string.market_regime_label), currentRegime, glossary.regimes)
                     }
                     if (currentSetup != null) {
-                        CurrentStatusRow(stringResource(id = R.string.technical_setup_label), currentSetup, MarketGlossary.setups)
+                        CurrentStatusRow(stringResource(id = R.string.technical_setup_label), currentSetup, glossary.setups)
                     }
                     if (currentDirection != null) {
-                        CurrentStatusRow(stringResource(id = R.string.direction_label), currentDirection, MarketGlossary.directions)
+                        CurrentStatusRow(stringResource(id = R.string.direction_label), currentDirection, glossary.directions)
                     }
                     if (currentCycleZone != null) {
-                        CurrentStatusRow(stringResource(id = R.string.cycle_zone_label), currentCycleZone, MarketGlossary.cycleZones)
+                        CurrentStatusRow(stringResource(id = R.string.cycle_zone_label), currentCycleZone, glossary.cycleZones)
                     }
                     if (currentAction != null) {
-                        CurrentStatusRow(stringResource(id = R.string.action_signal_label), currentAction, MarketGlossary.actions)
+                        CurrentStatusRow(stringResource(id = R.string.action_signal_label), currentAction, glossary.actions)
                     }
 
                     Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
@@ -106,23 +108,23 @@ fun MarketGlossaryBottomSheet(
 
             // 💡 NEW: Safely and individually render each Glossary Section only if its specific data is passed
             if (currentAction != null) {
-                item { GlossarySection(stringResource(id = R.string.action_glossary_title), MarketGlossary.actions, currentAction) }
+                item { GlossarySection(stringResource(id = R.string.action_glossary_title), glossary.actions, currentAction) }
             }
 
             if (currentRegime != null) {
-                item { GlossarySection(stringResource(id = R.string.regime_glossary_title), MarketGlossary.regimes, currentRegime) }
+                item { GlossarySection(stringResource(id = R.string.regime_glossary_title), glossary.regimes, currentRegime) }
             }
 
             if (currentSetup != null) {
-                item { GlossarySection(stringResource(id = R.string.setup_glossary_title), MarketGlossary.setups, currentSetup) }
+                item { GlossarySection(stringResource(id = R.string.setup_glossary_title), glossary.setups, currentSetup) }
             }
 
             if (currentDirection != null) {
-                item { GlossarySection(stringResource(id = R.string.direction_glossary_title), MarketGlossary.directions, currentDirection) }
+                item { GlossarySection(stringResource(id = R.string.direction_glossary_title), glossary.directions, currentDirection) }
             }
 
             if (currentCycleZone != null) {
-                item { GlossarySection(stringResource(id = R.string.cycle_zone_glossary_title), MarketGlossary.cycleZones, currentCycleZone) }
+                item { GlossarySection(stringResource(id = R.string.cycle_zone_glossary_title), glossary.cycleZones, currentCycleZone) }
             }
 
             item { Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars)) }

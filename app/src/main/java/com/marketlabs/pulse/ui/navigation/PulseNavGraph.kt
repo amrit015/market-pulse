@@ -20,6 +20,7 @@ import com.marketlabs.pulse.ui.screens.dashboard.views.DashboardRoute
 import com.marketlabs.pulse.ui.screens.indicators.detail.MetricDetailRoute
 import com.marketlabs.pulse.ui.screens.indicators.views.IndicatorHorizonsRoute
 import com.marketlabs.pulse.ui.screens.indicators.views.IndicatorsRoute
+import com.marketlabs.pulse.ui.screens.insights.glossary.GlossaryDetailRoute
 import com.marketlabs.pulse.ui.screens.insights.views.InsightsRoute
 import com.marketlabs.pulse.ui.screens.news.views.NewsRoute
 import com.marketlabs.pulse.ui.screens.stocks.detail.StockDetailRoute
@@ -68,6 +69,21 @@ object PulseRoutes {
     // above. Metric ids are plain snake_case (e.g. "pe_ratio"), so unlike ASSET_DETAIL's symbols
     // this doesn't need URL-encoding.
     const val METRIC_DETAIL = "metricDetail"
+
+    // Pushed from a whole-CARD tap on the Positioning/Posture screens (2026-08-27 interpretive-
+    // layer spec, converged 2026-08-27 to a per-card rather than per-value tap target).
+    // "metricIds" is a comma-joined list of dotted core/glossary keys (a card can cover more than
+    // one entry -- a COT contract's % OI + percentile; a short-interest instrument's days-to-cover
+    // + shares + mom-change), "title"/"description"/"status" are the pushed screen's heading, its
+    // "what is this card" intro text, and its live status (for band highlighting) respectively.
+    // Deliberately its OWN destination rather than reusing METRIC_DETAIL: that screen's ViewModel
+    // is hard-wired to IndicatorsRepository/DomainUnifiedMetric and renders a history chart
+    // neither Positioning nor Posture has via the API yet. "title"/"description"/"status" are
+    // `Uri.encode()`-d (not `URLEncoder`, which turns spaces into "+" and collides with
+    // Navigation's own automatic percent-decode of path segments -- see
+    // GlossaryDetailViewModel's doc comment); "metricIds" itself needs no encoding, since every
+    // core/glossary/ id is plain lowercase/dot/underscore.
+    const val GLOSSARY_DETAIL = "glossaryDetail"
 }
 
 /** * 💡 UPDATED: Added a second icon resource for the 'selected' filled state
@@ -242,7 +258,30 @@ fun PulseNavGraph(
             )
         }
         composable(PulseRoutes.MARKET_INSIGHTS) {
-            InsightsRoute(scaffoldPadding = scaffoldPadding)
+            InsightsRoute(
+                scaffoldPadding = scaffoldPadding,
+                onNavigateToGlossaryDetail = { metricIds, title, description, status ->
+                    // 💡 Uri.encode(), not URLEncoder.encode() -- see GlossaryDetailViewModel's
+                    // doc comment for why the form-encoding pairing (spaces -> "+") crashed
+                    // against Navigation's own automatic percent-decode of path segments.
+                    // Uri.encode()'s escaping is exactly what that automatic decode reverses.
+                    // `metricIds` itself is NOT encoded -- every core/glossary/ id is plain
+                    // lowercase/dot/underscore, safe as a raw comma-joined path segment.
+                    val encodedTitle = android.net.Uri.encode(title)
+                    val encodedDescription = android.net.Uri.encode(description ?: "")
+                    val encodedStatus = android.net.Uri.encode(status ?: "")
+                    navController.navigate(
+                        "${PulseRoutes.GLOSSARY_DETAIL}/$encodedTitle/${metricIds.joinToString(",")}/$encodedDescription/$encodedStatus"
+                    )
+                }
+            )
+        }
+        // Pushed from a whole-card tap on Positioning/Posture -- see PulseRoutes.GLOSSARY_DETAIL.
+        composable("${PulseRoutes.GLOSSARY_DETAIL}/{title}/{metricIds}/{description}/{status}") {
+            GlossaryDetailRoute(
+                scaffoldPadding = scaffoldPadding,
+                onNavigateUp = { navController.popBackStack() }
+            )
         }
         // 💡 Updated with Claude Code assistance: the stocks domain layer was rebuilt against
         // the backend's new preview/detail split (see core/stocks, storage/model/stocks), and

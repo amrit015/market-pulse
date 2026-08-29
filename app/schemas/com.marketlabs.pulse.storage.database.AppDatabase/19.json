@@ -1,0 +1,1030 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 19,
+    "identityHash": "db7e45ab46ac3861bb6b8086831942b9",
+    "entities": [
+      {
+        "tableName": "market_pulse",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`dateId` TEXT NOT NULL, `lastSyncedTimestamp` INTEGER NOT NULL, `lastUpdated` INTEGER NOT NULL, `reportType` TEXT NOT NULL, `verdict` TEXT, `drivers` TEXT, `position` TEXT, `leadStories` TEXT, `macroMix` TEXT, `dominoEffect` TEXT, `watch` TEXT, `risks` TEXT, `whatChanged` TEXT, `whatsNew` TEXT, PRIMARY KEY(`dateId`))",
+        "fields": [
+          {
+            "fieldPath": "dateId",
+            "columnName": "dateId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastSyncedTimestamp",
+            "columnName": "lastSyncedTimestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastUpdated",
+            "columnName": "lastUpdated",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reportType",
+            "columnName": "reportType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "verdict",
+            "columnName": "verdict",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "drivers",
+            "columnName": "drivers",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "position",
+            "columnName": "position",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "leadStories",
+            "columnName": "leadStories",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "macroMix",
+            "columnName": "macroMix",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "dominoEffect",
+            "columnName": "dominoEffect",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "watch",
+            "columnName": "watch",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "risks",
+            "columnName": "risks",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "whatChanged",
+            "columnName": "whatChanged",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "whatsNew",
+            "columnName": "whatsNew",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "dateId"
+          ]
+        }
+      },
+      {
+        "tableName": "market_news",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `lastSyncedTimestamp` INTEGER NOT NULL, `lastUpdated` INTEGER NOT NULL, `sourceCount` INTEGER, `stories` TEXT, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastSyncedTimestamp",
+            "columnName": "lastSyncedTimestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastUpdated",
+            "columnName": "lastUpdated",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceCount",
+            "columnName": "sourceCount",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "stories",
+            "columnName": "stories",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "market_indicators",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`dateId` TEXT NOT NULL, `lastSyncedTimestamp` INTEGER NOT NULL, `aiSynthesis` TEXT, `tacticalMomentum` TEXT, `systemicRisk` TEXT, `valuation` TEXT, `macroVitals` TEXT, PRIMARY KEY(`dateId`))",
+        "fields": [
+          {
+            "fieldPath": "dateId",
+            "columnName": "dateId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastSyncedTimestamp",
+            "columnName": "lastSyncedTimestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "aiSynthesis",
+            "columnName": "aiSynthesis",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "tacticalMomentum",
+            "columnName": "tacticalMomentum",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "systemicRisk",
+            "columnName": "systemicRisk",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "valuation",
+            "columnName": "valuation",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "macroVitals",
+            "columnName": "macroVitals",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "dateId"
+          ]
+        }
+      },
+      {
+        "tableName": "market_state",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `isEquityOpen` INTEGER, `isFuturesOpen` INTEGER, `technicalSummary` TEXT, `technicalSummaryTimestamp` INTEGER, `lastUpdated` INTEGER, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isEquityOpen",
+            "columnName": "isEquityOpen",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "isFuturesOpen",
+            "columnName": "isFuturesOpen",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "technicalSummary",
+            "columnName": "technicalSummary",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "technicalSummaryTimestamp",
+            "columnName": "technicalSummaryTimestamp",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "lastUpdated",
+            "columnName": "lastUpdated",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "dashboard_assets",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`symbol` TEXT NOT NULL, `name` TEXT, `type` TEXT, `description` TEXT, `isInverted` INTEGER, `price` REAL, `previousClose` REAL, `changePercent` REAL, `rsi` REAL, `rsiStatus` TEXT, `macdSignal` TEXT, `technicalStatus` TEXT, `lastUpdated` INTEGER, `sma20` REAL, `sma50` REAL, `sma200` REAL, PRIMARY KEY(`symbol`))",
+        "fields": [
+          {
+            "fieldPath": "symbol",
+            "columnName": "symbol",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "description",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "isInverted",
+            "columnName": "isInverted",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "price",
+            "columnName": "price",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "previousClose",
+            "columnName": "previousClose",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "changePercent",
+            "columnName": "changePercent",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "rsi",
+            "columnName": "rsi",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "rsiStatus",
+            "columnName": "rsiStatus",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "macdSignal",
+            "columnName": "macdSignal",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "technicalStatus",
+            "columnName": "technicalStatus",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "lastUpdated",
+            "columnName": "lastUpdated",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "sma20",
+            "columnName": "sma20",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "sma50",
+            "columnName": "sma50",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "sma200",
+            "columnName": "sma200",
+            "affinity": "REAL"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "symbol"
+          ]
+        }
+      },
+      {
+        "tableName": "market_tail_risks",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`date` TEXT NOT NULL, `lastSyncedTimestamp` INTEGER NOT NULL, `lastUpdated` INTEGER, `summary` TEXT, `risks` TEXT, `sourceNarrative` TEXT, PRIMARY KEY(`date`))",
+        "fields": [
+          {
+            "fieldPath": "date",
+            "columnName": "date",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastSyncedTimestamp",
+            "columnName": "lastSyncedTimestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastUpdated",
+            "columnName": "lastUpdated",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "summary",
+            "columnName": "summary",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "risks",
+            "columnName": "risks",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "sourceNarrative",
+            "columnName": "sourceNarrative",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "date"
+          ]
+        }
+      },
+      {
+        "tableName": "weekly_playbook",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `lastUpdated` INTEGER, `lastSyncedTimestamp` INTEGER, `weekStarting` TEXT, `events` TEXT, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastUpdated",
+            "columnName": "lastUpdated",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "lastSyncedTimestamp",
+            "columnName": "lastSyncedTimestamp",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "weekStarting",
+            "columnName": "weekStarting",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "events",
+            "columnName": "events",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "market_posture",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `naaimValue` REAL, `naaimStatus` TEXT, `naaimDescription` TEXT, `naaimLastObsValue` REAL, `naaimLastObsStatus` TEXT, `naaimLastObsObservedAt` INTEGER, `naaimDelta` REAL, `naaimDeltaDirection` TEXT, `naaimFetchedAt` INTEGER, `naaimStaleSince` INTEGER, `dixValue` REAL, `dixDate` TEXT, `dixStatus` TEXT, `dixDescription` TEXT, `dixLastObsValue` REAL, `dixLastObsStatus` TEXT, `dixLastObsObservedAt` INTEGER, `dixDelta` REAL, `dixDeltaDirection` TEXT, `dixFetchedAt` INTEGER, `dixStaleSince` INTEGER, `netLiqValue` REAL, `netLiqStatus` TEXT, `netLiqAssetsT` REAL, `netLiqTgaT` REAL, `netLiqRrpT` REAL, `netLiqDate` TEXT, `netLiqDescription` TEXT, `netLiqLastObsValue` REAL, `netLiqLastObsStatus` TEXT, `netLiqLastObsObservedAt` INTEGER, `netLiqDelta` REAL, `netLiqDeltaDirection` TEXT, `netLiqFetchedAt` INTEGER, `netLiqStaleSince` INTEGER, `synthesisHeadline` TEXT, `synthesisDetail` TEXT, `synthesisGeneratedAt` INTEGER, `synthesisContentFlags` TEXT, `synthesisState` TEXT, `timestamp` INTEGER, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "naaimValue",
+            "columnName": "naaimValue",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "naaimStatus",
+            "columnName": "naaimStatus",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "naaimDescription",
+            "columnName": "naaimDescription",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "naaimLastObsValue",
+            "columnName": "naaimLastObsValue",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "naaimLastObsStatus",
+            "columnName": "naaimLastObsStatus",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "naaimLastObsObservedAt",
+            "columnName": "naaimLastObsObservedAt",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "naaimDelta",
+            "columnName": "naaimDelta",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "naaimDeltaDirection",
+            "columnName": "naaimDeltaDirection",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "naaimFetchedAt",
+            "columnName": "naaimFetchedAt",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "naaimStaleSince",
+            "columnName": "naaimStaleSince",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "dixValue",
+            "columnName": "dixValue",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "dixDate",
+            "columnName": "dixDate",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "dixStatus",
+            "columnName": "dixStatus",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "dixDescription",
+            "columnName": "dixDescription",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "dixLastObsValue",
+            "columnName": "dixLastObsValue",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "dixLastObsStatus",
+            "columnName": "dixLastObsStatus",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "dixLastObsObservedAt",
+            "columnName": "dixLastObsObservedAt",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "dixDelta",
+            "columnName": "dixDelta",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "dixDeltaDirection",
+            "columnName": "dixDeltaDirection",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "dixFetchedAt",
+            "columnName": "dixFetchedAt",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "dixStaleSince",
+            "columnName": "dixStaleSince",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "netLiqValue",
+            "columnName": "netLiqValue",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "netLiqStatus",
+            "columnName": "netLiqStatus",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "netLiqAssetsT",
+            "columnName": "netLiqAssetsT",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "netLiqTgaT",
+            "columnName": "netLiqTgaT",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "netLiqRrpT",
+            "columnName": "netLiqRrpT",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "netLiqDate",
+            "columnName": "netLiqDate",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "netLiqDescription",
+            "columnName": "netLiqDescription",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "netLiqLastObsValue",
+            "columnName": "netLiqLastObsValue",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "netLiqLastObsStatus",
+            "columnName": "netLiqLastObsStatus",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "netLiqLastObsObservedAt",
+            "columnName": "netLiqLastObsObservedAt",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "netLiqDelta",
+            "columnName": "netLiqDelta",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "netLiqDeltaDirection",
+            "columnName": "netLiqDeltaDirection",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "netLiqFetchedAt",
+            "columnName": "netLiqFetchedAt",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "netLiqStaleSince",
+            "columnName": "netLiqStaleSince",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "synthesisHeadline",
+            "columnName": "synthesisHeadline",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "synthesisDetail",
+            "columnName": "synthesisDetail",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "synthesisGeneratedAt",
+            "columnName": "synthesisGeneratedAt",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "synthesisContentFlags",
+            "columnName": "synthesisContentFlags",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "synthesisState",
+            "columnName": "synthesisState",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "market_stock_previews",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`symbol` TEXT NOT NULL, `lastSyncedTimestamp` INTEGER NOT NULL, `name` TEXT, `schemaVersion` INTEGER, `analysisDate` TEXT, `price` REAL, `changePercent` REAL, `plainRead` TEXT, `technicalSetup` TEXT, `setupNetBias` INTEGER, `setupConfidence` INTEGER, `conditionChips` TEXT, `regimeAtAnalysis` TEXT, `previousClose` REAL, `previousSetup` TEXT, `previousNetBias` INTEGER, `setupChanged` INTEGER, `chipsAdded` TEXT, `chipsRemoved` TEXT, `headlineMetrics` TEXT, `hasDirectNews` INTEGER, `topHeadline` TEXT, `contentFlags` TEXT, `detailVersion` INTEGER, `timestamp` INTEGER, PRIMARY KEY(`symbol`))",
+        "fields": [
+          {
+            "fieldPath": "symbol",
+            "columnName": "symbol",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastSyncedTimestamp",
+            "columnName": "lastSyncedTimestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "schemaVersion",
+            "columnName": "schemaVersion",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "analysisDate",
+            "columnName": "analysisDate",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "price",
+            "columnName": "price",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "changePercent",
+            "columnName": "changePercent",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "plainRead",
+            "columnName": "plainRead",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "technicalSetup",
+            "columnName": "technicalSetup",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "setupNetBias",
+            "columnName": "setupNetBias",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "setupConfidence",
+            "columnName": "setupConfidence",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "conditionChips",
+            "columnName": "conditionChips",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "regimeAtAnalysis",
+            "columnName": "regimeAtAnalysis",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "previousClose",
+            "columnName": "previousClose",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "previousSetup",
+            "columnName": "previousSetup",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "previousNetBias",
+            "columnName": "previousNetBias",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "setupChanged",
+            "columnName": "setupChanged",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "chipsAdded",
+            "columnName": "chipsAdded",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "chipsRemoved",
+            "columnName": "chipsRemoved",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "headlineMetrics",
+            "columnName": "headlineMetrics",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "hasDirectNews",
+            "columnName": "hasDirectNews",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "topHeadline",
+            "columnName": "topHeadline",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "contentFlags",
+            "columnName": "contentFlags",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "detailVersion",
+            "columnName": "detailVersion",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "symbol"
+          ]
+        }
+      },
+      {
+        "tableName": "market_stock_details",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`symbol` TEXT NOT NULL, `lastSyncedTimestamp` INTEGER NOT NULL, `detailVersion` INTEGER, `analysisDate` TEXT, `technicalIndicators` TEXT, `levels` TEXT, `setupSignals` TEXT, `setupConfirming` TEXT, `setupConflicting` TEXT, `conditionLabels` TEXT, `watchList` TEXT, `fundamentals` TEXT, `macro` TEXT, `technicalRead` TEXT, `notCovered` TEXT, `scenarios` TEXT, `considerations` TEXT, `executiveThesis` TEXT, `topNewsStream` TEXT, `contextVault` TEXT, `calls` TEXT, `timestamp` INTEGER, PRIMARY KEY(`symbol`))",
+        "fields": [
+          {
+            "fieldPath": "symbol",
+            "columnName": "symbol",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastSyncedTimestamp",
+            "columnName": "lastSyncedTimestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "detailVersion",
+            "columnName": "detailVersion",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "analysisDate",
+            "columnName": "analysisDate",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "technicalIndicators",
+            "columnName": "technicalIndicators",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "levels",
+            "columnName": "levels",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "setupSignals",
+            "columnName": "setupSignals",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "setupConfirming",
+            "columnName": "setupConfirming",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "setupConflicting",
+            "columnName": "setupConflicting",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "conditionLabels",
+            "columnName": "conditionLabels",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "watchList",
+            "columnName": "watchList",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "fundamentals",
+            "columnName": "fundamentals",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "macro",
+            "columnName": "macro",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "technicalRead",
+            "columnName": "technicalRead",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "notCovered",
+            "columnName": "notCovered",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "scenarios",
+            "columnName": "scenarios",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "considerations",
+            "columnName": "considerations",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "executiveThesis",
+            "columnName": "executiveThesis",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "topNewsStream",
+            "columnName": "topNewsStream",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "contextVault",
+            "columnName": "contextVault",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "calls",
+            "columnName": "calls",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "symbol"
+          ]
+        }
+      },
+      {
+        "tableName": "market_charts",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`symbol` TEXT NOT NULL, `rangeKey` TEXT NOT NULL, `lastSyncedTimestamp` INTEGER NOT NULL, `name` TEXT, `type` TEXT, `points` TEXT, PRIMARY KEY(`symbol`, `rangeKey`))",
+        "fields": [
+          {
+            "fieldPath": "symbol",
+            "columnName": "symbol",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rangeKey",
+            "columnName": "rangeKey",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastSyncedTimestamp",
+            "columnName": "lastSyncedTimestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "points",
+            "columnName": "points",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "symbol",
+            "rangeKey"
+          ]
+        }
+      },
+      {
+        "tableName": "metric_history",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`metricId` TEXT NOT NULL, `lastSyncedTimestamp` INTEGER NOT NULL, `points` TEXT, PRIMARY KEY(`metricId`))",
+        "fields": [
+          {
+            "fieldPath": "metricId",
+            "columnName": "metricId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastSyncedTimestamp",
+            "columnName": "lastSyncedTimestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "points",
+            "columnName": "points",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "metricId"
+          ]
+        }
+      },
+      {
+        "tableName": "market_positioning",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `retailSentiment` TEXT, `institutionalPositioning` TEXT, `shortInterest` TEXT, `synthesisHeadline` TEXT, `synthesisDetail` TEXT, `synthesisGeneratedAt` INTEGER, `synthesisContentFlags` TEXT, `synthesisState` TEXT, `timestamp` INTEGER, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "retailSentiment",
+            "columnName": "retailSentiment",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "institutionalPositioning",
+            "columnName": "institutionalPositioning",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "shortInterest",
+            "columnName": "shortInterest",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "synthesisHeadline",
+            "columnName": "synthesisHeadline",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "synthesisDetail",
+            "columnName": "synthesisDetail",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "synthesisGeneratedAt",
+            "columnName": "synthesisGeneratedAt",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "synthesisContentFlags",
+            "columnName": "synthesisContentFlags",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "synthesisState",
+            "columnName": "synthesisState",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'db7e45ab46ac3861bb6b8086831942b9')"
+    ]
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "RSI": "A score measuring if an asset moved too far, too fast. >70 means Euphoria (high risk of a drop). <30 means Panic (high probability of a bounce).",
+  "MACD": "Shows the momentum of a trend. A Bullish crossover means buyers have taken control. A Bearish crossover means sellers are overwhelming the market.",
+  "Trend": "The AI's objective evaluation of the current price action versus its historical moving averages, telling you who is currently winning the tug-of-war.",
+  "SMA": "The average price over a set number of days. These act as invisible magnets. When price falls to a major SMA, institutional computers automatically buy to defend that level (Support)."
+}

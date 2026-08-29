@@ -19,18 +19,19 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.font.FontWeight
 import com.marketlabs.pulse.R
-import com.marketlabs.pulse.utils.glossary.StockAnalysisGlossary
+import com.marketlabs.pulse.core.glossary.StockAnalysisGlossaryProvider
 
 /**
  * A `(display label, glossary key)` pair -- the label is what a section already renders (via
- * `stringResource`), the key looks up `StockAnalysisGlossary`. `definitionOverride` is an escape
- * hatch for the rare definition that needs a runtime value baked in (Macro's "Excess Return"
- * explainer naming the actual benchmark, e.g. "SPY", instead of the glossary's generic static
- * "its benchmark") -- leave it `null` to use `StockAnalysisGlossary`'s definition as-is, which is
- * what every other section's entries already do.
+ * `stringResource`), the key looks up `StockAnalysisGlossaryProvider`. `definitionOverride` is an
+ * escape hatch for the rare definition that needs a runtime value baked in (Macro's "Excess
+ * Return" explainer naming the actual benchmark, e.g. "SPY", instead of the glossary's generic
+ * static "its benchmark") -- leave it `null` to use the provider's definition as-is, which is what
+ * every other section's entries already do.
  */
 data class GlossaryEntry(val label: String, val term: String, val definitionOverride: String? = null)
 
@@ -54,6 +55,7 @@ fun StockAnalysisGlossaryBottomSheet(
     val paddingExtraLarge = dimensionResource(id = R.dimen.padding_extra_large)
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
     val paddingSmall = dimensionResource(id = R.dimen.padding_small)
+    val context = LocalContext.current
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -75,7 +77,7 @@ fun StockAnalysisGlossaryBottomSheet(
             }
 
             items(entries) { entry ->
-                val definition = entry.definitionOverride ?: StockAnalysisGlossary.definitionFor(entry.term)
+                val definition = entry.definitionOverride ?: StockAnalysisGlossaryProvider.definitionFor(context, entry.term)
                 if (definition != null) {
                     Column(modifier = Modifier.padding(bottom = paddingLarge)) {
                         Text(

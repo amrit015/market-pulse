@@ -1,6 +1,5 @@
 package com.marketlabs.pulse.ui.components
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,10 +13,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
@@ -32,65 +27,12 @@ import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.pillColor
 import com.marketlabs.pulse.ui.theme.textColor
 import com.marketlabs.pulse.utils.enums.SignalColor
-import com.marketlabs.pulse.utils.glossary.PillarGuide
 import java.text.SimpleDateFormat
 import java.util.Locale
 
 // ==========================================
 // 🧩 UNIFIED UI COMPONENTS
 // ==========================================
-
-@Composable
-fun ContextHeaderCard(guide: PillarGuide) {
-    var expanded by remember { mutableStateOf(false) }
-
-    // 💡 Explanatory/glossary content, not raw data -- SYNTHESIS, same as the AI briefing and news
-    // cards, replacing the old `surfaceVariant.copy(alpha = 0.5f)` leftover from before this app
-    // had its own token system.
-    PulseCard(
-        style = PulseCardStyle.SYNTHESIS,
-        modifier = Modifier.fillMaxWidth(),
-        onClick = { expanded = !expanded }
-    ) {
-        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)).animateContentSize()) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = guide.timeframe,
-                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                    color = LocalPulseColors.current.accentPrimary
-                )
-                Icon(
-                    painter = painterResource(id = if (expanded) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down),
-                    contentDescription = "Toggle Description",
-                    tint = LocalPulseColors.current.accentPrimary,
-                    modifier = Modifier.size(dimensionResource(R.dimen.padding_large))
-                )
-            }
-
-            if (expanded) {
-                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_tiny)))
-                Text(
-                    text = guide.purpose,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
-                // 💡 Explainer text is always onSurface, matching the title/value above -- was
-                // `onSurfaceVariant` (muted), reserved for genuine metadata like dates, not
-                // descriptive content.
-                Text(
-                    text = guide.howToUse,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
-        }
-    }
-}
 
 @Composable
 fun UniversalMetricCard(

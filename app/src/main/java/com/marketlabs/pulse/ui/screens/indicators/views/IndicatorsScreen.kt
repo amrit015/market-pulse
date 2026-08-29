@@ -51,7 +51,6 @@ import com.marketlabs.pulse.ui.components.AnalyzedAtHeader
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.UniversalMetricCard
-import com.marketlabs.pulse.ui.components.bottomSheet.FrameworkSheet
 import com.marketlabs.pulse.ui.components.widgets.SignalPill
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
@@ -108,12 +107,6 @@ private fun IndicatorsMainFeed(
     onNavigateToMetricDetail: (String) -> Unit
 ) {
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
-
-    var showFrameworkSheet by remember { mutableStateOf(false) }
-
-    if (showFrameworkSheet) {
-        FrameworkSheet(onDismiss = { showFrameworkSheet = false })
-    }
 
     val allPillars = listOfNotNull(
         data.tacticalMomentum?.let {

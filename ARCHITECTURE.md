@@ -10,7 +10,7 @@ Kotlin, Jetpack Compose (Material 3), Dagger Hilt, Room, Retrofit + Moshi, Fireb
 
 ## 1. The shape of a domain
 
-Every feature ("domain") — `dashboard`, `indicators`, `news`, `marketRisk`, `posture`, `summary`, `weeklyPlaybook`, `stocks` — is vertically sliced across five package roots:
+Every feature ("domain") — `dashboard`, `indicators`, `news`, `marketRisk`, `posture`, `positioning`, `summary`, `weeklyPlaybook`, `stocks` — is vertically sliced across five package roots:
 
 ```
 network/model/<domain>/      Network<X>.kt        — Retrofit/Moshi response DTOs
@@ -59,7 +59,7 @@ The app does **not** use a single networking strategy. Which one a domain uses d
 
 ### A. Retrofit + Moshi, against a Cloud Functions Express API (the default)
 
-Most domains (`indicators`, `news`, `marketRisk`, `posture`, `summary`, `weeklyPlaybook`, `stocks`) call a REST API exposed by the backend's `functions/src/api/marketPulse.ts` — an Express app deployed as a single Cloud Function, `api`. Each route is a thin wrapper that reads one Firestore document/collection and returns its JSON as-is.
+Most domains (`indicators`, `news`, `marketRisk`, `posture`, `positioning`, `summary`, `weeklyPlaybook`, `stocks`) call a REST API exposed by the backend's `functions/src/api/marketPulse.ts` — an Express app deployed as a single Cloud Function, `api`. Each route is a thin wrapper that reads one Firestore document/collection and returns its JSON as-is.
 
 On the Android side:
 - `network/api/<Domain>Api.kt` — a plain Retrofit interface (`@GET("indicators/synthesis")`).
@@ -80,7 +80,7 @@ DTOs used this way carry **both** Moshi (`@Json`) and Firestore (`@get:PropertyN
 
 ## 3. Caching — Room
 
-Every domain except the ones intentionally left one-shot-only caches its data in a single shared Room database, `AppDatabase` (currently schema **version 16**, `di/DatabaseModule.kt` builds it with `DatabaseMigrations.ALL_MIGRATIONS` applied — no destructive fallback).
+Every domain except the ones intentionally left one-shot-only caches its data in a single shared Room database, `AppDatabase` (currently schema **version 19** — bumped for `positioning`'s own table plus new columns on `market_posture`, 2026-08-26 — `di/DatabaseModule.kt` builds it with `DatabaseMigrations.ALL_MIGRATIONS` applied — no destructive fallback).
 
 - **Entities** (`storage/database/entity/`) mostly mirror the domain model 1:1. Two row-shapes exist:
   - *Singleton-per-day/id* (`IndicatorsEntity` keyed by `dateId`, `MarketPostureEntity` keyed by a fixed `id`, `MarketPulseEntity` — declared in `SummaryEntity.kt` — keyed by `dateId`) — one row holds the whole domain's current snapshot.
@@ -134,6 +134,8 @@ Every `@HiltViewModel` follows the same shape: constructor-inject the domain `Re
 Every screen is two composables:
 - **`XRoute`** — stateful. Calls `hiltViewModel()`, `collectAsStateWithLifecycle()`, wires a `DisposableEffect(LocalLifecycleOwner) { LifecycleEventObserver { ON_START → viewModel.onStart(); ON_STOP → viewModel.onStop() } }`, owns the `PullToRefreshBox`/`SnackbarHost`, and — for screens that are pushed rather than tab-hosted (`stock_detail`-style pushes, `News`, `Settings`, `Indicator Horizons`) — its own `Scaffold`/`TopAppBar` with a back button.
 - **`XScreen`** — stateless. Takes plain data + lambdas, no ViewModel awareness.
+
+**Sub-pattern: a screen with its own internal tabs** (Stock Analysis detail, Insights). The Route pins a shared `PulseTabRow` (`ui/components/PulseTabRow.kt`) above the pull-to-refresh area; the ViewModel holds the selected index as `MutableStateFlow<Int>` folded into the UiState (`selectedTabIndex: Int`, `onTabSelected(index)`); the Screen branches on a per-screen `enum class XTab(val labelRes: Int)` and renders each tab as its own `LazyColumn` with its own `LazyListState`, so scroll position survives switching tabs and back. See `CLAUDE.md`'s "Page tabs (`PulseTabRow`)" for the full convention.
 
 ### Navigation
 

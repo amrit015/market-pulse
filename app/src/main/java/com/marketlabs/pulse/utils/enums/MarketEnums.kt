@@ -248,3 +248,100 @@ enum class AgreementState {
             entries.find { it.name.equals(value, ignoreCase = true) } ?: UNKNOWN
     }
 }
+
+// ==========================================
+// 📊 7. MARKET POSTURE / POSITIONING (2026-08-26 revamp -- last_observation/delta envelope)
+// ==========================================
+
+// Raw numeric direction of a gauge's current value versus its own last recorded observation
+// (gaugeDocument.ts's delta_direction). Deliberately NOT framed as "improved/deteriorated" like
+// ShiftDirection above -- whether "up" is good or bad depends entirely on the metric (rising NAAIM
+// exposure is bullish, rising short-interest days-to-cover is bearish), so this only carries the
+// sign; callers pick DirectionalChangePill's colors based on what the metric means.
+enum class DeltaDirection {
+    UP, DOWN, FLAT, UNKNOWN;
+
+    companion object {
+        fun fromString(value: String?): DeltaDirection =
+            entries.find { it.name.equals(value, ignoreCase = true) } ?: UNKNOWN
+    }
+}
+
+// Backend status vocabulary for each of the three Posture gauges (getNaaimStatus/getDixStatus in
+// marketPostureEngine.ts) and Positioning's three (getAaiiStatus in aaiiClient.ts,
+// classifyCotStatus/classifyShortInterestStatus in marketPositioningEngine.ts). Kept as separate
+// enums per gauge, not one shared vocabulary, since each one's set of values is unrelated to the
+// others -- matches this file's existing one-enum-per-distinct-vocabulary convention.
+
+enum class NaaimStatus(val raw: String) {
+    EXTREME_GREED_LEVERAGED("EXTREME GREED (LEVERAGED)"),
+    BULLISH("BULLISH"),
+    NEUTRAL("NEUTRAL"),
+    BEARISH("BEARISH"),
+    EXTREME_FEAR_HEDGED("EXTREME FEAR (HEDGED)"),
+    UNKNOWN("UNKNOWN");
+
+    companion object {
+        fun fromString(value: String?): NaaimStatus =
+            entries.find { it.raw.equals(value?.trim(), ignoreCase = true) } ?: UNKNOWN
+    }
+}
+
+enum class DixStatus(val raw: String) {
+    ACCUMULATION_BULLISH("ACCUMULATION (BULLISH)"),
+    NEUTRAL("NEUTRAL"),
+    DISTRIBUTION_BEARISH("DISTRIBUTION (BEARISH)"),
+    UNKNOWN("UNKNOWN");
+
+    companion object {
+        fun fromString(value: String?): DixStatus =
+            entries.find { it.raw.equals(value?.trim(), ignoreCase = true) } ?: UNKNOWN
+    }
+}
+
+enum class NetLiquidityStatus {
+    EXPANDING, DRAINING, NEUTRAL, UNKNOWN;
+
+    companion object {
+        fun fromString(value: String?): NetLiquidityStatus =
+            entries.find { it.name.equals(value?.trim(), ignoreCase = true) } ?: UNKNOWN
+    }
+}
+
+enum class RetailSentimentStatus(val raw: String) {
+    EXTREME_BULLISH_CONTRARIAN_CAUTION("EXTREME BULLISH (CONTRARIAN CAUTION)"),
+    NEUTRAL("NEUTRAL"),
+    EXTREME_BEARISH_CONTRARIAN_OPPORTUNITY("EXTREME BEARISH (CONTRARIAN OPPORTUNITY)"),
+    UNKNOWN("UNKNOWN");
+
+    companion object {
+        fun fromString(value: String?): RetailSentimentStatus =
+            entries.find { it.raw.equals(value?.trim(), ignoreCase = true) } ?: UNKNOWN
+    }
+}
+
+enum class CotPositioningStatus(val raw: String) {
+    EXTREME_LONG_CROWDED("EXTREME LONG (CROWDED)"),
+    NEUTRAL("NEUTRAL"),
+    EXTREME_SHORT_CROWDED("EXTREME SHORT (CROWDED)"),
+    INSUFFICIENT_HISTORY("INSUFFICIENT HISTORY"),
+    UNKNOWN("UNKNOWN");
+
+    companion object {
+        fun fromString(value: String?): CotPositioningStatus =
+            entries.find { it.raw.equals(value?.trim(), ignoreCase = true) } ?: UNKNOWN
+    }
+}
+
+enum class ShortInterestStatus(val raw: String) {
+    ELEVATED_CROWDED_SHORT("ELEVATED (CROWDED SHORT)"),
+    NEUTRAL("NEUTRAL"),
+    COVERING_SHORTS_EXITING("COVERING (SHORTS EXITING)"),
+    BUILDING_SHORTS_ADDING("BUILDING (SHORTS ADDING)"),
+    UNKNOWN("UNKNOWN");
+
+    companion object {
+        fun fromString(value: String?): ShortInterestStatus =
+            entries.find { it.raw.equals(value?.trim(), ignoreCase = true) } ?: UNKNOWN
+    }
+}

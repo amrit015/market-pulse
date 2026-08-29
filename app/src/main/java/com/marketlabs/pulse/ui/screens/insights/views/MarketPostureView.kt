@@ -1,53 +1,74 @@
 package com.marketlabs.pulse.ui.screens.insights.views
 
-import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.posture.DomainDarkPoolIndex
 import com.marketlabs.pulse.storage.model.posture.DomainMarketPosture
 import com.marketlabs.pulse.storage.model.posture.DomainNaaimExposure
 import com.marketlabs.pulse.storage.model.posture.DomainNetLiquidity
+import com.marketlabs.pulse.storage.model.posture.DomainPostureSynthesis
+import com.marketlabs.pulse.ui.components.FirstTimeExplainerCard
+import com.marketlabs.pulse.ui.components.MetricCardFooter
+import com.marketlabs.pulse.ui.components.MetricStatusRow
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
-import com.marketlabs.pulse.ui.components.widgets.SignalPill
+import com.marketlabs.pulse.ui.components.SynthesisHeroCard
+import com.marketlabs.pulse.ui.components.widgets.ChangeDirection
+import com.marketlabs.pulse.ui.components.widgets.DirectionalChangePill
+import com.marketlabs.pulse.ui.components.widgets.GlossaryTapChevron
+import com.marketlabs.pulse.ui.components.widgets.MetricInfoAction
+import com.marketlabs.pulse.ui.components.widgets.RingGauge
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
+import com.marketlabs.pulse.ui.theme.pillColor
+import com.marketlabs.pulse.ui.theme.textColor
+import com.marketlabs.pulse.utils.enums.DeltaDirection
+import com.marketlabs.pulse.utils.enums.DixStatus
+import com.marketlabs.pulse.utils.enums.NaaimStatus
+import com.marketlabs.pulse.utils.enums.NetLiquidityStatus
+import com.marketlabs.pulse.utils.toDisplayDate
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.math.abs
+import kotlin.math.roundToInt
 
+/**
+ * `onNavigateToGlossaryDetail` -- 2026-08-27 convergence: the whole CARD is the tap target now
+ * (was individual values with their own chevrons), so this pushes to a merged glossary-detail page
+ * covering everything the card shows. Each Posture card maps to exactly one `core/glossary/` entry
+ * (`metricIds` is a single-element list every time here, unlike Positioning's multi-field COT/
+ * short-interest cards), but the callback shape stays a `List<String>` for both domains rather than
+ * having two different signatures.
+ */
 @Composable
-fun InstitutionalPostureSection(postureData: DomainMarketPosture) {
+fun InstitutionalPostureSection(
+    postureData: DomainMarketPosture,
+    onNavigateToGlossaryDetail: (metricIds: List<String>, title: String, description: String?, status: String?) -> Unit,
+    isIntroDismissed: Boolean,
+    onDismissIntro: () -> Unit
+) {
     val paddingMedium = dimensionResource(id = R.dimen.padding_medium)
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
 
@@ -60,8 +81,8 @@ fun InstitutionalPostureSection(postureData: DomainMarketPosture) {
             val iconSize = with(LocalDensity.current) { textStyle.fontSize.toDp() }
 
             Icon(
-                painter = painterResource(id = R.drawable.ic_engine_quant), // You can use a different icon if preferred
-                contentDescription = "Institutional Posture",
+                painter = painterResource(id = R.drawable.ic_engine_quant),
+                contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(iconSize)
             )
@@ -69,9 +90,19 @@ fun InstitutionalPostureSection(postureData: DomainMarketPosture) {
             Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
 
             Text(
-                text = "Institutional Posture", // Add to strings.xml: stringResource(id = R.string.section_institutional_posture)
+                text = stringResource(id = R.string.posture_section_title),
                 style = textStyle,
                 color = MaterialTheme.colorScheme.primary
+            )
+
+            Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+
+            // 💡 2026-08-27 convergence: this icon and the first-time explainer card below now
+            // show the SAME merged string (posture_explainer_text) -- was two separate, partly
+            // overlapping paragraphs.
+            MetricInfoAction(
+                title = stringResource(id = R.string.posture_section_title),
+                description = stringResource(id = R.string.posture_explainer_text)
             )
         }
 
@@ -82,377 +113,332 @@ fun InstitutionalPostureSection(postureData: DomainMarketPosture) {
             text = stringResource(id = R.string.analyzed_at, format.format(date)),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(
-                top = dimensionResource(id = R.dimen.padding_micro),
-                bottom = dimensionResource(id = R.dimen.padding_large)
-            )
+            modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_micro))
         )
 
-        Spacer(modifier = Modifier.height(paddingMedium))
+        // --- FIRST-TIME EXPLAINER (2026-08-27 interpretive-layer spec, Layer 3) -- stays visible
+        // (not auto-dismissed by anything else) until the reader taps "Got it" here. ---
+        if (!isIntroDismissed) {
+            Spacer(modifier = Modifier.height(paddingLarge))
+            FirstTimeExplainerCard(
+                text = stringResource(id = R.string.posture_explainer_text),
+                onDismiss = onDismissIntro
+            )
+        }
 
-        // --- DISCLAIMER BANNER ---
-        PostureDisclaimerCard()
+        // --- SYNTHESIS HERO ---
+        // 💡 Every block below (synthesis, then each metric card) owns its OWN leading spacer
+        // rather than the block before it owning a trailing one, so removing/reordering any single
+        // block never leaves a doubled or missing gap next to its neighbors.
+        postureData.synthesis?.let { synthesis ->
+            Spacer(modifier = Modifier.height(paddingLarge))
+            SynthesisHeroCard(
+                headline = synthesis.headline,
+                detail = synthesis.detail,
+                isUnavailable = synthesis.state == "unavailable"
+            )
+        }
 
         // --- METRIC CARDS ---
         postureData.naaimExposure?.let {
             Spacer(modifier = Modifier.height(paddingLarge))
-            NaaimExposureCard(it)
+            NaaimExposureCard(it, onNavigateToGlossaryDetail)
         }
         postureData.darkPoolIndex?.let {
             Spacer(modifier = Modifier.height(paddingLarge))
-            DarkPoolCard(it)
+            DarkPoolCard(it, onNavigateToGlossaryDetail)
         }
         postureData.netLiquidity?.let {
             Spacer(modifier = Modifier.height(paddingLarge))
-            NetLiquidityCard(it)
+            NetLiquidityCard(it, onNavigateToGlossaryDetail)
         }
     }
 }
 
+/** "%.1f pts" -- pulled from `strings.xml` (shared with MarketPositioningView.kt's identical suffix) rather than hardcoded here. */
 @Composable
-private fun PostureDisclaimerCard() {
-    var expanded by remember { mutableStateOf(false) }
+private fun formatDeltaPts(delta: Double?): String? =
+    delta?.let { stringResource(id = R.string.insights_pts_suffix, String.format(Locale.US, "%.1f", abs(it))) }
 
-    // 💡 DATA style -- was SYNTHESIS (a disclaimer about externally-sourced research data, treated
-    // as editorial content). This app's darker SYNTHESIS background is now reserved for the one
-    // AI briefing/verdict hero card per screen, so this reads with the same background every other
-    // data-display card in the app uses. Replaces the old `surfaceVariant.copy(alpha = 0.5f)`
-    // leftover from before this app had its own token system.
+private fun DeltaDirection.toChangeDirection(): ChangeDirection = when (this) {
+    DeltaDirection.UP -> ChangeDirection.UP
+    DeltaDirection.DOWN -> ChangeDirection.DOWN
+    DeltaDirection.FLAT, DeltaDirection.UNKNOWN -> ChangeDirection.FLAT
+}
+
+/**
+ * Posture's three gauges all have an unambiguous "up is good/bad" reading (rising manager
+ * exposure/dark pool accumulation/net liquidity are each bullish), unlike Positioning's COT/short-
+ * interest/retail-spread deltas -- see MarketPositioningView.kt's identical-purpose helper for why
+ * those instead always use the neutral tone.
+ */
+@Composable
+private fun bullishBearishDeltaColors(direction: DeltaDirection): Pair<Color, Color> {
+    val pulseColors = LocalPulseColors.current
+    return when (direction) {
+        DeltaDirection.UP -> pulseColors.signalBullishPill to pulseColors.signalBullishText
+        DeltaDirection.DOWN -> pulseColors.signalBearishPill to pulseColors.signalBearishText
+        DeltaDirection.FLAT, DeltaDirection.UNKNOWN -> pulseColors.signalNeutralPill to pulseColors.signalNeutralText
+    }
+}
+
+@Composable
+private fun NaaimExposureCard(naaim: DomainNaaimExposure, onNavigateToGlossaryDetail: (List<String>, String, String?, String?) -> Unit) {
+    val status = NaaimStatus.fromString(naaim.status)
+    val title = stringResource(id = R.string.posture_naaim_title)
+    val description = stringResource(id = R.string.posture_naaim_description)
+
     PulseCard(
         style = PulseCardStyle.DATA,
         modifier = Modifier.fillMaxWidth(),
-        onClick = { expanded = !expanded }
+        onClick = { onNavigateToGlossaryDetail(listOf("posture.naaim_exposure"), title, description, naaim.status) }
     ) {
-        Column(
+        Row(
             modifier = Modifier
-                .padding(dimensionResource(id = R.dimen.padding_large))
-                .animateContentSize()
+                .fillMaxWidth()
+                .padding(dimensionResource(id = R.dimen.padding_large)),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "External Research Data",
-                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Icon(
-                    painter = painterResource(id = if (expanded) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down),
-                    contentDescription = "Toggle Disclaimer",
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(dimensionResource(R.dimen.padding_large))
-                )
-            }
-
-            if (expanded) {
-                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_tiny)))
-                Text(
-                    text = "These metrics track external Wall Street positioning and global fiat liquidity. They are provided for contextual research and are not used by the Pulse AI to calculate our proprietary market regime.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun NaaimExposureCard(naaim: DomainNaaimExposure) {
-    // 💡 DATA style -- was SYNTHESIS (externally-sourced institutional positioning data,
-    // presented with AI-written context). This app's darker SYNTHESIS background is now reserved
-    // for the one AI briefing/verdict hero card per screen, so this reads with the same background
-    // every other data-display card in the app uses -- the same one Equities' price cards use.
-    // Replaces the old `secondaryContainer.copy(alpha = 0.4f)` leftover from before this app had
-    // its own token system.
-    PulseCard(
-        style = PulseCardStyle.DATA,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "Active Manager Exposure (NAAIM)",
-                        // 💡 titleSmall (15sp, semi-bold), not titleMedium.Bold (17sp, bold) -- the
-                        // consistent title tier every curated/AI-content card title uses now,
-                        // separate from DATA-style cards (Equities, VIX, Indicators), which keep
-                        // their bold 17sp title.
-                        style = MaterialTheme.typography.titleSmall,
-                        // 💡 Card titles are always onSurface (dark-on-light/white-on-dark) across
-                        // this app -- same treatment as Equities/AI/News cards.
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Spacer(modifier = Modifier.height(2.dp))
-                    // 💡 Explainer subtitle, always onSurface -- was `onSurfaceVariant`, reserved
-                    // for genuine metadata like dates, not descriptive content.
-                    Text(
-                        text = naaim.description ?: "",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-
-                // 💡 Real `signal.*.pill`/`signal.*.text` token pairs now, not a translucent
-                // (`.copy(alpha = 0.15f)`) version of the text color standing in for a background --
-                // the same pill token every other signal badge in the app uses.
-                val pulseColors = LocalPulseColors.current
-                val (statusPillColor, statusTextColor) = when (naaim.status?.uppercase()) {
-                    "BULLISH", "EXTREME GREED (LEVERAGED)" -> pulseColors.signalBullishPill to pulseColors.signalBullishText
-                    "BEARISH", "EXTREME FEAR (HEDGED)" -> pulseColors.signalBearishPill to pulseColors.signalBearishText
-                    else -> MaterialTheme.colorScheme.surfaceVariant to MaterialTheme.colorScheme.onSurfaceVariant
-                }
-
-                SignalPill(
-                    text = naaim.status ?: "UNKNOWN",
-                    pillColor = statusPillColor,
-                    contentColor = statusTextColor,
-                    modifier = Modifier.padding(start = dimensionResource(id = R.dimen.padding_medium))
-                )
-            }
-
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
-
-            // 💡 FIX: Safely check for null before doing math or drawing the progress bar
-            if (naaim.value != null) {
-                val exposureValue = naaim.value.toFloat()
-                val fillPercentage = (exposureValue / 150f).coerceIn(0f, 1f)
-
-                Text(
-                    text = "${String.format(Locale.US, "%.1f", exposureValue)}%",
-                    style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.ExtraBold),
+                    text = title,
+                    style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
+                MetricStatusRow(
+                    label = stringResource(id = R.string.insights_label_status),
+                    statusText = naaim.status ?: stringResource(id = R.string.insights_status_unknown),
+                    pillColor = status.pillColor,
+                    contentColor = status.textColor
+                )
 
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(12.dp)
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth(fraction = fillPercentage)
-                            .fillMaxHeight()
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(MaterialTheme.colorScheme.primary)
-                    )
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
 
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth(100f / 150f)
-                            .fillMaxHeight()
-                            .align(Alignment.CenterStart)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxHeight()
-                                .width(2.dp)
-                                .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
-                                .align(Alignment.CenterEnd)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (naaim.value != null) {
+                        RingGauge(value = naaim.value, maxValue = 100.0, ringColor = status.textColor)
+                        Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_large)))
+                        Column {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "${String.format(Locale.US, "%.1f", naaim.value)}%",
+                                    style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.ExtraBold),
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                formatDeltaPts(naaim.delta)?.let { deltaText ->
+                                    val (pillColor, textColor) = bullishBearishDeltaColors(naaim.deltaDirection)
+                                    Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+                                    DirectionalChangePill(
+                                        changeText = deltaText,
+                                        direction = naaim.deltaDirection.toChangeDirection(),
+                                        pillColor = pillColor,
+                                        contentColor = textColor
+                                    )
+                                }
+                            }
+                            Text(
+                                text = stringResource(id = R.string.posture_naaim_caption),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    } else {
+                        Text(
+                            text = stringResource(id = R.string.insights_value_unavailable),
+                            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.ExtraBold),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
-            } else {
-                // 💡 FIX: What to show when the backend fails to scrape the data
+
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                MetricCardFooter(
+                    asOfText = naaim.fetchedAt?.let { stringResource(id = R.string.insights_as_of, SimpleDateFormat("MMM d, yyyy", Locale.US).format(Date(it))) }
+                )
+            }
+
+            Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+            GlossaryTapChevron(tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
+
+@Composable
+private fun DarkPoolCard(dix: DomainDarkPoolIndex, onNavigateToGlossaryDetail: (List<String>, String, String?, String?) -> Unit) {
+    val status = DixStatus.fromString(dix.status)
+    val title = stringResource(id = R.string.posture_dix_title)
+    val description = stringResource(id = R.string.posture_dix_description)
+
+    PulseCard(
+        style = PulseCardStyle.DATA,
+        modifier = Modifier.fillMaxWidth(),
+        onClick = { onNavigateToGlossaryDetail(listOf("posture.dark_pool_index"), title, description, dix.status) }
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(dimensionResource(id = R.dimen.padding_large)),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "N/A",
-                    style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.ExtraBold),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    text = title,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
-
-                // Draw a completely empty, greyed-out bar
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(12.dp)
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+                MetricStatusRow(
+                    label = stringResource(id = R.string.insights_label_status),
+                    statusText = dix.status ?: stringResource(id = R.string.insights_status_unknown),
+                    pillColor = status.pillColor,
+                    contentColor = status.textColor
                 )
+
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (dix.value != null) {
+                        RingGauge(value = dix.value, maxValue = 100.0, ringColor = status.textColor)
+                        Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_large)))
+                        Column {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = String.format(Locale.US, "%.1f", dix.value),
+                                    style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.ExtraBold),
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                formatDeltaPts(dix.delta)?.let { deltaText ->
+                                    val (pillColor, textColor) = bullishBearishDeltaColors(dix.deltaDirection)
+                                    Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+                                    DirectionalChangePill(
+                                        changeText = deltaText,
+                                        direction = dix.deltaDirection.toChangeDirection(),
+                                        pillColor = pillColor,
+                                        contentColor = textColor
+                                    )
+                                }
+                            }
+                            Text(
+                                text = stringResource(id = R.string.posture_dix_caption),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    } else {
+                        Text(
+                            text = stringResource(id = R.string.insights_value_unavailable),
+                            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.ExtraBold),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                MetricCardFooter(asOfText = dix.date?.let { stringResource(id = R.string.insights_as_of, it.toDisplayDate()) })
             }
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 4.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    "Cash (0%)",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    "Fully Invested (100%)",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    "Leveraged (150%+)",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+            GlossaryTapChevron(tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
 
 @Composable
-private fun DarkPoolCard(dix: DomainDarkPoolIndex) {
-    // 💡 DATA style -- see NaaimExposureCard above.
+private fun NetLiquidityCard(liquidity: DomainNetLiquidity, onNavigateToGlossaryDetail: (List<String>, String, String?, String?) -> Unit) {
+    val status = NetLiquidityStatus.fromString(liquidity.status)
+    val title = stringResource(id = R.string.posture_net_liquidity_title)
+    val description = stringResource(id = R.string.posture_net_liquidity_description)
+
     PulseCard(
         style = PulseCardStyle.DATA,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        onClick = { onNavigateToGlossaryDetail(listOf("posture.net_liquidity"), title, description, liquidity.status) }
     ) {
-        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "Dark Pool Index (DIX)",
-                        // 💡 titleSmall (15sp, semi-bold) -- see NaaimExposureCard above.
-                        style = MaterialTheme.typography.titleSmall,
-                        // 💡 Card titles are always onSurface -- see NaaimExposureCard above.
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Spacer(modifier = Modifier.height(2.dp))
-                    // 💡 Explainer subtitle, always onSurface -- see NaaimExposureCard above.
-                    Text(
-                        text = dix.description ?: "",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-
-                val isBullish = (dix.value ?: 0.0) >= 45.0
-                // 💡 Real `signal.*.pill`/`signal.*.text` token pair -- see NaaimExposureCard above.
-                val pulseColors = LocalPulseColors.current
-                val (statusPillColor, statusTextColor) = if (isBullish) {
-                    pulseColors.signalBullishPill to pulseColors.signalBullishText
-                } else {
-                    MaterialTheme.colorScheme.surfaceVariant to MaterialTheme.colorScheme.onSurfaceVariant
-                }
-
-                SignalPill(
-                    text = dix.status ?: "UNKNOWN",
-                    pillColor = statusPillColor,
-                    contentColor = statusTextColor,
-                    modifier = Modifier.padding(start = dimensionResource(id = R.dimen.padding_medium))
-                )
-            }
-
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
-
-            Text(
-                text = "${String.format(Locale.US, "%.1f", dix.value ?: 0.0)}%",
-                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.ExtraBold),
-                color = MaterialTheme.colorScheme.onSurface
-            )
-
-            dix.date?.let {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(dimensionResource(id = R.dimen.padding_large)),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "As of $it",
+                    text = title,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
+                MetricStatusRow(
+                    label = stringResource(id = R.string.insights_label_trend),
+                    statusText = liquidity.status ?: stringResource(id = R.string.insights_status_unknown),
+                    pillColor = status.pillColor,
+                    contentColor = status.textColor
+                )
+
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "$${String.format(Locale.US, "%.2f", liquidity.value ?: 0.0)}T",
+                        style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.ExtraBold),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    formatNetLiquidityDelta(liquidity.delta)?.let { deltaText ->
+                        val (pillColor, textColor) = bullishBearishDeltaColors(liquidity.deltaDirection)
+                        Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+                        DirectionalChangePill(
+                            changeText = deltaText,
+                            direction = liquidity.deltaDirection.toChangeDirection(),
+                            pillColor = pillColor,
+                            contentColor = textColor
+                        )
+                    }
+                }
+                Text(
+                    text = stringResource(id = R.string.posture_net_liquidity_caption),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    val separator = stringResource(id = R.string.posture_net_liquidity_separator)
+                    LiquidityComponentCol(stringResource(id = R.string.posture_net_liquidity_fed_assets), liquidity.assetsT, isPositive = true)
+                    Text(separator, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    LiquidityComponentCol(stringResource(id = R.string.posture_net_liquidity_tga), liquidity.tgaT, isPositive = false)
+                    Text(separator, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    LiquidityComponentCol(stringResource(id = R.string.posture_net_liquidity_rrp), liquidity.rrpT, isPositive = false)
+                }
+
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                MetricCardFooter(asOfText = liquidity.date?.let { stringResource(id = R.string.insights_as_of, it.toDisplayDate()) })
             }
+
+            Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+            GlossaryTapChevron(tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
 
-@Composable
-private fun NetLiquidityCard(liquidity: DomainNetLiquidity) {
-    // 💡 DATA style -- see NaaimExposureCard above.
-    PulseCard(
-        style = PulseCardStyle.DATA,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "Global Net Liquidity",
-                        // 💡 titleSmall (15sp, semi-bold) -- see NaaimExposureCard above.
-                        style = MaterialTheme.typography.titleSmall,
-                        // 💡 Card titles are always onSurface -- see NaaimExposureCard above.
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Spacer(modifier = Modifier.height(2.dp))
-                    // 💡 Explainer subtitle, always onSurface -- see NaaimExposureCard above.
-                    Text(
-                        text = liquidity.description ?: "",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-
-                // 💡 NEW: The Dynamic Liquidity Status Badge
-                // 💡 Real `signal.*.pill`/`signal.*.text` token pair -- see NaaimExposureCard above.
-                val pulseColors = LocalPulseColors.current
-                val (statusPillColor, statusTextColor) = when (liquidity.status?.uppercase()) {
-                    "EXPANDING" -> pulseColors.signalBullishPill to pulseColors.signalBullishText // Expanding liquidity acts as a tailwind (Green)
-                    "DRAINING" -> pulseColors.signalBearishPill to pulseColors.signalBearishText // Contracting liquidity acts as a headwind (Red)
-                    else -> MaterialTheme.colorScheme.surfaceVariant to MaterialTheme.colorScheme.onSurfaceVariant
-                }
-
-                SignalPill(
-                    text = liquidity.status ?: "UNKNOWN",
-                    pillColor = statusPillColor,
-                    contentColor = statusTextColor,
-                    modifier = Modifier.padding(start = dimensionResource(id = R.dimen.padding_medium))
-                )
-            }
-
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
-
-            Text(
-                text = "$${String.format(Locale.US, "%.2f", liquidity.value ?: 0.0)}T",
-                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.ExtraBold),
-                color = MaterialTheme.colorScheme.primary
-            )
-
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
-
-            // Equation Breakdown
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                LiquidityComponentCol("Fed Assets", liquidity.assetsT, isPositive = true)
-                Text(
-                    "-",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                LiquidityComponentCol("TGA", liquidity.tgaT, isPositive = false)
-                Text(
-                    "-",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                LiquidityComponentCol("Reverse Repo", liquidity.rrpT, isPositive = false)
-            }
-        }
+/** Net liquidity deltas are in $T -- sub-$1T moves read far more naturally as "$34B" than "$0.03T". */
+private fun formatNetLiquidityDelta(deltaT: Double?): String? {
+    if (deltaT == null) return null
+    val absT = abs(deltaT)
+    return if (absT < 1.0) {
+        "$${(absT * 1000).roundToIntOrZero()}B"
+    } else {
+        "$${String.format(Locale.US, "%.2f", absT)}T"
     }
 }
+
+private fun Double.roundToIntOrZero(): Int = if (isFinite()) this.roundToInt() else 0
 
 @Composable
 private fun LiquidityComponentCol(label: String, valueT: Double?, isPositive: Boolean) {
@@ -473,7 +459,6 @@ private fun LiquidityComponentCol(label: String, valueT: Double?, isPositive: Bo
 // ============================================================================
 // 🎨 PREVIEWS
 // ============================================================================
-val paddingSmall = 8.dp // Helper for file scope
 
 @Preview(showBackground = true, backgroundColor = 0xFF121212)
 @Composable
@@ -481,29 +466,48 @@ fun PreviewInstitutionalPosture() {
     MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
         val mockData = DomainMarketPosture(
             naaimExposure = DomainNaaimExposure(
-                85.4,
-                "BULLISH",
-                "Tracks the average equity exposure..."
+                value = 84.2,
+                status = "BULLISH",
+                description = null,
+                delta = 4.4,
+                deltaDirection = DeltaDirection.UP,
+                fetchedAt = System.currentTimeMillis()
             ),
             darkPoolIndex = DomainDarkPoolIndex(
-                46.2,
-                "2026-06-26",
-                "ACCUMULATION (BULLISH)",
-                "Measures dark pool volume..."
+                value = 46.8,
+                date = "2026-08-25",
+                status = "ACCUMULATION (BULLISH)",
+                description = null,
+                delta = 1.9,
+                deltaDirection = DeltaDirection.UP
             ),
             netLiquidity = DomainNetLiquidity(
-                6.24,
-                "UNKNOWN",
-                7.32,
-                0.65,
-                0.43,
-                "2026-06-25",
-                "Calculates actual fiat liquidity..."
+                value = 6.14,
+                status = "EXPANDING",
+                assetsT = 7.32,
+                tgaT = 0.65,
+                rrpT = 0.43,
+                date = "2026-08-20",
+                description = null,
+                delta = 0.034,
+                deltaDirection = DeltaDirection.UP
+            ),
+            synthesis = DomainPostureSynthesis(
+                headline = "Institutions accumulating as liquidity expands",
+                detail = "Dark pool buying crossed into accumulation territory while net liquidity ticked up for a second straight reading, and manager exposure climbed to a bullish 84%.",
+                generatedAt = System.currentTimeMillis(),
+                contentFlags = emptyList(),
+                state = "ok"
             ),
             timestamp = System.currentTimeMillis()
         )
-        Column(modifier = Modifier.padding(16.dp)) {
-            InstitutionalPostureSection(mockData)
+        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
+            InstitutionalPostureSection(
+                mockData,
+                onNavigateToGlossaryDetail = { _, _, _, _ -> },
+                isIntroDismissed = true,
+                onDismissIntro = {}
+            )
         }
     }
 }

@@ -35,6 +35,7 @@ import com.marketlabs.pulse.storage.model.weeklyPlaybook.WeeklyEvent
 import com.marketlabs.pulse.storage.model.weeklyPlaybook.WeeklyPlaybook
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
+import com.marketlabs.pulse.ui.components.widgets.MetricInfoAction
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 import java.text.SimpleDateFormat
@@ -66,6 +67,13 @@ fun WeeklyPlaybookSection(playbook: WeeklyPlaybook) {
                 text = stringResource(id = R.string.section_weekly_playbook),
                 style = textStyle,
                 color = MaterialTheme.colorScheme.primary
+            )
+
+            Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+
+            MetricInfoAction(
+                title = stringResource(id = R.string.section_weekly_playbook),
+                description = stringResource(id = R.string.weekly_playbook_description)
             )
         }
 

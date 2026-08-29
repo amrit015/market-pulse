@@ -1,0 +1,13 @@
+{
+  "statuses": {
+    "SAFE": "Market foundation is highly stable. Favorable conditions for broad market exposure and aggressive growth assets.",
+    "STABLE": "Market is experiencing normal background noise. Maintain current positions but avoid over-leveraging.",
+    "CAUTION": "Underlying systemic stress detected. Consider tightening stop-losses, taking partial profits, and shifting towards defensive sectors.",
+    "DANGER": "Severe market plumbing breakdown. Prioritize capital preservation, raise cash, and deploy downside hedges."
+  },
+  "trends": {
+    "ACCELERATING": "Systemic risk factors are actively worsening. Macroeconomic plumbing is showing signs of increasing stress and volatility compared to previous readings.",
+    "COOLING": "Systemic risk factors are subsiding. Stress in the bond and credit markets is actively decreasing, creating a safer environment for equities.",
+    "STABLE": "Risk conditions are relatively unchanged. The current macro environment is maintaining its trajectory without sudden spikes in underlying stress."
+  }
+}

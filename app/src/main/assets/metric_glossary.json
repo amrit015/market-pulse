@@ -265,5 +265,86 @@
       { "label": "Restrictive", "meaning": "Yield rose versus the prior reading -- higher discount rate, a headwind for valuations." }
     ],
     "gotchas": "This tracks the direction of the most recent move, not the absolute level -- a yield that's historically low but just ticked up still reads Restrictive, not Stimulative."
+  },
+  "positioning.aaii_bull_bear_spread": {
+    "what_it_is": "A weekly survey asking individual investors whether they expect the market to rise, fall, or stay flat over the next six months. The spread is the bullish percentage minus the bearish percentage.",
+    "how_to_read": "Retail sentiment extremes have historically lined up with turning points -- not because retail investors are wrong, but because sentiment surveys tend to run hottest right before conditions change.",
+    "bands": [
+      { "label": "EXTREME BULLISH (CONTRARIAN CAUTION)", "meaning": "+30 points or higher -- retail optimism is stretched; historically a caution flag, not a green light." },
+      { "label": "NEUTRAL", "meaning": "-19 to +29 points -- no strong lean either way." },
+      { "label": "EXTREME BEARISH (CONTRARIAN OPPORTUNITY)", "meaning": "-20 points or lower -- retail pessimism is stretched; historically a contrarian opportunity flag." }
+    ],
+    "gotchas": "This is one week's snapshot of self-reported opinion, not a measure of actual positioning or money moved."
+  },
+  "positioning.cot_nc_net_pct_oi": {
+    "what_it_is": "Large speculative traders' (hedge funds, managed futures funds) net position in this futures contract, shown as a share of the total contracts outstanding. Positive means more are betting on higher prices; negative means more are betting on lower prices.",
+    "how_to_read": "This group tends to move with trends, and heavy one-sided positioning can mean there's a lot of money that would need to reverse if the trend breaks.",
+    "bands": [],
+    "gotchas": "Reflects Tuesday's positions, released the following Friday -- not a live number."
+  },
+  "positioning.cot_percentile": {
+    "what_it_is": "Where the current positioning ranks against the past year of weekly readings. A low percentile means positioning is unusually short; a high percentile means unusually long.",
+    "how_to_read": "The raw position alone doesn't say whether it's normal or extreme -- this does. Extremes in either direction have historically preceded a reversal as crowded trades unwind.",
+    "bands": [
+      { "label": "EXTREME LONG (CROWDED)", "meaning": "90th percentile or higher -- among the most long-leaning readings of the past year." },
+      { "label": "NEUTRAL", "meaning": "11th-89th percentile -- within the typical range." },
+      { "label": "EXTREME SHORT (CROWDED)", "meaning": "10th percentile or lower -- among the most short-leaning readings of the past year." },
+      { "label": "INSUFFICIENT HISTORY", "meaning": "Fewer than 8 weeks of trailing data -- not yet enough history to rank this reading." }
+    ],
+    "gotchas": "A first-pass calculation, not backtested against how often extremes actually preceded a reversal in this specific market."
+  },
+  "positioning.short_interest_days_to_cover": {
+    "what_it_is": "If every short seller tried to buy back their shares using only a typical day's trading volume, this is roughly how many days it would take.",
+    "how_to_read": "Higher days-to-cover means less room for short sellers to exit quickly, which is the raw material for a short squeeze if prices move against them. Lower days-to-cover means the market can absorb short-covering easily.",
+    "bands": [
+      { "label": "ELEVATED (CROWDED SHORT)", "meaning": "5x days-to-cover or more -- shorts would take longer than usual to exit, raising squeeze risk if prices move against them." },
+      { "label": "NEUTRAL", "meaning": "Below 5x -- short sellers could exit in a typical trading day or two without much friction." }
+    ],
+    "gotchas": "This measures potential, not likelihood -- a high number doesn't mean a squeeze is coming, only that one would be more disruptive if it did."
+  },
+  "positioning.short_interest_shares": {
+    "what_it_is": "The total number of shares currently sold short and not yet bought back.",
+    "how_to_read": "Included for reference -- on its own, this number doesn't say much without knowing the total shares outstanding or trading volume, which is why days-to-cover is the more useful figure alongside it.",
+    "bands": [],
+    "gotchas": "For SPY/QQQ/IWM specifically, this figure includes routine market-making activity (authorized participants creating and redeeming ETF shares), not only directional bearish bets."
+  },
+  "positioning.short_interest_mom_change": {
+    "what_it_is": "How much short interest changed since the prior FINRA settlement date, about two weeks to a month earlier depending on the cycle.",
+    "how_to_read": "The trend -- shorts building or covering -- is often more informative than the absolute level, since it shows where sentiment is actively shifting.",
+    "bands": [
+      { "label": "COVERING (SHORTS EXITING)", "meaning": "-15% or lower -- short interest is unwinding." },
+      { "label": "BUILDING (SHORTS ADDING)", "meaning": "+15% or higher -- short interest is growing." },
+      { "label": "NEUTRAL", "meaning": "Between -15% and +15% -- little meaningful change." }
+    ],
+    "gotchas": "Settlement data is roughly 8 business days old by the time it's published, so this reflects a recent past state, not today."
+  },
+  "posture.naaim_exposure": {
+    "what_it_is": "A weekly survey of active investment managers' actual equity exposure -- not opinion, but reported positioning, ranging from fully short to leveraged long.",
+    "how_to_read": "This reflects money already committed, which is a different signal than a sentiment survey -- professional managers reporting near-100%+ exposure suggests conviction or performance pressure to stay invested.",
+    "bands": [
+      { "label": "EXTREME GREED (LEVERAGED)", "meaning": "100% or higher -- managers are leveraged long." },
+      { "label": "BULLISH", "meaning": "80-99% -- high, but not leveraged, equity exposure." },
+      { "label": "NEUTRAL", "meaning": "61-79% -- middling exposure, no strong lean." },
+      { "label": "BEARISH", "meaning": "41-60% -- below-average exposure." },
+      { "label": "EXTREME FEAR (HEDGED)", "meaning": "40% or lower -- managers are mostly in cash or short." }
+    ]
+  },
+  "posture.dark_pool_index": {
+    "what_it_is": "The share of trading that happened in \"dark pools\" -- private venues where large trades are placed without showing on the public order book -- that was buying rather than selling.",
+    "how_to_read": "Large institutional buyers often prefer dark pools to avoid moving the price against themselves. A sustained high reading can mean institutional accumulation that isn't yet visible in the public tape.",
+    "bands": [
+      { "label": "ACCUMULATION (BULLISH)", "meaning": "45% or higher -- more than usual institutional buying under the surface." },
+      { "label": "NEUTRAL", "meaning": "41-44% -- no strong lean either way." },
+      { "label": "DISTRIBUTION (BEARISH)", "meaning": "40% or lower -- more than usual institutional selling under the surface." }
+    ]
+  },
+  "posture.net_liquidity": {
+    "what_it_is": "The Federal Reserve's balance sheet, minus the Treasury's cash balance, minus reverse repo balances -- a rough estimate of dollar liquidity available to flow into financial markets.",
+    "how_to_read": "Rising liquidity has historically been a tailwind for risk assets; falling liquidity a headwind. This is a macro backdrop measure, not a market-timing signal on its own.",
+    "bands": [
+      { "label": "EXPANDING", "meaning": "Risen since its last reading -- a tailwind for risk assets." },
+      { "label": "DRAINING", "meaning": "Fallen since its last reading -- a headwind for risk assets." },
+      { "label": "NEUTRAL", "meaning": "Unchanged since its last reading." }
+    ]
   }
 }

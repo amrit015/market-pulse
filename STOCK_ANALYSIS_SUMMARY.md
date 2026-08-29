@@ -10,6 +10,8 @@ Analysis bottom-nav tab (`StockAnalysisScreen`/`Route`/`ViewModel`) showing a sc
 
 Every `PulseCard(DATA)` metric card (Key Levels, Fundamentals, Macro, Headline Metrics, later Momentum & Trend, Returns) got one info icon next to its title (`DataCardTitleWithInfo`) opening `StockAnalysisGlossaryBottomSheet` — plain-English definitions for every metric that specific card shows, keyed by a stable internal term id (`utils/glossary/StockAnalysisGlossary.kt`), not the display label. Started as a per-metric tooltip, replaced with the per-card sheet once cards started grouping 4+ stats; a per-metric tooltip survives only where no wrapping card exists (`HeadlineMetricsStrip`'s siblings).
 
+> **2026-08-27 update:** `utils/glossary/StockAnalysisGlossary.kt` is gone — content moved to `assets/stock_analysis_glossary.json` + `core/glossary/StockAnalysisGlossaryProvider.kt` as part of standardizing every glossary in the app onto bundled JSON. `StockAnalysisGlossaryBottomSheet` itself, its term-id keying scheme, and every call site are unchanged — this was a storage-backend swap only, not a content or UI change. See `CLAUDE.md`'s "Glossary content" convention.
+
 ## 3. Section relabeling, grounded in the actual backend field/prompt schema
 
 - `PlainRead` → renamed `TechnicalRead` (the file was mapped to the wrong backend field; corrected).
@@ -34,6 +36,8 @@ Every `PulseCard(DATA)` metric card (Key Levels, Fundamentals, Macro, Headline M
 Spec's 17-section linear list replaced with: `DetailHeader` + a tab row pinned, 5 independently-scrolling tabs (Technicals, Fundamentals, Thesis, Timeline, News) each with its own `LazyListState`. `TechnicalRead` + the highest-urgency `watch_list` item render as a shared leading block at the top of every tab (not pinned — tried pinned first, rejected for eating into the tabs' screen share).
 
 Tab visual style iterated twice: Material3 `PrimaryTabRow` (underline indicator) → custom pill-chip segmented-control row (matching a Design reference) → tab corner radius softened from full pill (`corner_radius_pill`) to `corner_radius_small`, so the tab row stops looking like one more pill next to `DetailHeader`'s `technicalSetup` badge sitting directly above it.
+
+> **2026-08-27 update:** This screen's own private `DetailPillTabRow` was pulled out into a shared `ui/components/PulseTabRow.kt` once Insights needed the identical tab pattern for its own 4-tab restructure (Playbook/Risks/Posture/Positioning). This screen now calls the shared component instead of a local copy — no visual or behavioral change here, it's the same look. See `STYLE_SPEC.md §15` and `CLAUDE.md`'s "Page tabs (`PulseTabRow`)" convention.
 
 Final tab contents:
 - **Technicals** — SetupReasoning, ChartPlaceholder, HeadlineMetricsStrip, MomentumAndTrend, Returns, KeyLevels, WatchList
