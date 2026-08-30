@@ -21,3 +21,16 @@ data class NetworkNewsArticle(
     @Json(name = "tags") val tags: List<String>? = null,
     @Json(name = "ai_enriched") val aiEnriched: Boolean? = null
 )
+
+/**
+ * One entry from `/news/history` -- an archived day's worth of stories. The backend response
+ * also carries `id` (the archive's `YYYY-MM-DD` doc name), `story_count`, `timestamp`, and
+ * `last_updated`, but nothing here needs a day-level label or "as of" time -- each story inside
+ * `stories` already carries its own `timestamp`, which is all the merge in
+ * RemoteNewsDataSourceImpl needs. `last_updated` is deliberately left unmodeled per this repo's
+ * `last_updated`/`timestamp` pairing rule (see CLAUDE.md), same as `NetworkMarketNews` above.
+ */
+@JsonClass(generateAdapter = true)
+data class NetworkNewsHistoryDay(
+    @Json(name = "stories") val stories: List<NetworkNewsArticle>? = null
+)

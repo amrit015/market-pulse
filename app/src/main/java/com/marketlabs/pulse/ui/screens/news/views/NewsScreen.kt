@@ -24,6 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
@@ -41,6 +42,7 @@ import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 import com.marketlabs.pulse.ui.theme.PulseColors
 import com.marketlabs.pulse.utils.extensions.toRelativeTimeString
+import com.marketlabs.pulse.utils.getMidnightTimestamp
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -69,12 +71,27 @@ fun NewsScreen(
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
     val listState = rememberLazyListState()
 
+    // The repository now merges today's stories with the last 2 archived days (see
+    // NewsRepositoryImpl.refreshNews), so `data.stories` can contain more than just today.
+    // NewsMappers' `sortedByDescending { it.timestamp }` guarantees today's (newer) stories
+    // all sort ahead of the older, history-sourced ones -- so a plain timestamp partition
+    // against the start of today (ET, matching the backend's own day-rollover boundary in
+    // newsEngine.ts) cleanly splits the already-sorted list into two contiguous runs without
+    // needing a per-story "which day" flag from the network layer.
+    val todayBoundary = remember { getMidnightTimestamp() }
+    val (todayStories, earlierStories) = remember(data.stories, todayBoundary) {
+        val stories = data.stories.orEmpty()
+        stories.partition { (it.timestamp ?: 0L) >= todayBoundary }
+    }
+
     // Added with Claude Code assistance: scroll the respective card into view when a Dashboard
-    // news preview card was tapped. Item index is offset by 1 for the header item above the list.
+    // news preview card was tapped. Item index is offset by 1 for the header item above the
+    // list, plus another 1 if the target sits after the "Last 2 Days" banner.
     LaunchedEffect(highlightedArticleUrl, data.stories) {
         val targetIndex = data.stories?.indexOfFirst { it.url == highlightedArticleUrl } ?: -1
         if (targetIndex >= 0) {
-            listState.animateScrollToItem(targetIndex + 1)
+            val bannerOffset = if (earlierStories.isNotEmpty() && targetIndex >= todayStories.size) 1 else 0
+            listState.animateScrollToItem(targetIndex + 1 + bannerOffset)
         }
     }
 
@@ -110,12 +127,24 @@ fun NewsScreen(
             }
         } else {
             // Render Articles safely
-            items(data.stories) { article ->
+            items(todayStories) { article ->
                 NewsArticleCard(
                     article = article,
                     onClick = { url -> onArticleClick(url) },
                     isHighlighted = article.url != null && article.url == highlightedArticleUrl
                 )
+            }
+
+            if (earlierStories.isNotEmpty()) {
+                item { LastTwoDaysBanner() }
+
+                items(earlierStories) { article ->
+                    NewsArticleCard(
+                        article = article,
+                        onClick = { url -> onArticleClick(url) },
+                        isHighlighted = article.url != null && article.url == highlightedArticleUrl
+                    )
+                }
             }
         }
     }
@@ -137,6 +166,40 @@ fun HeaderSection(timestamp: Long) {
         // 💡 ACTION: Replaced hardcoded Color.Gray with Theme's semantic variant text color
         color = MaterialTheme.colorScheme.onSurfaceVariant
     )
+}
+
+/**
+ * Divider inserted once, between today's stories and the older ones pulled in from
+ * `/news/history` -- lets the reader tell "fresh today" apart from "carried over for context"
+ * at a glance, without needing a per-card date label. Matches the hairline divider style
+ * `NewsArticleCard` already uses between its headline and body (`onSurface` at 10% alpha).
+ */
+@Composable
+fun LastTwoDaysBanner() {
+    val paddingSmall = dimensionResource(id = R.dimen.padding_small)
+    val dividerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(paddingSmall)
+    ) {
+        HorizontalDivider(
+            modifier = Modifier.weight(1f),
+            color = dividerColor,
+            thickness = dimensionResource(id = R.dimen.border_thin)
+        )
+        Text(
+            text = stringResource(id = R.string.news_last_two_days_banner),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        HorizontalDivider(
+            modifier = Modifier.weight(1f),
+            color = dividerColor,
+            thickness = dimensionResource(id = R.dimen.border_thin)
+        )
+    }
 }
 
 @Composable
@@ -390,6 +453,14 @@ fun NewsPreviewCard(
                 color = MaterialTheme.colorScheme.onSurface
             )
         }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF121212)
+@Composable
+private fun PreviewLastTwoDaysBanner() {
+    MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
+        LastTwoDaysBanner()
     }
 }
 
