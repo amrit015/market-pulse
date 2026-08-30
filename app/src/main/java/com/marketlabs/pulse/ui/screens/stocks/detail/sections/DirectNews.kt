@@ -79,14 +79,19 @@ private fun NewsCard(item: DomainStockNewsItem, isExpanded: Boolean, onToggle: (
     // only the AI's verdict/briefing-style cards keep the darker SYNTHESIS background.
     PulseCard(
         style = PulseCardStyle.DATA,
-        modifier = Modifier.fillMaxWidth().animateContentSize(),
+        modifier = Modifier.fillMaxWidth(),
         // 💡 The whole card opens the article, matching `NewsArticleCard`'s click target on the
         // News screen -- the nested "Read the analysis" row below has its own `clickable`, which
         // intercepts taps on itself before they reach this outer one, so the two actions don't
         // fight over the same tap.
         onClick = if (url != null) ({ onArticleClick(url) }) else null
     ) {
-        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
+        // 💡 `animateContentSize()` moved here from `PulseCard`'s own modifier -- it clips whatever
+        // it wraps to its own animated rectangle each frame, and sitting outside `PulseCard`'s
+        // `Modifier.shadow` that clip cut straight through the shadow's rounded corners (a flat
+        // greyish sliver past the bottom edge instead of a clean rounded shadow). Scoped to just
+        // this Column, only the card's own content is clipped as it grows/shrinks.
+        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)).animateContentSize()) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 item.impactMagnitude?.let {
                     val (pillColor, textColor) = impactSeverityColors(it, pulseColors)

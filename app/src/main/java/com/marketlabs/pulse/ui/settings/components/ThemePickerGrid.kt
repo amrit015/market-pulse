@@ -14,13 +14,17 @@ import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 /**
- * 2 columns x 5 rows. `MarketPulseTheme.entries` is
- * declared light-then-dark, 5-then-5 (see the enum) — `.chunked(2)` on that ordering naturally
- * pairs each light preset with a dark one per row rather than grouping all 5 light presets first,
- * which reads better as a gallery than two solid blocks of one mode.
+ * 2 columns x 5 rows -- left column always light presets, right column always dark, one of each
+ * per row. Previously this just `.chunked(2)`'d `presets` in whatever order it arrived in
+ * (`MarketPulseTheme.entries`' own declared light-then-dark, 5-then-5 order) -- since 5 is odd,
+ * chunking that flat list by 2 put four light presets across the first two rows, then bled the
+ * fifth light preset into a mixed row with the first dark one, before the last two rows turned
+ * solid dark. Splitting `presets` into its light/dark halves first (rather than relying on the
+ * incoming list's declared order lining up with pairs of 2) fixes that regardless of how many
+ * presets of each mode exist -- light and dark are always their own column now.
  *
- * A plain chunked-`Row`-per-pair grid, matching the manual-grid pattern already used elsewhere in
- * this codebase (`DashboardScreen.AssetSection`/`SectorHeatmapSection`) rather than introducing
+ * A plain `Row`-per-pair grid, matching the manual-grid pattern already used elsewhere in this
+ * codebase (`DashboardScreen.AssetSection`/`SectorHeatmapSection`) rather than introducing
  * `LazyVerticalGrid`, which is not used anywhere else in this app.
  */
 @Composable
@@ -31,28 +35,33 @@ fun ThemePickerGrid(
     modifier: Modifier = Modifier
 ) {
     val spacing = dimensionResource(id = R.dimen.padding_medium)
+    val lightPresets = presets.filter { !it.isDark }
+    val darkPresets = presets.filter { it.isDark }
+    val rowCount = maxOf(lightPresets.size, darkPresets.size)
 
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(spacing)
     ) {
-        presets.chunked(2).forEach { rowPresets ->
+        for (rowIndex in 0 until rowCount) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(spacing)
             ) {
-                rowPresets.forEach { preset ->
-                    PresetSwatchCard(
-                        preset = preset,
-                        isSelected = preset == selectedTheme,
-                        onClick = { onPresetSelected(preset) },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-                // Odd-length row (shouldn't happen at 10 presets, but stay correct if a preset is
-                // ever added/removed): keep the last card from stretching to fill both columns.
-                if (rowPresets.size < 2) {
-                    Row(modifier = Modifier.weight(1f)) {}
+                listOf(lightPresets.getOrNull(rowIndex), darkPresets.getOrNull(rowIndex)).forEach { preset ->
+                    if (preset != null) {
+                        PresetSwatchCard(
+                            preset = preset,
+                            isSelected = preset == selectedTheme,
+                            onClick = { onPresetSelected(preset) },
+                            modifier = Modifier.weight(1f)
+                        )
+                    } else {
+                        // Uneven light/dark counts (shouldn't happen at 5-and-5, but stay correct
+                        // if a preset is ever added/removed unevenly): keep the other column's
+                        // card from stretching to fill the empty slot.
+                        Row(modifier = Modifier.weight(1f)) {}
+                    }
                 }
             }
         }

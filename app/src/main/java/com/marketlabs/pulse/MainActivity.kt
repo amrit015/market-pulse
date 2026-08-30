@@ -36,6 +36,8 @@ import com.marketlabs.pulse.ui.navigation.bottomNavItems
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 import com.marketlabs.pulse.utils.enums.ReportType
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 /**
@@ -69,9 +71,25 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
+        // 💡 `collectAsStateWithLifecycle`'s `initialValue` is what the very first Compose frame
+        // renders with, before `themeRepository.selectedTheme` (backed by DataStore, an async disk
+        // read on a cold process start) has emitted anything at all. That used to be hardcoded to
+        // `MarketPulseTheme.LILAC` -- correct for a brand-new user with no persisted preference
+        // (LILAC really is the first thing the repository itself emits for them, see
+        // `ThemeRepositoryImpl.DEFAULT_THEME`), but wrong for anyone who already picked a different
+        // theme: their real preference hadn't loaded from disk yet, so the app briefly painted
+        // LILAC's dark status bar/chrome, then snapped to their actual (often light) theme once the
+        // DataStore read finished a frame or two later -- the flash. Reading the real value
+        // synchronously here instead, before `setContent`, means the first frame is already correct
+        // and there's nothing to snap away from. `runBlocking` is safe for this specific case: it's
+        // a single small Preferences value already backed by DataStore's in-process cache after the
+        // first read this process makes, not an unbounded or network-backed read, and `onCreate` is
+        // already blocking the main thread on layout inflation at this point regardless.
+        val initialTheme = runBlocking { themeRepository.selectedTheme.first() }
+
         setContent {
             val selectedTheme by themeRepository.selectedTheme.collectAsStateWithLifecycle(
-                initialValue = MarketPulseTheme.LILAC
+                initialValue = initialTheme
             )
 
             MarketPulseTheme(theme = selectedTheme) {

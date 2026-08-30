@@ -87,11 +87,22 @@ object PulseTokens {
     /** Layer 2 — surface ramp. Shared per mode: one instance for all 5 light presets, one for all 5 dark. */
     object Surface {
         val light = SurfaceRamp(
-            // 💡 Blended halfway toward `surface` below -- the literal Token Contract value read as
-            // more visibly grey/cream than wanted once the top bar started sharing this exact color
-            // (AppTopBar.kt), a greyish-white was asked for instead. Dark mode's background is
-            // untouched -- "more white" only applies to light mode.
-            background = Color(0xFFF8F6F2),
+            // 💡 2026-08-29 card redesign, final pass: this is the BASE the light-mode page
+            // background renders from -- pure white, not a flat grey. Two earlier passes tried
+            // greying this value up instead (0xFFEDEBE6, then softened to 0xFFF3F1EC) so a white
+            // `DATA` card would have visible contrast to sit on against its new drop shadow, but a
+            // uniform grey page was asked to be replaced with something more specific: white with a
+            // hint of the active preset's own accent color mixed in. That per-preset tint can't live
+            // as one flat hex here (`accent.primary` varies per preset, this `SurfaceRamp` is
+            // deliberately shared across all 5 light presets) -- so this field now holds only the
+            // neutral base, and `toColorScheme()` in `MarketPulseTheme.kt` blends a small amount of
+            // `accent.primary` into it per preset (same lerp-based technique already used for
+            // `surfaceTinted`/`accentSurfaceStrong`). The resulting page background is what actually
+            // renders and what the top bar shares (`AppTopBar.kt`) -- not this raw value alone.
+            // Cards themselves (`surfaceElevated` below) stay plain, untinted white; the accent hint
+            // plus the (now stronger) drop shadow is what separates a card from the page. Dark
+            // mode's background is untouched -- this field only applies to light mode.
+            background = Color(0xFFFFFFFF),
             surface = Color(0xFFFBFAF7),
             surfaceElevated = Color(0xFFFFFFFF),
             onBackground = Color(0xFF14161B),

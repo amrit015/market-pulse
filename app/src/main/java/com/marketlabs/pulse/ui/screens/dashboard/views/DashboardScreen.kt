@@ -535,8 +535,17 @@ fun AssetCard(
 
     val livePriceTextSize = MaterialTheme.typography.titleSmall
 
+    // 💡 Only the branch below that actually renders a `SparklineChart` (plain equities/ETFs,
+    // crypto, gold/silver -- `customVisual` is null and the symbol is intraday-eligible) uses
+    // `DATA_SPARKLINE`, which freezes this card to its pre-redesign accent-tinted look. Every other
+    // asset card here -- VIX/Fear & Greed/Put-Call (which supply `customVisual`) and futures/oil/
+    // copper (not intraday-eligible, no sparkline) -- has no sparkline to protect, so it picks up
+    // `DATA`'s new flat white/greyish-dark card + shadow look like every other DATA card in the app.
+    val hasSparkline = customVisual == null && DashboardIntradayEligibility.isEligible(asset.symbol)
+    val cardStyle = if (hasSparkline) PulseCardStyle.DATA_SPARKLINE else PulseCardStyle.DATA
+
     PulseCard(
-        style = PulseCardStyle.DATA,
+        style = cardStyle,
         modifier = modifier,
         onClick = onClick
     ) {
@@ -700,14 +709,18 @@ fun TechnicalSummaryCard(summaryText: String?, timestamp: Long?, isEquityOpen: B
     // colors are all passed in by the caller as real signal colors (bullish/bearish/neutral pillar
     // scores) -- that one stays signal-colored on purpose, since it is showing raw computed data,
     // not an AI's interpretation of it.
+    // 💡 `animateContentSize()` sits on the inner `Column` below, not on `PulseCard`'s own outer
+    // `modifier` -- `PulseCard` draws its shadow via `Modifier.shadow`, and `animateContentSize()`
+    // clips whatever it wraps to its own animated rectangle each frame. Placed outside the shadow
+    // (on the Card's own modifier), that rectangular clip cut straight through the shadow's rounded
+    // corners, leaving a flat greyish sliver poking out past the bottom edge instead of a clean
+    // rounded shadow.
     PulseCard(
         style = PulseCardStyle.SYNTHESIS,
-        modifier = Modifier
-            .fillMaxWidth()
-            .animateContentSize(),
+        modifier = Modifier.fillMaxWidth(),
         onClick = { isExpanded = !isExpanded }
     ) {
-        Column(modifier = Modifier.padding(paddingLarge)) {
+        Column(modifier = Modifier.padding(paddingLarge).animateContentSize()) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
