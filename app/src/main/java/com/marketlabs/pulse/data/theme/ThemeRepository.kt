@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 /**
  * 💡 THOUGHT PROCESS:
  * Lighter than a full three-tier domain repository (no Remote/Local split, no Room caching) —
- * `ARCHITECTURE.md §1` explicitly authorizes this shape ("a lighter repository talking straight to
+ * `docs/architecture/overview.md` explicitly authorizes this shape ("a lighter repository talking straight to
  * [its store] is acceptable and already precedented") for a domain that doesn't need it. Still
  * kept as an `Impl → Interface` pair per this repo's DI convention, even for something this small,
  * so `ThemeModule.kt`'s `@Provides` binding stays uniform with every other domain's module.
