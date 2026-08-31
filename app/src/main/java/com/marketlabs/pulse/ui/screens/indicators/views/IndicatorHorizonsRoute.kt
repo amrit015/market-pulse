@@ -11,6 +11,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -57,7 +58,16 @@ fun IndicatorHorizonsRoute(
                             contentDescription = stringResource(id = R.string.nav_back_content_description)
                         )
                     }
-                }
+                },
+                // 💡 Matches the screen's background (and the same override every other pushed
+                // destination's TopAppBar uses -- see NewsRoute.kt/AssetDetailRoute.kt) so the bar
+                // doesn't render as a visibly different-colored band above the content. Left on the
+                // default `colorScheme.surface` before, which reads noticeably different from
+                // `colorScheme.background` now that light mode's background carries a per-preset
+                // accent tint (`MarketPulseTheme.kt`'s `toColorScheme()`) that `surface` doesn't.
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                )
             )
         }
     ) { innerPadding ->

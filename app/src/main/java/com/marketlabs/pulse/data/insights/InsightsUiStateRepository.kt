@@ -4,7 +4,7 @@ import kotlinx.coroutines.flow.Flow
 
 /**
  * Lighter than a full three-tier domain repository (no Remote/Local split, no Room caching) --
- * same shape `ThemeRepository` uses for exactly this reason (`ARCHITECTURE.md §1` authorizes it
+ * same shape `ThemeRepository` uses for exactly this reason (`docs/architecture/overview.md` authorizes it
  * for a domain that doesn't need the full split). Backs the Positioning/Posture first-time
  * explainer's persisted dismissal state (2026-08-27 interpretive-layer spec) -- there's no
  * "seen it once" precedent anywhere else in the app to extend, so this introduces one new

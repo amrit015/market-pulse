@@ -10,7 +10,7 @@ import com.marketlabs.pulse.storage.model.charts.ChartPoint
  * not a client-side slice of one full series (see `ChartModels.kt`'s doc comment on why). `points`
  * is a JSON-blob column via `ChartsConverters`, same convention as every other nested/list column
  * in this codebase. No TTL — shown until an explicit re-fetch (screen focus / pull-to-refresh),
- * same as every other domain (`ARCHITECTURE.md §3`); no `SyncManager` flag exists for this domain.
+ * same as every other domain (`docs/architecture/data-flow.md`); no `SyncManager` flag exists for this domain.
  */
 @Entity(tableName = "market_charts", primaryKeys = ["symbol", "rangeKey"])
 @TypeConverters(ChartsConverters::class)

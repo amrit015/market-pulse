@@ -25,7 +25,7 @@ import com.marketlabs.pulse.storage.model.stocks.DomainWatchItem
  * when a user opens that symbol (see `StockAnalysisRepositoryImpl.refreshDetail`), not driven by
  * `SyncManager`. Caching it at all (rather than treating it as ephemeral/in-memory-only) follows
  * this codebase's existing "cache in Room, no TTL, shown until told to refresh" convention
- * (`ARCHITECTURE.md §3`) — a re-opened symbol shows its last-fetched detail instantly while a
+ * (`docs/architecture/data-flow.md`) — a re-opened symbol shows its last-fetched detail instantly while a
  * fresh fetch runs, same as every other domain.
  */
 @Entity(tableName = "market_stock_details")
