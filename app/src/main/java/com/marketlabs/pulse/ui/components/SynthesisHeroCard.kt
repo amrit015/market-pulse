@@ -128,7 +128,6 @@ fun SynthesisHeroCard(
                         color = MaterialTheme.colorScheme.onSurface,
                         maxLines = if (isExpanded) Int.MAX_VALUE else 3,
                         overflow = TextOverflow.Ellipsis,
-                        lineHeight = MaterialTheme.typography.bodyMedium.lineHeight * 1.2f
                     )
                 }
             }

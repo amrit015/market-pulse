@@ -31,10 +31,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.storage.model.weeklyPlaybook.PlaybookSynthesis
 import com.marketlabs.pulse.storage.model.weeklyPlaybook.WeeklyEvent
 import com.marketlabs.pulse.storage.model.weeklyPlaybook.WeeklyPlaybook
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
+import com.marketlabs.pulse.ui.components.SynthesisHeroCard
 import com.marketlabs.pulse.ui.components.widgets.MetricInfoAction
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
@@ -89,6 +91,17 @@ fun WeeklyPlaybookSection(playbook: WeeklyPlaybook) {
                 bottom = dimensionResource(id = R.dimen.padding_large)
             )
         )
+
+        // 💡 2026-08-29 revision: same SynthesisHeroCard Posture/Positioning/Risks already use --
+        // see those sections' own doc comments for the "keyed off state" isUnavailable rule.
+        playbook.synthesis?.let { synthesis ->
+            SynthesisHeroCard(
+                headline = synthesis.headline,
+                detail = synthesis.detail,
+                isUnavailable = synthesis.state == "unavailable"
+            )
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
+        }
 
         Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_medium)))
 
@@ -305,7 +318,14 @@ fun PreviewWeeklyPlaybookSection() {
 
         val mockPlaybook = WeeklyPlaybook(
             weekStarting = "2026-06-08",
-            events = listOf(mockEvent)
+            events = listOf(mockEvent),
+            synthesis = PlaybookSynthesis(
+                headline = stringResource(id = R.string.preview_event_name),
+                detail = stringResource(id = R.string.preview_event_context),
+                generatedAt = null,
+                contentFlags = emptyList(),
+                state = "ok"
+            )
         )
 
         Column(modifier = Modifier.padding(16.dp)) {

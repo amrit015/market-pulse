@@ -1,8 +1,6 @@
 package com.marketlabs.pulse.ui.screens.insights.views
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,10 +19,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
@@ -37,6 +31,7 @@ import com.marketlabs.pulse.storage.model.marketRisk.MarketRiskAssessment
 import com.marketlabs.pulse.storage.model.marketRisk.MarketRiskFactor
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
+import com.marketlabs.pulse.ui.components.SynthesisHeroCard
 import com.marketlabs.pulse.ui.components.widgets.MetricInfoAction
 import com.marketlabs.pulse.ui.components.widgets.SignalPill
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
@@ -54,6 +49,18 @@ fun TailRisksSection(risksData: MarketRiskAssessment) {
         verticalArrangement = Arrangement.spacedBy(paddingLarge)
     ) {
         RiskAssessmentHeader(risksData)
+
+        // 💡 2026-08-29 revision: the old inline `summary` paragraph (rendered at the bottom of
+        // the header) is gone -- its content is now `synthesis.detail`, surfaced through the same
+        // SynthesisHeroCard Posture/Positioning already use, rather than duplicating that text in
+        // two places on screen.
+        risksData.synthesis?.let { synthesis ->
+            SynthesisHeroCard(
+                headline = synthesis.headline,
+                detail = synthesis.detail,
+                isUnavailable = synthesis.state == "unavailable"
+            )
+        }
 
         if (!risksData.risks.isNullOrEmpty()) {
             risksData.risks.forEach { risk ->
@@ -102,52 +109,15 @@ private fun RiskAssessmentHeader(data: MarketRiskAssessment) {
             text = stringResource(id = R.string.analyzed_at, format.format(date)),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(
-                top = dimensionResource(id = R.dimen.padding_micro),
-                bottom = dimensionResource(id = R.dimen.padding_large)
-            )
+            // 💡 No trailing bottom padding here -- TailRisksSection's outer Column already adds
+            // one paddingLarge gap after this header via `verticalArrangement = spacedBy(...)`.
+            // Keeping a bottom padding here too was stacking two paddingLarge gaps above the
+            // synthesis card, unlike Posture/Positioning's single-gap spacing.
+            modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_micro))
         )
-
-        data.summary?.let { summaryText ->
-            Text(
-                text = summaryText,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
-
-        // Expandable Source Narrative Section
-        data.sourceNarrative?.let { narrative ->
-            var isExpanded by remember { mutableStateOf(false) }
-
-            Column(modifier = Modifier.animateContentSize()) {
-                if (isExpanded) {
-                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
-                    Text(
-                        text = stringResource(id = R.string.source_narrative_title),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
-                    Text(
-                        text = narrative,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
-
-                Text(
-                    text = if (isExpanded) stringResource(id = R.string.action_show_less) else stringResource(id = R.string.action_read_more),
-                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier
-                        .clickable { isExpanded = !isExpanded }
-                        .padding(vertical = dimensionResource(id = R.dimen.padding_tiny))
-                )
-            }
-        }
+        // 💡 Source Narrative section removed -- the SynthesisHeroCard rendered below this header
+        // (see TailRisksSection) is now the one narrative surface on this screen; `sourceNarrative`
+        // stays on the domain model (backend still sends it) but is no longer read here.
     }
 }
 
@@ -211,19 +181,26 @@ private fun TailRiskCard(risk: MarketRiskFactor) {
 
                 Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
 
-                Row(horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_small))) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_small))
+                ) {
                     if (risk.category != null) {
+                        // 💡 Text style/padding now matches SignalPill's exactly (labelMedium.Bold,
+                        // padding_medium horizontal / padding_small vertical) -- was labelSmall
+                        // regular with padding_tiny vertical, which made this chip read smaller and
+                        // shorter than the impact pill next to it.
                         Surface(
                             color = MaterialTheme.colorScheme.secondaryContainer,
                             shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_chip))
                         ) {
                             Text(
                                 text = risk.category.uppercase(),
-                                style = MaterialTheme.typography.labelSmall,
+                                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                                 color = MaterialTheme.colorScheme.onSecondaryContainer,
                                 modifier = Modifier.padding(
                                     horizontal = dimensionResource(id = R.dimen.padding_medium),
-                                    vertical = dimensionResource(id = R.dimen.padding_tiny)
+                                    vertical = dimensionResource(id = R.dimen.padding_small)
                                 )
                             )
                         }
