@@ -24,6 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -91,7 +92,18 @@ fun PulseWebViewScreen(
                             contentDescription = stringResource(id = R.string.close)
                         )
                     }
-                }
+                },
+                // 💡 Matches the screen's background (and the same override every other pushed
+                // destination's TopAppBar uses -- see NewsRoute.kt/AssetDetailRoute.kt) so the bar
+                // doesn't render as a visibly different-colored band above the content. Left on the
+                // default `colorScheme.surface` before, which reads noticeably different from
+                // `colorScheme.background` now that light mode's background carries a per-preset
+                // accent tint (`MarketPulseTheme.kt`'s `toColorScheme()`) that `surface` doesn't.
+                // The loaded web page itself (below the bar) still renders whatever color that page
+                // is -- only the app's own chrome around it is affected here.
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                )
             )
         }
     ) { paddingValues ->
