@@ -78,7 +78,31 @@ enum class MarketPulseTheme(val displayName: String, val isDark: Boolean) {
             // still. That combination lands this reliably darker and more saturated than
             // `surfaceTinted` below in every preset, in both modes, without hand-picking a
             // separate hex per preset.
-            accentSurfaceStrong = lerp(accent.tinted, accent.surfaceBorder, 0.55f),
+            //
+            // 💡 2026-08-29, dark mode: darkened one step further by blending 12% toward plain black
+            // on top of the above. `surfaceBorder` isn't reliably darker than `tinted` in every
+            // preset -- for several dark presets it's actually the lighter of the two (a more
+            // visible accent tone against a near-black `tinted`), so pushing further toward
+            // `surfaceBorder` alone would have made AI cards lighter in dark mode, not darker.
+            // Blending toward black instead guarantees "darker," independent of which direction
+            // `surfaceBorder` happens to sit relative to `tinted` for a given preset. Left exactly
+            // as it landed through every later light-mode pass below -- dark mode was asked to stay
+            // untouched each time.
+            //
+            // 💡 2026-08-29, light mode: went through a darkening pass (6% toward black, mirroring
+            // dark mode's approach) and then a lightening one -- the darkened version read too heavy
+            // against the light page once the card shadow itself got stronger. Rather than just
+            // easing the black blend back down, this switched approach entirely: white blended with
+            // a moderate amount of this preset's own `accent.primary`, the same "light, tuned to the
+            // brand color" technique `toColorScheme()`'s page-background blend already uses (see
+            // that function), just at a stronger 15% (vs. the page background's 5%) so an AI card
+            // still reads as a distinctly-colored surface sitting on top of that faintly-tinted page,
+            // not the same tint at the same strength.
+            accentSurfaceStrong = if (isDark) {
+                lerp(lerp(accent.tinted, accent.surfaceBorder, 0.55f), Color.Black, 0.12f)
+            } else {
+                lerp(Color.White, accent.primary, 0.15f)
+            },
             // 💡 Blended 45% from the literal Token Contract `tinted` value toward `surface` --
             // the raw `tinted` value alone reads as too close to the page background to register
             // as a distinct card (35% was an earlier attempt, still a bit too subtle once judged
@@ -103,6 +127,16 @@ enum class MarketPulseTheme(val displayName: String, val isDark: Boolean) {
         val accent = accentGroup()
         val surface = if (isDark) PulseTokens.Surface.dark else PulseTokens.Surface.light
 
+        // 💡 2026-08-29: light mode's page background is `surface.background` (pure white, see the
+        // field's own doc comment in `Color.kt`) blended with a small hint of this preset's own
+        // `accent.primary` -- a page that reads as "white, tinted faintly toward the app's brand
+        // color" instead of one flat neutral shared by every preset. Dark mode is untouched --
+        // `surface.background` passes straight through, same as before this pass. Computed once
+        // here and reused everywhere `surface.background` used to be read directly below
+        // (`background`, `surfaceContainerLowest`, `surfaceDim` -- all three are the same page-level
+        // role, just different M3 slots for it) so they can't drift apart from each other.
+        val background = if (isDark) surface.background else lerp(surface.background, accent.primary, 0.05f)
+
         // 💡 error/onError/errorContainer/onErrorContainer are deliberately NOT passed below —
         // omitting them lets lightColorScheme()/darkColorScheme()'s own default parameter values
         // (M3's baseline error palette, already correct per-mode) apply, rather than hand-picking
@@ -121,7 +155,7 @@ enum class MarketPulseTheme(val displayName: String, val isDark: Boolean) {
                 onTertiary = accent.on,
                 tertiaryContainer = accent.surface,
                 onTertiaryContainer = surface.onSurface,
-                background = surface.background,
+                background = background,
                 onBackground = surface.onBackground,
                 surface = surface.surface,
                 onSurface = surface.onSurface,
@@ -138,8 +172,8 @@ enum class MarketPulseTheme(val displayName: String, val isDark: Boolean) {
                 surfaceContainerHigh = surface.surfaceElevated,
                 surfaceContainerHighest = surface.surfaceElevated,
                 surfaceContainerLow = surface.surface,
-                surfaceContainerLowest = surface.background,
-                surfaceDim = surface.background
+                surfaceContainerLowest = background,
+                surfaceDim = background
             )
         } else {
             lightColorScheme(
@@ -155,7 +189,7 @@ enum class MarketPulseTheme(val displayName: String, val isDark: Boolean) {
                 onTertiary = accent.on,
                 tertiaryContainer = accent.surface,
                 onTertiaryContainer = surface.onSurface,
-                background = surface.background,
+                background = background,
                 onBackground = surface.onBackground,
                 surface = surface.surface,
                 onSurface = surface.onSurface,
@@ -172,8 +206,8 @@ enum class MarketPulseTheme(val displayName: String, val isDark: Boolean) {
                 surfaceContainerHigh = surface.surfaceElevated,
                 surfaceContainerHighest = surface.surfaceElevated,
                 surfaceContainerLow = surface.surface,
-                surfaceContainerLowest = surface.background,
-                surfaceDim = surface.background
+                surfaceContainerLowest = background,
+                surfaceDim = background
             )
         }
         return scheme

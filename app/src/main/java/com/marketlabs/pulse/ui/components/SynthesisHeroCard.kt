@@ -65,14 +65,19 @@ fun SynthesisHeroCard(
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
     val paddingSmall = dimensionResource(id = R.dimen.padding_small)
 
+    // 💡 `animateContentSize()` lives on this inner `Column`, not on `PulseCard`'s own outer
+    // `modifier` -- `PulseCard` draws its shadow via `Modifier.shadow`, and `animateContentSize()`
+    // clips whatever it wraps to its own animated rectangle each frame. Put outside the shadow (on
+    // the Card's own modifier), that rectangular clip cut straight through the shadow's rounded
+    // corners, leaving a flat greyish sliver poking out past the bottom edge instead of a clean
+    // rounded shadow. Put here instead, only this Column's own content is clipped as it grows/
+    // shrinks -- the shadow, drawn outside this Column entirely, is untouched by it.
     PulseCard(
         style = PulseCardStyle.SYNTHESIS,
-        modifier = modifier
-            .fillMaxWidth()
-            .animateContentSize(),
+        modifier = modifier.fillMaxWidth(),
         onClick = if (detail.isNullOrBlank()) null else { { isExpanded = !isExpanded } }
     ) {
-        Column(modifier = Modifier.padding(paddingLarge)) {
+        Column(modifier = Modifier.padding(paddingLarge).animateContentSize()) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,

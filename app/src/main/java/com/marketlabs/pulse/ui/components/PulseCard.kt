@@ -12,10 +12,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
@@ -23,23 +27,42 @@ import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 /**
- * The two outer-shell looks every content card in this app uses. Deliberately just two -- anything
- * that needs a third (the sector heatmap tiles, the pillar score headers, the theme picker's preset
- * swatches) owns a background a signal color or an external caller controls, which is a different
- * thing from "which of the app's two standard card looks does this use," and stays a plain `Card`
- * rather than being forced in here.
+ * The outer-shell looks every content card in this app uses. Was deliberately just `DATA`/`SYNTHESIS`
+ * for a long time -- anything that needs something else entirely (the sector heatmap tiles, the
+ * pillar score headers, the theme picker's preset swatches) owns a background a signal color or an
+ * external caller controls, which is a different thing from "which of the app's standard card looks
+ * does this use," and stays a plain `Card` rather than being forced in here. `DATA_SPARKLINE` is the
+ * one deliberate addition to that pair -- see the 2026-08-29 note below for why it exists.
  *
  * There used to be a third, `NEUTRAL` (white/elevated surface, for VIX/Fear & Greed/Put-Call), kept
  * visually distinct from `DATA`'s accent-tinted price cards on the theory that a computed reading
  * shouldn't look like raw data. Retired once that distinction stopped being wanted -- those cards
  * moved onto plain `DATA`, the same tinted background and border every other price card already uses.
+ *
+ * 💡 2026-08-29 card redesign: `DATA` moved off the accent-tinted background onto a flat
+ * white-in-light / greyish-dark-in-dark card (`MaterialTheme.colorScheme.surfaceVariant`, which is
+ * already sourced from `PulseTokens.Surface.*.surfaceElevated` -- pure white in every light preset,
+ * a lighter grey step above the page background in every dark preset), no hairline border in light
+ * mode (the shadow does that job instead), and a soft drop shadow. `SYNTHESIS`'s own background/
+ * border are unchanged (still `accentSurfaceStrong` + hairline border) -- AI-authored content was
+ * asked to keep its own look. A third style, `DATA_SPARKLINE`, was added rather than folding this
+ * into `DATA` because one DATA consumer -- Overview's per-asset price cards that embed a live
+ * intraday sparkline -- was asked to keep today's pre-redesign background/border
+ * (`surfaceTinted`/hairline) untouched; every other DATA card across the app (Overview's own
+ * VIX/Fear & Greed/Put-Call/futures cards included, since they don't carry a sparkline) picks up the
+ * new look automatically through this one shared component. The drop shadow itself was later
+ * extended to all three styles (see the shadow comment below) -- only background/border still vary
+ * per style.
  */
 enum class PulseCardStyle {
-    /** Raw or computed readings -- prices, ratios, VIX, Fear & Greed, Put/Call. `surfaceTinted`, hairline border. */
+    /** Raw or computed readings -- prices, ratios, VIX, Fear & Greed, Put/Call. Flat white/greyish-dark background, no border in either mode. */
     DATA,
 
     /** Curated, AI-generated, or externally-sourced content -- briefings, verdicts, news, disclaimers. `accentSurfaceStrong`, hairline border. */
-    SYNTHESIS
+    SYNTHESIS,
+
+    /** Overview's sparkline-bearing asset cards only -- frozen to `DATA`'s pre-redesign background/border (`surfaceTinted`, hairline border) so the sparkline keeps reading against the same accent-tinted background it always has. */
+    DATA_SPARKLINE
 }
 
 /**
@@ -79,24 +102,75 @@ fun PulseCard(
     val pulseColors = LocalPulseColors.current
 
     val containerColor = when (style) {
-        PulseCardStyle.DATA -> pulseColors.surfaceTinted
+        // 💡 `colorScheme.surfaceVariant`, not a `LocalPulseColors` field -- this is one of the
+        // plain surface-ramp roles (`PulseTokens.Surface.*.surfaceElevated`) that MarketPulseTheme.kt
+        // deliberately resolves onto `MaterialTheme.colorScheme` instead of duplicating onto
+        // `PulseColors`, exactly like `background`/`surface`/`onSurface` already are.
+        PulseCardStyle.DATA -> MaterialTheme.colorScheme.surfaceVariant
         PulseCardStyle.SYNTHESIS -> pulseColors.accentSurfaceStrong
+        PulseCardStyle.DATA_SPARKLINE -> pulseColors.surfaceTinted
     }
-    // 💡 Both styles get the same hairline border now -- DATA didn't used to (it was the one
-    // style with `border = null`), until VIX/Fear & Greed/Put-Call moved onto it and brought their
-    // border with them.
-    val border = BorderStroke(dimensionResource(id = R.dimen.border_thin), pulseColors.accentSurfaceBorder)
+    // 💡 `DATA` stays borderless in both modes -- a dark-mode-only `accentPrimary` stroke was tried
+    // here and dropped again; the shadow below is what separates the card from the page in both
+    // modes now, not a border.
+    val border = when (style) {
+        PulseCardStyle.DATA -> null
+        PulseCardStyle.SYNTHESIS, PulseCardStyle.DATA_SPARKLINE ->
+            BorderStroke(dimensionResource(id = R.dimen.border_thin), pulseColors.accentSurfaceBorder)
+    }
     val colors = CardDefaults.cardColors(containerColor = containerColor)
-    val cardModifier = if (onClick != null) modifier.clickable(onClick = onClick) else modifier
+    val clickableModifier = if (onClick != null) modifier.clickable(onClick = onClick) else modifier
+    // 💡 Shadow is applied by hand via `Modifier.shadow`, not `CardDefaults.cardElevation` (Card's
+    // own `elevation` param is left at its 0dp default below) -- `CardElevation` only exposes one
+    // number, which Compose renders as the platform's default key-light shadow: heavy `spotColor`
+    // cast that pools at the bottom, near-invisible `ambientColor` halo everywhere else, which read
+    // as bottom-heavy rather than a card sitting evenly above the page. `Modifier.shadow` exposes
+    // `ambientColor`/`spotColor` separately, so weighting ambient well above spot here trades that
+    // directional cast for a soft, roughly even halo on every side instead. Applies to all three
+    // styles now (previously `DATA` only) -- `SYNTHESIS`/`DATA_SPARKLINE` still draw their own
+    // container color/border on top of it, unchanged.
+    //
+    // 💡 Light mode's shadow was asked to read stronger than dark mode's -- light-mode cards sit on
+    // a near-white/tinted-white page where a soft shadow is the main thing separating a card from
+    // it, while dark mode already gets most of that separation from the color step between the
+    // near-black background and the lighter-grey card itself. `MaterialTheme.colorScheme.background`
+    // has no direct per-mode flag to read here (see the removed border experiment's note, now
+    // gone) -- luminance is still the cheapest way to tell the two apart without new plumbing.
+    val isDarkMode = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val shadowElevation = if (isDarkMode) {
+        dimensionResource(id = R.dimen.elevation_small)
+    } else {
+        dimensionResource(id = R.dimen.elevation_medium)
+    }
+    val shadowAmbient = if (isDarkMode) CardShadowAmbientDark else CardShadowAmbientLight
+    val shadowSpot = if (isDarkMode) CardShadowSpotDark else CardShadowSpotLight
+    val shadowModifier = clickableModifier.shadow(
+        elevation = shadowElevation,
+        shape = shape,
+        ambientColor = shadowAmbient,
+        spotColor = shadowSpot
+    )
 
     Card(
         colors = colors,
         border = border,
         shape = shape,
-        modifier = cardModifier,
+        modifier = shadowModifier,
         content = content
     )
 }
+
+// 💡 Weighted heavily toward ambient over spot (see the shadow comment above) so the drop shadow
+// every `PulseCard` casts reads as an even halo rather than the platform's default bottom-heavy
+// key-light shadow. Plain translucent black in both modes -- the shadow sits behind every preset's
+// card, not tinted to any one accent. Light mode's pair is stronger than dark mode's -- see the
+// shadow comment in `PulseCard` above for why. Light mode's numbers have gone through three passes
+// now (each asking for a stronger shadow than the last), dark mode's were asked to stay untouched
+// at their original values every time.
+private val CardShadowAmbientLight = Color.Black.copy(alpha = 0.50f)
+private val CardShadowSpotLight = Color.Black.copy(alpha = 0.24f)
+private val CardShadowAmbientDark = Color.Black.copy(alpha = 0.24f)
+private val CardShadowSpotDark = Color.Black.copy(alpha = 0.10f)
 
 // ============================================================================
 // 🎨 PREVIEWS
@@ -129,6 +203,9 @@ private fun PreviewPulseCardStylesContent() {
         }
         PulseCard(style = PulseCardStyle.SYNTHESIS, modifier = Modifier.fillMaxWidth()) {
             Text(text = "SYNTHESIS", modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)))
+        }
+        PulseCard(style = PulseCardStyle.DATA_SPARKLINE, modifier = Modifier.fillMaxWidth()) {
+            Text(text = "DATA_SPARKLINE", modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)))
         }
     }
 }

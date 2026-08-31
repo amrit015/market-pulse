@@ -202,14 +202,19 @@ private fun AiExecutiveBriefingHero(
 
     // 💡 SYNTHESIS style -- this is the AI Executive Briefing, the same kind of AI-interpreted
     // content as Dashboard's Technical Briefing and the News cards.
+    //
+    // 💡 `animateContentSize()` sits on the inner `Column` below, not on `PulseCard`'s own outer
+    // `modifier` -- `PulseCard` draws its shadow via `Modifier.shadow`, and `animateContentSize()`
+    // clips whatever it wraps to its own animated rectangle each frame. Placed outside the shadow
+    // (on the Card's own modifier), that rectangular clip cut straight through the shadow's rounded
+    // corners, leaving a flat greyish sliver poking out past the bottom edge instead of a clean
+    // rounded shadow.
     PulseCard(
         style = PulseCardStyle.SYNTHESIS,
-        modifier = Modifier
-            .fillMaxWidth()
-            .animateContentSize(),
+        modifier = Modifier.fillMaxWidth(),
         onClick = { isExpanded = !isExpanded }
     ) {
-        Column(modifier = Modifier.padding(paddingLarge)) {
+        Column(modifier = Modifier.padding(paddingLarge).animateContentSize()) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
