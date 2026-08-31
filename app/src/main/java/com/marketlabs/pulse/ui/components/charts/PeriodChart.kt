@@ -52,10 +52,12 @@ import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianLayerRangeProvider
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianValueFormatter
 import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
+import com.patrykandpatrick.vico.core.cartesian.decoration.HorizontalLine
 import com.patrykandpatrick.vico.core.cartesian.layer.CartesianLayerDimensions
 import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer
 import com.patrykandpatrick.vico.core.cartesian.marker.CartesianMarker
 import com.patrykandpatrick.vico.core.common.Fill
+import com.patrykandpatrick.vico.core.common.component.LineComponent
 import com.patrykandpatrick.vico.core.common.shader.ShaderProvider
 import java.text.DecimalFormat
 import java.time.LocalDate
@@ -98,15 +100,33 @@ import kotlin.math.roundToInt
  * labels are spaced for readability across the series, not guaranteed to land exactly on the
  * first/last point, so the caption is the reliable way to read the range's start/end price; it
  * doesn't repeat the date, which the x-axis right below it already shows.
+ *
+ * [currentPrice], when supplied, replaces the last point's price for display purposes if that
+ * point's own date is today (ET) -- `market_charts`' daily close for the current trading day is
+ * only written once the session ends, so while the market's still open the stored point can lag
+ * behind the live price this same screen's header already shows (`AssetOverview`/`StockPreview`'s
+ * own `price` field), making the chart's own endpoint disagree with the rest of the page. [points]
+ * itself is left untouched by the caller either way -- this only affects what gets drawn/captioned.
+ *
+ * [useAccentColor] skips the bullish/bearish direction read entirely in favor of the app's own
+ * accent color -- for dashboard readings that run on their own up/down logic that doesn't map to
+ * green-is-good/red-is-bad the way a price does (VIX, Fear & Greed, Put/Call: e.g. a rising VIX is
+ * conventionally bearish, not "up is good"), tinting the line green or red the normal way would
+ * misstate the reading.
  */
 @Composable
 fun PeriodChart(
     points: List<ChartPoint>,
     isLoading: Boolean = false,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    currentPrice: Double? = null,
+    useAccentColor: Boolean = false
 ) {
     val pulseColors = LocalPulseColors.current
-    val lineColor = if (points.isNotEmpty()) periodChartLineColor(points, pulseColors) else null
+    val effectivePoints = if (currentPrice != null) points.withCurrentPriceForToday(currentPrice) else points
+    val lineColor = if (effectivePoints.isNotEmpty()) {
+        if (useAccentColor) pulseColors.accentPrimary else periodChartLineColor(effectivePoints, pulseColors)
+    } else null
 
     Column(modifier = modifier) {
         Box(
@@ -116,8 +136,8 @@ fun PeriodChart(
             contentAlignment = Alignment.Center
         ) {
             when {
-                points.isNotEmpty() && lineColor != null ->
-                    PeriodChartPlot(points = points, lineColor = lineColor, modifier = Modifier.fillMaxSize())
+                effectivePoints.isNotEmpty() && lineColor != null ->
+                    PeriodChartPlot(points = effectivePoints, lineColor = lineColor, modifier = Modifier.fillMaxSize())
                 isLoading -> CircularProgressIndicator()
                 else -> Text(
                     text = stringResource(id = R.string.stock_detail_chart_empty_state),
@@ -139,14 +159,14 @@ fun PeriodChart(
             // tone -- this row is the "open vs. close for this range" summary, so it should carry
             // the same green/red read as the chart itself. Left empty (but still reserving this
             // row's height) while loading/empty, so that state doesn't change this row's height.
-            if (points.isNotEmpty() && lineColor != null) {
+            if (effectivePoints.isNotEmpty() && lineColor != null) {
                 Text(
-                    text = priceFormat.format(points.first().price),
+                    text = priceFormat.format(effectivePoints.first().price),
                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                     color = lineColor
                 )
                 Text(
-                    text = priceFormat.format(points.last().price),
+                    text = priceFormat.format(effectivePoints.last().price),
                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                     color = lineColor
                 )
@@ -158,6 +178,17 @@ fun PeriodChart(
 private fun periodChartLineColor(points: List<ChartPoint>, pulseColors: PulseColors): Color {
     val isBullish = points.last().price >= points.first().price
     return if (isBullish) pulseColors.signalBullishText else pulseColors.signalBearishText
+}
+
+/**
+ * Swaps the last point's price for [currentPrice] when that point's own `date` is today (ET) --
+ * see [PeriodChart]'s doc comment for why. Every other point, and today's own point once its
+ * recorded price already matches, is returned as-is (no allocation).
+ */
+private fun List<ChartPoint>.withCurrentPriceForToday(currentPrice: Double): List<ChartPoint> {
+    val last = lastOrNull() ?: return this
+    if (last.price == currentPrice || last.date != LocalDate.now(easternZoneId).toString()) return this
+    return dropLast(1) + last.copy(price = currentPrice)
 }
 
 /** Builds [PeriodChart]'s date-labeled x-axis/marker text and delegates the actual Vico host to [VicoLinePlot]. */
@@ -210,6 +241,14 @@ private fun PeriodChartPlot(
  * and hands in here already-formatted, so this stays agnostic to which domain type it's actually
  * plotting. `internal`, not `private` -- `IndicatorHistoryChart` lives in a separate file (same
  * package) and needs to call this directly rather than duplicating the whole Vico setup.
+ *
+ * [referenceLineValue], when supplied, draws a flat, faint horizontal line across the full width
+ * at that y-value -- [IntradayPeriodChart] uses this for the 1D chart's previous-close baseline,
+ * so it's easy to see at a glance whether today's line is running above or below it. Solid rather
+ * than dashed (Vico's [LineComponent] has no dash-pattern support), so "faint" comes entirely from
+ * a low-alpha version of the chart's own line color, keeping the same bullish/bearish association
+ * without visually competing with the real price line. `null` (the default) draws nothing extra --
+ * [PeriodChart]'s multi-day ranges and [IndicatorHistoryChart] have no such fixed baseline to show.
  */
 @Composable
 internal fun VicoLinePlot(
@@ -218,7 +257,8 @@ internal fun VicoLinePlot(
     xValueFormatter: CartesianValueFormatter,
     itemPlacer: HorizontalAxis.ItemPlacer,
     marker: CartesianMarker,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    referenceLineValue: Double? = null
 ) {
     val modelProducer = remember { CartesianChartModelProducer() }
 
@@ -279,6 +319,20 @@ internal fun VicoLinePlot(
         CartesianValueFormatter.decimal(DecimalFormat(pattern))
     }
 
+    val decorations = remember(referenceLineValue, lineColorInt) {
+        val value = referenceLineValue
+        if (value == null) {
+            emptyList()
+        } else {
+            listOf(
+                HorizontalLine(
+                    y = { value },
+                    line = LineComponent(fill = Fill(lineColor.copy(alpha = 0.4f).toArgb()), thicknessDp = 1f)
+                )
+            )
+        }
+    }
+
     ProvideVicoTheme(rememberM3VicoTheme()) {
         CartesianChartHost(
             chart = rememberCartesianChart(
@@ -296,7 +350,8 @@ internal fun VicoLinePlot(
                     valueFormatter = xValueFormatter,
                     itemPlacer = itemPlacer
                 ),
-                marker = marker
+                marker = marker,
+                decorations = decorations
                 // Marker controller left at its default (showOnPress -- press-and-drag to scrub
                 // across points). An earlier attempt disabled Vico's own horizontal-scroll gesture
                 // entirely to "fit all data, no scrolling," which left the marker's touch-move
@@ -335,6 +390,9 @@ internal fun VicoLinePlot(
  * minutes-since-midnight-ET, so this is what pins down an actual instant for each one, which in
  * turn is what lets the x-axis and marker labels convert to and display the *viewer's* local
  * clock time rather than a raw ET reading.
+ *
+ * [useAccentColor] -- see [PeriodChart]'s doc comment; same non-price-direction reasoning applies
+ * to this chart's own 1D line.
  */
 @Composable
 fun IntradayPeriodChart(
@@ -342,10 +400,15 @@ fun IntradayPeriodChart(
     previousClose: Double?,
     date: String?,
     isLoading: Boolean = false,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    useAccentColor: Boolean = false
 ) {
     val pulseColors = LocalPulseColors.current
-    val lineColor = if (points.isNotEmpty()) intradayChartLineColor(points, previousClose, pulseColors) else null
+    // See PeriodChart's doc comment on useAccentColor -- same reasoning applies here for VIX/
+    // Fear & Greed/Put-Call's own 1D charts.
+    val lineColor = if (points.isNotEmpty()) {
+        if (useAccentColor) pulseColors.accentPrimary else intradayChartLineColor(points, previousClose, pulseColors)
+    } else null
 
     Column(modifier = modifier) {
         Box(
@@ -431,17 +494,24 @@ private fun IntradayChartPlot(
             markerTimeFormatter.format(localTimes[index])
         }
     }
-    // Second line: percent change from previousClose, not today's own first tick -- unlike every
-    // other range (where the first point in the shown series is the only baseline that exists),
-    // 1D's line color/direction is already anchored to previousClose (see intradayChartLineColor),
-    // and computing the marker's percent against a different baseline (the open) could disagree
-    // with that color -- e.g. read green while showing a negative percent, if today opened above
-    // previousClose but the touched point sits below the open. Falls back to the open only if
-    // previousClose is unavailable, same fallback intradayChartLineColor itself uses.
+    // First line: calendar date + local time -- the x-axis below only has room for the time, so
+    // the marker is the only place this chart states which day "today" actually was (relevant the
+    // moment a viewer is scrubbing a session in a different time zone than the market's, where the
+    // local clock time alone can appear to belong to a different calendar day). Second line:
+    // formatted price + percent change from previousClose, not today's own first tick -- unlike
+    // every other range (where the first point in the shown series is the only baseline that
+    // exists), 1D's line color/direction is already anchored to previousClose (see
+    // intradayChartLineColor), and computing the marker's percent against a different baseline
+    // (the open) could disagree with that color -- e.g. read green while showing a negative
+    // percent, if today opened above previousClose but the touched point sits below the open.
+    // Falls back to the open only if previousClose is unavailable, same fallback
+    // intradayChartLineColor itself uses.
     val marker = rememberPeriodChartMarker(points.size) { index ->
         val point = points[index]
         val baseline = previousClose ?: points.first().price
-        "${markerTimeFormatter.format(localTimes[index])}, ${priceFormat.format(point.price)}\n${percentChangeFrom(baseline, point.price)}"
+        val localTime = localTimes[index]
+        "${markerDateFormatter.format(localTime)}, ${markerTimeFormatter.format(localTime)}\n" +
+            "${priceFormat.format(point.price)}  ${percentChangeFrom(baseline, point.price)}"
     }
     val labelIndices = remember(points) { evenlySpacedIndices(points.size, LABEL_COUNT) }
     val itemPlacer = remember(labelIndices) { FixedItemPlacer(labelIndices) }
@@ -452,7 +522,11 @@ private fun IntradayChartPlot(
         xValueFormatter = xValueFormatter,
         itemPlacer = itemPlacer,
         marker = marker,
-        modifier = modifier
+        modifier = modifier,
+        // Faint flat previous-close baseline -- see VicoLinePlot's doc comment on
+        // referenceLineValue. `null` (no line drawn) only when there's genuinely no previous
+        // close to compare against.
+        referenceLineValue = previousClose
     )
 }
 
@@ -568,6 +642,9 @@ private val easternZoneId = ZoneId.of("America/New_York")
 
 /** Axis and marker labels, minute-precise: `"12:01 AM"`, `"9:34 AM"`. */
 private val markerTimeFormatter = DateTimeFormatter.ofPattern("h:mm a", Locale.US)
+
+/** 1D marker's date line, in the viewer's local calendar date: `"Aug 24"`. */
+private val markerDateFormatter = DateTimeFormatter.ofPattern("MMM d", Locale.US)
 
 /**
  * Converts each bar's ET-relative `minutesSinceMidnightEt` into the *viewer's* local time --

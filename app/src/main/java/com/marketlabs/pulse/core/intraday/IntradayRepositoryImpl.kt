@@ -16,9 +16,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
-import java.time.ZoneId
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -65,18 +62,26 @@ class IntradayRepositoryImpl @Inject constructor(
     private suspend fun fetchOnce(symbol: String) {
         try {
             val response = api.getIntraday(symbol)
-            val today = currentEasternDate()
-            // The doc is reset, not appended, on a new trading day -- a response fetched before
-            // today's first poll tick can be a prior day's leftover rather than an empty one, so
-            // this is the freshness check the backend spec calls out, not a redundant one.
-            val series = response.date
-                ?.takeIf { it == today }
-                ?.let { response.toDomain(symbol = symbol, date = it) }
-            _seriesMap.update { it + (symbol to series) }
+            val date = response.date
+            // The doc is reset, not appended, on a new trading day, so a response fetched before
+            // today's first bar exists can carry a prior trading day's date -- outside regular
+            // trading hours (pre-9:30am ET, or any time over a weekend/holiday) that's the normal
+            // case, not a stale/broken one. That response is still the last real, completed
+            // session's chart, and is trusted as-is (under its own real date, not relabeled as
+            // "today") rather than discarded -- the whole point of polling is to keep showing that
+            // real chart until a response actually dated today arrives, not to blank it out from
+            // under whatever was last real data.
+            if (date != null) {
+                _seriesMap.update { it + (symbol to response.toDomain(symbol = symbol, date = date)) }
+            }
         } catch (e: HttpException) {
             if (e.code() == 404) {
                 Log.d("Intraday", "No intraday data yet for $symbol")
-                _seriesMap.update { it + (symbol to null) }
+                // Distinct from the stale-date case above -- this means no doc has ever existed
+                // for this symbol, not "not today's doc yet." Still only blanks the series if
+                // nothing is already cached, so a transient 404 (e.g. a brief backend hiccup)
+                // right after a real fetch doesn't wipe out a chart that was already showing.
+                _seriesMap.update { current -> if (current[symbol] != null) current else current + (symbol to null) }
             } else {
                 Log.e("Intraday", "Failed to fetch intraday for $symbol", e)
                 // Transient server error -- leave whatever was last successfully fetched in place
@@ -89,9 +94,5 @@ class IntradayRepositoryImpl @Inject constructor(
 
     private companion object {
         const val POLL_INTERVAL_MS = 30_000L
-        val dateFormatter: DateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE
-
-        fun currentEasternDate(): String =
-            ZonedDateTime.now(ZoneId.of("America/New_York")).toLocalDate().format(dateFormatter)
     }
 }

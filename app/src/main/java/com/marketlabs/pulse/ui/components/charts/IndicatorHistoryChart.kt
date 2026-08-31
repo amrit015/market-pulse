@@ -23,7 +23,6 @@ import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.indicators.MetricHistoryPoint
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
-import com.marketlabs.pulse.ui.theme.textColor
 import com.marketlabs.pulse.utils.enums.SignalColor
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianValueFormatter
 import kotlin.math.roundToInt
@@ -35,10 +34,11 @@ import kotlin.math.roundToInt
  * isn't a price. [PeriodChart]'s `$#,##0.00`-formatted caption/marker and first-vs-last
  * bullish/bearish coloring would both be wrong here -- a metric's `value` has no fixed unit (a raw
  * percent, ratio, index level...), so the marker and caption use each point's own pre-formatted
- * `valueDisplay` string instead of a client-derived number format, and the line is tinted by the
- * *latest* point's own `signalColor` (the same [SignalColor.textColor] extension every other
- * signal-colored element in this app uses) rather than a price-direction read -- a rising
- * unemployment rate going "up" isn't bullish/green the way a rising stock price is.
+ * `valueDisplay` string instead of a client-derived number format. The line itself is always the
+ * app's own accent color, not a bullish/bearish or [SignalColor]-tinted read -- indicators run on
+ * their own up/down logic that doesn't correlate with green-is-good/red-is-bad the way a price
+ * does (a rising unemployment rate going "up" isn't bullish/green the way a rising stock price
+ * is), so a direction-colored line here would misstate the reading either way it was derived.
  *
  * No range picker -- the backend spec explicitly says not to build one yet (history only goes
  * back to 2026-08-21), so this always renders whatever the single cached/fetched series holds.
@@ -50,7 +50,7 @@ fun IndicatorHistoryChart(
     modifier: Modifier = Modifier
 ) {
     val pulseColors = LocalPulseColors.current
-    val lineColor = if (points.isNotEmpty()) points.last().signalColor.textColor else pulseColors.onSurfaceMuted
+    val lineColor = pulseColors.accentPrimary
 
     Column(modifier = modifier) {
         Box(

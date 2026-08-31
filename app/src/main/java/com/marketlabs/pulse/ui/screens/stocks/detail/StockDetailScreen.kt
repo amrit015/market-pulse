@@ -225,9 +225,13 @@ private fun TechnicalsTabContent(
                         modifier = Modifier.fillMaxWidth()
                     )
                 } else {
+                    // currentPrice keeps a still-open trading day's chart endpoint from lagging
+                    // behind the live price shown elsewhere on this page (see PeriodChart's own
+                    // doc comment) -- preview.price is that same live-priced field.
                     PeriodChart(
                         points = chartSeries?.points.orEmpty(),
                         isLoading = isChartLoading,
+                        currentPrice = preview?.price,
                         modifier = Modifier.fillMaxWidth()
                     )
                 }

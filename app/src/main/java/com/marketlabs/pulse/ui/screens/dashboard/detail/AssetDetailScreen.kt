@@ -45,7 +45,9 @@ import com.marketlabs.pulse.utils.verticalScrollbar
  * `AssetDetailBottomSheet` body verbatim (header, price row, period chart, technical breakdown,
  * SMA, glossary), only the `ModalBottomSheet` wrapper is gone. `showTechnicals` still hides the
  * technical/SMA/glossary sections for sentiment readings (Fear & Greed, Put/Call), which have no
- * such figures.
+ * such figures. The chart itself is hidden separately for futures (`asset.type == AssetType.FUTURE`)
+ * -- see the chart block's own comment -- while still showing technicals/SMA for them, since those
+ * figures are real for a futures contract.
  */
 @Composable
 fun AssetDetailScreen(
@@ -65,6 +67,11 @@ fun AssetDetailScreen(
     val context = LocalContext.current
 
     val showTechnicals = asset.symbol !in listOf("^VIX", "FEAR_GREED", "PUT_CALL")
+    // VIX/Fear & Greed/Put-Call run on their own up/down logic that doesn't map to bullish-green/
+    // bearish-red the way a price does (e.g. a rising VIX is conventionally bearish) -- their
+    // charts use a fixed accent color instead of the usual direction-based read. Same set
+    // showTechnicals already singles out for the same underlying reason.
+    val useAccentColorForChart = !showTechnicals
     val currentPrice = String.format("%.2f", asset.price ?: 0.0)
     val previousClosePrice = String.format("%.2f", asset.previousClose ?: 0.0)
 
@@ -145,31 +152,38 @@ fun AssetDetailScreen(
 
         // Period chart (5D/1M/6M/YTD/1Y) -- every dashboard asset class has a real `market_charts`
         // doc (unlike the intraday sparkline, which only exists for the ~23-symbol live-price
-        // set), so this renders for VIX/futures/commodities/sentiment too, not just the
-        // equity-like assets that keep their technicals below. `PeriodChart` handles the
-        // loading/empty states itself at a fixed height -- see its own doc comment.
-        Spacer(modifier = Modifier.height(paddingLarge))
-        if (selectedChartRange == ChartRange.ONE_DAY) {
-            IntradayPeriodChart(
-                points = intradaySeries?.points.orEmpty(),
-                previousClose = intradaySeries?.previousClose,
-                date = intradaySeries?.date,
-                isLoading = isChartLoading,
-                modifier = Modifier.fillMaxWidth()
-            )
-        } else {
-            PeriodChart(
-                points = chartSeries?.points.orEmpty(),
-                isLoading = isChartLoading,
-                modifier = Modifier.fillMaxWidth()
+        // set), so this renders for VIX/commodities/sentiment too, not just the equity-like assets
+        // that keep their technicals below. `PeriodChart` handles the loading/empty states itself
+        // at a fixed height -- see its own doc comment. Futures (ES=F/YM=F/NQ=F) are excluded
+        // entirely by product decision -- no chart at all for them, not even the period chart
+        // every other asset class keeps.
+        if (asset.type != AssetType.FUTURE) {
+            Spacer(modifier = Modifier.height(paddingLarge))
+            if (selectedChartRange == ChartRange.ONE_DAY) {
+                IntradayPeriodChart(
+                    points = intradaySeries?.points.orEmpty(),
+                    previousClose = intradaySeries?.previousClose,
+                    date = intradaySeries?.date,
+                    isLoading = isChartLoading,
+                    useAccentColor = useAccentColorForChart,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            } else {
+                PeriodChart(
+                    points = chartSeries?.points.orEmpty(),
+                    isLoading = isChartLoading,
+                    currentPrice = asset.price,
+                    useAccentColor = useAccentColorForChart,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            Spacer(modifier = Modifier.height(paddingMedium))
+            ChartRangePicker(
+                selectedRange = selectedChartRange,
+                onRangeSelected = onChartRangeSelected,
+                availableRanges = availableChartRanges
             )
         }
-        Spacer(modifier = Modifier.height(paddingMedium))
-        ChartRangePicker(
-            selectedRange = selectedChartRange,
-            onRangeSelected = onChartRangeSelected,
-            availableRanges = availableChartRanges
-        )
 
         // Hide everything below this point for Sentiment/VIX metrics.
         if (showTechnicals) {
