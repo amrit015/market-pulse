@@ -30,7 +30,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -51,6 +50,7 @@ import com.marketlabs.pulse.ui.components.AnalyzedAtHeader
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.UniversalMetricCard
+import com.marketlabs.pulse.ui.components.widgets.CardEyebrowLabel
 import com.marketlabs.pulse.ui.components.widgets.SignalPill
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
@@ -220,31 +220,20 @@ private fun AiExecutiveBriefingHero(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    val textStyle = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                    val iconSize = with(LocalDensity.current) { textStyle.fontSize.toDp() }
-
-                    // 💡 This eyebrow (icon + label) marks the card as AI-sourced, the same
-                    // role Dashboard's Technical Briefing eyebrow plays -- matches its
-                    // accentPrimary color instead of the muted `colorScheme.secondary` this
-                    // used before. The "Analyzed as of" timestamp that used to sit under this
-                    // row moved out of the card entirely -- see AnalyzedAtHeader, now the first
-                    // item in the screen's own LazyColumn, matching how every other screen in
-                    // this app (Summary's HeaderSection, for instance) places its own timestamp
-                    // at the top of the content, not nested inside a card.
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_ai_sparkle_filled),
-                        contentDescription = "Analysis Engine",
-                        tint = LocalPulseColors.current.accentPrimary,
-                        modifier = Modifier.size(iconSize)
-                    )
-                    Spacer(modifier = Modifier.width(paddingSmall))
-                    Text(
-                        text = stringResource(id = R.string.indicators_todays_read),
-                        style = textStyle,
-                        color = LocalPulseColors.current.accentPrimary
-                    )
-                }
+                // 💡 This eyebrow (icon + label) marks the card as AI-sourced, the same role
+                // Dashboard's Technical Briefing eyebrow plays -- accentPrimary, same shared
+                // CardEyebrowLabel tier "Market Read"/"Where Capital's Moving" (Summary) and
+                // Digest (Insights' SynthesisHeroCard) use. The "Analyzed as of" timestamp that
+                // used to sit under this row moved out of the card entirely -- see
+                // AnalyzedAtHeader, now the first item in the screen's own LazyColumn, matching
+                // how every other screen in this app (Summary's HeaderSection, for instance)
+                // places its own timestamp at the top of the content, not nested inside a card.
+                CardEyebrowLabel(
+                    text = stringResource(id = R.string.indicators_todays_read),
+                    color = LocalPulseColors.current.accentPrimary,
+                    iconRes = R.drawable.ic_ai_sparkle_filled,
+                    iconContentDescription = "Analysis Engine"
+                )
                 Icon(
                     painter = painterResource(id = if (isExpanded) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down),
                     contentDescription = null,

@@ -30,7 +30,13 @@ data class MarketPulse(
     // New 2026-08-21: deterministic (non-AI), most-recent-first list of indicators whose data
     // posted in the last 7 days. Can legitimately be empty on a quiet week -- mapped to
     // emptyList() rather than left null, same convention leadStories/macroMix already follow.
-    val whatsNew: List<WhatsNewItem>? = null
+    val whatsNew: List<WhatsNewItem>? = null,
+    // spec-20260902-market-sentiment-android.md: AI-authored cohort-positioning synthesis, rides
+    // inside the existing pulse response -- no new network call. Null when the field is absent or
+    // both headline/summary are blank (see SummaryMappers.kt's NetworkMarketSentiment.toDomain()),
+    // which the screen treats as "card not shown," same convention every other optional pulse
+    // section already follows.
+    val marketSentiment: MarketSentiment? = null
 )
 
 // Replaces the old Verdict/TheRead split -- the backend consolidated signal + the_read into
@@ -120,6 +126,15 @@ data class Valuation(
 
 @JsonClass(generateAdapter = true)
 data class NewsItem(
+    val headline: String? = null,
+    val summary: String? = null
+)
+
+// Individually-nullable fields (not a collapsed single string) so the card can render whichever
+// half is present -- see spec-20260902-market-sentiment-android.md's "headline present, summary
+// blank -> render what's present" rule.
+@JsonClass(generateAdapter = true)
+data class MarketSentiment(
     val headline: String? = null,
     val summary: String? = null
 )

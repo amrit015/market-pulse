@@ -23,6 +23,10 @@
          hierarchy or visual design has landed for this section yet; see WhatsNewSection's doc
          comment in SummaryScreen.kt. -->
     <string name="section_whats_new">What\'s New</string>
+    <!-- New 2026-09-02 (spec-20260902-market-sentiment-android.md): AI-authored cohort-positioning
+         synthesis, rides inside the existing pulse response. -->
+    <string name="section_market_sentiment">Market Sentiment</string>
+    <string name="market_sentiment_navigate_content_description">View Posture in Insights</string>
     <string name="drivers_navigate_content_description">View drivers in Indicators</string>
     <string name="drivers_info_content_description">About drivers</string>
     <string name="drivers_info_title">About Drivers</string>
@@ -463,8 +467,8 @@
     <string name="insights_label_trend">Trend</string>
     <string name="insights_label_sentiment">Sentiment</string>
     <string name="insights_label_positioning">Positioning</string>
-    <string name="insights_synthesis_label">SYNTHESIS</string>
-    <string name="insights_synthesis_unavailable">Synthesis unavailable for this run.</string>
+    <string name="insights_synthesis_label">DIGEST</string>
+    <string name="insights_synthesis_unavailable">Digest unavailable for this run.</string>
     <string name="insights_metric_info_action">About %1$s</string>
     <string name="insights_metric_info_dismiss">Got it</string>
     <string name="insights_status_unknown">UNKNOWN</string>

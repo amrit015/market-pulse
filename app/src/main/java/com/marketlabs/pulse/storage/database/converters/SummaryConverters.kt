@@ -5,6 +5,7 @@ import com.marketlabs.pulse.storage.model.summary.DominoEffect
 import com.marketlabs.pulse.storage.model.summary.MacroItem
 import com.marketlabs.pulse.storage.model.summary.MarketDriver
 import com.marketlabs.pulse.storage.model.summary.MarketPosition
+import com.marketlabs.pulse.storage.model.summary.MarketSentiment
 import com.marketlabs.pulse.storage.model.summary.MarketVerdict
 import com.marketlabs.pulse.storage.model.summary.NewsItem
 import com.marketlabs.pulse.storage.model.summary.RiskItem
@@ -143,5 +144,18 @@ class SummaryConverters {
         if (json.isNullOrBlank()) return null
         val type = Types.newParameterizedType(List::class.java, WhatsNewItem::class.java)
         return moshi.adapter<List<WhatsNewItem>>(type).fromJson(json)
+    }
+
+    // 10. Market Sentiment Converter -- new 2026-09-02
+    @TypeConverter
+    fun fromMarketSentiment(sentiment: MarketSentiment?): String? {
+        if (sentiment == null) return null
+        return moshi.adapter(MarketSentiment::class.java).toJson(sentiment)
+    }
+
+    @TypeConverter
+    fun toMarketSentiment(json: String?): MarketSentiment? {
+        if (json.isNullOrBlank()) return null
+        return moshi.adapter(MarketSentiment::class.java).fromJson(json)
     }
 }

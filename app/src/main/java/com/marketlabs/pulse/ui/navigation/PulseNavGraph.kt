@@ -22,6 +22,7 @@ import com.marketlabs.pulse.ui.screens.indicators.views.IndicatorHorizonsRoute
 import com.marketlabs.pulse.ui.screens.indicators.views.IndicatorsRoute
 import com.marketlabs.pulse.ui.screens.insights.glossary.GlossaryDetailRoute
 import com.marketlabs.pulse.ui.screens.insights.views.InsightsRoute
+import com.marketlabs.pulse.ui.screens.insights.views.InsightsTab
 import com.marketlabs.pulse.ui.screens.news.views.NewsRoute
 import com.marketlabs.pulse.ui.screens.stocks.detail.StockDetailRoute
 import com.marketlabs.pulse.ui.screens.stocks.views.StockAnalysisRoute
@@ -141,6 +142,14 @@ fun PulseNavGraph(
     onDriversNavigatedToIndicators: () -> Unit = {},
     reachedIndicatorsFromDrivers: Boolean = false,
     onIndicatorsBackHandled: () -> Unit = {},
+    // 💡 Same up-reporting/read-back shape as the Drivers-to-Indicators flag above, for the Market
+    // Sentiment card's jump to Insights (Posture) -- MainActivity owns this flag too, for the same
+    // reason: it has to survive across this graph's own recompositions, and the BackHandler that
+    // reads it has to live inside the Insights destination's own content (see the
+    // composable(MARKET_INSIGHTS) block below).
+    onMarketSentimentNavigatedToInsights: () -> Unit = {},
+    reachedInsightsFromMarketSentiment: Boolean = false,
+    onInsightsBackHandled: () -> Unit = {},
     // 💡 Same up-reporting shape as onDriversNavigatedToIndicators above -- MainActivity's top bar
     // needs the loaded ReportType to show "Daily Update"/"Weekend Update" instead of a fixed
     // "Summary", but can't reach into MarketSummaryViewModel's state directly.
@@ -152,6 +161,13 @@ fun PulseNavGraph(
     // Hoisted here (not a nav argument) so the bottom-nav's plain "market_news" route pattern —
     // and its selected-tab matching in the bar above — stays untouched.
     var highlightedNewsArticleUrl by remember { mutableStateOf<String?>(null) }
+
+    // spec-20260902-market-sentiment-android.md: same one-shot hoisted-signal shape as
+    // highlightedNewsArticleUrl above, set right before navigating to Insights from the Market
+    // Sentiment card so InsightsRoute lands on the Posture tab -- not a nav argument, so
+    // PulseRoutes.MARKET_INSIGHTS's plain route string (and FloatingBottomNav's route-equality
+    // tab-selected check) stays untouched.
+    var initialInsightsTab by remember { mutableStateOf<InsightsTab?>(null) }
 
     NavHost(
         navController = navController,
@@ -176,6 +192,21 @@ fun PulseNavGraph(
                 onNavigateToIndicators = {
                     onDriversNavigatedToIndicators()
                     navController.navigate(PulseRoutes.MARKET_INDICATORS) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
+                // spec-20260902-market-sentiment-android.md: same tab-preserving navigate() as
+                // onNavigateToIndicators above -- stash Posture as the Insights tab to land on,
+                // report the arrival up (for the BackHandler below), then push Insights exactly
+                // the way FloatingBottomNav's own tab switch does.
+                onNavigateToPosture = {
+                    initialInsightsTab = InsightsTab.POSTURE
+                    onMarketSentimentNavigatedToInsights()
+                    navController.navigate(PulseRoutes.MARKET_INSIGHTS) {
                         popUpTo(navController.graph.findStartDestination().id) {
                             saveState = true
                         }
@@ -258,8 +289,24 @@ fun PulseNavGraph(
             )
         }
         composable(PulseRoutes.MARKET_INSIGHTS) {
+            // 💡 Same reasoning as the Indicators BackHandler above -- composed inside this
+            // destination's own content so it takes priority over NavHost's own back handling.
+            // Only enabled when Market Sentiment was the way here (see onNavigateToPosture above)
+            // -- an ordinary tab-click arrival at Insights keeps default back behavior.
+            BackHandler(enabled = reachedInsightsFromMarketSentiment) {
+                onInsightsBackHandled()
+                navController.navigate(PulseRoutes.MARKET_SUMMARY) {
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        saveState = true
+                    }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            }
             InsightsRoute(
                 scaffoldPadding = scaffoldPadding,
+                initialTab = initialInsightsTab,
+                onInitialTabConsumed = { initialInsightsTab = null },
                 onNavigateToGlossaryDetail = { metricIds, title, description, status ->
                     // 💡 Uri.encode(), not URLEncoder.encode() -- see GlossaryDetailViewModel's
                     // doc comment for why the form-encoding pairing (spaces -> "+") crashed

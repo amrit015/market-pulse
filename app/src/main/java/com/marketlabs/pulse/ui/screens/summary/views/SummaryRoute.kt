@@ -60,6 +60,10 @@ fun MarketSummaryRoute(
     // through PulseNavGraph rather than the top bar reaching into this screen's ViewModel
     // directly. Same shape as onDriversNavigatedToIndicators's up-reporting.
     onReportTypeLoaded: (ReportType?) -> Unit = {},
+    // spec-20260902-market-sentiment-android.md: Market Sentiment's whole-card tap target --
+    // Posture is an Insights tab, not its own destination, so this lands on Insights at that
+    // specific tab. Same pass-through shape as onNavigateToIndicators above.
+    onNavigateToPosture: () -> Unit = {},
     viewModel: SummaryViewModel = hiltViewModel()
 ) {
     // 1. STATE COLLECTION
@@ -149,7 +153,8 @@ fun MarketSummaryRoute(
                     MarketSummaryScreen(
                         data = state.dataV3,
                         scaffoldPadding = scaffoldPadding,
-                        onNavigateToIndicators = onNavigateToIndicators
+                        onNavigateToIndicators = onNavigateToIndicators,
+                        onNavigateToPosture = onNavigateToPosture
                     )
                 }
 
