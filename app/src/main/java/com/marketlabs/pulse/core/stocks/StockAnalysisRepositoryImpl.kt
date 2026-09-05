@@ -4,6 +4,7 @@ package com.marketlabs.pulse.core.stocks
 
 import android.util.Log
 import com.marketlabs.pulse.network.store.stocks.RemoteStockDataSource
+import com.marketlabs.pulse.storage.model.stocks.StockDeepDive
 import com.marketlabs.pulse.storage.model.stocks.StockDetail
 import com.marketlabs.pulse.storage.model.stocks.StockPreview
 import com.marketlabs.pulse.storage.store.stocks.LocalStockDataSource
@@ -80,6 +81,40 @@ class StockAnalysisRepositoryImpl @Inject constructor(
             Result.success(Unit)
         } catch (e: Exception) {
             Log.e("StockAnalysis", "Failed to refresh detail for $symbol", e)
+            Result.failure(e)
+        }
+    }
+
+    override fun getDeepDiveStream(symbol: String): Flow<StockDeepDive?> =
+        localDataSource.getDeepDiveStream(symbol)
+
+    /**
+     * Same version-compare short-circuit as `refreshDetail`, comparing `deepVersion` instead of
+     * `detailVersion` -- a preview's `deepVersion` only advances when the backend actually
+     * regenerated that symbol's deep-dive doc (roughly every ~14 days), so an unchanged version
+     * means the cached deep dive is still correct and the fetch is skipped.
+     */
+    override suspend fun refreshDeepDive(symbol: String, force: Boolean): Result<Unit> {
+        return try {
+            if (!force) {
+                val previewDeepVersion = localDataSource.getPreviewDeepVersion(symbol)
+                val cachedDeepVersion = localDataSource.getCachedDeepDiveVersion(symbol)
+
+                if (previewDeepVersion != null && cachedDeepVersion != null && previewDeepVersion == cachedDeepVersion) {
+                    Log.d("StockAnalysis", "Deep dive for $symbol already current at version $cachedDeepVersion — skipping fetch.")
+                    return Result.success(Unit)
+                }
+            }
+
+            Log.d("StockAnalysis", "🌐 Fetching latest deep dive for $symbol...")
+
+            remoteDataSource.getStockDeepDive(symbol)
+                .onSuccess { deepDive -> deepDive?.let { localDataSource.saveDeepDive(it) } }
+                .onFailure { throw it }
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e("StockAnalysis", "Failed to refresh deep dive for $symbol", e)
             Result.failure(e)
         }
     }

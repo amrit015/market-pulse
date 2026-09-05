@@ -578,11 +578,60 @@ object DatabaseMigrations {
         }
     }
 
+    // Migration from Version 21 to 22: per-symbol intelligence (short interest, Daily Digest,
+    // Deep Dive) -- market_stock_previews gains 5 new columns (digest headline + 4 deep-dive
+    // date/version fields), market_stock_details gains 1 (digest sections), and a brand new
+    // market_stock_deep_dives table is created for the separately-fetched Deep Dive subdocument.
+    // Purely additive, same style as MIGRATION_15_16/18_19/20_21 -- no existing column touched,
+    // old rows just read back with the new columns null until the next sync.
+    val MIGRATION_21_22 = object : Migration(21, 22) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE `market_stock_previews` ADD COLUMN `dailyDigestHeadline` TEXT")
+            db.execSQL("ALTER TABLE `market_stock_previews` ADD COLUMN `deepAnalysisDate` TEXT")
+            db.execSQL("ALTER TABLE `market_stock_previews` ADD COLUMN `deepVersion` INTEGER")
+            db.execSQL("ALTER TABLE `market_stock_previews` ADD COLUMN `nextDeepDiveTriggerDate` TEXT")
+            db.execSQL("ALTER TABLE `market_stock_previews` ADD COLUMN `nextDeepDiveTriggerReason` TEXT")
+            db.execSQL("ALTER TABLE `market_stock_details` ADD COLUMN `dailyDigestSections` TEXT")
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `market_stock_deep_dives` (
+                    `symbol` TEXT NOT NULL,
+                    `lastSyncedTimestamp` INTEGER NOT NULL,
+                    `deepAnalysisDate` TEXT,
+                    `deepVersion` INTEGER,
+                    `earningsTriggered` INTEGER,
+                    `sections` TEXT,
+                    `nextDeepDiveTriggerDate` TEXT,
+                    `nextDeepDiveTriggerReason` TEXT,
+                    PRIMARY KEY(`symbol`)
+                )
+                """.trimIndent()
+            )
+        }
+    }
+
+    // Migration from Version 22 to 23: fundamentals_delta chips under the Deep Dive screen's
+    // WHATS_CHANGED section. A separate migration rather than amending MIGRATION_21_22 in place --
+    // that migration had already run against a real installed build during this same session (the
+    // per-symbol-intelligence feature was tested before this delta-chip addition), so any device
+    // already at version 22 needs an actual forward migration to pick up the new column; amending
+    // an already-applied migration's SQL doesn't change what a live database already has, and Room
+    // validates the live schema against the entity-derived one on every open regardless of whether
+    // a migration ran -- a version-22 database missing `fundamentalsDelta` while the entity class
+    // now declares it is exactly the mismatch that crashes on launch. Purely additive, same style
+    // as every other migration here -- no existing column touched.
+    val MIGRATION_22_23 = object : Migration(22, 23) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE `market_stock_deep_dives` ADD COLUMN `fundamentalsDelta` TEXT")
+        }
+    }
+
     val ALL_MIGRATIONS = arrayOf(
         MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5,
         MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9,
         MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13,
         MIGRATION_13_14, MIGRATION_14_15, MIGRATION_15_16, MIGRATION_16_17,
-        MIGRATION_17_18, MIGRATION_18_19, MIGRATION_19_20, MIGRATION_20_21 // 💡 Added to registry
+        MIGRATION_17_18, MIGRATION_18_19, MIGRATION_19_20, MIGRATION_20_21,
+        MIGRATION_21_22, MIGRATION_22_23 // 💡 Added to registry
     )
 }

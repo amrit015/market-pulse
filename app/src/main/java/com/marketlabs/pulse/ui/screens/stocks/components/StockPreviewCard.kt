@@ -37,6 +37,7 @@ import com.marketlabs.pulse.ui.components.widgets.ChangeDirection
 import com.marketlabs.pulse.ui.components.widgets.DirectionalChangePill
 import com.marketlabs.pulse.ui.components.widgets.SparklineChart
 import com.marketlabs.pulse.ui.screens.stocks.detail.OutlinedBadge
+import com.marketlabs.pulse.ui.screens.stocks.detail.sections.DeepDiveLabel
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 import kotlinx.coroutines.flow.Flow
@@ -221,6 +222,23 @@ fun StockPreviewCard(
                         modifier = Modifier.weight(1f)
                     )
                 }
+            }
+
+            // 💡 Just below the news line, per the per-symbol-intelligence spec -- same divider
+            // treatment as the NEWS block above it, not a separate tap target (the whole card
+            // already opens Stock Detail, where the real Deep Dive card lives). Omitted entirely
+            // when neither date is present yet (see DeepDiveLabel/deepDiveDisplayText).
+            if (preview.deepAnalysisDate != null || preview.nextDeepDiveTriggerDate != null) {
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                    thickness = dimensionResource(id = R.dimen.border_thin)
+                )
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                DeepDiveLabel(
+                    deepAnalysisDate = preview.deepAnalysisDate,
+                    nextDeepDiveTriggerDate = preview.nextDeepDiveTriggerDate
+                )
             }
         }
     }

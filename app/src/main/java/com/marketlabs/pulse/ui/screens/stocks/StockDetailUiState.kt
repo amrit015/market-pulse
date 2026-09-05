@@ -8,6 +8,7 @@ import com.marketlabs.pulse.storage.model.intraday.IntradaySeries
 import com.marketlabs.pulse.storage.model.stocks.StockDetail
 import com.marketlabs.pulse.storage.model.stocks.StockPreview
 import com.marketlabs.pulse.ui.common.UiError
+import com.marketlabs.pulse.ui.screens.stocks.detail.DetailTab
 
 /**
  * Drives the pushed stock-detail screen (navigated to by tapping a preview on the Analysis tab).
@@ -56,7 +57,7 @@ data class StockDetailUiState(
     val isRefreshing: Boolean = false,
     val expandedChipIds: Set<String> = emptySet(),
     val expandedNewsIds: Set<String> = emptySet(),
-    val selectedTabIndex: Int = 0,
+    val selectedTabIndex: Int = DetailTab.TECHNICALS.ordinal,
     val chartSeries: ChartSeries? = null,
     val selectedChartRange: ChartRange = ChartRange.FIVE_DAY,
     val isChartLoading: Boolean = false,

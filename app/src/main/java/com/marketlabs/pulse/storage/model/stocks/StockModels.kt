@@ -57,7 +57,18 @@ data class StockPreview(
     /** Compare against a cached `StockDetail.detailVersion` to know whether a re-fetch is needed. */
     val detailVersion: Long? = null,
 
-    val timestamp: Long? = null
+    val timestamp: Long? = null,
+
+    /** Flattened from the network's `{headline}` wrapper — that object only exists to satisfy JSON parsing. */
+    val dailyDigestHeadline: String? = null,
+
+    /** Null until this symbol's first-ever deep dive has run. */
+    val deepAnalysisDate: String? = null,
+    /** Compare against a cached `StockDeepDive.deepVersion` to know whether a re-fetch is needed. */
+    val deepVersion: Long? = null,
+    /** Written nightly for every tracked symbol — may be non-null even when `deepAnalysisDate` is still null. */
+    val nextDeepDiveTriggerDate: String? = null,
+    val nextDeepDiveTriggerReason: String? = null
 )
 
 data class DomainConditionChip(
@@ -103,7 +114,15 @@ data class StockDetail(
     val contextVault: DomainContextVault? = null,
     val calls: DomainCallRecord? = null,
 
-    val timestamp: Long? = null
+    val timestamp: Long? = null,
+
+    /** Optional model-written sections for the day's digest; null/absent on a quiet day. */
+    val dailyDigestSections: List<DomainDigestSection>? = null
+)
+
+data class DomainDigestSection(
+    val heading: String? = null,
+    val body: String? = null
 )
 
 data class DomainTechnicalIndicators(
@@ -217,7 +236,15 @@ data class DomainFundamentals(
     val targetMean: Double? = null,
     val totalCash: Double? = null,
     val totalDebt: Double? = null,
-    val trailingEps: Double? = null
+    val trailingEps: Double? = null,
+
+    // --- Short interest (all nullable — undefined until the weekly Sunday sweep backfills a newly-onboarded symbol) ---
+    val shortPctFloat: Double? = null,
+    val shortShares: Double? = null,
+    val floatShares: Double? = null,
+    val sharesOutstanding: Double? = null,
+    val shortRatio: Double? = null,
+    val shortInterestDate: String? = null
 )
 
 data class DomainMacro(

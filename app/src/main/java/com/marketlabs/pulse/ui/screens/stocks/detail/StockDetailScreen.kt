@@ -47,6 +47,7 @@ import com.marketlabs.pulse.ui.screens.stocks.detail.sections.Macro
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.MomentumAndTrend
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.NotCoveredFooter
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.Returns
+import com.marketlabs.pulse.ui.screens.stocks.detail.sections.DigestCard
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.Scenarios
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.SetupReasoning
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.SignalConditions
@@ -55,13 +56,21 @@ import com.marketlabs.pulse.ui.screens.stocks.detail.sections.WatchList
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 
 /**
- * The 5 tabs the Detail screen's sections are grouped into. `DetailHeader` and the pill tab bar
+ * The 6 tabs the Detail screen's sections are grouped into. `DetailHeader` and the pill tab bar
  * are the only things `StockDetailRoute` keeps pinned -- `TechnicalRead` and the HIGH-urgency
  * alert scroll away with the rest of the content (see [DetailTabContent]'s leading block) so the
  * tab bar isn't permanently competing with them for screen space. `DirectNews` used to live in
  * `TIMELINE` alongside `ForwardCalls`/`EventLog`; it's its own tab now, sorted newest-first.
+ *
+ * `DIGEST` is first in tab order (per the per-symbol-intelligence spec) but deliberately does NOT
+ * change `StockDetailViewModel`'s default `_selectedTabIndex` -- opening a stock still lands on
+ * Technicals, same as before; only the tab bar's order changed. Unlike the other 5 tabs, Digest
+ * renders standalone (see [DigestTabContent]) rather than through [DetailTabContent]'s shared
+ * `TechnicalRead`/HIGH-alert leading block -- it's a distinct AI narrative surface with its own
+ * "Daily Digest" header, and mixing in unrelated technical context would blur that.
  */
 enum class DetailTab(val labelRes: Int) {
+    DIGEST(R.string.stock_detail_tab_digest),
     TECHNICALS(R.string.stock_detail_tab_technicals),
     FUNDAMENTALS(R.string.stock_detail_tab_fundamentals),
     THESIS(R.string.stock_detail_tab_thesis),
@@ -123,6 +132,14 @@ fun StockDetailScreen(
             .background(MaterialTheme.colorScheme.background)
     ) {
         when (DetailTab.entries[selectedTabIndex]) {
+            DetailTab.DIGEST -> DigestTabContent(
+                detail = detail,
+                preview = preview,
+                lazyListState = lazyListStates[DetailTab.DIGEST.ordinal],
+                contentPadding = contentPadding,
+                sectionSpacing = sectionSpacing
+            )
+
             DetailTab.TECHNICALS -> TechnicalsTabContent(
                 detail = detail,
                 preview = preview,
@@ -170,6 +187,47 @@ fun StockDetailScreen(
                 contentPadding = contentPadding,
                 sectionSpacing = sectionSpacing
             )
+        }
+    }
+}
+
+/**
+ * Standalone -- does NOT route through [DetailTabContent]'s shared `TechnicalRead`/HIGH-alert
+ * leading block (see this file's header comment on why). Headline and sections render together
+ * inside one [DigestCard]; a quiet day with a headline but no `sections` still shows the headline
+ * on its own, not an empty state.
+ */
+@Composable
+private fun DigestTabContent(
+    detail: StockDetail?,
+    preview: StockPreview?,
+    lazyListState: LazyListState,
+    contentPadding: PaddingValues,
+    sectionSpacing: Dp
+) {
+    val headline = preview?.dailyDigestHeadline
+    val sections = detail?.dailyDigestSections.orEmpty()
+    val hasContent = headline != null || sections.isNotEmpty()
+
+    if (!hasContent) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text(
+                text = stringResource(id = R.string.stock_detail_tab_nothing_yet),
+                style = MaterialTheme.typography.bodyMedium,
+                color = LocalPulseColors.current.onSurfaceMuted
+            )
+        }
+        return
+    }
+
+    LazyColumn(
+        state = lazyListState,
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = contentPadding,
+        verticalArrangement = Arrangement.spacedBy(sectionSpacing)
+    ) {
+        item {
+            DigestCard(headline = headline, sections = sections)
         }
     }
 }

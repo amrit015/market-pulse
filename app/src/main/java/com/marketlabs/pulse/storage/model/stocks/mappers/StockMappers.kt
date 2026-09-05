@@ -8,6 +8,9 @@ import com.marketlabs.pulse.network.model.stocks.NetworkCallStats
 import com.marketlabs.pulse.network.model.stocks.NetworkConditionChip
 import com.marketlabs.pulse.network.model.stocks.NetworkConditionLabel
 import com.marketlabs.pulse.network.model.stocks.NetworkContextVault
+import com.marketlabs.pulse.network.model.stocks.NetworkDeepDiveSection
+import com.marketlabs.pulse.network.model.stocks.NetworkDigestSection
+import com.marketlabs.pulse.network.model.stocks.NetworkFundamentalsDelta
 import com.marketlabs.pulse.network.model.stocks.NetworkEventLogItem
 import com.marketlabs.pulse.network.model.stocks.NetworkExecutiveThesis
 import com.marketlabs.pulse.network.model.stocks.NetworkForwardCall
@@ -18,11 +21,13 @@ import com.marketlabs.pulse.network.model.stocks.NetworkMacro
 import com.marketlabs.pulse.network.model.stocks.NetworkReturns
 import com.marketlabs.pulse.network.model.stocks.NetworkScenario
 import com.marketlabs.pulse.network.model.stocks.NetworkSetupSignal
+import com.marketlabs.pulse.network.model.stocks.NetworkStockDeepDive
 import com.marketlabs.pulse.network.model.stocks.NetworkStockDetail
 import com.marketlabs.pulse.network.model.stocks.NetworkStockNewsItem
 import com.marketlabs.pulse.network.model.stocks.NetworkStockPreview
 import com.marketlabs.pulse.network.model.stocks.NetworkTechnicalIndicators
 import com.marketlabs.pulse.network.model.stocks.NetworkWatchItem
+import com.marketlabs.pulse.storage.database.entity.StockDeepDiveEntity
 import com.marketlabs.pulse.storage.database.entity.StockDetailEntity
 import com.marketlabs.pulse.storage.database.entity.StockPreviewEntity
 import com.marketlabs.pulse.storage.model.stocks.DomainCallBasisStat
@@ -31,10 +36,13 @@ import com.marketlabs.pulse.storage.model.stocks.DomainCallStats
 import com.marketlabs.pulse.storage.model.stocks.DomainConditionChip
 import com.marketlabs.pulse.storage.model.stocks.DomainConditionLabel
 import com.marketlabs.pulse.storage.model.stocks.DomainContextVault
+import com.marketlabs.pulse.storage.model.stocks.DomainDeepDiveSection
+import com.marketlabs.pulse.storage.model.stocks.DomainDigestSection
 import com.marketlabs.pulse.storage.model.stocks.DomainEventLogItem
 import com.marketlabs.pulse.storage.model.stocks.DomainExecutiveThesis
 import com.marketlabs.pulse.storage.model.stocks.DomainForwardCall
 import com.marketlabs.pulse.storage.model.stocks.DomainFundamentals
+import com.marketlabs.pulse.storage.model.stocks.DomainFundamentalsDelta
 import com.marketlabs.pulse.storage.model.stocks.DomainHeadlineMetrics
 import com.marketlabs.pulse.storage.model.stocks.DomainLevels
 import com.marketlabs.pulse.storage.model.stocks.DomainMacro
@@ -44,6 +52,7 @@ import com.marketlabs.pulse.storage.model.stocks.DomainSetupSignal
 import com.marketlabs.pulse.storage.model.stocks.DomainStockNewsItem
 import com.marketlabs.pulse.storage.model.stocks.DomainTechnicalIndicators
 import com.marketlabs.pulse.storage.model.stocks.DomainWatchItem
+import com.marketlabs.pulse.storage.model.stocks.StockDeepDive
 import com.marketlabs.pulse.storage.model.stocks.StockDetail
 import com.marketlabs.pulse.storage.model.stocks.StockPreview
 
@@ -84,7 +93,12 @@ fun NetworkStockPreview.toDomain(lastSyncedTimestamp: Long): StockPreview? {
         topHeadline = topHeadline,
         contentFlags = contentFlags,
         detailVersion = detailVersion,
-        timestamp = timestamp
+        timestamp = timestamp,
+        dailyDigestHeadline = dailyDigest?.headline,
+        deepAnalysisDate = deepAnalysisDate,
+        deepVersion = deepVersion,
+        nextDeepDiveTriggerDate = nextDeepDiveTriggerDate,
+        nextDeepDiveTriggerReason = nextDeepDiveTriggerReason
     )
 }
 
@@ -140,8 +154,40 @@ fun NetworkStockDetail.toDomain(symbol: String, lastSyncedTimestamp: Long): Stoc
         topNewsStream = topNewsStream?.map { it.toDomain() },
         contextVault = contextVault?.toDomain(),
         calls = calls?.toDomain(),
-        timestamp = timestamp
+        timestamp = timestamp,
+        dailyDigestSections = dailyDigest?.sections?.map { it.toDomain() }
     )
+}
+
+fun NetworkDigestSection.toDomain(): DomainDigestSection {
+    return DomainDigestSection(heading = heading, body = body)
+}
+
+/**
+ * Symbol is passed in explicitly rather than trusted from the JSON body, same reasoning as
+ * `NetworkStockDetail.toDomain` — the caller already knows which symbol it requested via
+ * `GET /stocks/{symbol}/detail/deep`.
+ */
+fun NetworkStockDeepDive.toDomain(symbol: String, lastSyncedTimestamp: Long): StockDeepDive {
+    return StockDeepDive(
+        symbol = symbol,
+        lastSyncedTimestamp = lastSyncedTimestamp,
+        deepAnalysisDate = deepAnalysisDate,
+        deepVersion = deepVersion,
+        earningsTriggered = earningsTriggered,
+        sections = sections?.map { it.toDomain() },
+        fundamentalsDelta = fundamentalsDelta?.map { it.toDomain() },
+        nextDeepDiveTriggerDate = nextDeepDiveTriggerDate,
+        nextDeepDiveTriggerReason = nextDeepDiveTriggerReason
+    )
+}
+
+fun NetworkDeepDiveSection.toDomain(): DomainDeepDiveSection {
+    return DomainDeepDiveSection(topic = topic, heading = heading, body = body)
+}
+
+fun NetworkFundamentalsDelta.toDomain(): DomainFundamentalsDelta {
+    return DomainFundamentalsDelta(field = field, from = from, fromDate = fromDate, to = to, toDate = toDate)
 }
 
 fun NetworkTechnicalIndicators.toDomain(): DomainTechnicalIndicators {
@@ -254,7 +300,13 @@ fun NetworkFundamentals.toDomain(): DomainFundamentals {
         targetMean = targetMean,
         totalCash = totalCash,
         totalDebt = totalDebt,
-        trailingEps = trailingEps
+        trailingEps = trailingEps,
+        shortPctFloat = shortPctFloat,
+        shortShares = shortShares,
+        floatShares = floatShares,
+        sharesOutstanding = sharesOutstanding,
+        shortRatio = shortRatio,
+        shortInterestDate = shortInterestDate
     )
 }
 
@@ -380,7 +432,12 @@ fun StockPreview.toEntity(): StockPreviewEntity {
         topHeadline = topHeadline,
         contentFlags = contentFlags,
         detailVersion = detailVersion,
-        timestamp = timestamp
+        timestamp = timestamp,
+        dailyDigestHeadline = dailyDigestHeadline,
+        deepAnalysisDate = deepAnalysisDate,
+        deepVersion = deepVersion,
+        nextDeepDiveTriggerDate = nextDeepDiveTriggerDate,
+        nextDeepDiveTriggerReason = nextDeepDiveTriggerReason
     )
 }
 
@@ -407,7 +464,22 @@ fun StockDetail.toEntity(): StockDetailEntity {
         topNewsStream = topNewsStream,
         contextVault = contextVault,
         calls = calls,
-        timestamp = timestamp
+        timestamp = timestamp,
+        dailyDigestSections = dailyDigestSections
+    )
+}
+
+fun StockDeepDive.toEntity(): StockDeepDiveEntity {
+    return StockDeepDiveEntity(
+        symbol = symbol,
+        lastSyncedTimestamp = lastSyncedTimestamp,
+        deepAnalysisDate = deepAnalysisDate,
+        deepVersion = deepVersion,
+        earningsTriggered = earningsTriggered,
+        sections = sections,
+        fundamentalsDelta = fundamentalsDelta,
+        nextDeepDiveTriggerDate = nextDeepDiveTriggerDate,
+        nextDeepDiveTriggerReason = nextDeepDiveTriggerReason
     )
 }
 
@@ -441,7 +513,12 @@ fun StockPreviewEntity.toDomain(): StockPreview {
         topHeadline = topHeadline,
         contentFlags = contentFlags,
         detailVersion = detailVersion,
-        timestamp = timestamp
+        timestamp = timestamp,
+        dailyDigestHeadline = dailyDigestHeadline,
+        deepAnalysisDate = deepAnalysisDate,
+        deepVersion = deepVersion,
+        nextDeepDiveTriggerDate = nextDeepDiveTriggerDate,
+        nextDeepDiveTriggerReason = nextDeepDiveTriggerReason
     )
 }
 
@@ -468,6 +545,21 @@ fun StockDetailEntity.toDomain(): StockDetail {
         topNewsStream = topNewsStream,
         contextVault = contextVault,
         calls = calls,
-        timestamp = timestamp
+        timestamp = timestamp,
+        dailyDigestSections = dailyDigestSections
+    )
+}
+
+fun StockDeepDiveEntity.toDomain(): StockDeepDive {
+    return StockDeepDive(
+        symbol = symbol,
+        lastSyncedTimestamp = lastSyncedTimestamp,
+        deepAnalysisDate = deepAnalysisDate,
+        deepVersion = deepVersion,
+        earningsTriggered = earningsTriggered,
+        sections = sections,
+        fundamentalsDelta = fundamentalsDelta,
+        nextDeepDiveTriggerDate = nextDeepDiveTriggerDate,
+        nextDeepDiveTriggerReason = nextDeepDiveTriggerReason
     )
 }

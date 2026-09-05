@@ -24,6 +24,7 @@ import com.marketlabs.pulse.ui.screens.insights.glossary.GlossaryDetailRoute
 import com.marketlabs.pulse.ui.screens.insights.views.InsightsRoute
 import com.marketlabs.pulse.ui.screens.insights.views.InsightsTab
 import com.marketlabs.pulse.ui.screens.news.views.NewsRoute
+import com.marketlabs.pulse.ui.screens.stocks.deepdive.DeepDiveRoute
 import com.marketlabs.pulse.ui.screens.stocks.detail.StockDetailRoute
 import com.marketlabs.pulse.ui.screens.stocks.views.StockAnalysisRoute
 import com.marketlabs.pulse.ui.screens.summary.views.MarketSummaryRoute
@@ -50,6 +51,11 @@ object PulseRoutes {
     // Pushed from a StockPreviewCard tap on the Analysis tab. "symbol" is a required nav argument,
     // not a query param -- see StockDetailViewModel's SavedStateHandle read.
     const val STOCK_ANALYSIS_DETAIL = "stockAnalysis"
+
+    // Pushed from the Deep Dive banner on Stock Detail (spec-20260903-per-symbol-intelligence).
+    // Its own full-screen destination, not a tab on STOCK_ANALYSIS_DETAIL -- "symbol" is a required
+    // nav argument, same shape as STOCK_ANALYSIS_DETAIL above.
+    const val DEEP_DIVE_DETAIL = "deepDiveDetail"
 
     // Reached from the gear icon on the global top bar.
     const val SETTINGS = "settings"
@@ -354,7 +360,19 @@ fun PulseNavGraph(
                 onNavigateToWebView = { url ->
                     val encodedUrl = URLEncoder.encode(url, StandardCharsets.UTF_8.toString())
                     navController.navigate("webview/$encodedUrl")
+                },
+                onNavigateToDeepDive = { symbol ->
+                    navController.navigate("${PulseRoutes.DEEP_DIVE_DETAIL}/$symbol")
                 }
+            )
+        }
+        // Pushed from a DeepDiveBanner tap on Stock Detail. "symbol" is read out of
+        // SavedStateHandle by DeepDiveViewModel itself (see DeepDiveViewModel.ARG_SYMBOL), same
+        // shape as STOCK_ANALYSIS_DETAIL above.
+        composable("${PulseRoutes.DEEP_DIVE_DETAIL}/{symbol}") {
+            DeepDiveRoute(
+                scaffoldPadding = scaffoldPadding,
+                onNavigateUp = { navController.popBackStack() }
             )
         }
         // Added with Claude Code assistance: pushed only from the Dashboard's "Latest News"

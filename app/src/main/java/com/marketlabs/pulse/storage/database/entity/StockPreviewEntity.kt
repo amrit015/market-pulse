@@ -49,5 +49,11 @@ data class StockPreviewEntity(
     val contentFlags: List<String>? = null,
 
     val detailVersion: Long? = null,
-    val timestamp: Long? = null
+    val timestamp: Long? = null,
+
+    val dailyDigestHeadline: String? = null,
+    val deepAnalysisDate: String? = null,
+    val deepVersion: Long? = null,
+    val nextDeepDiveTriggerDate: String? = null,
+    val nextDeepDiveTriggerReason: String? = null
 )

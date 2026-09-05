@@ -36,6 +36,7 @@ import com.marketlabs.pulse.ui.screens.stocks.detail.SubClusterLabel
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 import com.marketlabs.pulse.utils.extensions.toLongDateString
+import com.marketlabs.pulse.utils.extensions.toShortDateString
 import java.util.Locale
 
 /**
@@ -93,6 +94,16 @@ fun Fundamentals(fundamentals: DomainFundamentals?, modifier: Modifier = Modifie
         fundamentals.revenueGrowthYoyPct?.let { stat(R.string.stock_detail_metric_revenue_yoy, formatSignedPercent(it), "REVENUE_YOY") },
         fundamentals.epsGrowthYoyPct?.let { stat(R.string.stock_detail_metric_eps_yoy, formatSignedPercent(it), "EPS_YOY") }
     )
+    // 💡 Numbers only, no chip -- backend decision, no sector-relative "elevated" threshold exists
+    // to classify against. `shortInterestDate` is stamped separately below the cluster rather than
+    // folded into a stat row, since it dates the whole group rather than any one figure.
+    val shortInterestStats = listOfNotNull(
+        fundamentals.shortPctFloat?.let { stat(R.string.stock_detail_metric_short_pct_float, formatPercent(it), "SHORT_PCT_FLOAT") },
+        fundamentals.shortRatio?.let { stat(R.string.stock_detail_metric_short_ratio, formatDecimal(it), "SHORT_RATIO") },
+        fundamentals.shortShares?.let { stat(R.string.stock_detail_metric_short_shares, formatCompactNumber(it), "SHORT_SHARES") },
+        fundamentals.floatShares?.let { stat(R.string.stock_detail_metric_float_shares, formatCompactNumber(it), "FLOAT_SHARES") },
+        fundamentals.sharesOutstanding?.let { stat(R.string.stock_detail_metric_shares_outstanding, formatCompactNumber(it), "SHARES_OUTSTANDING") }
+    )
     val hasAnalystView = fundamentals.targetMean != null || fundamentals.recommendationKey != null ||
         fundamentals.analystCount != null || fundamentals.nextEarningsDate != null
 
@@ -125,6 +136,19 @@ fun Fundamentals(fundamentals: DomainFundamentals?, modifier: Modifier = Modifie
                 Cluster(title = stringResource(id = R.string.stock_detail_cluster_balance_sheet), stats = balanceSheetStats)
                 precededByCluster = true
             }
+            if (shortInterestStats.isNotEmpty()) {
+                if (precededByCluster) ClusterDivider()
+                Cluster(title = stringResource(id = R.string.stock_detail_cluster_short_interest), stats = shortInterestStats)
+                fundamentals.shortInterestDate?.let {
+                    Text(
+                        text = stringResource(id = R.string.stock_detail_short_interest_as_of, it.toShortDateString()),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = LocalPulseColors.current.onSurfaceMuted
+                    )
+                    Spacer()
+                }
+                precededByCluster = true
+            }
             if (hasAnalystView) {
                 if (precededByCluster) ClusterDivider()
                 AnalystView(fundamentals)
@@ -133,7 +157,7 @@ fun Fundamentals(fundamentals: DomainFundamentals?, modifier: Modifier = Modifie
     }
 
     if (showGlossary) {
-        val entries = (valuationStats + profitabilityStats + growthStats + balanceSheetStats)
+        val entries = (valuationStats + profitabilityStats + growthStats + balanceSheetStats + shortInterestStats)
             .map { GlossaryEntry(stringResource(id = it.labelRes), it.term) }
         StockAnalysisGlossaryBottomSheet(title = title, entries = entries, onDismiss = { showGlossary = false })
     }
@@ -261,6 +285,17 @@ private fun formatCompactCurrency(value: Double): String {
         magnitude >= 1_000_000_000.0 -> "$${formatDecimal(value / 1_000_000_000.0)}B"
         magnitude >= 1_000_000.0 -> "$${formatDecimal(value / 1_000_000.0)}M"
         else -> "$${formatDecimal(value)}"
+    }
+}
+
+/** Same compacting as [formatCompactCurrency] minus the `$` prefix -- share counts (short/float/outstanding), not dollars. */
+private fun formatCompactNumber(value: Double): String {
+    val magnitude = kotlin.math.abs(value)
+    return when {
+        magnitude >= 1_000_000_000_000.0 -> "${formatDecimal(value / 1_000_000_000_000.0)}T"
+        magnitude >= 1_000_000_000.0 -> "${formatDecimal(value / 1_000_000_000.0)}B"
+        magnitude >= 1_000_000.0 -> "${formatDecimal(value / 1_000_000.0)}M"
+        else -> formatDecimal(value)
     }
 }
 

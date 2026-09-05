@@ -33,6 +33,7 @@ import com.marketlabs.pulse.storage.database.entity.MarketRiskEntity
 import com.marketlabs.pulse.storage.database.entity.MarketStateEntity
 import com.marketlabs.pulse.storage.database.entity.MetricHistoryEntity
 import com.marketlabs.pulse.storage.database.entity.NewsEntity
+import com.marketlabs.pulse.storage.database.entity.StockDeepDiveEntity
 import com.marketlabs.pulse.storage.database.entity.StockDetailEntity
 import com.marketlabs.pulse.storage.database.entity.StockPreviewEntity
 import com.marketlabs.pulse.storage.database.entity.WeeklyPlaybookEntity
@@ -51,11 +52,12 @@ import com.marketlabs.pulse.storage.database.entity.WeeklyPlaybookEntity
         MarketPostureEntity::class,
         StockPreviewEntity::class,
         StockDetailEntity::class,
+        StockDeepDiveEntity::class,
         ChartEntity::class,
         MetricHistoryEntity::class,
         MarketPositioningEntity::class
     ],
-    version = 21,
+    version = 23,
     exportSchema = true
 )
 @TypeConverters(

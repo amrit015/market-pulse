@@ -4,9 +4,11 @@ package com.marketlabs.pulse.network.store.stocks
 
 import android.util.Log
 import com.marketlabs.pulse.network.api.StocksApi
+import com.marketlabs.pulse.storage.model.stocks.StockDeepDive
 import com.marketlabs.pulse.storage.model.stocks.StockDetail
 import com.marketlabs.pulse.storage.model.stocks.StockPreview
 import com.marketlabs.pulse.storage.model.stocks.mappers.toDomain
+import retrofit2.HttpException
 import javax.inject.Inject
 
 /**
@@ -45,6 +47,27 @@ class RemoteStockDataSourceImpl @Inject constructor(
             Result.success(detail)
         } catch (e: Exception) {
             Log.e("StockAnalysis", "Failed to fetch stock detail for $symbol", e)
+            Result.failure(e)
+        }
+    }
+
+    /** 404 means this symbol has never had a deep dive run (cold start) -- a normal, expected state, not an error. */
+    override suspend fun getStockDeepDive(symbol: String): Result<StockDeepDive?> {
+        return try {
+            val syncTimestamp = System.currentTimeMillis()
+            val deepDive = api.getStockDeepDive(symbol).toDomain(symbol = symbol, lastSyncedTimestamp = syncTimestamp)
+
+            Result.success(deepDive)
+        } catch (e: HttpException) {
+            if (e.code() == 404) {
+                Log.d("StockAnalysis", "No deep dive yet for $symbol")
+                Result.success(null)
+            } else {
+                Log.e("StockAnalysis", "Failed to fetch deep dive for $symbol", e)
+                Result.failure(e)
+            }
+        } catch (e: Exception) {
+            Log.e("StockAnalysis", "Failed to fetch deep dive for $symbol", e)
             Result.failure(e)
         }
     }

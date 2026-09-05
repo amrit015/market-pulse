@@ -48,3 +48,28 @@ fun String.toLongDateString(): String {
         this
     }
 }
+
+/**
+ * Same `yyyy-MM-dd` backend date fields as [toLongDateString], but abbreviated ("Sep 4" rather than
+ * "September 4") -- the Deep Dive banner/label and the short-interest date stamp both want the
+ * shorter form. A sibling function rather than reusing [toLongDateString], which (despite its name
+ * suggesting otherwise) actually renders the full month name, not an abbreviation.
+ */
+fun String.toShortDateString(): String {
+    return try {
+        val parsed = SimpleDateFormat("yyyy-MM-dd", Locale.US).parse(this) ?: return this
+        SimpleDateFormat("MMM d", Locale.US).format(parsed)
+    } catch (e: ParseException) {
+        this
+    }
+}
+
+/** Same as [toShortDateString] but with the year appended ("Sep 4, 2026") -- the Deep Dive screen's own header banner shows this fuller form since it's the one place displaying the authoritative last-run date on its own, without a symbol/date context already established elsewhere on screen. */
+fun String.toShortDateWithYearString(): String {
+    return try {
+        val parsed = SimpleDateFormat("yyyy-MM-dd", Locale.US).parse(this) ?: return this
+        SimpleDateFormat("MMM d, yyyy", Locale.US).format(parsed)
+    } catch (e: ParseException) {
+        this
+    }
+}

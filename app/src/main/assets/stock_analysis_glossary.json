@@ -43,5 +43,10 @@
   "PRICE_TO_BOOK": "Share price divided by book value per share -- how much investors are paying relative to the company's net accounting assets.",
   "PRICE_TO_SALES": "Share price divided by revenue per share -- a valuation multiple useful when earnings are volatile or negative.",
   "EV_REVENUE": "Enterprise Value divided by revenue -- a valuation multiple that, like EV/EBITDA, accounts for debt and cash on the balance sheet.",
-  "DIVIDEND_YIELD": "Annual dividend payments as a percentage of share price. Only shown for stocks that actually pay a dividend."
+  "DIVIDEND_YIELD": "Annual dividend payments as a percentage of share price. Only shown for stocks that actually pay a dividend.",
+  "SHORT_PCT_FLOAT": "The percentage of a stock's publicly tradable shares that are currently sold short. Sourced bi-monthly, so this figure can run about two weeks stale.",
+  "SHORT_RATIO": "Days to Cover -- how many days of average trading volume it would take short sellers to close out every open short position. Sourced bi-monthly, so this figure can run about two weeks stale.",
+  "SHORT_SHARES": "The total number of shares currently sold short and not yet covered. Sourced bi-monthly, so this figure can run about two weeks stale.",
+  "FLOAT_SHARES": "The number of shares actually available for public trading, excluding closely-held or restricted stock.",
+  "SHARES_OUTSTANDING": "The total number of shares a company has issued, including restricted and closely-held shares."
 }
