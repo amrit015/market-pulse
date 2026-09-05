@@ -200,7 +200,7 @@ fun WeeklyEventCard(event: WeeklyEvent) {
                 Text(
                     text = stringResource(id = R.string.label_market_context).uppercase(),
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.primary
                 )
                 Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
                 Text(

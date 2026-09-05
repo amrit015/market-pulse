@@ -41,7 +41,7 @@
     <string name="label_window_fallback">range</string>
     <string name="label_window_low">%1$s Low</string>
     <string name="label_window_high">%1$s High</string>
-    <string name="label_what_changed">What Changed:</string>
+    <string name="label_what_changed">What Changed</string>
 
 
     <string name="banner_viewing_legacy">Viewing Gemini 2.5 Pro</string>

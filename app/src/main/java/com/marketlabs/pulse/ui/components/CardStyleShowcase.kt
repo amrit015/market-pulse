@@ -970,6 +970,259 @@ private fun PreviewTintedInsetRow() {
 }
 
 // ============================================================================
+// 18. Section-title header + full-bleed divider (Summary screen convention, 2026-09-05)
+// See: docs/theming-system/card-heading-conventions.md
+// Modeled on: summary/views/SummaryScreen.kt's LeadStoriesSection/MacroMixSection/WatchSection/
+// RisksSection/DriversSection/MarketPositionSection/WhatsNewSection/DominoCard title treatment --
+// the "section-title" header family (as opposed to the eyebrow family, #19 below): small-caps,
+// bold, titleSmall, manually `.uppercase()`'d, `padding_large` all around, followed by a
+// full-bleed divider sitting OUTSIDE any padding (between two separately-padded blocks) before
+// any content. Chosen for cards whose job is to list discrete items, even a single-item "list."
+// ============================================================================
+
+@Composable
+private fun SectionTitleHeaderSample() {
+    PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
+        Column {
+            Text(
+                text = "LEAD STORIES",
+                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))
+            )
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                thickness = dimensionResource(id = R.dimen.border_thin)
+            )
+            Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
+                Text(
+                    text = "Amazon falls 2% amid DOJ beef-pricing antitrust probe",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        }
+    }
+}
+
+@Preview(name = "18. Section-title header + full-bleed divider", showBackground = true)
+@Composable
+private fun PreviewSectionTitleHeader() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) { SectionTitleHeaderSample() }
+}
+
+// ============================================================================
+// 19. Eyebrow header via CardEyebrowLabel, padding_medium gap to content
+// See: docs/theming-system/card-heading-conventions.md
+// Modeled on: summary/views/SummaryScreen.kt's SignalSection/MarketSentimentCard/TheReadSection --
+// the OTHER header family (as opposed to section-title, #18 above), for cards whose job is to say
+// one AI-authored thing: `CardEyebrowLabel` (labelSmall, bold, auto-uppercased -- no manual
+// `.uppercase()` needed) directly followed by `Spacer(padding_medium)`, then the actual headline
+// (titleMedium, bold) and body. That padding_medium gap was inconsistent as of 2026-09-04 (some
+// eyebrows had a 0dp or padding_tiny gap) and is now the fixed, uniform rule everywhere this
+// header family is used -- don't reintroduce a smaller gap on a new eyebrow-header card.
+// ============================================================================
+
+@Composable
+private fun EyebrowHeaderSample() {
+    val pulseColors = LocalPulseColors.current
+    PulseCard(style = PulseCardStyle.SYNTHESIS, modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
+            CardEyebrowLabel(text = "Market Sentiment", color = pulseColors.accentPrimary)
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+            Text(
+                text = "Risk-On Regime Intact",
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+            Text(
+                text = "Breadth has broadened over the past two weeks, with small caps and cyclicals joining the mega-cap leadership.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+    }
+}
+
+@Preview(name = "19. Eyebrow header (CardEyebrowLabel)", showBackground = true)
+@Composable
+private fun PreviewEyebrowHeader() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) { EyebrowHeaderSample() }
+}
+
+// ============================================================================
+// 20. Merged card, tag/pill below heading (not sharing a row with it)
+// See: docs/theming-system/card-heading-conventions.md
+// Modeled on: summary/views/SummaryScreen.kt's WatchSection/RisksSection/MacroMixSection --
+// same merged-card idiom as #6 (DataMultiRowSample) but with the 2026-09-05 fix: a tag/pill never
+// shares a row with its heading (it used to, and crowded long headings) -- it sits on its own line
+// directly below, gated behind `Spacer(padding_medium)` -- the same gap value the eyebrow header
+// family (#19) uses, unified from an earlier `padding_small` on 2026-09-05. A divider only ever
+// marks the boundary
+// BETWEEN two different entries, spanning the full card width; never within one entry's own
+// heading/tag/body.
+// ============================================================================
+
+private data class TagBelowHeadingEntrySample(val heading: String, val tag: String?, val body: String?)
+
+@Composable
+private fun MergedCardTagBelowHeadingSample() {
+    val entries = listOf(
+        TagBelowHeadingEntrySample(
+            heading = "Fed Signals Rate Pause",
+            tag = "MACRO",
+            body = "Markets rallied on dovish commentary from the latest FOMC minutes."
+        ),
+        TagBelowHeadingEntrySample(
+            heading = "Earnings Season Kicks Off",
+            tag = null,
+            body = "Big banks report this week, setting the tone for the broader market."
+        )
+    )
+    PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
+        Column {
+            Text(
+                text = "WHAT TO WATCH",
+                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))
+            )
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                thickness = dimensionResource(id = R.dimen.border_thin)
+            )
+            entries.forEachIndexed { index, entry ->
+                Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
+                    Text(
+                        text = entry.heading,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    entry.tag?.let {
+                        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                        TagPillSample(text = it)
+                    }
+                    entry.body?.let {
+                        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                        Text(
+                            text = it,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+                if (index != entries.lastIndex) {
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                        thickness = dimensionResource(id = R.dimen.border_thin)
+                    )
+                }
+            }
+        }
+    }
+}
+
+/** Stand-in for the real `TagPill` (summary-package-private) -- same neutral outlined shape, so this file has no cross-package dependency on it. */
+@Composable
+private fun TagPillSample(text: String) {
+    val pulseColors = LocalPulseColors.current
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_pill))
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelSmall,
+            color = pulseColors.onSurfaceMuted,
+            modifier = Modifier.padding(
+                horizontal = dimensionResource(id = R.dimen.padding_medium),
+                vertical = dimensionResource(id = R.dimen.padding_small)
+            )
+        )
+    }
+}
+
+@Preview(name = "20. Merged card, tag below heading", showBackground = true)
+@Composable
+private fun PreviewMergedCardTagBelowHeading() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) { MergedCardTagBelowHeadingSample() }
+}
+
+// ============================================================================
+// 21. Two independent tap targets on one card (header vs. content)
+// See: docs/theming-system/card-heading-conventions.md
+// Modeled on: summary/views/SummaryScreen.kt's DriversSection -- the one card on Summary where
+// the header and the content below it lead to DIFFERENT actions, so the whole card can't be one
+// `PulseCard(onClick = ...)`. The header row (title + info icon) navigates nowhere on its own;
+// only the info icon itself (its own nested `Modifier.clickable`) does anything. Only the content
+// row BELOW the divider carries `Modifier.clickable(onClick = ...)` directly -- never
+// `PulseCard`'s own `onClick`, which would make the whole card (header included) one tap target
+// and swallow the info icon's nested click.
+// ============================================================================
+
+@Composable
+private fun TwoTapTargetsSample() {
+    val pulseColors = LocalPulseColors.current
+    PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
+        Column {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(dimensionResource(id = R.dimen.padding_large)),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "DRIVERS",
+                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_info),
+                    contentDescription = null,
+                    tint = pulseColors.onSurfaceMuted,
+                    modifier = Modifier
+                        .size(dimensionResource(id = R.dimen.icon_size_small))
+                        .clickable(onClick = {})
+                )
+            }
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                thickness = dimensionResource(id = R.dimen.border_thin)
+            )
+            Row(
+                modifier = Modifier
+                    .clickable(onClick = {})
+                    .padding(dimensionResource(id = R.dimen.padding_large)),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                FlowRow(
+                    modifier = Modifier.weight(1f),
+                    horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_small))
+                ) {
+                    SignalPill(text = "Retail Sales", pillColor = pulseColors.signalBearishPill, contentColor = pulseColors.signalBearishText)
+                    SignalPill(text = "Crude Oil", pillColor = pulseColors.signalBullishPill, contentColor = pulseColors.signalBullishText)
+                }
+                Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_chevron_forward),
+                    contentDescription = null,
+                    tint = pulseColors.accentPrimary,
+                    modifier = Modifier.size(dimensionResource(id = R.dimen.padding_large))
+                )
+            }
+        }
+    }
+}
+
+@Preview(name = "21. Two independent tap targets", showBackground = true)
+@Composable
+private fun PreviewTwoTapTargets() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) { TwoTapTargetsSample() }
+}
+
+// ============================================================================
 // 🎨 THE GALLERY — everything above, stacked with labels, for a side-by-side look
 // ============================================================================
 
@@ -996,6 +1249,10 @@ private fun CardStyleGallery() {
         GallerySection("15. Emphasis border overlay (current selection)") { EmphasisBorderOverlaySample() }
         GallerySection("16. NOT PulseCard — signal-owned background") { SignalOwnedBackgroundExceptionSample() }
         GallerySection("17. Tinted inset row nested in a card") { TintedInsetRowSample() }
+        GallerySection("18. Section-title header + full-bleed divider") { SectionTitleHeaderSample() }
+        GallerySection("19. Eyebrow header (CardEyebrowLabel)") { EyebrowHeaderSample() }
+        GallerySection("20. Merged card, tag below heading") { MergedCardTagBelowHeadingSample() }
+        GallerySection("21. Two independent tap targets") { TwoTapTargetsSample() }
     }
 }
 

@@ -42,6 +42,9 @@ are run manually, not gated by anything automated yet.
 - Color tokens, the card system, light/dark presets — **check this before adding a new color,
   card style, or badge** → `@docs/theming-system/theming-spec.md`. History/rationale for how it
   got this way → `@docs/theming-system/theming-history.md`.
+- Card heading/spacing conventions (section-title vs. eyebrow header, content-heading sizing, the
+  merged-card-with-dividers pattern) — piloted on Summary, LIVING doc, not yet applied to other
+  screens → `@docs/theming-system/card-heading-conventions.md`.
 - Product context for design work → `@docs/product-brief.md`
 - Notion brain (product context, ADRs, cross-repo contracts, design system) —
   `https://app.notion.com/p/marketPulse-brain-3b07c8397e7b801abfc8f8ceb1d9fdae`. Ask before

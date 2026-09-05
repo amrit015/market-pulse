@@ -31,6 +31,9 @@ docs/
                                       pills, typography, spacing. Most tasks need only this one.
     theming-history.md               the "why" — how the theming/card system got here,
                                       chronological, read rarely
+    card-heading-conventions.md      LIVING doc — card heading/spacing conventions piloted on
+                                      Summary, with intent to extend screen-by-screen; open
+                                      questions flagged, not yet applied elsewhere
 ```
 
 ## How this connects to `CLAUDE.md`, and why it doesn't cost tokens by default

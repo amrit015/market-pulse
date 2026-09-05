@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
@@ -166,18 +165,15 @@ fun MarketSummaryScreen(
             val drivers = validData.drivers
             if (!drivers.isNullOrEmpty()) {
                 item {
-                    DriversSectionHeader(onInfoClick = { showDriversInfo = true })
+                    DriversSection(
+                        drivers = drivers,
+                        onClick = onNavigateToIndicators,
+                        onInfoClick = { showDriversInfo = true }
+                    )
                 }
-                item { DriversSection(drivers = drivers, onClick = onNavigateToIndicators) }
             }
 
             validData.position?.let { position ->
-                item {
-                    SectionTitle(
-                        title = stringResource(id = R.string.section_market_position),
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
                 item {
                     MarketPositionSection(
                         position = position,
@@ -193,76 +189,34 @@ fun MarketSummaryScreen(
             // been assigned for this section yet. See WhatsNewSection's doc comment below.
             val whatsNew = validData.whatsNew
             if (!whatsNew.isNullOrEmpty()) {
-                item {
-                    SectionTitle(
-                        title = stringResource(id = R.string.section_whats_new),
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
                 item { WhatsNewSection(whatsNew) }
             }
 
             val stories = validData.leadStories
             if (!stories.isNullOrEmpty()) {
-                item {
-                    SectionTitle(
-                        title = stringResource(id = R.string.section_lead_stories),
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-                items(stories) { story -> LeadStoryCard(story) }
+                item { LeadStoriesSection(stories) }
             }
 
             val macros = validData.macroMix
             if (!macros.isNullOrEmpty()) {
-                item {
-                    SectionTitle(
-                        stringResource(id = R.string.section_macro_mix),
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-                items(macros) { macro -> MacroCard(macro) }
+                item { MacroMixSection(macros) }
             }
 
             validData.dominoEffect?.let { domino ->
-                item {
-                    SectionTitle(
-                        title = stringResource(id = R.string.section_domino_effect),
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
                 item { DominoCard(domino) }
             }
 
             val watch = validData.watch
             if (!watch.isNullOrEmpty()) {
-                item {
-                    SectionTitle(
-                        title = stringResource(id = R.string.section_watch),
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
                 item { WatchSection(watch) }
             }
 
             val risks = validData.risks
             if (!risks.isNullOrEmpty()) {
-                item {
-                    SectionTitle(
-                        title = stringResource(id = R.string.section_risks),
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
                 item { RisksSection(risks) }
             }
 
             validData.verdict?.let { verdict ->
-                item {
-                    SectionTitle(
-                        title = stringResource(id = R.string.section_the_read),
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
                 item { TheReadSection(verdict) }
             }
             item {
@@ -371,10 +325,7 @@ fun SignalSection(verdict: MarketVerdict, onRegimeClick: () -> Unit) {
                 Spacer(modifier = Modifier.height(paddingMedium))
 
                 // 💡 The flash -- largest prose on the card, no callout box around it; a headline
-                // doesn't need to be quoted. headlineSmall/bold, matching the Indicators tab's
-                // "Today's Read" headline (AiExecutiveBriefingHero) -- both are the single
-                // AI-authored flash statement at the top of their domain's executive card, so they
-                // read at the same weight across the app.
+                // doesn't need to be quoted. titleMedium/bold.
                 verdict.signalLine?.let {
                     Text(
                         text = it,
@@ -510,49 +461,6 @@ private fun ConvictionMeter(conviction: Conviction, filledColor: Color) {
 }
 
 /**
- * Section header for Drivers -- the title row navigates to the Indicators tab on tap (using the
- * same tab-preserving `popUpTo`/`launchSingleTop`/`restoreState` pattern the bottom nav bar
- * itself uses -- see `MainActivity.kt`'s `FloatingBottomNav` `onItemClick`), trailing chevron.
- * Drivers are indicator names (Retail Sales, Crude Oil, ...); Indicators is where their full
- * detail actually lives.
- *
- * The info icon is its own separate tap target (opens [com.marketlabs.pulse.ui.components.
- * bottomSheet.DriversInfoBottomSheet]), not part of the row's navigate-to-Indicators click --
- * a nested `clickable` consumes its own taps before they reach the row's, same as
- * `DataCardTitleWithInfo`'s icon does inside its own row elsewhere in the app. Exists because
- * `drivers[].direction` now means "this driver's net effect on equities," not "the underlying
- * indicator's own reading" (backend change, 2026-08-18) -- a distinction a color/arrow alone
- * can't communicate.
- */
-@Composable
-private fun DriversSectionHeader(onInfoClick: () -> Unit) {
-    // 💡 Title-only now -- no longer clickable, no trailing chevron. The tap-to-navigate
-    // affordance (and the chevron signaling it) moved onto DriversSection's card below, so the
-    // whole card is the tap target rather than just this header row.
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = dimensionResource(id = R.dimen.padding_medium)),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = stringResource(id = R.string.section_drivers),
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.primary
-        )
-        Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
-        Icon(
-            painter = painterResource(id = R.drawable.ic_info),
-            contentDescription = stringResource(id = R.string.drivers_info_content_description),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier
-                .size(dimensionResource(id = R.dimen.icon_size_small))
-                .clickable(onClick = onInfoClick)
-        )
-    }
-}
-
-/**
  * The drivers[] chip row -- same `FlowRow` + `SignalPill` pattern `ConditionChipRow.kt` (the
  * stock domain's condition-chip row) uses, one step cleaner here since `MarketDriver.direction`
  * is already a real `SignalColor` from the mapper (never a raw string needing a hand-rolled
@@ -565,45 +473,81 @@ private fun DriversSectionHeader(onInfoClick: () -> Unit) {
  * change, 2026-08-18; see [DriversInfoBottomSheet]). The color alone still carries that signal;
  * the glyph was adding a second, now-misleading claim on top of it.
  *
- * 💡 Pills now sit on their own `PulseCard` (DATA -- a chip visualization of raw driver signals,
- * same category as every other data-display card on this screen) rather than bare in the list.
- * The trailing chevron -- previously on `DriversSectionHeader`'s title row -- moved in here
- * alongside it, and `onClick` is the card's own `PulseCard(onClick = ...)`, so the whole card is
- * now the tap target into Indicators, not just the header row above it.
+ * The header (title + info icon) now lives inside the card, same header+divider treatment as
+ * [LeadStoriesSection]/[MacroMixSection], rather than a separate `DriversSectionHeader` list item
+ * above it. The info icon stays its own separate tap target (opens [com.marketlabs.pulse.ui.
+ * components.bottomSheet.DriversInfoBottomSheet]) -- a nested `clickable` consumes its own taps
+ * before they reach the outer card's `onClick`, same as `DataCardTitleWithInfo`'s icon does inside
+ * its own row elsewhere in the app. The whole card (below the header) is still the tap target into
+ * Indicators (using the same tab-preserving `popUpTo`/`launchSingleTop`/`restoreState` pattern the
+ * bottom nav bar itself uses -- see `MainActivity.kt`'s `FloatingBottomNav` `onItemClick`).
+ * `drivers[].direction` means "this driver's net effect on equities," not "the underlying
+ * indicator's own reading" (backend change, 2026-08-18) -- a distinction a color/arrow alone
+ * can't communicate, which is what the info icon explains.
  */
 @Composable
-fun DriversSection(drivers: List<MarketDriver>, onClick: () -> Unit) {
+fun DriversSection(drivers: List<MarketDriver>, onClick: () -> Unit, onInfoClick: () -> Unit) {
     val sorted = drivers.sortedBy { if (it.impact == DriverImpact.HIGH) 0 else 1 }
 
     PulseCard(
         style = PulseCardStyle.DATA,
-        modifier = Modifier.fillMaxWidth(),
-        onClick = onClick
+        modifier = Modifier.fillMaxWidth()
     ) {
-        Row(
-            modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            FlowRow(
-                modifier = Modifier.weight(1f),
-                horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_small)),
-                verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_small))
+        Column {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(dimensionResource(id = R.dimen.padding_large)),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                sorted.forEach { driver ->
-                    SignalPill(
-                        text = driver.label ?: "",
-                        pillColor = driver.direction.pillColor,
-                        contentColor = driver.direction.textColor
-                    )
-                }
+                Text(
+                    text = stringResource(id = R.string.section_drivers).uppercase(),
+                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_info),
+                    contentDescription = stringResource(id = R.string.drivers_info_content_description),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .size(dimensionResource(id = R.dimen.icon_size_small))
+                        .clickable(onClick = onInfoClick)
+                )
             }
-            Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
-            Icon(
-                painter = painterResource(id = R.drawable.ic_chevron_forward),
-                contentDescription = stringResource(id = R.string.drivers_navigate_content_description),
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(dimensionResource(id = R.dimen.padding_large))
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                thickness = dimensionResource(id = R.dimen.border_thin)
             )
+            // 💡 Only this row (the pills + chevron) is the tap target now -- not the whole card
+            // -- so tapping the title/info row above never accidentally navigates away.
+            Row(
+                modifier = Modifier
+                    .clickable(onClick = onClick)
+                    .padding(dimensionResource(id = R.dimen.padding_large)),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                FlowRow(
+                    modifier = Modifier.weight(1f),
+                    horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_small)),
+                    verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_small))
+                ) {
+                    sorted.forEach { driver ->
+                        SignalPill(
+                            text = driver.label ?: "",
+                            pillColor = driver.direction.pillColor,
+                            contentColor = driver.direction.textColor
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_chevron_forward),
+                    contentDescription = stringResource(id = R.string.drivers_navigate_content_description),
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(dimensionResource(id = R.dimen.padding_large))
+                )
+            }
         }
     }
 }
@@ -624,6 +568,16 @@ fun MarketPositionSection(
 ) {
     PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
         Column {
+            Text(
+                text = stringResource(id = R.string.section_market_position).uppercase(),
+                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))
+            )
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                thickness = dimensionResource(id = R.dimen.border_thin)
+            )
             Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
                 // 💡 setup lands here now, not on the Signal card or The Read -- it's a technical
                 // read on where price sits (oversold/overbought/...), which fits this card's own
@@ -709,16 +663,29 @@ fun MarketPositionSection(
                 // here -- staying in the domain model/cache, just not surfaced on this screen; it's
                 // landing on the Indicators tab instead once that work starts.
 
-                val footerLines = listOfNotNull(
-                    position.valuation?.pePercentile5y?.let { "${stringResource(id = R.string.label_valuation)} $it" },
-                    whatChanged?.let { "${stringResource(id = R.string.label_what_changed)} $it" }
-                )
-                footerLines.forEach {
+                position.valuation?.pePercentile5y?.let {
                     Text(
-                        text = it,
+                        text = "${stringResource(id = R.string.label_valuation)} $it",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_small))
+                    )
+                }
+
+                // 💡 Its own eyebrow-labeled block now -- same format Market Sentiment/Market
+                // Read/Where Capital's Moving use (CardEyebrowLabel + the content below it) --
+                // rather than an inline "What Changed: ..." sentence tacked onto the footer.
+                whatChanged?.let {
+                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                    CardEyebrowLabel(
+                        text = stringResource(id = R.string.label_what_changed),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
@@ -743,6 +710,16 @@ fun MarketPositionSection(
 fun WhatsNewSection(items: List<WhatsNewItem>) {
     PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
         Column {
+            Text(
+                text = stringResource(id = R.string.section_whats_new).uppercase(),
+                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))
+            )
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                thickness = dimensionResource(id = R.dimen.border_thin)
+            )
             items.forEachIndexed { index, item ->
                 val changeColor = item.signalColor.textColor
 
@@ -804,37 +781,51 @@ private fun String?.toShortReleaseDate(): String? {
 }
 
 /**
- * The watch[] list -- `DATA` style cards (same as [LeadStoryCard]/[MacroCard]), timeframe using
- * the same [TagPill] [MacroCard]'s tag does.
+ * The watch[] list -- one `DATA` style card (same header+divider treatment as
+ * [LeadStoriesSection]/[MacroMixSection]) holding every item, timeframe using the same [TagPill]
+ * [MacroMixSection]'s tag does, on its own line below the label rather than sharing a row with it
+ * (so a long label never crowds it). A full-width divider sits between entries; no divider within
+ * one entry's own label/why text.
  */
 @Composable
 fun WatchSection(watch: List<WatchItem>) {
-    Column(verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_medium))) {
-        watch.forEach { item ->
-            PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
+    PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
+        Column {
+            Text(
+                text = stringResource(id = R.string.section_watch).uppercase(),
+                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))
+            )
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                thickness = dimensionResource(id = R.dimen.border_thin)
+            )
+            watch.forEachIndexed { index, item ->
                 Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
-                    // 💡 CenterVertically, not Top -- SignalPill/TagPill's own internal padding
-                    // sits their text lower than a plain Text's top edge, so top-aligning the row
-                    // made the title and the pill look visually offset from each other.
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = item.label ?: "",
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.weight(1f)
-                        )
-                        item.timeframe?.let {
-                            TagPill(text = it)
-                        }
+                    Text(
+                        text = item.label ?: "",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    item.timeframe?.let {
+                        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                        TagPill(text = it)
                     }
                     item.why?.let {
                         Text(
                             text = it,
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_small))
+                            modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_medium))
                         )
                     }
+                }
+                if (index != watch.lastIndex) {
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                        thickness = dimensionResource(id = R.dimen.border_thin)
+                    )
                 }
             }
         }
@@ -842,40 +833,56 @@ fun WatchSection(watch: List<WatchItem>) {
 }
 
 /**
- * The risks[] list -- `DATA` style cards, severity colored through the same [RiskImpactLevel]
- * color extension [HorizonChip] uses (`ui/theme/SignalColorExtensions.kt`), not a hand-rolled
- * `when` here.
+ * The risks[] list -- one `DATA` style card (same header+divider treatment as
+ * [LeadStoriesSection]/[WatchSection]) holding every item, severity colored through the same
+ * [RiskImpactLevel] color extension [HorizonChip] uses (`ui/theme/SignalColorExtensions.kt`), not
+ * a hand-rolled `when` here, on its own line below the risk text rather than sharing a row with it
+ * (so a long risk description never crowds it). A full-width divider sits between entries; no
+ * divider within one entry's own risk/note text.
  */
 @Composable
 fun RisksSection(risks: List<RiskItem>) {
-    Column(verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_medium))) {
-        risks.forEach { item ->
-            PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
+    PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
+        Column {
+            Text(
+                text = stringResource(id = R.string.section_risks).uppercase(),
+                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))
+            )
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                thickness = dimensionResource(id = R.dimen.border_thin)
+            )
+            risks.forEachIndexed { index, item ->
                 Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
-                    // 💡 CenterVertically, not Top -- see WatchSection's identical fix above.
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = item.risk ?: "",
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.weight(1f)
+                    Text(
+                        text = item.risk ?: "",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    item.severity?.let {
+                        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                        SignalPill(
+                            text = it.label.uppercase(),
+                            pillColor = it.pillColor,
+                            contentColor = it.textColor
                         )
-                        item.severity?.let {
-                            SignalPill(
-                                text = it.label.uppercase(),
-                                pillColor = it.pillColor,
-                                contentColor = it.textColor
-                            )
-                        }
                     }
                     item.note?.let {
                         Text(
                             text = it,
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_small))
+                            modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_medium))
                         )
                     }
+                }
+                if (index != risks.lastIndex) {
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                        thickness = dimensionResource(id = R.dimen.border_thin)
+                    )
                 }
             }
         }
@@ -895,7 +902,7 @@ fun TheReadSection(verdict: MarketVerdict) {
     // 💡 No regime/setup pills here anymore -- regime is already the Signal card's headline chip
     // and repeating it here was the exact redundancy this redesign set out to remove; setup moved
     // to Market Position. The divider sits between two separately-padded Columns rather than
-    // inside one Column padded as a whole -- same structural idiom LeadStoryCard/MacroCard/
+    // inside one Column padded as a whole -- same structural idiom LeadStoriesSection/MacroMixSection/
     // DominoStepCard already use -- so it spans the card's full width instead of stopping short
     // at the content inset.
     PulseCard(
@@ -915,8 +922,11 @@ fun TheReadSection(verdict: MarketVerdict) {
                     text = stringResource(id = R.string.market_read),
                     color = MaterialTheme.colorScheme.primary
                 )
-                // 💡 The depth -- the full paragraph, for the user who scrolls this far.
+                // 💡 The depth -- the full paragraph, for the user who scrolls this far. Same
+                // eyebrow-to-content gap Market Sentiment uses (padding_medium), not the 0/tiny
+                // gap this used to have.
                 verdict.analysis?.let {
+                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
                     Text(
                         text = it,
                         style = MaterialTheme.typography.bodyMedium,
@@ -943,11 +953,13 @@ fun TheReadSection(verdict: MarketVerdict) {
                         text = stringResource(id = R.string.label_posture),
                         color = MaterialTheme.colorScheme.primary
                     )
+                    // 💡 Same eyebrow-to-content gap Market Sentiment uses (padding_medium), not
+                    // the padding_tiny gap this used to have.
+                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
                     Text(
                         text = posture,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_tiny))
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
@@ -956,51 +968,61 @@ fun TheReadSection(verdict: MarketVerdict) {
 }
 
 /**
- * Displays a single news item card.
+ * 💡 Trial revamp (per CardStyleShowcase.kt's `DataTimelineSample` pattern, being tested here
+ * first before any other section adopts it): the section title moves INSIDE the card as its own
+ * small-caps accent header with a full-bleed divider directly beneath it, replacing the separate
+ * `SectionTitle` list item that used to sit above N individual story cards. All stories now live
+ * in ONE `PulseCard`, separated by an inset divider between entries -- the divider that used to
+ * sit between one story's own headline and summary is gone; only the boundary between two
+ * different stories gets one, since that's the boundary actually worth marking now.
  *
- * @param story The [NewsItem] to display. If the headline is missing, nothing is rendered.
+ * @param stories The lead-story items to display. Entries with no headline are skipped; if none
+ *   have a headline, the whole section renders nothing.
  */
 @Composable
-fun LeadStoryCard(story: NewsItem) {
-    val headline = story.headline ?: return
+fun LeadStoriesSection(stories: List<NewsItem>) {
+    val validStories = stories.filter { it.headline != null }
+    if (validStories.isEmpty()) return
 
-    // 💡 DATA style -- was SYNTHESIS (an AI-summarized lead story, treated as AI content). Only
-    // VerdictCard's own explicit verdict/call and Indicators' AI Executive Briefing keep the
-    // darker SYNTHESIS background now; every other card, including this one, reads as the same
-    // background every data-display card in the app uses. Replaces the old
-    // `secondaryContainer.copy(alpha = 0.4f)` leftover from before this app had its own token
-    // system.
-    PulseCard(
-        style = PulseCardStyle.DATA,
-        modifier = Modifier.fillMaxWidth()
-    ) {
+    PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
         Column {
             Text(
-                modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)),
-                text = headline,
-                // 💡 titleSmall (15sp, semi-bold), not titleMedium -- the consistent title tier
-                // every curated/AI-content card title uses, separate from DATA-style cards
-                // (Equities, VIX, Indicators), which keep their bold 17sp title.
-                style = MaterialTheme.typography.titleSmall,
-                // 💡 Card titles are always onSurface (dark-on-light/white-on-dark) across this
-                // app -- same treatment as Equities/AI/News cards. Was `colorScheme.secondary`
-                // (mapped to the muted onSurfaceMuted tone), which read as washed-out next to
-                // those cards' bold titles.
-                color = MaterialTheme.colorScheme.onSurface
+                text = stringResource(id = R.string.section_lead_stories).uppercase(),
+                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))
             )
-
             HorizontalDivider(
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
                 thickness = dimensionResource(id = R.dimen.border_thin)
             )
-
-            story.summary?.let { summary ->
-                Text(
-                    modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)),
-                    text = summary,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+            // 💡 Each story gets its OWN padded Column, with an unpadded (full-card-width)
+            // divider between them at this outer level -- same "divider spans the full width
+            // between two separately-padded Columns" idiom SignalSection/MacroMixSection use, rather
+            // than one padded Column wrapping every story (which would inset the divider to stop
+            // short at the content margin instead of reaching the card's edges).
+            validStories.forEachIndexed { index, story ->
+                Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
+                    Text(
+                        text = story.headline!!,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    story.summary?.let { summary ->
+                        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                        Text(
+                            text = summary,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+                if (index != validStories.lastIndex) {
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                        thickness = dimensionResource(id = R.dimen.border_thin)
+                    )
+                }
             }
         }
     }
@@ -1025,101 +1047,127 @@ fun MarketSentimentCard(sentiment: MarketSentiment, onClick: () -> Unit) {
         modifier = Modifier.fillMaxWidth(),
         onClick = onClick
     ) {
-        // 💡 The chevron sits in its own Row wrapping the whole text column now, vertically
-        // centered against the card's full height (not just the header line) -- it reads as "the
-        // whole card leads somewhere" rather than being pinned to one line inside it.
-        Row(
-            modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                // 💡 Header lives inside the card, same as SignalSection's "Market Signal" -- not
-                // a separate SectionTitle list item.
-                CardEyebrowLabel(
-                    text = stringResource(id = R.string.section_market_sentiment),
-                    color = MaterialTheme.colorScheme.primary
-                )
+        // 💡 The chevron now sits beside the headline specifically (this card's "main heading"),
+        // vertically centered against just that row -- not the whole card's height -- so it reads
+        // as "this heading leads somewhere," pinned to the one line that actually says so. Falls
+        // back to pairing the chevron with the summary row when there's no headline (rare -- the
+        // caller only omits this card entirely when both are blank).
+        val headline = sentiment.headline
+        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
+            // 💡 Header lives inside the card, same as SignalSection's "Market Signal" -- not
+            // a separate SectionTitle list item.
+            CardEyebrowLabel(
+                text = stringResource(id = R.string.section_market_sentiment),
+                color = MaterialTheme.colorScheme.primary
+            )
 
-                sentiment.headline?.let {
-                    Spacer(modifier = Modifier.height(paddingMedium))
+            if (headline != null) {
+                Spacer(modifier = Modifier.height(paddingMedium))
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = it,
+                        text = headline,
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.weight(1f)
                     )
-                }
-                sentiment.summary?.let {
-                    Spacer(modifier = Modifier.height(paddingMedium))
-                    Text(
-                        text = it,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface
+                    Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_chevron_forward),
+                        contentDescription = stringResource(id = R.string.market_sentiment_navigate_content_description),
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(dimensionResource(id = R.dimen.padding_large))
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
-            Icon(
-                painter = painterResource(id = R.drawable.ic_chevron_forward),
-                contentDescription = stringResource(id = R.string.market_sentiment_navigate_content_description),
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(dimensionResource(id = R.dimen.padding_large))
-            )
+            sentiment.summary?.let { summary ->
+                Spacer(modifier = Modifier.height(paddingMedium))
+                if (headline != null) {
+                    Text(
+                        text = summary,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                } else {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = summary,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_chevron_forward),
+                            contentDescription = stringResource(id = R.string.market_sentiment_navigate_content_description),
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(dimensionResource(id = R.dimen.padding_large))
+                        )
+                    }
+                }
+            }
         }
     }
 }
 
 /**
- * Displays a macro-economic factor with a tag (e.g., "Inflation", "Rates").
+ * The macro_mix[] list -- one `DATA` style card (same header+divider treatment as
+ * [LeadStoriesSection]/[WatchSection]) holding every macro-economic factor. No left-rail accent
+ * bar (removed -- plain padded entries, matching every other merged-card section); a full-width
+ * divider sits between entries instead. `tag` renders on its own line below the heading rather
+ * than sharing a row with it, so a long headline never crowds it. The divider that used to sit
+ * between one item's own headline/tag row and its summary is gone, matching [LeadStoriesSection]'s
+ * "only the boundary between two different entries is worth marking" reasoning.
  *
- * @param item The [MacroItem] to display. Requires a headline to render.
+ * @param macros The macro items to display. Entries with no headline are skipped; if none have a
+ *   headline, the whole section renders nothing.
  */
 @Composable
-fun MacroCard(item: MacroItem) {
-    val headline = item.headline ?: return
+fun MacroMixSection(macros: List<MacroItem>) {
+    val validMacros = macros.filter { it.headline != null }
+    if (validMacros.isEmpty()) return
 
-    // 💡 DATA style -- see LeadStoryCard above.
-    PulseCard(
-        style = PulseCardStyle.DATA,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(modifier = Modifier.height(IntrinsicSize.Min)) {
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .width(dimensionResource(id = R.dimen.border_medium))
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+    PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
+        Column {
+            Text(
+                text = stringResource(id = R.string.section_macro_mix).uppercase(),
+                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))
             )
-
-            Column {
-                Row(
-                    verticalAlignment = Alignment.Top,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(dimensionResource(id = R.dimen.padding_large))
-                ) {
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                thickness = dimensionResource(id = R.dimen.border_thin)
+            )
+            validMacros.forEachIndexed { index, item ->
+                // 💡 No more left-rail accent bar -- plain padded Column, same as every other
+                // merged-card entry (Lead Stories/Watch/Risks). The tag now sits on its own line
+                // below the heading rather than sharing a row with it, so a long headline never
+                // has to compete with the tag for width or push it to a cramped corner.
+                Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
                     Text(
-                        text = headline,
-                        style = MaterialTheme.typography.titleSmall,
-                        // 💡 Card titles are always onSurface -- see LeadStoryCard above.
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    item.tag?.let { tag -> TagPill(text = tag.label) }
-                }
-
-                HorizontalDivider(
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                    thickness = dimensionResource(id = R.dimen.border_thin)
-                )
-
-                item.summary?.let {
-                    Text(
-                        modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)),
-                        text = it,
-                        style = MaterialTheme.typography.bodyMedium,
+                        text = item.headline!!,
+                        style = MaterialTheme.typography.titleMedium,
+                        // 💡 Card titles are always onSurface -- see LeadStoriesSection above.
                         color = MaterialTheme.colorScheme.onSurface
+                    )
+                    item.tag?.let { tag ->
+                        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                        TagPill(text = tag.label)
+                    }
+                    item.summary?.let {
+                        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                        Text(
+                            text = it,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+                if (index != validMacros.lastIndex) {
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                        thickness = dimensionResource(id = R.dimen.border_thin)
                     )
                 }
             }
@@ -1142,27 +1190,39 @@ fun DominoCard(domino: DominoEffect) {
     val impact = domino.impact ?: return
     val outlook = domino.outlook ?: return
 
-    // 💡 DATA style -- see LeadStoryCard above.
+    // 💡 DATA style -- see LeadStoriesSection above.
     PulseCard(
         style = PulseCardStyle.DATA,
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
-            DominoTimelineStep(
-                title = stringResource(id = R.string.label_trigger).uppercase(),
-                text = trigger,
-                isLast = false
+        Column {
+            Text(
+                text = stringResource(id = R.string.section_domino_effect).uppercase(),
+                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))
             )
-            DominoTimelineStep(
-                title = stringResource(id = R.string.label_impact).uppercase(),
-                text = impact,
-                isLast = false
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                thickness = dimensionResource(id = R.dimen.border_thin)
             )
-            DominoTimelineStep(
-                title = stringResource(id = R.string.label_outlook).uppercase(),
-                text = outlook,
-                isLast = true
-            )
+            Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
+                DominoTimelineStep(
+                    title = stringResource(id = R.string.label_trigger).uppercase(),
+                    text = trigger,
+                    isLast = false
+                )
+                DominoTimelineStep(
+                    title = stringResource(id = R.string.label_impact).uppercase(),
+                    text = impact,
+                    isLast = false
+                )
+                DominoTimelineStep(
+                    title = stringResource(id = R.string.label_outlook).uppercase(),
+                    text = outlook,
+                    isLast = true
+                )
+            }
         }
     }
 }
@@ -1215,21 +1275,9 @@ private fun DominoTimelineStep(title: String, text: String, isLast: Boolean) {
     }
 }
 
-/**
- * A standardized section title for the list.
- */
-@Composable
-fun SectionTitle(title: String, color: Color = MaterialTheme.colorScheme.onSurface) {
-    Text(
-        text = title,
-        style = MaterialTheme.typography.titleLarge,
-        color = color,
-        modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_medium))
-    )
-}
 
 /**
- * The neutral tag/timeframe pill shared by [MacroCard] and [WatchSection] -- one component, not
+ * The neutral tag/timeframe pill shared by [MacroMixSection] and [WatchSection] -- one component, not
  * two independently-styled ones, so a Macro Mix tag and a Watch timeframe read as the same visual
  * language rather than two different chips that happen to share a color.
  */
@@ -1257,7 +1305,7 @@ private fun TagPill(text: String) {
  * scoped to just that term -- regime, setup, and cycle-zone chips all use this. `contentDescription`
  * is null (decorative): the pill's own text is already what a screen reader announces for this tap
  * target, so a second "chevron forward" announcement on top of it would be redundant, unlike
- * [DriversSectionHeader]'s standalone chevron, which isn't paired with its own adjacent label text.
+ * [DriversSection]'s trailing navigate chevron, which isn't paired with its own adjacent label text.
  */
 @Composable
 private fun GlossaryChevron(tint: Color) {
@@ -1296,16 +1344,6 @@ private fun PreviewSignalSection() {
 
 @Preview(showBackground = true, backgroundColor = 0xFF121212)
 @Composable
-private fun PreviewDriversSectionHeader() {
-    MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            DriversSectionHeader(onInfoClick = {})
-        }
-    }
-}
-
-@Preview(showBackground = true, backgroundColor = 0xFF121212)
-@Composable
 private fun PreviewDriversSection() {
     MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -1336,7 +1374,8 @@ private fun PreviewDriversSection() {
                         impact = DriverImpact.MODERATE
                     )
                 ),
-                onClick = {}
+                onClick = {},
+                onInfoClick = {}
             )
         }
     }
