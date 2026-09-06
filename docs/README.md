@@ -32,8 +32,9 @@ docs/
     theming-history.md               the "why" — how the theming/card system got here,
                                       chronological, read rarely
     card-heading-conventions.md      LIVING doc — card heading/spacing conventions piloted on
-                                      Summary, with intent to extend screen-by-screen; open
-                                      questions flagged, not yet applied elsewhere
+                                      Summary, rolling out screen-by-screen (partial as of
+                                      2026-09-05: Indicators, Insights, Stock Detail, Deep Dive);
+                                      open questions flagged, see doc for exactly what's landed
 ```
 
 ## How this connects to `CLAUDE.md`, and why it doesn't cost tokens by default

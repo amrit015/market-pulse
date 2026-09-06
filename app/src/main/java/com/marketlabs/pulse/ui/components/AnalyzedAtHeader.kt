@@ -3,6 +3,7 @@ package com.marketlabs.pulse.ui.components
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
@@ -19,14 +20,15 @@ import java.util.Locale
  * just the text itself, no trailing `Spacer`.
  */
 @Composable
-fun AnalyzedAtHeader(timestamp: Long) {
+fun AnalyzedAtHeader(timestamp: Long, modifier: Modifier = Modifier) {
     val date = Date(timestamp)
     val format = SimpleDateFormat("MMM dd, h:mm a", Locale.getDefault())
 
     Text(
         text = stringResource(id = R.string.analyzed_at, format.format(date)),
         style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = modifier
     )
 }
 

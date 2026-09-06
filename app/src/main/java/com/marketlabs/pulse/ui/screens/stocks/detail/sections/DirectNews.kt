@@ -28,7 +28,6 @@ import com.marketlabs.pulse.storage.model.stocks.DomainStockNewsItem
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.widgets.SignalPill
-import com.marketlabs.pulse.ui.screens.stocks.detail.SectionDividerLabel
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 import com.marketlabs.pulse.utils.extensions.toLongDateString
@@ -53,18 +52,16 @@ fun DirectNews(
     val items = newsStream.orEmpty()
     if (items.isEmpty()) return
 
-    Column(modifier = modifier.fillMaxWidth()) {
-        SectionDividerLabel(title = stringResource(id = R.string.stock_detail_direct_news_title))
-        Spacer()
-        Column(verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_medium))) {
-            items.forEach { item ->
-                NewsCard(
-                    item = item,
-                    isExpanded = item.url != null && expandedNewsIds.contains(item.url),
-                    onToggle = { item.url?.let(onToggleNews) },
-                    onArticleClick = onArticleClick
-                )
-            }
+    // 💡 No section header -- this renders on the News tab, whose title already says "News";
+    // "DIRECT NEWS" above it was a redundant restatement. Removed 2026-09-05.
+    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_medium))) {
+        items.forEach { item ->
+            NewsCard(
+                item = item,
+                isExpanded = item.url != null && expandedNewsIds.contains(item.url),
+                onToggle = { item.url?.let(onToggleNews) },
+                onArticleClick = onArticleClick
+            )
         }
     }
 }

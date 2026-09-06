@@ -16,7 +16,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
-import com.marketlabs.pulse.ui.screens.stocks.detail.SynthesisCardHeader
+import com.marketlabs.pulse.ui.components.widgets.CardEyebrowLabel
+import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 /**
@@ -27,14 +28,24 @@ import com.marketlabs.pulse.ui.theme.MarketPulseTheme
  * `technicalRead` (the real `plain_read` field lives on `StockPreview`, backing the list card's
  * prose instead), so labeling this section "Plain Read" was describing the wrong field's intent.
  * Renamed to match what it actually is.
+ *
+ * Header is [CardEyebrowLabel] (the app-wide "ai style card" family -- Market Signal/Today's
+ * Read/Insights' Digest), not Stock Detail's own `SynthesisCardHeader` -- moved 2026-09-05 as the
+ * first of this screen's SYNTHESIS cards to converge on that convention; see
+ * `docs/theming-system/card-heading-conventions.md` for the norm going forward.
  */
 @Composable
 fun TechnicalRead(technicalRead: String?, modifier: Modifier = Modifier) {
     if (technicalRead == null) return
+    val pulseColors = LocalPulseColors.current
 
     PulseCard(style = PulseCardStyle.SYNTHESIS, modifier = modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
-            SynthesisCardHeader(title = stringResource(id = R.string.stock_detail_technical_read_title))
+            CardEyebrowLabel(
+                text = stringResource(id = R.string.stock_detail_technical_read_title),
+                color = pulseColors.accentPrimary,
+                iconRes = R.drawable.ic_ai_sparkle_filled
+            )
             androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
             Text(
                 text = technicalRead,

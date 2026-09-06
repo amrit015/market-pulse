@@ -36,7 +36,11 @@ fun DeepStudy(thesis: DomainExecutiveThesis?, modifier: Modifier = Modifier) {
     PulseCard(style = PulseCardStyle.SYNTHESIS, modifier = modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
             SynthesisCardHeader(title = stringResource(id = R.string.stock_detail_deep_study_title))
-            Spacer()
+            // 💡 Header -> first subsection uses `padding_medium`, matching every other
+            // SYNTHESIS-card header's gap to its content (TechnicalRead, Scenarios) -- distinct
+            // from the `padding_large` [Spacer] between/after subsections below, which is
+            // subsection-to-subsection separation, not header-to-content.
+            androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
 
             thesis.whatTheNumbersSay?.let {
                 Subsection(title = stringResource(id = R.string.stock_detail_what_the_numbers_say), text = it)
@@ -59,7 +63,7 @@ private fun Subsection(title: String, text: String) {
             style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
             color = MaterialTheme.colorScheme.onSurface
         )
-        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
+        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
         Text(
             text = text,
             style = MaterialTheme.typography.bodyMedium,

@@ -275,6 +275,14 @@
     <string name="pillar_systemic_risk">Systemic Risk</string>
     <string name="pillar_valuation">Valuation</string>
     <string name="pillar_macro_vitals">Macro Economy</string>
+    <string name="indicators_tab_empty_state">No data available yet. Pull to refresh.</string>
+
+    <!-- Short pillar tab labels, deliberately distinct from pillar_* above (the inner section
+         title shown inside each tab's own content, which stays the longer full name). -->
+    <string name="indicators_tab_momentum">Momentum</string>
+    <string name="indicators_tab_systemic_risk">Systemic Risk</string>
+    <string name="indicators_tab_valuation">Valuation</string>
+    <string name="indicators_tab_macro">Macro</string>
     <string name="score_label_generic">Score</string>
 
     <string name="subcategory_inflation">Inflation</string>

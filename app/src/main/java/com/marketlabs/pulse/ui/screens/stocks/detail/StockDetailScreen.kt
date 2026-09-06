@@ -14,8 +14,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -51,23 +52,23 @@ import com.marketlabs.pulse.ui.screens.stocks.detail.sections.DigestCard
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.Scenarios
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.SetupReasoning
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.SignalConditions
-import com.marketlabs.pulse.ui.screens.stocks.detail.sections.TechnicalRead
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.WatchList
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 
 /**
- * The 6 tabs the Detail screen's sections are grouped into. `DetailHeader` and the pill tab bar
- * are the only things `StockDetailRoute` keeps pinned -- `TechnicalRead` and the HIGH-urgency
- * alert scroll away with the rest of the content (see [DetailTabContent]'s leading block) so the
- * tab bar isn't permanently competing with them for screen space. `DirectNews` used to live in
- * `TIMELINE` alongside `ForwardCalls`/`EventLog`; it's its own tab now, sorted newest-first.
+ * The 6 tabs the Detail screen's sections are grouped into. `DetailHeader`, the Deep Dive banner,
+ * `TechnicalRead`, the HIGH-urgency alert, and the pill tab bar are all chrome now, rendered once
+ * by `StockDetailRoute` above every tab -- none of them are per-tab content. `DirectNews` used to
+ * live in `TIMELINE` alongside `ForwardCalls`/`EventLog`; it's its own tab now, sorted newest-first.
  *
  * `DIGEST` is first in tab order (per the per-symbol-intelligence spec) but deliberately does NOT
  * change `StockDetailViewModel`'s default `_selectedTabIndex` -- opening a stock still lands on
  * Technicals, same as before; only the tab bar's order changed. Unlike the other 5 tabs, Digest
  * renders standalone (see [DigestTabContent]) rather than through [DetailTabContent]'s shared
- * `TechnicalRead`/HIGH-alert leading block -- it's a distinct AI narrative surface with its own
- * "Daily Digest" header, and mixing in unrelated technical context would blur that.
+ * shell -- it's a distinct AI narrative surface with its own "Daily Digest" header, and its tab
+ * content specifically shouldn't mix in unrelated technical section content the way the other 5
+ * tabs' own sections would (the chrome above it -- header, banner, TechnicalRead, alert, tab row --
+ * still shows above Digest exactly as it does above every other tab).
  */
 enum class DetailTab(val labelRes: Int) {
     DIGEST(R.string.stock_detail_tab_digest),
@@ -79,26 +80,32 @@ enum class DetailTab(val labelRes: Int) {
 }
 
 /**
- * The Detail screen's tab content -- everything below the pinned `DetailHeader` + tab bar (both
- * rendered by `StockDetailRoute`). Each tab is its own `LazyColumn` with its own `LazyListState`,
- * created once here and kept alive across tab switches (this composable itself never leaves
- * composition when `selectedTabIndex` changes -- only which branch of the `when` renders does),
- * so scrolling into a tab, switching away, and switching back lands right where that tab was left.
- *
- * `TechnicalRead` and the HIGH-urgency alert render as a leading block in *every* tab (handled
- * once, in [DetailTabContent], rather than duplicated in each of the 5 tab functions below) --
- * they're general context, not specific to any one tab.
+ * The Detail screen's tab content -- everything below the pinned/collapsing chrome zone (all
+ * rendered by `StockDetailRoute`: `DetailHeader`, the Deep Dive banner, `TechnicalRead`, the
+ * HIGH-urgency alert, and the tab row). Each tab is its own `LazyColumn` with its own
+ * `LazyListState`, created once here and kept alive across tab switches (this composable itself
+ * never leaves composition when the pager's page changes -- only which page is visible does), so
+ * scrolling into a tab, switching away, and switching back lands right where that tab was left.
  *
  * Section composables are unchanged -- only which tab calls them (and, for `DirectNews`, the sort
  * order of what's passed in) changed. The period chart (`PeriodChart` + `ChartRangePicker`) sits
  * in its original reserved position between SetupReasoning and HeadlineMetricsStrip, inside the
  * Technicals tab -- previously a `ChartPlaceholder` stand-in, now real data from `ChartsRepository`.
+ *
+ * 2026-09-05: the tab content is now a `HorizontalPager` (`pagerState` owned and kept in sync with
+ * `StockDetailViewModel`'s `selectedTabIndex` up in `StockDetailRoute`, the one place both
+ * `PulseTabRow` and this screen are composed together -- same shape `InsightsRoute`/`InsightsScreen`
+ * already use) rather than a plain `when` switch on a single `selectedTabIndex` -- a reader can
+ * now swipe left/right between tabs in addition to tapping `PulseTabRow`. `lazyListStates` is
+ * still hoisted here, above the pager, rather than one-per-page inside it -- this composable
+ * itself never leaves composition as pages scroll in and out, so all 6 states stay alive and each
+ * tab's scroll position survives regardless of how far a swipe carries it from the others.
  */
 @Composable
 fun StockDetailScreen(
     detail: StockDetail?,
     preview: StockPreview?,
-    selectedTabIndex: Int,
+    pagerState: PagerState,
     expandedChipIds: Set<String>,
     expandedNewsIds: Set<String>,
     chartSeries: ChartSeries?,
@@ -116,9 +123,8 @@ fun StockDetailScreen(
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
     val sectionSpacing = dimensionResource(id = R.dimen.padding_xxlarge)
     val contentPadding = PaddingValues(
-        // 💡 Was un-set (0dp) -- with TechnicalRead now the first scrollable item directly under
-        // the tab bar instead of a fixed pinned block, that left it sitting flush against the
-        // tabs with no breathing room at all.
+        // 💡 Breathing room under the tab row -- each tab's own first section would otherwise sit
+        // flush against it.
         top = paddingLarge,
         bottom = scaffoldPadding.calculateBottomPadding() + paddingLarge,
         start = paddingLarge,
@@ -126,12 +132,13 @@ fun StockDetailScreen(
     )
     val lazyListStates = remember { List(DetailTab.entries.size) { LazyListState() } }
 
-    Box(
+    HorizontalPager(
+        state = pagerState,
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-    ) {
-        when (DetailTab.entries[selectedTabIndex]) {
+    ) { page ->
+        when (DetailTab.entries[page]) {
             DetailTab.DIGEST -> DigestTabContent(
                 detail = detail,
                 preview = preview,
@@ -192,10 +199,9 @@ fun StockDetailScreen(
 }
 
 /**
- * Standalone -- does NOT route through [DetailTabContent]'s shared `TechnicalRead`/HIGH-alert
- * leading block (see this file's header comment on why). Headline and sections render together
- * inside one [DigestCard]; a quiet day with a headline but no `sections` still shows the headline
- * on its own, not an empty state.
+ * Standalone -- does NOT route through [DetailTabContent]'s shared shell (see this file's header
+ * comment on why). Headline and sections render together inside one [DigestCard]; a quiet day
+ * with a headline but no `sections` still shows the headline on its own, not an empty state.
  */
 @Composable
 private fun DigestTabContent(
@@ -254,7 +260,7 @@ private fun TechnicalsTabContent(
     val hasWatchList = !detail?.watchList.isNullOrEmpty()
     val hasTabContent = hasSetupReasoning || hasHeadlineMetrics || hasKeyLevels || hasWatchList
 
-    DetailTabContent(detail, hasTabContent, lazyListState, contentPadding, sectionSpacing) {
+    DetailTabContent(hasTabContent, lazyListState, contentPadding, sectionSpacing) {
         if (hasSetupReasoning) {
             item {
                 SetupReasoning(
@@ -329,7 +335,7 @@ private fun FundamentalsTabContent(
     val hasMacro = detail?.macro != null
     val hasTabContent = hasFundamentals || hasMacro
 
-    DetailTabContent(detail, hasTabContent, lazyListState, contentPadding, sectionSpacing) {
+    DetailTabContent(hasTabContent, lazyListState, contentPadding, sectionSpacing) {
         if (hasFundamentals) {
             item { Fundamentals(fundamentals = detail?.fundamentals) }
         }
@@ -358,7 +364,7 @@ private fun ThesisTabContent(
     val hasNotCovered = detail?.notCovered != null
     val hasTabContent = hasDeepStudy || hasScenario || hasConsider || hasSignalConditions || hasNotCovered
 
-    DetailTabContent(detail, hasTabContent, lazyListState, contentPadding, sectionSpacing) {
+    DetailTabContent(hasTabContent, lazyListState, contentPadding, sectionSpacing) {
         if (hasDeepStudy) {
             item { DeepStudy(thesis = thesis) }
         }
@@ -397,7 +403,7 @@ private fun TimelineTabContent(
     val hasEventLog = contextVault != null && (!contextVault.eventLog.isNullOrEmpty() || contextVault.thirtyDayTrendTimeline != null)
     val hasTabContent = hasForwardCalls || hasEventLog
 
-    DetailTabContent(detail, hasTabContent, lazyListState, contentPadding, sectionSpacing) {
+    DetailTabContent(hasTabContent, lazyListState, contentPadding, sectionSpacing) {
         if (hasForwardCalls) {
             item { ForwardCalls(calls = detail?.calls) }
         }
@@ -423,7 +429,7 @@ private fun NewsTabContent(
     val sortedNews = detail?.topNewsStream.orEmpty().sortedByDescending { it.sourceDate.orEmpty() }
     val hasTabContent = sortedNews.isNotEmpty()
 
-    DetailTabContent(detail, hasTabContent, lazyListState, contentPadding, sectionSpacing) {
+    DetailTabContent(hasTabContent, lazyListState, contentPadding, sectionSpacing) {
         if (hasTabContent) {
             item {
                 DirectNews(
@@ -438,29 +444,23 @@ private fun NewsTabContent(
 }
 
 /**
- * Shared shell every tab uses. The leading block (`TechnicalRead` then the HIGH-urgency alert,
- * whichever are present) renders as one `LazyColumn` item with its own tighter internal spacing
- * (`padding_small` between the two, tighter than the `sectionSpacing` gap the rest of the list
- * uses) and a hairline divider after it, separating that general context from the tab's own
- * sections below. Falls back to a centered muted "Nothing yet" line only when there's truly
- * nothing to show at all: no `TechnicalRead`, no HIGH alert, and none of the tab's own sections.
+ * Shared shell every tab uses. `TechnicalRead` and the HIGH-urgency alert used to render as a
+ * leading block here, duplicated identically into every tab's own list -- both moved 2026-09-05 to
+ * chrome level (`StockDetailRoute`, alongside the Deep Dive banner, same collapse-then-stick
+ * behavior) as a single shared instance instead, since they're general context, not per-tab
+ * content. Falls back to a centered muted "Nothing yet" line when a tab truly has none of its own
+ * sections -- the general context now lives above the tab row regardless, so an empty tab reads as
+ * empty rather than silently falling back to showing only that shared context again.
  */
 @Composable
 private fun DetailTabContent(
-    detail: StockDetail?,
     hasTabContent: Boolean,
     lazyListState: LazyListState,
     contentPadding: PaddingValues,
     sectionSpacing: Dp,
     content: LazyListScope.() -> Unit
 ) {
-    val technicalRead = detail?.technicalRead
-    val watchList = detail?.watchList
-    val hasHighAlert = watchList.orEmpty().any { it.urgency?.uppercase() == "HIGH" }
-    val hasLeadingBlock = technicalRead != null || hasHighAlert
-    val hasAnyContent = hasLeadingBlock || hasTabContent
-
-    if (!hasAnyContent) {
+    if (!hasTabContent) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text(
                 text = stringResource(id = R.string.stock_detail_tab_nothing_yet),
@@ -477,26 +477,6 @@ private fun DetailTabContent(
         contentPadding = contentPadding,
         verticalArrangement = Arrangement.spacedBy(sectionSpacing)
     ) {
-        if (hasLeadingBlock) {
-            item {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    technicalRead?.let { text ->
-                        TechnicalRead(technicalRead = text)
-                    }
-                    if (technicalRead != null && hasHighAlert) {
-                        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
-                    }
-                    if (hasHighAlert) {
-                        HighUrgencyAlertRow(watchList = watchList)
-                    }
-                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
-                    HorizontalDivider(
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                        thickness = dimensionResource(id = R.dimen.border_thin)
-                    )
-                }
-            }
-        }
         content()
     }
 }

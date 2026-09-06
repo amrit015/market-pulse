@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -24,7 +25,7 @@ import com.marketlabs.pulse.storage.model.stocks.DomainConditionLabel
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.widgets.SignalPill
-import com.marketlabs.pulse.ui.screens.stocks.detail.SectionDividerLabel
+import com.marketlabs.pulse.ui.screens.stocks.detail.DataCardSectionHeader
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
@@ -38,9 +39,9 @@ private val CATEGORY_ORDER = listOf("MOMENTUM", "TREND", "VOLUME", "VOLATILITY",
  * which a `FlowRow` of independent peer items can't cleanly do once one item needs to grow taller
  * than its neighbors without disturbing their wrap positions.
  *
- * The "what changed since last run" box is its own thing, not part of `condition_labels` --
- * `chipsAdded`/`chipsRemoved` come from the symbol's cached `StockPreview` (see
- * `StockDetailViewModel`), cross-referenced here since `StockDetail` carries no day-over-day delta
+ * "What changed since last run" is a data-model-only distinct thing, not part of
+ * `condition_labels` -- `chipsAdded`/`chipsRemoved` come from the symbol's cached `StockPreview`
+ * (see `StockDetailViewModel`), cross-referenced here since `StockDetail` carries no day-over-day delta
  * of its own but the Design mockups show this box on the Detail screen too.
  */
 @Composable
@@ -55,29 +56,47 @@ fun SignalConditions(
     val labels = conditionLabels.orEmpty()
     if (labels.isEmpty()) return
 
-    Column(modifier = modifier.fillMaxWidth()) {
-        SectionDividerLabel(
-            title = stringResource(id = R.string.stock_detail_signal_conditions_title, labels.size),
-            trailing = stringResource(id = R.string.stock_detail_signal_conditions_hint)
-        )
-        Spacer()
+    val hasWhatChanged = chipsAdded.isNotEmpty() || chipsRemoved.isNotEmpty()
 
-        if (chipsAdded.isNotEmpty() || chipsRemoved.isNotEmpty()) {
-            WhatChangedBox(chipsAdded, chipsRemoved)
-            Spacer()
-        }
+    // 💡 "What changed" is a divider-separated section of this SAME card now, not its own
+    // `PulseCard` sitting above it -- a card nested inside another card (or two separate sibling
+    // cards standing in for what reads as one section) both double up on chrome for no visual
+    // benefit. Macro Mix's structure: one card, one header, every block below it (What Changed,
+    // then each category group) separated by a full-width divider.
+    PulseCard(style = PulseCardStyle.DATA, modifier = modifier.fillMaxWidth()) {
+        Column {
+            DataCardSectionHeader(
+                title = stringResource(id = R.string.stock_detail_signal_conditions_title, labels.size),
+                trailing = stringResource(id = R.string.stock_detail_signal_conditions_hint)
+            )
 
-        val grouped = labels.groupBy { it.category?.uppercase() }
-        Column(verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_large))) {
-            CATEGORY_ORDER.forEach { category ->
-                val chipsInCategory = grouped[category].orEmpty()
-                if (chipsInCategory.isNotEmpty()) {
-                    CategoryGroup(
-                        title = categoryLabel(category),
-                        chips = chipsInCategory,
-                        expandedChipIds = expandedChipIds,
-                        onToggleChip = onToggleChip
-                    )
+            if (hasWhatChanged) {
+                WhatChangedContent(
+                    chipsAdded = chipsAdded,
+                    chipsRemoved = chipsRemoved,
+                    modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))
+                )
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                    thickness = dimensionResource(id = R.dimen.border_thin)
+                )
+            }
+
+            val grouped = labels.groupBy { it.category?.uppercase() }
+            Column(
+                modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)),
+                verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_large))
+            ) {
+                CATEGORY_ORDER.forEach { category ->
+                    val chipsInCategory = grouped[category].orEmpty()
+                    if (chipsInCategory.isNotEmpty()) {
+                        CategoryGroup(
+                            title = categoryLabel(category),
+                            chips = chipsInCategory,
+                            expandedChipIds = expandedChipIds,
+                            onToggleChip = onToggleChip
+                        )
+                    }
                 }
             }
         }
@@ -95,46 +114,44 @@ private fun categoryLabel(category: String): String = when (category) {
 }
 
 @Composable
-private fun WhatChangedBox(chipsAdded: List<String>, chipsRemoved: List<String>) {
+private fun WhatChangedContent(chipsAdded: List<String>, chipsRemoved: List<String>, modifier: Modifier = Modifier) {
     val pulseColors = LocalPulseColors.current
 
-    PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
-            Text(
-                text = stringResource(id = R.string.stock_detail_what_changed_title),
-                style = MaterialTheme.typography.labelMedium,
-                color = pulseColors.onSurfaceMuted
-            )
-            androidx.compose.foundation.layout.Spacer(modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_medium)))
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_small))) {
-                chipsAdded.forEach { label ->
-                    Surface(
-                        color = MaterialTheme.colorScheme.background,
-                        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_pill)),
-                        border = BorderStroke(dimensionResource(id = R.dimen.border_thin), pulseColors.signalBullishText)
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.stock_detail_chip_added, label),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = pulseColors.signalBullishText,
-                            modifier = Modifier.padding(
-                                horizontal = dimensionResource(id = R.dimen.padding_medium),
-                                vertical = dimensionResource(id = R.dimen.padding_small)
-                            )
-                        )
-                    }
-                }
-                chipsRemoved.forEach { label ->
+    Column(modifier = modifier) {
+        Text(
+            text = stringResource(id = R.string.stock_detail_what_changed_title),
+            style = MaterialTheme.typography.labelMedium,
+            color = pulseColors.onSurfaceMuted
+        )
+        androidx.compose.foundation.layout.Spacer(modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_medium)))
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_small))) {
+            chipsAdded.forEach { label ->
+                Surface(
+                    color = MaterialTheme.colorScheme.background,
+                    shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_pill)),
+                    border = BorderStroke(dimensionResource(id = R.dimen.border_thin), pulseColors.signalBullishText)
+                ) {
                     Text(
-                        text = stringResource(id = R.string.stock_detail_chip_removed, label),
-                        style = MaterialTheme.typography.labelMedium.copy(textDecoration = TextDecoration.LineThrough),
-                        color = pulseColors.onSurfaceMuted,
+                        text = stringResource(id = R.string.stock_detail_chip_added, label),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = pulseColors.signalBullishText,
                         modifier = Modifier.padding(
                             horizontal = dimensionResource(id = R.dimen.padding_medium),
                             vertical = dimensionResource(id = R.dimen.padding_small)
                         )
                     )
                 }
+            }
+            chipsRemoved.forEach { label ->
+                Text(
+                    text = stringResource(id = R.string.stock_detail_chip_removed, label),
+                    style = MaterialTheme.typography.labelMedium.copy(textDecoration = TextDecoration.LineThrough),
+                    color = pulseColors.onSurfaceMuted,
+                    modifier = Modifier.padding(
+                        horizontal = dimensionResource(id = R.dimen.padding_medium),
+                        vertical = dimensionResource(id = R.dimen.padding_small)
+                    )
+                )
             }
         }
     }
@@ -183,11 +200,6 @@ private fun CategoryGroup(
             }
         }
     }
-}
-
-@Composable
-private fun Spacer() {
-    androidx.compose.foundation.layout.Spacer(modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_medium)))
 }
 
 // ============================================================================

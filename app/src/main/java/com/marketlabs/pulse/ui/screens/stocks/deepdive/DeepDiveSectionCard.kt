@@ -12,12 +12,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.stocks.DomainFundamentalsDelta
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
+import com.marketlabs.pulse.ui.components.widgets.CardEyebrowLabel
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
@@ -47,16 +47,24 @@ fun DeepDiveSectionCard(
     PulseCard(style = PulseCardStyle.SYNTHESIS, modifier = modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
             kicker?.let {
-                Text(
-                    text = it.uppercase(),
-                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                    color = pulseColors.accentPrimary
-                )
-                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
+                // 💡 `CardEyebrowLabel`, no icon -- this screen's own `DeepDiveHeaderBanner`
+                // already establishes "this whole screen is AI-generated" once, at the top, so
+                // each of the 8 section cards doesn't repeat the AI-sparkle icon (same reasoning
+                // Summary's Lead Stories/Macro Mix/Watch/Risks entries don't each repeat one
+                // either). Was a hand-rolled `Text` with the identical style; now calls the shared
+                // widget directly.
+                CardEyebrowLabel(text = it, color = pulseColors.accentPrimary)
+                // 💡 `padding_medium`, matching the heading-to-content gap every other SYNTHESIS
+                // card on this screen uses (was `padding_small` until 2026-09-05).
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
             }
             Text(
                 text = heading,
-                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                // 💡 `titleMedium`, no bold override -- matches the app-wide content-heading
+                // convention for a list entry's own headline (Summary's Lead Stories/Macro
+                // Mix/Watch/Risks all use plain `titleMedium`); was `titleSmall.Bold` until
+                // 2026-09-05.
+                style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))

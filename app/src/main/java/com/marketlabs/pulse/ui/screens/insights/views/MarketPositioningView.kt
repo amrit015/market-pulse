@@ -66,7 +66,6 @@ fun MarketPositioningSection(
     isIntroDismissed: Boolean,
     onDismissIntro: () -> Unit
 ) {
-    val paddingMedium = dimensionResource(id = R.dimen.padding_medium)
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
 
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -131,59 +130,68 @@ fun MarketPositioningSection(
 
         // --- RETAIL SENTIMENT ---
         positioningData.retailSentiment?.let { retail ->
-            SectionLabel(
-                text = stringResource(id = R.string.positioning_retail_sentiment_section),
-                infoTitle = stringResource(id = R.string.positioning_retail_sentiment_section),
-                infoDescription = stringResource(id = R.string.positioning_retail_sentiment_description)
+            RetailSentimentCard(
+                sectionTitle = stringResource(id = R.string.positioning_retail_sentiment_section),
+                infoDescription = stringResource(id = R.string.positioning_retail_sentiment_description),
+                retail = retail,
+                onNavigateToGlossaryDetail = onNavigateToGlossaryDetail
             )
-            Spacer(modifier = Modifier.height(paddingMedium))
-            RetailSentimentCard(retail, onNavigateToGlossaryDetail)
             Spacer(modifier = Modifier.height(paddingLarge))
         }
 
         // --- INSTITUTIONAL POSITIONING (CFTC COT) ---
         positioningData.institutionalPositioning?.let { institutional ->
-            SectionLabel(
-                text = stringResource(id = R.string.positioning_institutional_section),
-                infoTitle = stringResource(id = R.string.positioning_institutional_section),
-                infoDescription = stringResource(id = R.string.positioning_institutional_description)
+            InstitutionalPositioningCard(
+                sectionTitle = stringResource(id = R.string.positioning_institutional_section),
+                infoDescription = stringResource(id = R.string.positioning_institutional_description),
+                institutional = institutional,
+                onNavigateToGlossaryDetail = onNavigateToGlossaryDetail
             )
-            Spacer(modifier = Modifier.height(paddingMedium))
-            InstitutionalPositioningCard(institutional, onNavigateToGlossaryDetail)
             Spacer(modifier = Modifier.height(paddingLarge))
         }
 
         // --- SHORT INTEREST (FINRA) ---
         positioningData.shortInterest?.let { shortInterest ->
-            SectionLabel(
-                text = stringResource(id = R.string.positioning_short_interest_section),
-                infoTitle = stringResource(id = R.string.positioning_short_interest_section),
-                infoDescription = stringResource(id = R.string.positioning_short_interest_description)
+            ShortInterestCombinedCard(
+                sectionTitle = stringResource(id = R.string.positioning_short_interest_section),
+                infoDescription = stringResource(id = R.string.positioning_short_interest_description),
+                shortInterest = shortInterest,
+                onNavigateToGlossaryDetail = onNavigateToGlossaryDetail
             )
-            Spacer(modifier = Modifier.height(paddingMedium))
-            ShortInterestCombinedCard(shortInterest, onNavigateToGlossaryDetail)
         }
     }
 }
 
 /**
- * Section label + info icon (2026-08-27: new, backed by the group descriptions the backend used to
- * send as `*.description`). All 3 sub-headers (Retail Sentiment, Institutional Positioning, Short
- * Interest) share one `titleSmall` style -- was `labelSmall` until Institutional Positioning and
- * Short Interest were bumped up for visual weight once they started heading a multi-row combined
- * card; Retail Sentiment was brought up to match rather than left as the odd one out.
+ * Section-title header shared by all 3 positioning cards (Retail Sentiment, Institutional
+ * Positioning, Short Interest) -- brought inside each card 2026-09-05 to match the
+ * `Text(titleSmall.Bold, primary) + full-bleed divider` convention Summary's Macro Mix/Drivers/
+ * etc. use (see `docs/theming-system/card-heading-conventions.md`), rather than sitting as a
+ * separate list item above an otherwise-headerless card the way this screen previously rendered
+ * it (this composable folds in what used to be a standalone `SectionLabel`). The divider sits
+ * outside the padded `Row` (at the outer, unpadded `Column` level) so it spans the card's full
+ * width, matching every section-title header on Summary.
  */
 @Composable
-private fun SectionLabel(text: String, infoTitle: String, infoDescription: String?) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+private fun CardSectionHeader(title: String, infoDescription: String?) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(dimensionResource(id = R.dimen.padding_large)),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         Text(
-            text = text,
+            text = title,
             style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.primary
         )
         Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
-        MetricInfoAction(title = infoTitle, description = infoDescription)
+        MetricInfoAction(title = title, description = infoDescription)
     }
+    HorizontalDivider(
+        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+        thickness = dimensionResource(id = R.dimen.border_thin)
+    )
 }
 
 /**
@@ -207,76 +215,89 @@ private fun DeltaDirection.toChangeDirection(): ChangeDirection = when (this) {
 }
 
 @Composable
-private fun RetailSentimentCard(retail: DomainRetailSentiment, onNavigateToGlossaryDetail: (List<String>, String, String?, String?) -> Unit) {
+private fun RetailSentimentCard(
+    sectionTitle: String,
+    infoDescription: String?,
+    retail: DomainRetailSentiment,
+    onNavigateToGlossaryDetail: (List<String>, String, String?, String?) -> Unit
+) {
     val status = RetailSentimentStatus.fromString(retail.status)
     val title = stringResource(id = R.string.positioning_retail_sentiment_title)
     val description = stringResource(id = R.string.positioning_retail_sentiment_description)
 
-    PulseCard(
-        style = PulseCardStyle.DATA,
-        modifier = Modifier.fillMaxWidth(),
-        onClick = { onNavigateToGlossaryDetail(listOf("positioning.aaii_bull_bear_spread"), title, description, retail.status) }
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(dimensionResource(id = R.dimen.padding_large)),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+    // 💡 Two independent tap targets, same reasoning as Summary's `DriversSection` -- the header
+    // (section title + info icon) navigates nowhere on its own, only its nested info icon does;
+    // only the content row below is clickable, via its own `Modifier.clickable`, not `PulseCard`'s
+    // own `onClick` (which would make the whole card -- including the header -- one tap target and
+    // swallow the info icon's nested click).
+    PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
+        Column {
+            CardSectionHeader(title = sectionTitle, infoDescription = infoDescription)
 
-                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
-                MetricStatusRow(
-                    label = stringResource(id = R.string.insights_label_sentiment),
-                    statusText = retail.status ?: stringResource(id = R.string.insights_status_unknown),
-                    pillColor = status.pillColor,
-                    contentColor = status.textColor
-                )
-
-                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        onNavigateToGlossaryDetail(listOf("positioning.aaii_bull_bear_spread"), title, description, retail.status)
+                    }
+                    .padding(dimensionResource(id = R.dimen.padding_large)),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = retail.bullBearSpread?.let { formatPts(it) } ?: stringResource(id = R.string.insights_value_unavailable),
-                        style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.ExtraBold),
+                        text = title,
+                        style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.onSurface
                     )
-                    retail.delta?.let { delta ->
-                        val (pillColor, textColor) = neutralDeltaColors()
-                        Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
-                        DirectionalChangePill(
-                            changeText = formatPts(abs(delta)),
-                            direction = retail.deltaDirection.toChangeDirection(),
-                            pillColor = pillColor,
-                            contentColor = textColor
+
+                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
+                    MetricStatusRow(
+                        label = stringResource(id = R.string.insights_label_sentiment),
+                        statusText = retail.status ?: stringResource(id = R.string.insights_status_unknown),
+                        pillColor = status.pillColor,
+                        contentColor = status.textColor
+                    )
+
+                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = retail.bullBearSpread?.let { formatPts(it) } ?: stringResource(id = R.string.insights_value_unavailable),
+                            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.ExtraBold),
+                            color = MaterialTheme.colorScheme.onSurface
                         )
+                        retail.delta?.let { delta ->
+                            val (pillColor, textColor) = neutralDeltaColors()
+                            Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+                            DirectionalChangePill(
+                                changeText = formatPts(abs(delta)),
+                                direction = retail.deltaDirection.toChangeDirection(),
+                                pillColor = pillColor,
+                                contentColor = textColor
+                            )
+                        }
                     }
+
+                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                    TriSegmentBar(
+                        bullFraction = ((retail.bullPct ?: 0.0) / 100.0).toFloat(),
+                        neutralFraction = ((retail.neutralPct ?: 0.0) / 100.0).toFloat(),
+                        bearFraction = ((retail.bearPct ?: 0.0) / 100.0).toFloat()
+                    )
+                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        RetailSplitCol(stringResource(id = R.string.positioning_retail_bull), retail.bullPct)
+                        RetailSplitCol(stringResource(id = R.string.positioning_retail_neutral), retail.neutralPct)
+                        RetailSplitCol(stringResource(id = R.string.positioning_retail_bear), retail.bearPct)
+                    }
+
+                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                    MetricCardFooter(asOfText = retail.reportedDate?.let { stringResource(id = R.string.insights_as_of, it.toDisplayDate()) })
                 }
 
-                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
-                TriSegmentBar(
-                    bullFraction = ((retail.bullPct ?: 0.0) / 100.0).toFloat(),
-                    neutralFraction = ((retail.neutralPct ?: 0.0) / 100.0).toFloat(),
-                    bearFraction = ((retail.bearPct ?: 0.0) / 100.0).toFloat()
-                )
-                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    RetailSplitCol(stringResource(id = R.string.positioning_retail_bull), retail.bullPct)
-                    RetailSplitCol(stringResource(id = R.string.positioning_retail_neutral), retail.neutralPct)
-                    RetailSplitCol(stringResource(id = R.string.positioning_retail_bear), retail.bearPct)
-                }
-
-                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
-                MetricCardFooter(asOfText = retail.reportedDate?.let { stringResource(id = R.string.insights_as_of, it.toDisplayDate()) })
+                Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+                GlossaryTapChevron(tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-
-            Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
-            GlossaryTapChevron(tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -312,6 +333,8 @@ private fun methodologyLabel(methodology: String): String = when (methodology) {
  */
 @Composable
 private fun InstitutionalPositioningCard(
+    sectionTitle: String,
+    infoDescription: String?,
     institutional: DomainInstitutionalPositioning,
     onNavigateToGlossaryDetail: (List<String>, String, String?, String?) -> Unit
 ) {
@@ -328,17 +351,21 @@ private fun InstitutionalPositioningCard(
     val rowHorizontalPadding = Modifier.padding(horizontal = dimensionResource(id = R.dimen.padding_large))
 
     PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.padding_large))) {
-            entries.forEachIndexed { index, entry ->
-                FuturesContractRow(entry.label, entry.contract, onNavigateToGlossaryDetail, modifier = rowHorizontalPadding)
-                if (index != entries.lastIndex) {
-                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
-                    HorizontalDivider(
-                        modifier = Modifier.fillMaxWidth(),
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                        thickness = dimensionResource(id = R.dimen.border_thin)
-                    )
-                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
+        Column {
+            CardSectionHeader(title = sectionTitle, infoDescription = infoDescription)
+
+            Column(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.padding_large))) {
+                entries.forEachIndexed { index, entry ->
+                    FuturesContractRow(entry.label, entry.contract, onNavigateToGlossaryDetail, modifier = rowHorizontalPadding)
+                    if (index != entries.lastIndex) {
+                        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
+                        HorizontalDivider(
+                            modifier = Modifier.fillMaxWidth(),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                            thickness = dimensionResource(id = R.dimen.border_thin)
+                        )
+                        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
+                    }
                 }
             }
         }
@@ -485,6 +512,8 @@ private fun Int.withOrdinalSuffix(): String {
  */
 @Composable
 private fun ShortInterestCombinedCard(
+    sectionTitle: String,
+    infoDescription: String?,
     shortInterest: DomainShortInterest,
     onNavigateToGlossaryDetail: (List<String>, String, String?, String?) -> Unit
 ) {
@@ -503,17 +532,21 @@ private fun ShortInterestCombinedCard(
     val rowHorizontalPadding = Modifier.padding(horizontal = dimensionResource(id = R.dimen.padding_large))
 
     PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.padding_large))) {
-            entries.forEachIndexed { index, entry ->
-                ShortInterestRow(entry.label, entry.instrument, shortInterest.description, onNavigateToGlossaryDetail, modifier = rowHorizontalPadding)
-                if (index != entries.lastIndex) {
-                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
-                    HorizontalDivider(
-                        modifier = Modifier.fillMaxWidth(),
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                        thickness = dimensionResource(id = R.dimen.border_thin)
-                    )
-                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
+        Column {
+            CardSectionHeader(title = sectionTitle, infoDescription = infoDescription)
+
+            Column(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.padding_large))) {
+                entries.forEachIndexed { index, entry ->
+                    ShortInterestRow(entry.label, entry.instrument, shortInterest.description, onNavigateToGlossaryDetail, modifier = rowHorizontalPadding)
+                    if (index != entries.lastIndex) {
+                        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
+                        HorizontalDivider(
+                            modifier = Modifier.fillMaxWidth(),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                            thickness = dimensionResource(id = R.dimen.border_thin)
+                        )
+                        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
+                    }
                 }
             }
         }

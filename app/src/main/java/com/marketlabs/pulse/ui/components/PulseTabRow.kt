@@ -7,12 +7,16 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.font.FontWeight
@@ -43,6 +47,14 @@ import com.marketlabs.pulse.ui.theme.MarketPulseTheme
  * XTab(val labelRes: Int)`, keep the selected index as a `MutableStateFlow<Int>` in the ViewModel
  * with an `onTabSelected(index: Int)` setter, pass `XTab.entries.map { stringResource(it.labelRes) }`
  * as `tabs` here, and branch the screen's content on `XTab.entries[selectedTabIndex]`.
+ *
+ * Each chip carries its own [BringIntoViewRequester], and selecting a tab -- whether by tapping a
+ * chip here or (on a screen with swipeable tab content) settling a swipe several tabs away --
+ * scrolls this row just enough to bring that chip on-screen. Without this, a tab index changing
+ * from outside a tap on this row (a pager swipe landing on a tab this row hasn't scrolled to) left
+ * the row wherever it last was, silently stranding whichever tab sits at either end off-screen with
+ * no way to see it was even selected. 2026-09-05 fix, surfaced once Stock Detail's tab content
+ * became swipeable and its 6 tabs no longer all fit on-screen at once.
  */
 @Composable
 fun PulseTabRow(
@@ -52,6 +64,11 @@ fun PulseTabRow(
     modifier: Modifier = Modifier
 ) {
     val pulseColors = LocalPulseColors.current
+    val bringIntoViewRequesters = remember(tabs.size) { List(tabs.size) { BringIntoViewRequester() } }
+
+    LaunchedEffect(selectedTabIndex) {
+        bringIntoViewRequesters.getOrNull(selectedTabIndex)?.bringIntoView()
+    }
 
     Row(
         modifier = modifier
@@ -69,7 +86,9 @@ fun PulseTabRow(
                 color = if (isSelected) pulseColors.accentPrimary else MaterialTheme.colorScheme.background,
                 border = if (isSelected) null else BorderStroke(dimensionResource(id = R.dimen.border_thin), pulseColors.accentSurfaceBorder),
                 shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_small)),
-                modifier = Modifier.clickable { onTabSelected(index) }
+                modifier = Modifier
+                    .bringIntoViewRequester(bringIntoViewRequesters[index])
+                    .clickable { onTabSelected(index) }
             ) {
                 Text(
                     text = label,

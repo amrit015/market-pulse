@@ -30,8 +30,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.stocks.DomainContextVault
 import com.marketlabs.pulse.storage.model.stocks.DomainEventLogItem
+import com.marketlabs.pulse.ui.components.PulseCard
+import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.widgets.SignalPill
-import com.marketlabs.pulse.ui.screens.stocks.detail.SectionDividerLabel
+import com.marketlabs.pulse.ui.screens.stocks.detail.DataCardSectionHeader
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 import com.marketlabs.pulse.utils.extensions.toLongDateString
@@ -73,44 +75,47 @@ fun EventLog(contextVault: DomainContextVault?, modifier: Modifier = Modifier) {
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val coroutineScope = rememberCoroutineScope()
 
-    Column(modifier = modifier.fillMaxWidth()) {
-        Box(modifier = Modifier.bringIntoViewRequester(bringIntoViewRequester)) {
-            SectionDividerLabel(title = stringResource(id = R.string.stock_detail_technical_timeline_title))
-        }
-        Spacer()
-
-        contextVault?.thirtyDayTrendTimeline?.let {
-            // 💡 onSurface, not onSurfaceMuted -- a full analytical sentence reads as this app's
-            // normal body-text color everywhere else on the Detail screen.
-            Text(text = it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
-            Spacer()
-        }
-
-        visibleEvents.forEachIndexed { index, event ->
-            EventRow(event)
-            if (index != visibleEvents.lastIndex) {
-                HorizontalDivider(
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                    thickness = dimensionResource(id = R.dimen.border_thin),
-                    modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.padding_medium))
-                )
+    PulseCard(style = PulseCardStyle.DATA, modifier = modifier.fillMaxWidth()) {
+        Column {
+            Box(modifier = Modifier.bringIntoViewRequester(bringIntoViewRequester)) {
+                DataCardSectionHeader(title = stringResource(id = R.string.stock_detail_technical_timeline_title))
             }
-        }
 
-        if (events.size > COLLAPSED_EVENT_COUNT) {
-            Spacer()
-            Text(
-                text = stringResource(id = if (showAll) R.string.stock_detail_show_latest else R.string.stock_detail_show_all),
-                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                color = pulseColors.accentPrimary,
-                modifier = Modifier.clickable {
-                    val wasShowingAll = showAll
-                    showAll = !showAll
-                    if (wasShowingAll) {
-                        coroutineScope.launch { bringIntoViewRequester.bringIntoView() }
+            Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
+                contextVault?.thirtyDayTrendTimeline?.let {
+                    // 💡 onSurface, not onSurfaceMuted -- a full analytical sentence reads as this
+                    // app's normal body-text color everywhere else on the Detail screen.
+                    Text(text = it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
+                    Spacer()
+                }
+
+                visibleEvents.forEachIndexed { index, event ->
+                    EventRow(event)
+                    if (index != visibleEvents.lastIndex) {
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                            thickness = dimensionResource(id = R.dimen.border_thin),
+                            modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.padding_medium))
+                        )
                     }
                 }
-            )
+
+                if (events.size > COLLAPSED_EVENT_COUNT) {
+                    Spacer()
+                    Text(
+                        text = stringResource(id = if (showAll) R.string.stock_detail_show_latest else R.string.stock_detail_show_all),
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                        color = pulseColors.accentPrimary,
+                        modifier = Modifier.clickable {
+                            val wasShowingAll = showAll
+                            showAll = !showAll
+                            if (wasShowingAll) {
+                                coroutineScope.launch { bringIntoViewRequester.bringIntoView() }
+                            }
+                        }
+                    )
+                }
+            }
         }
     }
 }

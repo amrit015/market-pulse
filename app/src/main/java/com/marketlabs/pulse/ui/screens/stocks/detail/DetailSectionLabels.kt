@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -26,36 +27,39 @@ import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 
 /**
- * The three label styles every Detail section reuses, factored out once rather than duplicated
- * across 15 section files (the Design mockups repeat each of these verbatim across the sections
- * that use them):
+ * The label styles every Detail section reuses, factored out once rather than duplicated across
+ * 15 section files (the Design mockups repeat each of these verbatim across the sections that use
+ * them):
  *
- * - [SectionDividerLabel]: a page-level heading sitting directly on the background between cards
- *   (WHAT TO WATCH, SIGNAL CONDITIONS, CONSIDER, FORWARD CALLS, EVENT LOG, DIRECT NEWS) -- accent-
- *   colored, bold, all-caps, with an optional muted trailing bit of context on the same row
- *   ("tap a chip for why", "2 of 2 recent calls held").
+ * - [DataCardSectionHeader]: the small-caps title + full-bleed divider sitting *inside* a
+ *   `PulseCard(DATA)` that holds a list of entries (WHAT TO WATCH, SIGNAL CONDITIONS, THINGS TO
+ *   CHECK, FORWARD CALLS, RESOLVED CALLS, TECHNICAL TIMELINE) -- the same header treatment
+ *   Summary's Macro Mix/Drivers use, `titleSmall.Bold`/`primary`, with an optional muted trailing
+ *   bit of context on the same row ("tap a chip for why", "2 of 2 recent calls held"). Replaced
+ *   the page-level `SectionDividerLabel` (`titleLarge`/`accentPrimary`, sitting directly on the
+ *   background between cards) 2026-09-05, once these sections moved onto one `PulseCard` each
+ *   rather than floating loose content on the page background.
  * - [DataCardTitleLabel]: the muted title sitting inside a `PulseCard(DATA)` (KEY LEVELS,
  *   FUNDAMENTALS).
- * - [SynthesisCardHeader]: the Ai-glyph + title pairing inside a `PulseCard(SYNTHESIS)` (PLAIN
- *   READ, DEEP STUDY, SCENARIOS) -- same icon+sizing-to-text-height treatment
- *   `DashboardScreen`'s Technical Briefing card and `StockPreviewCard` already use elsewhere.
+ * - [SynthesisCardHeader]: the Ai-glyph + title pairing inside a `PulseCard(SYNTHESIS)` (DEEP
+ *   STUDY, SCENARIOS) -- same icon+sizing-to-text-height treatment `DashboardScreen`'s Technical
+ *   Briefing card and `StockPreviewCard` already use elsewhere. Note: TechnicalRead moved off this
+ *   onto [com.marketlabs.pulse.ui.components.widgets.CardEyebrowLabel] 2026-09-05 -- see that
+ *   composable's own doc comment and `docs/theming-system/card-heading-conventions.md` for why
+ *   this screen currently runs two different SYNTHESIS-card header families side by side.
  */
 @Composable
-fun SectionDividerLabel(title: String, trailing: String? = null) {
+fun DataCardSectionHeader(title: String, trailing: String? = null) {
     val pulseColors = LocalPulseColors.current
 
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))
+    ) {
         Text(
             text = title,
-            // 💡 titleLarge (Montserrat, 20sp, bold) -- was `labelLarge` (Inter, 14sp), the small
-            // terminal-style label font this app's type system reserves for meta text like "Last
-            // updated," not a page-level section heading. Every other screen's equivalent heading
-            // (Dashboard's "Sector Rotation," Summary's section titles, Insights' "Weekly
-            // Playbook"/"Institutional Posture," News, Indicators) already uses `titleLarge`, so
-            // this brought Stock Detail's section headings in line with the rest of the app instead
-            // of reading in a smaller, different typeface.
-            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-            color = pulseColors.accentPrimary,
+            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+            color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.weight(1f, fill = false)
         )
         trailing?.let {
@@ -67,6 +71,10 @@ fun SectionDividerLabel(title: String, trailing: String? = null) {
             )
         }
     }
+    HorizontalDivider(
+        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+        thickness = dimensionResource(id = R.dimen.border_thin)
+    )
 }
 
 @Composable

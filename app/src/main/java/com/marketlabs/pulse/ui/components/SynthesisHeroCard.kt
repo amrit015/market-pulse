@@ -1,7 +1,6 @@
 package com.marketlabs.pulse.ui.components
 
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -78,25 +77,19 @@ fun SynthesisHeroCard(
         onClick = if (detail.isNullOrBlank()) null else { { isExpanded = !isExpanded } }
     ) {
         Column(modifier = Modifier.padding(paddingLarge).animateContentSize()) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                CardEyebrowLabel(
-                    text = stringResource(id = R.string.insights_synthesis_label),
-                    color = pulseColors.accentPrimary,
-                    iconRes = R.drawable.ic_ai_sparkle_filled
-                )
-                if (!detail.isNullOrBlank()) {
-                    Icon(
-                        painter = painterResource(id = if (isExpanded) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(start = paddingMedium)
-                    )
-                }
-            }
+            // 💡 The expand/collapse arrow used to sit beside the eyebrow in this same row,
+            // forcing the row's height to the icon's own default (unsized) size rather than the
+            // eyebrow text's -- taller than Market Signal's bare eyebrow line, and the extra slack
+            // pushed both the top padding and the eyebrow-to-headline gap out of line with Market
+            // Signal even though the Spacer value below was identical. Moved to sit beside the
+            // headline instead (and explicitly sized), matching Market Sentiment's
+            // chevron-on-the-headline pattern (SummaryScreen.kt) -- the eyebrow row is now just
+            // the label, same as Market Signal/Sentiment.
+            CardEyebrowLabel(
+                text = stringResource(id = R.string.insights_synthesis_label),
+                color = pulseColors.accentPrimary,
+                iconRes = R.drawable.ic_ai_sparkle_filled
+            )
 
             Spacer(modifier = Modifier.height(paddingMedium))
 
@@ -107,14 +100,26 @@ fun SynthesisHeroCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             } else {
-                Text(
-                    text = headline,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = headline,
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.weight(1f)
+                    )
+                    if (!detail.isNullOrBlank()) {
+                        Spacer(modifier = Modifier.width(paddingSmall))
+                        Icon(
+                            painter = painterResource(id = if (isExpanded) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(paddingLarge)
+                        )
+                    }
+                }
 
                 if (!detail.isNullOrBlank()) {
-                    Spacer(modifier = Modifier.height(paddingLarge))
+                    Spacer(modifier = Modifier.height(paddingMedium))
                     Text(
                         text = detail,
                         style = MaterialTheme.typography.bodyMedium,

@@ -23,13 +23,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
+import com.marketlabs.pulse.ui.components.widgets.CardEyebrowLabel
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 /**
  * Chrome-level `PulseCard(SYNTHESIS)` on Stock Detail (pinned between `DetailHeader` and the tab
- * row, not tab content -- visible regardless of which tab is selected): the [DeepDiveLabel] date
- * line, a fixed description of what a deep dive covers (not model-generated -- the 8 topics are a
+ * row, not tab content -- visible regardless of which tab is selected): a [CardEyebrowLabel]
+ * date line, a fixed description of what a deep dive covers (not model-generated -- the 8 topics are a
  * fixed schema, so this is static copy), and an "Open full Deep Dive" CTA row. Omitted entirely
  * when the symbol has neither a `deepAnalysisDate` nor a `nextDeepDiveTriggerDate` yet -- see
  * [deepDiveDisplayText] for the exact cold-start text rules.
@@ -46,7 +47,7 @@ fun DeepDiveCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    if (deepDiveDisplayText(deepAnalysisDate, nextDeepDiveTriggerDate) == null) return
+    val displayText = deepDiveDisplayText(deepAnalysisDate, nextDeepDiveTriggerDate) ?: return
     val hasDeepDive = deepAnalysisDate != null
     val pulseColors = LocalPulseColors.current
 
@@ -56,7 +57,19 @@ fun DeepDiveCard(
         onClick = if (hasDeepDive) onClick else null
     ) {
         Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
-            DeepDiveLabel(deepAnalysisDate = deepAnalysisDate, nextDeepDiveTriggerDate = nextDeepDiveTriggerDate)
+            // 💡 `CardEyebrowLabel`, not `SynthesisCardHeader` -- Deep Dive is an "ai style card"
+            // in the app-wide sense (Market Signal/Market Sentiment/Today's Read/Insights' Digest),
+            // not Stock Detail's own screen-local `SynthesisCardHeader` family (TechnicalRead/
+            // DeepStudy/Scenarios). Not the compact `DeepDiveLabel` the preview card uses either --
+            // that's sized for a dense list row, not a full card. `labelSmall` + the AI-sparkle
+            // icon, matching Today's Read/Insights' Digest (both AI-narrative cards that carry the
+            // icon). `CardEyebrowLabel` uppercases its own text, so this dynamic (dated) string is
+            // passed as-is rather than pre-uppercased.
+            CardEyebrowLabel(
+                text = displayText,
+                color = pulseColors.accentPrimary,
+                iconRes = R.drawable.ic_ai_sparkle_filled
+            )
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
             Text(
                 text = stringResource(id = R.string.deep_dive_card_description),

@@ -39,15 +39,18 @@ fun deepDiveDisplayText(deepAnalysisDate: String?, nextDeepDiveTriggerDate: Stri
         val nextRes = if (deepAnalysisDate == null) R.string.stock_detail_deep_dive_next_standalone else R.string.stock_detail_deep_dive_next
         stringResource(id = nextRes, it.toShortDateString())
     }
-    return listOfNotNull(datedPart, nextPart).joinToString(" · ")
+    return listOfNotNull(datedPart, nextPart).joinToString(" • ")
 }
 
 /**
  * Small, plain (non-clickable) icon + bold-caps-accent label — the compact Deep Dive touchpoint
- * used on the preview card and atop [DeepDiveCard]. Reuses the AI-content glyph
- * (`ic_ai_sparkle_filled`) already used everywhere else in this app to mark AI-generated content
- * (`StockPreviewCard`, `SynthesisCardHeader`) rather than a one-off icon. Renders nothing when
- * [deepDiveDisplayText] returns null (cold start, neither date present).
+ * used on the preview list card, where a full `titleMedium` [SynthesisCardHeader] would be too
+ * heavy for a dense row. [DeepDiveCard] (the full `PulseCard(SYNTHESIS)` on Stock Detail) uses
+ * [SynthesisCardHeader] directly instead, 2026-09-05, to match its sibling SYNTHESIS cards
+ * (TechnicalRead/DeepStudy/Scenarios) rather than this compact list-row treatment. Reuses the
+ * AI-content glyph (`ic_ai_sparkle_filled`) already used everywhere else in this app to mark
+ * AI-generated content rather than a one-off icon. Renders nothing when [deepDiveDisplayText]
+ * returns null (cold start, neither date present).
  */
 @Composable
 fun DeepDiveLabel(deepAnalysisDate: String?, nextDeepDiveTriggerDate: String?, modifier: Modifier = Modifier) {
@@ -56,7 +59,7 @@ fun DeepDiveLabel(deepAnalysisDate: String?, nextDeepDiveTriggerDate: String?, m
 
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
         Icon(
-            painter = painterResource(id = R.drawable.ic_ai_sparkle_filled),
+            painter = painterResource(id = R.drawable.ic_deep_dive),
             contentDescription = stringResource(id = R.string.stock_analysis_ai_glyph_content_description),
             tint = pulseColors.accentPrimary,
             modifier = Modifier.size(dimensionResource(id = R.dimen.icon_size_small))
