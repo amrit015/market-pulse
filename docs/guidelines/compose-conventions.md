@@ -83,6 +83,37 @@ ViewModel/UiState would buy nothing over a process-cached in-memory map. Match w
 fits a new glossary's actual call sites; don't force Hilt onto a leaf-composable-only glossary
 just for consistency with `MetricGlossaryProvider`.
 
+**Don't assume two similarly-named fields share a glossary just because the words match.** Two
+confirmed traps in `market_glossary.json`/`MarketGlossaryData`, both caught by checking backend
+source rather than guessing from a UI comment:
+
+- Stock Detail's `technicalSetup` (BREAKDOWN/BREAKOUT/ACCUMULATION/DISTRIBUTION/MEAN_REVERSION/
+  RANGE_BOUND, a per-stock chart-pattern read) shares **no values** with Summary's own `setups`
+  glossary (a market-wide RSI/momentum-extreme read) despite both being called "setup" — it's its
+  own `stock_setups` category, with its own definitions sourced from the backend's actual
+  `classifySetup()` trigger logic, not reused or guessed.
+- Stock Detail's `regimeAtAnalysis` (`risk_on`/`risk_off`/`neutral`) **is** confirmed the same
+  underlying `system/market_regime` token Summary's `direction` field reads — reuses the existing
+  `directions` category rather than adding a duplicate. Don't confuse this with the *different*,
+  also-called-"market_regime" field (`macro_verdict.market_regime`, an AI-asserted 6-value enum
+  surfaced as `NetworkVerdict.regime`) — that one is Summary's `MarketVerdict.regime` field, a
+  totally different vocabulary (HEALTHY UPTREND/DISTRIBUTION PHASE/...) from `direction`.
+
+**Rendering a list of terms with one highlighted as "current"**: `MetricDetailScreen.kt`'s
+`BandRow` (Indicators' own "BANDS" section) is the **canonical** version of this pattern — one
+`PulseCard(DATA)` per term, the current one getting a `border_thin` accent ring layered via
+`.border()` (not a background tint), the term label always `colorScheme.onBackground` (never
+re-colored, current or not), and a trailing `SignalPill` "CURRENT" badge
+(`pillColor = accent.copy(alpha = 0.16f)`) opposite the term name — not a plain "CURRENT" text
+label. `MarketGlossaryBottomSheet`'s `GlossaryTermCard` matches this exactly (fixed 2026-09-07,
+`titleSmall`/`bodySmall` throughout since several term cards stack in a limited-height sheet rather
+than a full page). `GlossaryDetailScreen.kt`'s `GlossaryBandRow` (Positioning's own glossary-detail
+page) still diverges — plain "CURRENT" text instead of a pill, term label re-colored to accent when
+current — a known, separate gap from `BandRow`, not yet reconciled. Match `BandRow` for any new
+highlighted-row treatment; don't copy `GlossaryBandRow`'s version without checking it against
+`BandRow` first. See `CardStyleShowcase.kt`'s "14. Emphasis border overlay (current selection)"
+sample and `card-heading-conventions.md`'s Twelfth step.
+
 ## "See more" navigation links
 
 **`ViewMoreRow` (`ui/screens/stocks/detail/DetailSectionLabels.kt`) is the one shared structure for
@@ -109,6 +140,26 @@ Two different separator dots are in active use, and they're not interchangeable:
   (`ui/components/widgets/BulletText.kt`), which builds the `AnnotatedString` with the bullet in a
   bumped `SpanStyle` font size. It's plain (non-`@Composable`) — callers resolve the string resource
   and the surrounding `TextStyle.fontSize` themselves and pass both in.
+
+## AI-headline title casing
+
+Some AI-generated headline fields come back from the backend inconsistently cased — sometimes
+Title Case, sometimes only the first letter of the first word capitalized, e.g. "Resilient Economic
+Foundations Anchor a Consolidating Market" alongside "Amazon falls 2% amid DOJ antitrust probe" for
+the same kind of field. `String.smartTitleCase()` (`utils/extensions/StringExtensions.kt`)
+normalizes this to Title Case: a fixed `MINOR_WORDS` set (a, an, and, as, at, but, by, for, in, nor,
+of, on, or, per, so, the, to, up, via, yet) stays lowercase unless first/last word; an all-uppercase
+token longer than one letter (an acronym — DOJ, GDP, S&P) is preserved as-is rather than
+title-cased; hyphenated words are title-cased per segment.
+
+**Scoped to exactly the AI-synthesis/Digest headline fields it was written for — not news
+headlines, not every headline in the app:** Indicators' executive-briefing headline
+(`AiExecutiveBriefingHero`), Stock Detail's `DigestCard` headline, `SynthesisHeroCard`'s headline
+(covers all 4 Insights domains — Posture/Positioning/Risks/Playbook — through the one shared
+composable), and Summary's `SignalSection`/`MarketSentimentCard` headlines. Don't reach for this on
+a new headline field without checking whether it's actually one of these AI-synthesis fields with
+the same inconsistent-casing problem — a real news headline is already well-formed prose and
+title-casing it would be a regression, not a fix.
 
 ## Resources
 

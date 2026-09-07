@@ -314,13 +314,6 @@ fun SignalSection(
 ) {
     val pulseColors = LocalPulseColors.current
     val directionColor = verdict.direction.toSignalColor()
-    // 💡 Same ▲/▼/▪ glyph convention DriversSection/ScoreGauge already use.
-    val directionGlyph = when (verdict.direction) {
-        SignalDirection.RISK_ON -> "▲"
-        SignalDirection.RISK_OFF -> "▼"
-        SignalDirection.MIXED -> "▪"
-        SignalDirection.UNKNOWN, null -> null
-    }
 
     val paddingMedium = dimensionResource(id = R.dimen.padding_medium)
     PulseCard(
@@ -355,15 +348,6 @@ fun SignalSection(
                                 text = it.label,
                                 pillColor = directionColor.pillColor,
                                 contentColor = directionColor.textColor,
-                                leadingIcon = directionGlyph?.let { glyph ->
-                                    {
-                                        Text(
-                                            text = glyph,
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = directionColor.textColor
-                                        )
-                                    }
-                                },
                                 trailingIcon = { GlossaryChevron(tint = directionColor.textColor) },
                                 onClick = onDirectionClick
                             )
@@ -373,10 +357,15 @@ fun SignalSection(
                 Spacer(modifier = Modifier.height(paddingMedium))
 
                 // 💡 The flash -- largest prose on the card, no callout box around it; a headline
-                // doesn't need to be quoted. titleMedium/bold. Trailing chevron opens the fuller
-                // analysis + posture read as a bottom sheet (see SignalSection's doc comment).
+                // doesn't need to be quoted. titleMedium/bold. The whole row (not just the trailing
+                // chevron) is the tap target opening the fuller analysis + posture read as a bottom
+                // sheet (see SignalSection's doc comment) -- same "the row, not just its icon, is
+                // clickable" shape MarketSentimentCard's headline row already uses.
                 verdict.signalLine?.let {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        modifier = Modifier.clickable(onClick = onSignalLineClick),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         Text(
                             text = it.smartTitleCase(),
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
@@ -388,9 +377,7 @@ fun SignalSection(
                             painter = painterResource(id = R.drawable.ic_chevron_forward),
                             contentDescription = stringResource(id = R.string.market_read_navigate_content_description),
                             tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier
-                                .size(dimensionResource(id = R.dimen.padding_large))
-                                .clickable(onClick = onSignalLineClick)
+                            modifier = Modifier.size(dimensionResource(id = R.dimen.padding_large))
                         )
                     }
                 }
@@ -511,7 +498,14 @@ private fun ConvictionMeter(conviction: Conviction, filledColor: Color) {
             .fillMaxWidth()
             .height(barHeight)
             .background(
-                color = MaterialTheme.colorScheme.surfaceVariant,
+                // 💡 A translucent `onSurface` overlay, not `colorScheme.surfaceVariant` -- this
+                // card's own SYNTHESIS background is `accentSurfaceStrong`, an accent-tinted
+                // surface close enough in value to `surfaceVariant` in dark mode that the track
+                // read as invisible, indistinguishable from the card behind it. A translucent
+                // overlay of the foreground color instead guarantees contrast against whatever
+                // background sits behind it, the same technique the old 3-segment meter's own
+                // "empty" segments used.
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
                 shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_pill))
             )
     ) {

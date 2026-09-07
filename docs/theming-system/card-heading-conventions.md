@@ -543,6 +543,145 @@ them, and which date format each uses, changed.
   (Seventh step, above): the Deep Dive screen mixes quant and AI content throughout, so no single
   card should carry a sparkle singling itself out. The *outcome* (no icon) didn't change, only why.
 
+## Tenth step (2026-09-06, later still): `StatGrid` becomes the formal metric-grid convention
+
+Confirms what `ui/screens/stocks/detail/StatGrid.kt`'s own doc comment had flagged as not yet
+written down: **any card rendering a row of label+value stat pairs (Fundamentals, Macro,
+MomentumAndTrend, Returns, HeadlineMetricsStrip, KeyLevels) uses `StatGrid(stats, columns = 3)`,
+not a hand-rolled `FlowRow` of fixed-width cells or a bare `Row(SpaceBetween)`.** Both of those
+older patterns broke the same way: a fixed 96dp cell (`detail_stat_width`) reads fine for a short
+number, but cramps or wraps a value that's a full word or a min–max range (Macro's Rate Sensitive
+value, e.g. "MODERATE NEGATIVE"; Fundamentals' 5Y PE range), and a lone leftover stat in the last
+row sat narrow and left-aligned with empty space beside it instead of using the row it had to
+itself. `StatGrid` fixes both: every cell in a row gets `Modifier.weight(1f)` instead of a fixed dp
+width, so a full row of 3 divides evenly and a partial last row (1 or 2 items) still divides *that
+row's* width evenly among however many are in it. `KeyLevels` calls it twice with `columns = 2`
+(resistance/support, then fairValueAnchor/valueArea) rather than once with a flattened list, to
+preserve its two independent stat pairings rather than re-chunking across a null field. See
+`CardStyleShowcase.kt`'s "2. DATA — Stat grid" sample, which also demonstrates the space-around-
+dash fix below.
+
+**Related, separate fix applied to every range value in these same cards:** a `"$X–$Y"` string with
+no space anywhere gives Android's text layout no valid line-break point, so a column too narrow to
+fit the whole range wraps mid-number (e.g. `"$598."` / `"17"` on two lines) instead of at the dash.
+Fixed by writing `"$X – $Y"` (a plain space on each side of the en dash) everywhere a range value is
+built — not a font-size or `maxLines` fix, purely giving the layout a valid place to wrap.
+
+## Eleventh step (2026-09-06, later still): Market Signal's regime/direction split, tappable headline, and continuous conviction meter
+
+`SignalSection` (Summary's top card) changed in three ways, all still `PulseCardStyle.SYNTHESIS`:
+
+- **`regime` and `direction` are now two separate pills, not one.** They used to share a single
+  chip — `regime`'s text, tinted and arrow-marked by `direction`'s color — with no separate text for
+  direction at all. Now: `regime` renders as an **outlined**, neutral (`onSurfaceMuted`) pill (it's
+  a classification — which of 6 phases the model thinks we're in — not a bullish/bearish read on its
+  own); `direction` (RISK ON/RISK OFF/MIXED) renders as a **filled**, signal-colored pill, right next
+  to it. Each is its own tap target (trailing chevron), opening a glossary sheet scoped to just that
+  one term — regime and direction no longer share one combined sheet (see the Twelfth step below).
+  The direction pill briefly also carried a leading ▲/▼/▪ glyph (the same convention
+  `DriversSection`/`ScoreGauge` use) but that was dropped the next day (2026-09-07) — redundant once
+  the pill text already says "RISK ON"/"RISK OFF"/"MIXED", and the MIXED glyph in particular read as
+  a stray dot rather than a meaningful mark.
+- **The flash headline (`signalLine`) is now tappable.** The whole headline row (text + trailing
+  chevron, not just the chevron icon — fixed 2026-09-07, the icon-only tap target was too small)
+  opens a new `MarketReadBottomSheet` (`ui/components/bottomSheet/MarketReadBottomSheet.kt`) showing
+  the headline plus the same `analysis`/`posture` prose `TheReadSection` renders at the bottom of the
+  page — a shortcut for the reader who wants the "why" without scrolling past drivers/position/
+  stories/macro/domino/watch/risks to reach it. `TheReadSection` itself is unchanged and still
+  renders in its usual place; this is an additional entry point, not a replacement. The sheet's own
+  headline recap runs through `smartTitleCase()` too (fixed same day — it hadn't, so the same
+  `signalLine` value showed title-cased on the card and raw-cased in the sheet it opens).
+- **Conviction meter is now a continuous bar, not 3 discrete segments.** Matches
+  `CardStyleShowcase.kt`'s "11. SYNTHESIS — Headline + divider + meter" sample (which is what this
+  redesign was modeled on, in the reverse direction from usual): the "CONVICTION" label sits on its
+  own line above a full-width track, filled left-to-right by a fraction (LOW = 1/3, MODERATE = 2/3,
+  HIGH = full) in the same `directionColor` the direction pill uses. Reads relative strength at a
+  glance rather than in 3 blocky steps. **Track color is `colorScheme.onSurface.copy(alpha = 0.12f)`,
+  not `colorScheme.surfaceVariant`** (fixed 2026-09-07) — this card's own SYNTHESIS background
+  (`accentSurfaceStrong`) reads close enough in value to `surfaceVariant` in dark mode that the empty
+  track was indistinguishable from the card behind it. A translucent overlay of the foreground color
+  guarantees contrast against whatever background sits behind it, regardless of card style or theme
+  preset — the same technique the old 3-segment meter's own "empty" segments already used, don't
+  reach for a flat surface token here again.
+
+`smartTitleCase()` (`utils/extensions/StringExtensions.kt`, added earlier the same day for the
+Digest/Indicators/Insights AI headlines — see `compose-conventions.md`'s "AI-headline title casing"
+section) was also extended to `signalLine` and Market Sentiment's `headline` — the same normalized
+Title Case treatment, not a new rule.
+
+## Twelfth step (2026-09-06, later still; corrected 2026-09-07): the glossary bottom sheet's term list moves onto cards, matching Indicators' Bands exactly
+
+`MarketGlossaryBottomSheet` (`ui/components/bottomSheet/MarketBottomSheet.kt`) — the sheet opened by
+tapping a regime/direction/setup/cycle-zone/stock-setup badge anywhere in the app — was a plain
+`Column` per term with a tinted background on the current one. Redesigned to match the "list of
+terms, one of them is the current reading" pattern Indicators already has, at
+`MetricDetailScreen.kt`'s `BandRow` (its own "BANDS" section) — the **canonical** version of this
+pattern in the app, not `GlossaryDetailScreen.kt`'s `GlossaryBandRow` (Positioning's own
+glossary-detail page), which the first pass on 2026-09-06 was modeled on instead and turned out to
+diverge from `BandRow` on both spacing and card content. Caught by the owner comparing the two
+directly the next day; re-checked against `BandRow` line by line and fixed:
+
+- **Section title**: `labelMedium.Bold`, `colorScheme.primary`, `padding(bottom = padding_medium)`
+  only (no top padding) — not `labelSmall`/split top-and-bottom padding, which is what the
+  `GlossaryDetailScreen`-modeled first pass had.
+- **Every term is its own `PulseCard(DATA)`**, not a plain background-tinted `Column`. The current
+  term gets a `border_thin` accent-colored ring layered on top of the card's own border (via
+  `.border()`, since `PulseCard` locks its own border color) — not a background tint.
+- **The term label is always `colorScheme.onBackground`**, current or not — it does NOT re-color to
+  accent when current (the first pass did; `BandRow` doesn't).
+- **"Current" is a `SignalPill`** (`pillColor = accent.copy(alpha = 0.16f)`, `contentColor = accent`,
+  text from `R.string.status_current`) sitting opposite the term name — not a plain accent-colored
+  "CURRENT" text label, which is what the first pass had (and what `GlossaryDetailScreen`'s
+  `GlossaryBandRow` still does — that page was **not** touched in this fix; it's a known, separate
+  divergence from `BandRow`, flagged but not silently changed since nobody asked for it yet).
+- **Smaller type throughout.** `titleMedium`/`bodyMedium` dropped to `titleSmall`/`bodySmall` for
+  both the term cards and the "Current Verdict" rows — several term cards stack in a limited-height
+  sheet here, unlike a full page, so the larger sizes read as oversized for the amount of content on
+  screen at once. This part of the first pass was correct and unchanged.
+- **"Current Verdict" is now its own `PulseCard(DATA)`** (header + full-bleed divider + padded rows
+  — the same section-title header shape every other data card in the app uses, see the "Two header
+  families" section above) instead of a headerless block of plain text sitting above the term-list
+  cards. Content unchanged (still one row per `currentX` param that's non-null); it just reads as a
+  card among cards now, not a stray block. Also unchanged in the fix pass.
+
+See `CardStyleShowcase.kt`'s "14. Emphasis border overlay (current selection)" sample, updated to
+cite `BandRow` as the one canonical source rather than listing all three consumers as equally
+authoritative.
+
+## Thirteenth step (2026-09-07): the glossary sheet's own background took two tries to get right
+
+Once term cards moved onto `PulseCard(DATA)` (Twelfth step), `MarketGlossaryBottomSheet`'s own
+`ModalBottomSheet` background needed to change too — the cards it now nests turned out to expose
+that this app's `SurfaceRamp` (`PulseTokens.Color.kt`) only has 3 genuinely distinct values
+(`background`, `surface`, `surfaceElevated`), and every bottom sheet in the app had been defaulting
+to `surfaceContainerHighest`, which this app's `MarketPulseTheme.kt` maps onto the literal same
+value as `surfaceVariant` (`surfaceElevated`) — also `PulseCard`'s DATA fill color. Two tokens were
+tried and rejected before landing on the right one:
+
+1. **`surfaceContainerHighest`** (what every bottom sheet already used) — a DATA card nested inside
+   has *zero* contrast against the sheet, since both resolve to `surfaceElevated`. This is what
+   prompted the Twelfth step's redesign to even surface the problem.
+2. **`colorScheme.background`** — fixes the card-vs-sheet contrast (DATA cards are designed to sit on
+   `background` everywhere else, via shadow + accent-tinted background), but is the literal same
+   value the *screen behind the sheet* already uses, so the sheet itself lost its own boundary —
+   hard to tell where the sheet starts and the page ends. Caught by the owner immediately after the
+   first fix shipped.
+3. **`colorScheme.surface`** (landed) — the one remaining `SurfaceRamp` value, genuinely distinct
+   from both `background` and `surfaceElevated` (dark mode: `0xFF17181D` sits between background's
+   `0xFF0D0E12` and surfaceElevated's `0xFF1F2026`). Satisfies both constraints at once: the sheet
+   reads as its own layer against the screen, and a DATA card nested inside still reads against the
+   sheet. Notably, `colorScheme.surface` was deliberately *avoided* as a `TopAppBar` containerColor
+   elsewhere in the app (see `SettingsScreen.kt`'s own comment) for reading "noticeably different"
+   from `background` — that's a bug for a top bar meant to blend seamlessly with the page below it,
+   but it's exactly the property a modal sheet needs. Same token, opposite intent, both correct in
+   their own context — don't treat one usage as precedent against the other without checking why.
+
+Only `MarketGlossaryBottomSheet` was changed — it's the one bottom sheet in the app that nests
+`PulseCard` content (see Twelfth step); `DriversInfoBottomSheet`/`RiskBottomSheet`/
+`StockAnalysisGlossaryBottomSheet`/`MarketReadBottomSheet` render plain text only, so
+`surfaceContainerHighest` still works fine for them (no card fill to collide with) and none were
+touched.
+
 ## Open items for the next pass (not yet decided — don't assume an answer)
 
 1. **Content-heading weight** (Signal/Sentiment bold vs. the four list cards plain) — intentional

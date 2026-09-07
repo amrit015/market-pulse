@@ -25,6 +25,7 @@ import com.marketlabs.pulse.ui.components.widgets.CardEyebrowLabel
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 import com.marketlabs.pulse.utils.enums.Conviction
 import com.marketlabs.pulse.utils.enums.SignalDirection
+import com.marketlabs.pulse.utils.extensions.smartTitleCase
 
 /**
  * Same `ModalBottomSheet` shell `DriversInfoBottomSheet`/`MarketGlossaryBottomSheet` already use,
@@ -55,7 +56,7 @@ fun MarketReadBottomSheet(verdict: MarketVerdict, onDismiss: () -> Unit) {
         ) {
             verdict.signalLine?.let {
                 Text(
-                    text = it,
+                    text = it.smartTitleCase(),
                     style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.padding(bottom = paddingLarge)
