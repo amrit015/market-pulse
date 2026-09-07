@@ -6,6 +6,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import com.marketlabs.pulse.storage.database.entity.StockDeepDiveEntity
 import com.marketlabs.pulse.storage.database.entity.StockDetailEntity
 import com.marketlabs.pulse.storage.database.entity.StockPreviewEntity
 import kotlinx.coroutines.flow.Flow
@@ -62,4 +63,20 @@ interface StocksDao {
     /** Null if this symbol's detail has never been fetched. */
     @Query("SELECT detailVersion FROM market_stock_details WHERE symbol = :symbol")
     suspend fun getCachedDetailVersion(symbol: String): Long?
+
+    // --- Deep Dive ---
+
+    /** Null if this symbol has no cached preview yet, or its preview has never had a deep dive. */
+    @Query("SELECT deepVersion FROM market_stock_previews WHERE symbol = :symbol")
+    suspend fun getPreviewDeepVersion(symbol: String): Long?
+
+    @Query("SELECT * FROM market_stock_deep_dives WHERE symbol = :symbol")
+    fun getDeepDiveStream(symbol: String): Flow<StockDeepDiveEntity?>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertDeepDive(deepDive: StockDeepDiveEntity)
+
+    /** Null if this symbol's deep dive has never been fetched. */
+    @Query("SELECT deepVersion FROM market_stock_deep_dives WHERE symbol = :symbol")
+    suspend fun getCachedDeepDiveVersion(symbol: String): Long?
 }

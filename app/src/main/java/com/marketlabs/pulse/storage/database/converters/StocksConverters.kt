@@ -7,7 +7,10 @@ import com.marketlabs.pulse.storage.model.stocks.DomainCallRecord
 import com.marketlabs.pulse.storage.model.stocks.DomainConditionChip
 import com.marketlabs.pulse.storage.model.stocks.DomainConditionLabel
 import com.marketlabs.pulse.storage.model.stocks.DomainContextVault
+import com.marketlabs.pulse.storage.model.stocks.DomainDeepDiveSection
+import com.marketlabs.pulse.storage.model.stocks.DomainDigestSection
 import com.marketlabs.pulse.storage.model.stocks.DomainExecutiveThesis
+import com.marketlabs.pulse.storage.model.stocks.DomainFundamentalsDelta
 import com.marketlabs.pulse.storage.model.stocks.DomainFundamentals
 import com.marketlabs.pulse.storage.model.stocks.DomainHeadlineMetrics
 import com.marketlabs.pulse.storage.model.stocks.DomainLevels
@@ -180,4 +183,40 @@ class StocksConverters {
     @TypeConverter
     fun toCallRecord(json: String?): DomainCallRecord? =
         json?.let { moshi.adapter(DomainCallRecord::class.java).fromJson(it) }
+
+    // --- Daily Digest Sections (detail) ---
+    private val digestSectionListType = Types.newParameterizedType(List::class.java, DomainDigestSection::class.java)
+    private val digestSectionListAdapter = moshi.adapter<List<DomainDigestSection>>(digestSectionListType)
+
+    @TypeConverter
+    fun fromDigestSections(data: List<DomainDigestSection>?): String? =
+        data?.let { digestSectionListAdapter.toJson(it) }
+
+    @TypeConverter
+    fun toDigestSections(json: String?): List<DomainDigestSection>? =
+        json?.let { digestSectionListAdapter.fromJson(it) }
+
+    // --- Deep Dive Sections (deep dive) ---
+    private val deepDiveSectionListType = Types.newParameterizedType(List::class.java, DomainDeepDiveSection::class.java)
+    private val deepDiveSectionListAdapter = moshi.adapter<List<DomainDeepDiveSection>>(deepDiveSectionListType)
+
+    @TypeConverter
+    fun fromDeepDiveSections(data: List<DomainDeepDiveSection>?): String? =
+        data?.let { deepDiveSectionListAdapter.toJson(it) }
+
+    @TypeConverter
+    fun toDeepDiveSections(json: String?): List<DomainDeepDiveSection>? =
+        json?.let { deepDiveSectionListAdapter.fromJson(it) }
+
+    // --- Fundamentals Delta (deep dive) ---
+    private val fundamentalsDeltaListType = Types.newParameterizedType(List::class.java, DomainFundamentalsDelta::class.java)
+    private val fundamentalsDeltaListAdapter = moshi.adapter<List<DomainFundamentalsDelta>>(fundamentalsDeltaListType)
+
+    @TypeConverter
+    fun fromFundamentalsDelta(data: List<DomainFundamentalsDelta>?): String? =
+        data?.let { fundamentalsDeltaListAdapter.toJson(it) }
+
+    @TypeConverter
+    fun toFundamentalsDelta(json: String?): List<DomainFundamentalsDelta>? =
+        json?.let { fundamentalsDeltaListAdapter.fromJson(it) }
 }

@@ -57,6 +57,10 @@ data class NetworkStockDetail(
 
     val macro: NetworkMacro? = null,
 
+    /** Optional model-written sections for the day's digest; `null`/absent on a quiet day with no notable news. The headline itself lives on the preview doc (`NetworkStockPreview.dailyDigest`), not here. */
+    @Json(name = "daily_digest")
+    val dailyDigest: NetworkDailyDigest? = null,
+
     @Json(name = "technical_read")
     val technicalRead: String? = null,
 
@@ -359,7 +363,38 @@ data class NetworkFundamentals(
     val totalDebt: Double? = null,
 
     @Json(name = "trailing_eps")
-    val trailingEps: Double? = null
+    val trailingEps: Double? = null,
+
+    // --- Short interest (all nullable — undefined until the weekly Sunday sweep backfills a newly-onboarded symbol) ---
+    @Json(name = "short_pct_float")
+    val shortPctFloat: Double? = null,
+
+    @Json(name = "short_shares")
+    val shortShares: Double? = null,
+
+    @Json(name = "float_shares")
+    val floatShares: Double? = null,
+
+    @Json(name = "shares_outstanding")
+    val sharesOutstanding: Double? = null,
+
+    @Json(name = "short_ratio")
+    val shortRatio: Double? = null,
+
+    @Json(name = "short_interest_date")
+    val shortInterestDate: String? = null
+)
+
+/** Model-chosen `{heading, body}` sections, 1–4 typically, capped at 4 — no `topic` enum, unlike Deep Dive's sections (digest has no fixed set of required content areas). */
+@JsonClass(generateAdapter = true)
+data class NetworkDailyDigest(
+    val sections: List<NetworkDigestSection>? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class NetworkDigestSection(
+    val heading: String? = null,
+    val body: String? = null
 )
 
 /** How this stock links to macro conditions — rate correlation and excess return vs. its benchmark. */

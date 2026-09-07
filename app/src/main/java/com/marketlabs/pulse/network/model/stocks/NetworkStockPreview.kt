@@ -94,12 +94,37 @@ data class NetworkStockPreview(
     val detailVersion: Long? = null,
 
     /** Epoch millis — this is the field the app actually uses for "as of" display, not `last_updated`. */
-    val timestamp: Long? = null
+    val timestamp: Long? = null,
+
+    /** Just the headline — the digest's optional `sections` live on the detail doc, not here. */
+    @Json(name = "daily_digest")
+    val dailyDigest: NetworkDailyDigestHeadline? = null,
+
+    /** Null until this symbol's first-ever deep dive has run. */
+    @Json(name = "deep_analysis_date")
+    val deepAnalysisDate: String? = null,
+
+    @Json(name = "deep_version")
+    val deepVersion: Long? = null,
+
+    /** Written nightly for every tracked symbol regardless of whether a deep dive fires that night — may be non-null even when `deepAnalysisDate` is still null. */
+    @Json(name = "next_deep_dive_trigger_date")
+    val nextDeepDiveTriggerDate: String? = null,
+
+    /** One of "biweekly" | "earnings". */
+    @Json(name = "next_deep_dive_trigger_reason")
+    val nextDeepDiveTriggerReason: String? = null
 
     // 💡 `last_updated` (a pre-formatted string, e.g. "August 7, 2026 at 6:15:44 PM UTC-7") exists
     // in the raw response but is deliberately NOT modeled here — per the backend, it's there for
     // human readability when eyeballing Firestore directly, not for clients to consume. `timestamp`
     // above is the field the app actually fetches and formats client-side.
+)
+
+/** `{headline}` only — the preview doc never carries digest `sections`, just the detail doc does (see `NetworkDailyDigest` in `NetworkStockDetail.kt`). */
+@JsonClass(generateAdapter = true)
+data class NetworkDailyDigestHeadline(
+    val headline: String? = null
 )
 
 @JsonClass(generateAdapter = true)

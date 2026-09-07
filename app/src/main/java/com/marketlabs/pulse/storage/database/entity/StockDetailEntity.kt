@@ -9,6 +9,7 @@ import com.marketlabs.pulse.storage.database.converters.StocksConverters
 import com.marketlabs.pulse.storage.model.stocks.DomainCallRecord
 import com.marketlabs.pulse.storage.model.stocks.DomainConditionLabel
 import com.marketlabs.pulse.storage.model.stocks.DomainContextVault
+import com.marketlabs.pulse.storage.model.stocks.DomainDigestSection
 import com.marketlabs.pulse.storage.model.stocks.DomainExecutiveThesis
 import com.marketlabs.pulse.storage.model.stocks.DomainFundamentals
 import com.marketlabs.pulse.storage.model.stocks.DomainLevels
@@ -54,5 +55,7 @@ data class StockDetailEntity(
     val contextVault: DomainContextVault? = null,
     val calls: DomainCallRecord? = null,
 
-    val timestamp: Long? = null
+    val timestamp: Long? = null,
+
+    val dailyDigestSections: List<DomainDigestSection>? = null
 )

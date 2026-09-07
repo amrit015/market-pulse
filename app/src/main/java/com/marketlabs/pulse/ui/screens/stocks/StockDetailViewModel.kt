@@ -16,6 +16,7 @@ import com.marketlabs.pulse.storage.model.stocks.StockPreview
 import com.marketlabs.pulse.ui.common.UiError
 import com.marketlabs.pulse.ui.common.toUiError
 import com.marketlabs.pulse.ui.screens.stocks.StockDetailViewModel.Companion.ARG_SYMBOL
+import com.marketlabs.pulse.ui.screens.stocks.detail.DetailTab
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -73,7 +74,10 @@ class StockDetailViewModel @Inject constructor(
     private val _error = MutableStateFlow<UiError?>(null)
     private val _expandedChipIds = MutableStateFlow<Set<String>>(emptySet())
     private val _expandedNewsIds = MutableStateFlow<Set<String>>(emptySet())
-    private val _selectedTabIndex = MutableStateFlow(0)
+    // 💡 DIGEST is first in DetailTab's declared order (per the per-symbol-intelligence spec), but
+    // the default landing tab stays Technicals -- the spec asked for tab *position*, not a change
+    // to which tab opens by default.
+    private val _selectedTabIndex = MutableStateFlow(DetailTab.TECHNICALS.ordinal)
     private val _selectedChartRange = MutableStateFlow(ChartRange.FIVE_DAY)
     private val _isChartLoading = MutableStateFlow(false)
 

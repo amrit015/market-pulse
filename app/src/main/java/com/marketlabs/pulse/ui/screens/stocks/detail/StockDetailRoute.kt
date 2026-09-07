@@ -26,13 +26,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.components.PulseTabRow
 import com.marketlabs.pulse.ui.screens.stocks.StockDetailViewModel
+import com.marketlabs.pulse.ui.screens.stocks.detail.sections.DeepDiveCard
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.DetailHeader
 import com.marketlabs.pulse.ui.screens.stocks.views.StockAnalysisErrorState
 
@@ -54,6 +57,7 @@ fun StockDetailRoute(
     scaffoldPadding: PaddingValues,
     onNavigateUp: () -> Unit,
     onNavigateToWebView: (String) -> Unit,
+    onNavigateToDeepDive: (String) -> Unit,
     viewModel: StockDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -97,6 +101,20 @@ fun StockDetailRoute(
             analyzedAsOfTimestamp = uiState.detail?.timestamp,
             onNavigateUp = onNavigateUp,
             modifier = Modifier.fillMaxWidth()
+        )
+
+        // 💡 Chrome-level, not tab content -- visible regardless of which tab is selected, per the
+        // per-symbol-intelligence spec's "a banner ... on the detailed page" placement.
+        DeepDiveCard(
+            deepAnalysisDate = uiState.preview?.deepAnalysisDate,
+            nextDeepDiveTriggerDate = uiState.preview?.nextDeepDiveTriggerDate,
+            onClick = { onNavigateToDeepDive(uiState.symbol) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    horizontal = dimensionResource(id = R.dimen.padding_large),
+                    vertical = dimensionResource(id = R.dimen.padding_small)
+                )
         )
 
         PulseTabRow(

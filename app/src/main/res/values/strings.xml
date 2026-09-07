@@ -432,12 +432,81 @@
     <string name="stock_detail_view_article_content_description">View article</string>
 
     <!-- Detail screen tabs -->
+    <string name="stock_detail_tab_digest">Digest</string>
     <string name="stock_detail_tab_technicals">Technicals</string>
     <string name="stock_detail_tab_fundamentals">Fundamentals</string>
     <string name="stock_detail_tab_thesis">Thesis</string>
     <string name="stock_detail_tab_timeline">Timeline</string>
     <string name="stock_detail_tab_news">News</string>
     <string name="stock_detail_tab_nothing_yet">Nothing yet</string>
+    <string name="stock_detail_digest_header">Daily Digest</string>
+
+    <!-- Deep Dive -->
+    <string name="deep_dive_title">Deep Dive</string>
+    <string name="stock_detail_deep_dive_dated">Deep Dive: %1$s</string>
+    <!-- Paired with stock_detail_deep_dive_dated when both are shown, e.g. "Deep Dive: Sep 4 · Next: Sep 18". -->
+    <string name="stock_detail_deep_dive_next">Next: %1$s</string>
+    <!-- Cold start: no deep_analysis_date yet, only next_deep_dive_trigger_date, shown alone, so "Deep Dive" is spelled out here instead of assumed from a preceding "Deep Dive: ..." part. -->
+    <string name="stock_detail_deep_dive_next_standalone">Next Deep Dive: %1$s</string>
+    <string name="stock_analysis_deep_dive_label">Deep Dive: %1$s</string>
+    <string name="deep_dive_empty_state">No deep dive available yet for this symbol.</string>
+    <string name="deep_dive_card_description">8-section structural read: profile, standing, risks, outlook, and consensus.</string>
+    <string name="deep_dive_open_full_cta">Open full Deep Dive</string>
+
+    <!-- fundamentals_delta field labels: small chips under the WHATS_CHANGED section only -->
+    <string name="fundamentals_delta_field_pe_trailing">Trailing P/E</string>
+    <string name="fundamentals_delta_field_pe_forward">Forward P/E</string>
+    <string name="fundamentals_delta_field_pe_median_5y">5Y Median P/E</string>
+    <string name="fundamentals_delta_field_pe_percentile_5y">P/E Percentile (5Y)</string>
+    <string name="fundamentals_delta_field_pe_spread">P/E Spread</string>
+    <string name="fundamentals_delta_field_pe_vs_median_pct">P/E vs 5Y Median</string>
+    <string name="fundamentals_delta_field_peg_ratio">PEG Ratio</string>
+    <string name="fundamentals_delta_field_ev_ebitda">EV/EBITDA</string>
+    <string name="fundamentals_delta_field_ev_revenue">EV/Revenue</string>
+    <string name="fundamentals_delta_field_price_to_book">Price/Book</string>
+    <string name="fundamentals_delta_field_price_to_sales">Price/Sales</string>
+    <string name="fundamentals_delta_field_dividend_yield_pct">Dividend Yield</string>
+    <string name="fundamentals_delta_field_gross_margin_pct">Gross Margin</string>
+    <string name="fundamentals_delta_field_operating_margin_pct">Operating Margin</string>
+    <string name="fundamentals_delta_field_profit_margin_pct">Profit Margin</string>
+    <string name="fundamentals_delta_field_fcf_yield_pct">FCF Yield</string>
+    <string name="fundamentals_delta_field_roic_pct">ROIC</string>
+    <string name="fundamentals_delta_field_roe_pct">ROE</string>
+    <string name="fundamentals_delta_field_roa_pct">ROA</string>
+    <string name="fundamentals_delta_field_revenue_growth_yoy_pct">Revenue Growth YoY</string>
+    <string name="fundamentals_delta_field_eps_growth_yoy_pct">EPS Growth YoY</string>
+    <string name="fundamentals_delta_field_earnings_yield_pct">Earnings Yield</string>
+    <string name="fundamentals_delta_field_consensus_strength_pct">Consensus Strength</string>
+    <string name="fundamentals_delta_field_target_dispersion_pct">Target Dispersion</string>
+    <string name="fundamentals_delta_field_capex_to_ocf_pct">Capex/OCF</string>
+    <string name="fundamentals_delta_field_beta">Beta</string>
+    <string name="fundamentals_delta_field_debt_to_equity">Debt/Equity</string>
+    <string name="fundamentals_delta_field_current_ratio">Current Ratio</string>
+    <string name="fundamentals_delta_field_recommendation_mean">Analyst Rating</string>
+    <string name="fundamentals_delta_field_short_pct_float">% of Float Short</string>
+    <string name="fundamentals_delta_field_short_ratio">Days to Cover</string>
+    <string name="fundamentals_delta_field_target_mean">Analyst Target</string>
+    <string name="fundamentals_delta_field_target_high">Target High</string>
+    <string name="fundamentals_delta_field_target_low">Target Low</string>
+    <string name="fundamentals_delta_field_forward_eps">Forward EPS</string>
+    <string name="fundamentals_delta_field_trailing_eps">Trailing EPS</string>
+    <string name="deep_dive_topic_what_the_company_is">Profile</string>
+    <string name="deep_dive_topic_where_it_stands_now">Where It Stands</string>
+    <string name="deep_dive_topic_investment_risks">Investment Risks</string>
+    <string name="deep_dive_topic_whats_changed">What\'s Changed</string>
+    <string name="deep_dive_topic_current_standing">Current Standing</string>
+    <string name="deep_dive_topic_near_term_outlook">Near-Term Outlook</string>
+    <string name="deep_dive_topic_long_term_structural">Long-Term View</string>
+    <string name="deep_dive_topic_analyst_consensus">Analyst Consensus</string>
+
+    <!-- Short interest (Fundamentals card) -->
+    <string name="stock_detail_cluster_short_interest">SHORT INTEREST</string>
+    <string name="stock_detail_metric_short_pct_float">% of Float Short</string>
+    <string name="stock_detail_metric_short_ratio">Days to Cover</string>
+    <string name="stock_detail_metric_short_shares">Shares Short</string>
+    <string name="stock_detail_metric_float_shares">Float</string>
+    <string name="stock_detail_metric_shares_outstanding">Shares Outstanding</string>
+    <string name="stock_detail_short_interest_as_of">As of %1$s</string>
     <!-- Shown in place of the period chart when the symbol has no chart doc yet or the selected
          range hasn't loaded yet; a 404 from GET /charts/:symbol is treated as "no data", not an error. -->
     <string name="stock_detail_chart_empty_state">No chart history yet</string>
