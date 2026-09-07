@@ -23,8 +23,10 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
+import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
@@ -160,5 +162,21 @@ fun SpeedometerGauge(score: Double, previousScore: Double?, status: String?) {
                 color = statusColor
             )
         }
+    }
+}
+
+@Preview(name = "Light", showBackground = true)
+@Composable
+private fun PreviewSpeedometerGauge() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
+        SpeedometerGauge(score = 72.0, previousScore = 65.0, status = "GREED")
+    }
+}
+
+@Preview(name = "Dark", showBackground = true, backgroundColor = 0xFF0D0E12)
+@Composable
+private fun PreviewSpeedometerGaugeDark() {
+    MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
+        SpeedometerGauge(score = 24.0, previousScore = 30.0, status = "FEAR")
     }
 }

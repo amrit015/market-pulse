@@ -30,7 +30,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.news.MarketNews
@@ -259,8 +262,16 @@ fun NewsArticleCard(
                         color = pulseColors.accentPrimary
                     )
                     article.timestamp?.let { timestamp ->
+                        val bulletFontSize = MaterialTheme.typography.labelSmall.fontSize * 1.4f
                         Text(
-                            text = " • ${timestamp.toRelativeTimeString()}",
+                            text = buildAnnotatedString {
+                                append(" ")
+                                withStyle(SpanStyle(fontSize = bulletFontSize)) {
+                                    append(stringResource(id = R.string.bullet_separator))
+                                }
+                                append(" ")
+                                append(timestamp.toRelativeTimeString())
+                            },
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

@@ -27,6 +27,9 @@
          synthesis, rides inside the existing pulse response. -->
     <string name="section_market_sentiment">Market Sentiment</string>
     <string name="market_sentiment_navigate_content_description">View Posture in Insights</string>
+    <!-- 2026-09-06: chevron on the Signal card's flash headline, opens Market Read (analysis +
+         posture) as a bottom sheet instead of requiring a scroll to the bottom of Summary. -->
+    <string name="market_read_navigate_content_description">Open Market Read</string>
     <string name="drivers_navigate_content_description">View drivers in Indicators</string>
     <string name="drivers_info_content_description">About drivers</string>
     <string name="drivers_info_title">About Drivers</string>
@@ -41,7 +44,7 @@
     <string name="label_window_fallback">range</string>
     <string name="label_window_low">%1$s Low</string>
     <string name="label_window_high">%1$s High</string>
-    <string name="label_what_changed">What Changed:</string>
+    <string name="label_what_changed">What Changed</string>
 
 
     <string name="banner_viewing_legacy">Viewing Gemini 2.5 Pro</string>
@@ -91,6 +94,11 @@
     <string name="radar_title_trend">Trend</string>
     <string name="radar_prev_score">(Previous: %1$s)</string>
     <string name="close">Close</string>
+
+    <!-- Shared inline separator dot, joined between two text runs in code (never hardcoded
+         inline). See BulletText.kt for the shared join helper that renders it a size up from
+         the surrounding text. -->
+    <string name="bullet_separator">‣</string>
 
     <string name="indicators_screen_title">Market Indicators</string>
     <string name="indicators_score_label">SCORE</string>
@@ -203,6 +211,13 @@
     <string name="cycle_zone_glossary_title">CYCLE ZONE GLOSSARY</string>
     <string name="status_current">CURRENT</string>
 
+    <!-- Stock Detail's own tap-for-definition glossary sheet (technical_setup + regime_at_analysis
+         badges on DetailHeader): shares MarketGlossaryBottomSheet's mechanism but not its
+         "Market Status" framing, since this is one symbol's own read, not the whole market's. -->
+    <string name="stock_signal_glossary_title">Signal Glossary</string>
+    <string name="stock_setup_label">Setup:</string>
+    <string name="stock_setup_glossary_title">SETUP GLOSSARY</string>
+
     <string name="score_label_action">Trade Score</string>
     <string name="score_label_phase">Invest Score</string>
     <string name="score_label_risk">Risk Score</string>
@@ -275,6 +290,14 @@
     <string name="pillar_systemic_risk">Systemic Risk</string>
     <string name="pillar_valuation">Valuation</string>
     <string name="pillar_macro_vitals">Macro Economy</string>
+    <string name="indicators_tab_empty_state">No data available yet. Pull to refresh.</string>
+
+    <!-- Short pillar tab labels, deliberately distinct from pillar_* above (the inner section
+         title shown inside each tab's own content, which stays the longer full name). -->
+    <string name="indicators_tab_momentum">Momentum</string>
+    <string name="indicators_tab_systemic_risk">Systemic Risk</string>
+    <string name="indicators_tab_valuation">Valuation</string>
+    <string name="indicators_tab_macro">Macro</string>
     <string name="score_label_generic">Score</string>
 
     <string name="subcategory_inflation">Inflation</string>
@@ -353,9 +376,9 @@
     <string name="stock_detail_category_valuation">VALUATION</string>
     <string name="stock_detail_category_event">EVENT</string>
     <string name="stock_detail_deep_study_title">DEEP STUDY</string>
-    <string name="stock_detail_what_the_numbers_say">What the numbers say</string>
-    <string name="stock_detail_valuation_context">Valuation context</string>
-    <string name="stock_detail_macro_impact">Macro impact</string>
+    <string name="stock_detail_what_the_numbers_say">WHAT THE NUMBERS SAY</string>
+    <string name="stock_detail_valuation_context">VALUATION CONTEXT</string>
+    <string name="stock_detail_macro_impact">MACRO IMPACT</string>
     <string name="stock_detail_scenarios_title">SCENARIOS</string>
     <string name="stock_detail_bull_case">BULL CASE</string>
     <string name="stock_detail_bear_case">BEAR CASE</string>
@@ -401,7 +424,7 @@
     <string name="stock_detail_metric_10y_yield">10Y YIELD</string>
     <string name="stock_detail_metric_excess_ey">EXCESS EY</string>
     <string name="stock_detail_metric_excess_21d">EXCESS 21D</string>
-    <string name="stock_detail_metric_rate_sens">RATE SENS</string>
+    <string name="stock_detail_metric_rate_sens">RATE SENSITIVE</string>
 
     <string name="stock_detail_forward_calls_title">FORWARD CALLS</string>
     <string name="stock_detail_calls_held_of_total">%1$d of %2$d recent calls held</string>
@@ -409,6 +432,7 @@
     <string name="stock_detail_calls_failed_suffix">, %1$d failed</string>
     <string name="stock_detail_call_made_resolves">Made %1$s · resolves %2$s</string>
     <string name="stock_detail_resolved_calls_title">RESOLVED CALLS</string>
+    <string name="stock_detail_resolved_calls_page_title">Resolved Calls</string>
     <string name="stock_detail_call_status_held">HELD</string>
     <string name="stock_detail_call_status_failed">FAILED</string>
     <string name="stock_detail_call_resolved_on">Resolved %1$s</string>
@@ -419,15 +443,16 @@
     <string name="stock_detail_predicate_holds_below">Holds below</string>
     <string name="stock_detail_predicate_stays_within">Stays within</string>
 
-    <string name="stock_detail_technical_timeline_title">TECHNICAL TIMELINE · LAST 30 DAYS</string>
-    <string name="stock_detail_show_all">Show all</string>
-    <string name="stock_detail_show_latest">Show latest</string>
+    <string name="stock_detail_technical_timeline_title">TECHNICAL TIMELINE</string>
+    <string name="stock_detail_technical_timeline_subtitle">Last 30 days</string>
+    <string name="stock_detail_technical_timeline_page_title">Technical Timeline</string>
+    <string name="stock_detail_view_more">View More</string>
 
     <string name="stock_detail_direct_news_title">DIRECT NEWS</string>
     <string name="stock_detail_impact_suffix">%1$s IMPACT</string>
     <string name="stock_detail_read_the_analysis">Read the analysis</string>
-    <string name="stock_detail_forward_implication_label">Forward implication</string>
-    <string name="stock_detail_transmission_mechanism_label">Transmission mechanism</string>
+    <string name="stock_detail_forward_implication_label">FORWARD IMPLICATION</string>
+    <string name="stock_detail_transmission_mechanism_label">TRANSMISSION MECHANISM</string>
     <string name="stock_detail_view_definitions_content_description">View definitions for %1$s</string>
     <string name="stock_detail_view_article_content_description">View article</string>
 
@@ -443,14 +468,21 @@
 
     <!-- Deep Dive -->
     <string name="deep_dive_title">Deep Dive</string>
-    <string name="stock_detail_deep_dive_dated">Deep Dive: %1$s</string>
-    <!-- Paired with stock_detail_deep_dive_dated when both are shown, e.g. "Deep Dive: Sep 4 · Next: Sep 18". -->
-    <string name="stock_detail_deep_dive_next">Next: %1$s</string>
-    <!-- Cold start: no deep_analysis_date yet, only next_deep_dive_trigger_date, shown alone, so "Deep Dive" is spelled out here instead of assumed from a preceding "Deep Dive: ..." part. -->
-    <string name="stock_detail_deep_dive_next_standalone">Next Deep Dive: %1$s</string>
+    <!-- Label pre-uppercased here (not runtime-uppercased at render time) so the interpolated date
+         stays natural case: "DEEP DIVE AVAILABLE, Sept 4", not "DEEP DIVE AVAILABLE, SEPT 4". -->
+    <string name="stock_detail_deep_dive_dated">DEEP DIVE AVAILABLE, %1$s</string>
+    <!-- Paired with stock_detail_deep_dive_dated when both are shown, e.g. "DEEP DIVE AVAILABLE, Sept 4 • NEXT: Sept 18". -->
+    <string name="stock_detail_deep_dive_next">NEXT: %1$s</string>
+    <!-- Cold start: no deep_analysis_date yet, only next_deep_dive_trigger_date, shown alone, so "Deep Dive" is spelled out here instead of assumed from a preceding "Deep Dive Available, ..." part. -->
+    <string name="stock_detail_deep_dive_next_standalone">NEXT DEEP DIVE: %1$s</string>
+    <!-- The Deep Dive screen's own banner uses this instead of stock_detail_deep_dive_dated: a
+         sentence-case "Updated as of", not the caps eyebrow-style label the preview card/Stock
+         Detail chrome use, since this screen already establishes "this is the Deep Dive" by being
+         the Deep Dive screen itself. -->
+    <string name="stock_detail_deep_dive_updated_as_of">Updated as of %1$s</string>
     <string name="stock_analysis_deep_dive_label">Deep Dive: %1$s</string>
     <string name="deep_dive_empty_state">No deep dive available yet for this symbol.</string>
-    <string name="deep_dive_card_description">8-section structural read: profile, standing, risks, outlook, and consensus.</string>
+    <string name="deep_dive_card_description">Structural read: profile, standing, risks, outlook, consensus, so on.</string>
     <string name="deep_dive_open_full_cta">Open full Deep Dive</string>
 
     <!-- fundamentals_delta field labels: small chips under the WHATS_CHANGED section only -->
@@ -516,7 +548,7 @@
     <!-- Per-route titles the global top bar shows in place of the app wordmark, once a screen has left the Overview tab. -->
     <string name="insights_screen_title">Market Insights</string>
     <string name="summary_screen_title">Market Summary</string>
-    <string name="market_analysis_screen_title">Stock Analysis</string>
+    <string name="market_analysis_screen_title">Market Analysis</string>
     <string name="settings_screen_title">Settings</string>
     <string name="settings_section_theme">Theme</string>
     <string name="settings_section_more">More</string>

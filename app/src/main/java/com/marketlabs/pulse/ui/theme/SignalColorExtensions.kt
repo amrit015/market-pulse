@@ -55,8 +55,8 @@ val SignalColor?.pillColor: Color
 val RiskImpactLevel?.textColor: Color
     @Composable get() = when (this) {
         RiskImpactLevel.EXTREME, RiskImpactLevel.HIGH -> LocalPulseColors.current.signalBearishText
-        RiskImpactLevel.MEDIUM -> LocalPulseColors.current.signalWarningText
-        RiskImpactLevel.LOW -> LocalPulseColors.current.signalBullishText
+        RiskImpactLevel.MEDIUM -> LocalPulseColors.current.signalWarningText.copy(alpha = .5f)
+        RiskImpactLevel.LOW -> LocalPulseColors.current.signalNeutralText.copy(alpha = .5f)
         RiskImpactLevel.UNKNOWN, null -> LocalPulseColors.current.signalUnknown
     }
 

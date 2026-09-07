@@ -31,5 +31,13 @@
     "NEUTRAL": "Market is balanced. Hold current positions.",
     "CAUTION": "Market is heavily extended. Consider trimming profits or tightening stops.",
     "STRONG SELL": "Euphoria and overbought technicals. High probability of a violent pullback."
+  },
+  "stock_setups": {
+    "BREAKDOWN": "Price has fallen below its 20-, 50-, and 200-day averages with those averages stacked in bearish order, and momentum has just turned bearish too -- a confirmed downtrend across every timeframe.",
+    "BREAKOUT": "Price is above all three moving averages in bullish order, near the top of its 52-week range, on volume running well above normal -- a fresh push to new highs with real participation behind it.",
+    "MEAN REVERSION": "Price has stretched unusually far from its 20-day average in either direction and is more likely to drift back toward it than keep extending.",
+    "ACCUMULATION": "Price sits in the lower part of its 52-week range while up-day volume has been outweighing down-day volume -- buying pressure quietly building at a low.",
+    "DISTRIBUTION": "Price sits in the upper part of its 52-week range while down-day volume has been outweighing up-day volume -- selling pressure quietly building near a high.",
+    "RANGE BOUND": "None of the other setups are currently triggered -- price is moving without a dominant directional signal."
   }
 }

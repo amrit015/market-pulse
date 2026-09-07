@@ -16,22 +16,29 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
+import com.marketlabs.pulse.ui.theme.MarketPulseTheme
+import com.marketlabs.pulse.utils.extensions.toLongDateString
 import com.marketlabs.pulse.utils.extensions.toShortDateString
 
 /**
- * Cold-start-safe "Deep Dive: {date} · Next: {date}" text, shared by every Deep Dive touchpoint on
- * this screen and the preview card — one place for the branching so they never drift apart. Both
- * dates null -> null (caller omits the row entirely, never "Deep Dive: never"). Only
- * `nextDeepDiveTriggerDate` present (every tracked symbol gets one nightly, even before its
- * first-ever deep dive) -> "Next Deep Dive: {date}" alone, spelling out "Deep Dive" since there's
- * no preceding "Deep Dive: ..." part for it to pair with in that case.
+ * The "DEEP DIVE AVAILABLE, {date}" and "NEXT: {date}" parts, in display order -- shared by Stock
+ * Detail's chrome-level [DeepDiveCard] (both parts, joined) and, via [deepDivePreviewText], the
+ * preview card (only ever one part -- see that function's own doc comment for why it doesn't reuse
+ * this list directly). Each part's label half is pre-uppercased in its own string resource (not
+ * runtime-`.uppercase()`'d here) so the interpolated date stays natural case when joined --
+ * "DEEP DIVE AVAILABLE, Sep 4", not "DEEP DIVE AVAILABLE, SEP 4". Empty when both dates are null
+ * (caller omits the row entirely, never "Deep Dive: never"). Only `nextDeepDiveTriggerDate`
+ * present (every tracked symbol gets one nightly, even before its first-ever deep dive) ->
+ * "NEXT DEEP DIVE: {date}" alone, spelling out "Deep Dive" since there's no preceding
+ * "Deep Dive Available, ..." part for it to pair with in that case. Dates render abbreviated
+ * ("Sep 4", `toShortDateString()`) -- the preview card's own compact touchpoint uses the full
+ * month name instead, see [deepDivePreviewText].
  */
 @Composable
-fun deepDiveDisplayText(deepAnalysisDate: String?, nextDeepDiveTriggerDate: String?): String? {
-    if (deepAnalysisDate == null && nextDeepDiveTriggerDate == null) return null
-
+fun deepDiveDisplayParts(deepAnalysisDate: String?, nextDeepDiveTriggerDate: String?): List<String> {
     val datedPart = deepAnalysisDate?.let {
         stringResource(id = R.string.stock_detail_deep_dive_dated, it.toShortDateString())
     }
@@ -39,33 +46,70 @@ fun deepDiveDisplayText(deepAnalysisDate: String?, nextDeepDiveTriggerDate: Stri
         val nextRes = if (deepAnalysisDate == null) R.string.stock_detail_deep_dive_next_standalone else R.string.stock_detail_deep_dive_next
         stringResource(id = nextRes, it.toShortDateString())
     }
-    return listOfNotNull(datedPart, nextPart).joinToString(" · ")
+    return listOfNotNull(datedPart, nextPart)
 }
 
 /**
- * Small, plain (non-clickable) icon + bold-caps-accent label — the compact Deep Dive touchpoint
- * used on the preview card and atop [DeepDiveCard]. Reuses the AI-content glyph
- * (`ic_ai_sparkle_filled`) already used everywhere else in this app to mark AI-generated content
- * (`StockPreviewCard`, `SynthesisCardHeader`) rather than a one-off icon. Renders nothing when
- * [deepDiveDisplayText] returns null (cold start, neither date present).
+ * The preview card's own single-line text, 2026-09-06 -- deliberately **not** [deepDiveDisplayParts]
+ * joined: this compact touchpoint shows exactly one of "DEEP DIVE AVAILABLE, {date}" (when a deep
+ * dive has actually run) or "NEXT DEEP DIVE: {date}" (cold start), never both together even when
+ * both dates are present -- Stock Detail's own chrome (`DeepDiveCard`) is where the fuller
+ * "available, ... • next: ..." combined line lives. Dates render with the full month name
+ * (`toLongDateString()`, "September 4") rather than the abbreviated form `deepDiveDisplayParts`
+ * uses elsewhere -- this is the one Deep Dive touchpoint reached from a dense list row rather than
+ * a full card/screen, so it reads less like shorthand.
+ */
+@Composable
+fun deepDivePreviewText(deepAnalysisDate: String?, nextDeepDiveTriggerDate: String?): String? = when {
+    deepAnalysisDate != null -> stringResource(id = R.string.stock_detail_deep_dive_dated, deepAnalysisDate.toLongDateString())
+    nextDeepDiveTriggerDate != null -> stringResource(id = R.string.stock_detail_deep_dive_next_standalone, nextDeepDiveTriggerDate.toLongDateString())
+    else -> null
+}
+
+/**
+ * Small, plain (non-clickable) icon + bold-accent label — the compact Deep Dive touchpoint used on
+ * the preview list card, where a full `titleMedium` [SynthesisCardHeader] would be too heavy for a
+ * dense row. [DeepDiveCard] (the full `PulseCard(SYNTHESIS)` on Stock Detail) renders
+ * [deepDiveDisplayParts] at a larger size instead of reusing this compact row. Uses `ic_deep_dive`,
+ * a Deep-Dive-specific glyph, not the general AI-content sparkle used elsewhere -- this is marking
+ * "opens the Deep Dive feature," not "this text is AI-authored." Renders nothing when
+ * [deepDivePreviewText] is null (cold start, neither date present).
  */
 @Composable
 fun DeepDiveLabel(deepAnalysisDate: String?, nextDeepDiveTriggerDate: String?, modifier: Modifier = Modifier) {
-    val text = deepDiveDisplayText(deepAnalysisDate, nextDeepDiveTriggerDate) ?: return
+    val text = deepDivePreviewText(deepAnalysisDate, nextDeepDiveTriggerDate) ?: return
     val pulseColors = LocalPulseColors.current
 
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
         Icon(
-            painter = painterResource(id = R.drawable.ic_ai_sparkle_filled),
+            painter = painterResource(id = R.drawable.ic_deep_dive),
             contentDescription = stringResource(id = R.string.stock_analysis_ai_glyph_content_description),
             tint = pulseColors.accentPrimary,
             modifier = Modifier.size(dimensionResource(id = R.dimen.icon_size_small))
         )
         Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+        // 💡 No `.uppercase()` -- the label half already carries its own caps in the string
+        // resource, and the interpolated date must stay natural case (see doc comment above).
         Text(
-            text = text.uppercase(),
+            text = text,
             style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
             color = pulseColors.accentPrimary
         )
+    }
+}
+
+@Preview(name = "Available", showBackground = true)
+@Composable
+private fun PreviewDeepDiveLabelAvailable() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
+        DeepDiveLabel(deepAnalysisDate = "2026-08-28", nextDeepDiveTriggerDate = "2026-09-11")
+    }
+}
+
+@Preview(name = "Cold start", showBackground = true)
+@Composable
+private fun PreviewDeepDiveLabelColdStart() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
+        DeepDiveLabel(deepAnalysisDate = null, nextDeepDiveTriggerDate = "2026-09-18")
     }
 }

@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -16,33 +16,47 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
-import com.marketlabs.pulse.ui.screens.stocks.detail.SectionDividerLabel
+import com.marketlabs.pulse.ui.components.PulseCard
+import com.marketlabs.pulse.ui.components.PulseCardStyle
+import com.marketlabs.pulse.ui.screens.stocks.detail.DataCardSectionHeader
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
-/** Plain bulleted list from `considerations` -- 3 items in the Design mockup, but not assumed fixed. */
+/**
+ * Plain bulleted list from `considerations` -- 3 items in the Design mockup, but not assumed
+ * fixed. One `PulseCard(DATA)`, header inside (`DataCardSectionHeader`), same as every other
+ * list-style Detail section 2026-09-05.
+ */
 @Composable
 fun Consider(considerations: List<String>?, modifier: Modifier = Modifier) {
     val items = considerations.orEmpty()
     if (items.isEmpty()) return
 
-    Column(modifier = modifier.fillMaxWidth()) {
-        SectionDividerLabel(title = stringResource(id = R.string.stock_detail_things_to_check_title))
-        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
-        Column(verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_medium))) {
-            items.forEach { text ->
-                Row {
-                    Text(
-                        text = "•",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = LocalPulseColors.current.onSurfaceMuted
-                    )
-                    androidx.compose.foundation.layout.Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_medium)))
-                    Text(
-                        text = text,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+    PulseCard(style = PulseCardStyle.DATA, modifier = modifier.fillMaxWidth()) {
+        Column {
+            DataCardSectionHeader(title = stringResource(id = R.string.stock_detail_things_to_check_title))
+            Column(
+                modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)),
+                verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_medium))
+            ) {
+                items.forEach { text ->
+                    Row {
+                        // 💡 A size up from bodyMedium -- a plain-size bullet next to normal body
+                        // text reads as a low, easy-to-miss dot rather than a clear list marker.
+                        Text(
+                            text = stringResource(id = R.string.bullet_separator),
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontSize = MaterialTheme.typography.bodyMedium.fontSize
+                            ),
+                            color = LocalPulseColors.current.onSurfaceMuted
+                        )
+                        androidx.compose.foundation.layout.Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_medium)))
+                        Text(
+                            text = text,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
                 }
             }
         }

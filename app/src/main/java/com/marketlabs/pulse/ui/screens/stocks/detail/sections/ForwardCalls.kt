@@ -4,7 +4,6 @@ package com.marketlabs.pulse.ui.screens.stocks.detail.sections
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -35,8 +35,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.stocks.DomainCallRecord
 import com.marketlabs.pulse.storage.model.stocks.DomainForwardCall
+import com.marketlabs.pulse.ui.components.PulseCard
+import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.widgets.SignalPill
-import com.marketlabs.pulse.ui.screens.stocks.detail.SectionDividerLabel
+import com.marketlabs.pulse.ui.screens.stocks.detail.DataCardSectionHeader
+import com.marketlabs.pulse.ui.screens.stocks.detail.ViewMoreRow
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 import com.marketlabs.pulse.utils.extensions.toLongDateString
@@ -51,15 +54,9 @@ import java.util.Locale
  * `HOLDS_BELOW` / `STAYS_WITHIN`) -- the backend doesn't tag a bullish/bearish direction on it
  * directly, so the pill color here is derived from the ABOVE/BELOW/WITHIN keyword itself (a call
  * that price stays above a level reads bullish, below reads bearish, within is non-directional).
- *
- * Resolved calls stay collapsed to just a tappable header until expanded -- unlike Open calls,
- * they're historical record rather than something needing attention, so nothing renders until the
- * user asks for it. `BringIntoViewRequester` on the header handles collapsing a long expanded list
- * back down (same fix `EventLog.kt` uses for its own collapse, see that file's doc comment for why
- * it's anchored to the header specifically and not the whole section).
  */
 @Composable
-fun ForwardCalls(calls: DomainCallRecord?, modifier: Modifier = Modifier) {
+fun ForwardCalls(calls: DomainCallRecord?, onViewMoreResolved: () -> Unit = {}, modifier: Modifier = Modifier) {
     val open = calls?.open.orEmpty()
     val resolved = calls?.resolved.orEmpty()
     if (open.isEmpty() && resolved.isEmpty()) return
@@ -67,7 +64,7 @@ fun ForwardCalls(calls: DomainCallRecord?, modifier: Modifier = Modifier) {
     Column(modifier = modifier.fillMaxWidth()) {
         if (open.isNotEmpty()) {
             val stats = calls?.stats
-            val trailing = if (stats?.held != null && stats.totalResolved != null) {
+            val subtitle = if (stats?.held != null && stats.totalResolved != null) {
                 buildString {
                     append(stringResource(id = R.string.stock_detail_calls_held_of_total, stats.held, stats.totalResolved))
                     // 💡 The space before each suffix is added here, not baked into the XML string
@@ -77,11 +74,20 @@ fun ForwardCalls(calls: DomainCallRecord?, modifier: Modifier = Modifier) {
                     stats.failed?.takeIf { it > 0 }?.let { append(stringResource(id = R.string.stock_detail_calls_failed_suffix, it)) }
                 }
             } else null
-            SectionDividerLabel(title = stringResource(id = R.string.stock_detail_forward_calls_title), trailing = trailing)
-            Spacer()
 
-            Column(verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_medium))) {
-                open.forEach { call -> ForwardCallCard(call) }
+            PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
+                Column {
+                    DataCardSectionHeader(title = stringResource(id = R.string.stock_detail_forward_calls_title), subtitle = subtitle)
+                    open.forEachIndexed { index, call ->
+                        ForwardCallCard(call, modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)))
+                        if (index != open.lastIndex) {
+                            HorizontalDivider(
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                                thickness = dimensionResource(id = R.dimen.border_thin)
+                            )
+                        }
+                    }
+                }
             }
         }
 
@@ -89,89 +95,125 @@ fun ForwardCalls(calls: DomainCallRecord?, modifier: Modifier = Modifier) {
             if (open.isNotEmpty()) {
                 androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_xxlarge)))
             }
-            ResolvedCallsSection(resolved = resolved)
+            ResolvedCallsSection(resolved = resolved, onViewMore = onViewMoreResolved)
         }
     }
 }
 
+private const val COLLAPSED_RESOLVED_COUNT = 7
+
+/**
+ * Its own `PulseCard(DATA)` -- header IS the toggle here (there's no separate content region
+ * competing for taps the way Drivers has), so the `.clickable` sits on the header `Row` itself
+ * rather than on `PulseCard`'s own `onClick`; scoping it to the header (not the whole card) means
+ * tapping inside an expanded entry never accidentally collapses the section. Collapsed by default
+ * -- historical record, not something needing attention, so nothing renders below the header until
+ * the user asks for it. Once expanded, shows its latest 7 (by `resolvedOn`, falling back to
+ * `madeOn` for the rare resolved call missing that field), newest first, with a [ViewMoreRow]
+ * pushing to the full sorted list when there are more than 7. `BringIntoViewRequester` on the
+ * header handles collapsing a long expanded list back down (same fix `EventLog.kt` used to use for
+ * its own collapse, before it moved to the "View More" push-navigation pattern).
+ */
 @Composable
-private fun ResolvedCallsSection(resolved: List<DomainForwardCall>) {
+private fun ResolvedCallsSection(resolved: List<DomainForwardCall>, onViewMore: () -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val coroutineScope = rememberCoroutineScope()
     val pulseColors = LocalPulseColors.current
+    val sorted = resolved.sortedByDescending { it.resolvedOn ?: it.madeOn ?: "" }
+    val visible = sorted.take(COLLAPSED_RESOLVED_COUNT)
 
-    Column {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .bringIntoViewRequester(bringIntoViewRequester)
-                .clickable {
-                    val wasExpanded = expanded
-                    expanded = !expanded
-                    if (wasExpanded) {
-                        coroutineScope.launch { bringIntoViewRequester.bringIntoView() }
+    PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
+        Column {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .bringIntoViewRequester(bringIntoViewRequester)
+                    .clickable {
+                        val wasExpanded = expanded
+                        expanded = !expanded
+                        if (wasExpanded) {
+                            coroutineScope.launch { bringIntoViewRequester.bringIntoView() }
+                        }
+                    }
+                    .padding(dimensionResource(id = R.dimen.padding_large))
+            ) {
+                Text(
+                    text = stringResource(id = R.string.stock_detail_resolved_calls_title),
+                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.weight(1f, fill = false)
+                )
+                Icon(
+                    painter = painterResource(id = if (expanded) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down),
+                    contentDescription = null,
+                    tint = pulseColors.accentPrimary,
+                    modifier = Modifier
+                        .padding(start = dimensionResource(id = R.dimen.padding_medium))
+                        .size(dimensionResource(id = R.dimen.icon_size_small))
+                )
+            }
+
+            if (expanded) {
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                    thickness = dimensionResource(id = R.dimen.border_thin)
+                )
+                visible.forEachIndexed { index, call ->
+                    ResolvedCallCard(call, modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)))
+                    if (index != visible.lastIndex) {
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                            thickness = dimensionResource(id = R.dimen.border_thin)
+                        )
                     }
                 }
-        ) {
-            Box(modifier = Modifier.weight(1f, fill = false)) {
-                SectionDividerLabel(title = stringResource(id = R.string.stock_detail_resolved_calls_title))
-            }
-            Icon(
-                painter = painterResource(id = if (expanded) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down),
-                contentDescription = null,
-                tint = pulseColors.accentPrimary,
-                modifier = Modifier.size(dimensionResource(id = R.dimen.icon_size_small))
-            )
-        }
-
-        if (expanded) {
-            Spacer()
-            Column(verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_medium))) {
-                resolved.forEach { call -> ResolvedCallCard(call) }
+                if (sorted.size > COLLAPSED_RESOLVED_COUNT) {
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                        thickness = dimensionResource(id = R.dimen.border_thin)
+                    )
+                    ViewMoreRow(
+                        text = stringResource(id = R.string.stock_detail_view_more),
+                        onClick = onViewMore,
+                        modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-private fun ResolvedCallCard(call: DomainForwardCall) {
+fun ResolvedCallCard(call: DomainForwardCall, modifier: Modifier = Modifier) {
     val pulseColors = LocalPulseColors.current
     val (predicateLabel, predicateColor, predicatePillColor) = predicateStyle(call, pulseColors)
     val (statusLabel, statusColor, statusPillColor) = resolvedStatusStyle(call.status, pulseColors)
 
-    // 💡 fillMaxWidth -- was sizing to its own content instead of the full card width, unlike
-    // every other card on this screen.
-    Surface(
-        color = pulseColors.surfaceTinted,
-        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_small)),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
-            if (predicateLabel != null || statusLabel != null) {
-                androidx.compose.foundation.layout.Row(
-                    horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_small))
-                ) {
-                    predicateLabel?.let { SignalPill(text = it, pillColor = predicatePillColor, contentColor = predicateColor) }
-                    statusLabel?.let { SignalPill(text = it, pillColor = statusPillColor, contentColor = statusColor) }
-                }
-                Spacer()
+    Column(modifier = modifier) {
+        if (predicateLabel != null || statusLabel != null) {
+            androidx.compose.foundation.layout.Row(
+                horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_small))
+            ) {
+                predicateLabel?.let { SignalPill(text = it, pillColor = predicatePillColor, contentColor = predicateColor) }
+                statusLabel?.let { SignalPill(text = it, pillColor = statusPillColor, contentColor = statusColor) }
             }
+            Spacer()
+        }
 
-            (call.outcomeNote ?: call.statement)?.let {
-                Text(text = it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
-            }
+        (call.outcomeNote ?: call.statement)?.let {
+            Text(text = it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
+        }
 
-            if (call.resolvedOn != null) {
-                Spacer()
-                val resolvedLine = if (call.resolvedPrice != null) {
-                    stringResource(id = R.string.stock_detail_call_resolved_on_at, call.resolvedOn.toLongDateString(), formatPrice(call.resolvedPrice))
-                } else {
-                    stringResource(id = R.string.stock_detail_call_resolved_on, call.resolvedOn.toLongDateString())
-                }
-                Text(text = resolvedLine, style = MaterialTheme.typography.labelSmall, color = pulseColors.onSurfaceMuted)
+        if (call.resolvedOn != null) {
+            Spacer()
+            val resolvedLine = if (call.resolvedPrice != null) {
+                stringResource(id = R.string.stock_detail_call_resolved_on_at, call.resolvedOn.toLongDateString(), formatPrice(call.resolvedPrice))
+            } else {
+                stringResource(id = R.string.stock_detail_call_resolved_on, call.resolvedOn.toLongDateString())
             }
+            Text(text = resolvedLine, style = MaterialTheme.typography.labelSmall, color = pulseColors.onSurfaceMuted)
         }
     }
 }
@@ -186,49 +228,41 @@ private fun resolvedStatusStyle(status: String?, pulseColors: com.marketlabs.pul
     }
 
 @Composable
-private fun ForwardCallCard(call: DomainForwardCall) {
+private fun ForwardCallCard(call: DomainForwardCall, modifier: Modifier = Modifier) {
     val pulseColors = LocalPulseColors.current
     val (predicateLabel, predicateColor, pillColor) = predicateStyle(call, pulseColors)
 
-    // 💡 fillMaxWidth -- was sizing to its own content instead of the full card width, same fix
-    // as `ResolvedCallCard` below.
-    Surface(
-        color = pulseColors.surfaceTinted,
-        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_small)),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
-            if (predicateLabel != null) {
-                Surface(color = pillColor, shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_pill))) {
-                    Text(
-                        text = predicateLabel,
-                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                        color = predicateColor,
-                        modifier = Modifier.padding(
-                            horizontal = dimensionResource(id = R.dimen.padding_medium),
-                            vertical = dimensionResource(id = R.dimen.padding_small)
-                        )
-                    )
-                }
-                Spacer()
-            }
-
-            call.statement?.let {
-                Text(text = it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
-            }
-
-            if (call.madeOn != null && call.resolveDate != null) {
-                Spacer()
+    Column(modifier = modifier) {
+        if (predicateLabel != null) {
+            Surface(color = pillColor, shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_pill))) {
                 Text(
-                    text = stringResource(
-                        id = R.string.stock_detail_call_made_resolves,
-                        call.madeOn.toLongDateString(),
-                        call.resolveDate.toLongDateString()
-                    ),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = pulseColors.onSurfaceMuted
+                    text = predicateLabel,
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                    color = predicateColor,
+                    modifier = Modifier.padding(
+                        horizontal = dimensionResource(id = R.dimen.padding_medium),
+                        vertical = dimensionResource(id = R.dimen.padding_small)
+                    )
                 )
             }
+            Spacer()
+        }
+
+        call.statement?.let {
+            Text(text = it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
+        }
+
+        if (call.madeOn != null && call.resolveDate != null) {
+            Spacer()
+            Text(
+                text = stringResource(
+                    id = R.string.stock_detail_call_made_resolves,
+                    call.madeOn.toLongDateString(),
+                    call.resolveDate.toLongDateString()
+                ),
+                style = MaterialTheme.typography.labelSmall,
+                color = pulseColors.onSurfaceMuted
+            )
         }
     }
 }

@@ -19,6 +19,9 @@ docs/
     cross-repo-contracts.md          invisible Android↔backend field/flag-name dependencies
     known-gaps.md                    LIVING doc — confirmed stale/inconsistent spots in the
                                       current code; verify before trusting
+    collapsing-header-tabs.md        LIVING doc — the collapsing-chrome + sticky-tab-row +
+                                      swipeable-pager pattern (Stock Detail, Indicators); real
+                                      bugs hit and fixed, read before reusing on a new screen
 
   guidelines/                      — prescriptive: how to write new code in this repo
     kotlin-style.md                  DI (Hilt @Provides-in-object), null handling, naming
@@ -31,6 +34,10 @@ docs/
                                       pills, typography, spacing. Most tasks need only this one.
     theming-history.md               the "why" — how the theming/card system got here,
                                       chronological, read rarely
+    card-heading-conventions.md      LIVING doc — card heading/spacing conventions piloted on
+                                      Summary, rolling out screen-by-screen (partial as of
+                                      2026-09-06: Indicators, Insights, Stock Detail, Deep Dive);
+                                      open questions flagged, see doc for exactly what's landed
 ```
 
 ## How this connects to `CLAUDE.md`, and why it doesn't cost tokens by default

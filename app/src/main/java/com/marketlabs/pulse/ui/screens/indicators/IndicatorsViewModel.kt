@@ -22,19 +22,22 @@ class IndicatorsViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     private val _isRefreshing = MutableStateFlow(false)
     private val _errorMessage = MutableStateFlow<String?>(null)
+    private val _selectedTabIndex = MutableStateFlow(0)
 
     // Combine the Room Database Flow with our loading/error states
     val uiState: StateFlow<IndicatorsUiState> = combine(
         repository.getIndicatorsStream(),
         _isLoading,
         _isRefreshing,
-        _errorMessage
-    ) { indicatorsData, loading, refreshing, error ->
+        _errorMessage,
+        _selectedTabIndex
+    ) { indicatorsData, loading, refreshing, error, selectedTabIndex ->
         IndicatorsUiState(
             data = indicatorsData,
             isLoading = loading && indicatorsData == null, // Only show main loader if we have NO data
             isRefreshing = refreshing, // Used for the Swipe-to-Refresh spinner
-            errorMessage = error
+            errorMessage = error,
+            selectedTabIndex = selectedTabIndex
         )
     }.stateIn(
         scope = viewModelScope,
@@ -70,6 +73,14 @@ class IndicatorsViewModel @Inject constructor(
      */
     fun clearError() {
         _errorMessage.value = null
+    }
+
+    /**
+     * Called when the pillar tab bar changes selection -- by a tap, or by the tab content
+     * settling on a new page after a swipe (see `IndicatorsMainFeed`'s `pagerState` sync).
+     */
+    fun onTabSelected(index: Int) {
+        _selectedTabIndex.value = index
     }
 
     private fun fetchIndicators(force: Boolean) {

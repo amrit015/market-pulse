@@ -120,8 +120,8 @@ fun DeepDiveRoute(
                     color = pulseColors.accentPrimary
                 )
             }
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
-            DeepDiveHeaderBanner(
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+            DeepDiveUpdatedAtLine(
                 deepAnalysisDate = uiState.deepDive?.deepAnalysisDate,
                 nextDeepDiveTriggerDate = uiState.deepDive?.nextDeepDiveTriggerDate,
                 nextDeepDiveTriggerReason = uiState.deepDive?.nextDeepDiveTriggerReason
@@ -130,7 +130,6 @@ fun DeepDiveRoute(
 
         Box(modifier = Modifier.fillMaxSize()) {
             val contentPadding = PaddingValues(
-                top = dimensionResource(id = R.dimen.padding_large),
                 bottom = scaffoldPadding.calculateBottomPadding() + dimensionResource(id = R.dimen.padding_large),
                 start = dimensionResource(id = R.dimen.padding_large),
                 end = dimensionResource(id = R.dimen.padding_large)

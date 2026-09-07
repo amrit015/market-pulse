@@ -5,14 +5,19 @@ package com.marketlabs.pulse.ui.screens.stocks.detail
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -22,34 +27,56 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Constraints
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.components.PulseTabRow
+import com.marketlabs.pulse.ui.components.bottomSheet.MarketGlossaryBottomSheet
 import com.marketlabs.pulse.ui.screens.stocks.StockDetailViewModel
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.DeepDiveCard
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.DetailHeader
+import com.marketlabs.pulse.ui.screens.stocks.detail.sections.TechnicalRead
 import com.marketlabs.pulse.ui.screens.stocks.views.StockAnalysisErrorState
+import java.util.Locale
+import kotlin.math.roundToInt
 
 /**
  * Stateful entry point for the pushed `stockAnalysis/{symbol}` destination. Only `DetailHeader`
- * and the pill tab bar are pinned now -- `TechnicalRead` and the HIGH-urgency alert moved into the
- * scrollable tab content (see `StockDetailScreen`) so they don't permanently eat into the tabs'
- * share of the screen. `StockDetailScreen` (the selected tab's content) sits inside the
- * pull-to-refresh area, so pulling down works from any tab but never disturbs the pinned zone
- * above it. `Modifier.windowInsetsPadding(WindowInsets.statusBars)` handles the status-bar inset
- * directly -- this route has no Material `TopAppBar` to lean on for that (see `MainActivity`'s
+ * (the ticker/price row) is truly pinned now -- the Deep Dive banner and the pill tab bar both
+ * scroll away with the tab content, with the tab bar becoming sticky (parking itself right below
+ * `DetailHeader`) once the banner has fully scrolled past. 2026-09-05: this collapsing-banner +
+ * sticky-tab-row + swipeable-pages shape replaced the old fully-pinned header (banner and tab bar
+ * both permanently fixed, no swipe between tabs).
+ *
+ * `Modifier.windowInsetsPadding(WindowInsets.statusBars)` handles the status-bar inset directly --
+ * this route has no Material `TopAppBar` to lean on for that (see `MainActivity`'s
  * `isPushedDestination`, which excludes this route from the global collapsing top bar entirely).
- * The floating bottom nav is hidden here too (same `isPushedDestination` check) -- only the pinned
- * zone and tab bar act as this screen's chrome.
+ * The floating bottom nav is hidden here too (same `isPushedDestination` check) -- only
+ * `DetailHeader` and the (now scroll-aware) banner/tab-bar zone act as this screen's chrome.
+ *
+ * Swipe-between-tabs mirrors Insights' own `pagerState`/`selectedTabIndex` sync exactly (see
+ * `InsightsRoute.kt`'s identical doc comment on why two one-directional effects, keyed off
+ * `settledPage` rather than `currentPage` on the swipe side, are needed to avoid the pager and the
+ * ViewModel fighting each other mid-gesture).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,12 +85,70 @@ fun StockDetailRoute(
     onNavigateUp: () -> Unit,
     onNavigateToWebView: (String) -> Unit,
     onNavigateToDeepDive: (String) -> Unit,
+    onNavigateToResolvedCalls: (String) -> Unit,
+    onNavigateToTechnicalTimeline: (String) -> Unit,
     viewModel: StockDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val pullRefreshState = rememberPullToRefreshState()
     val lifecycleOwner = LocalLifecycleOwner.current
+    val density = LocalDensity.current
+
+    val pagerState = rememberPagerState(initialPage = uiState.selectedTabIndex) { DetailTab.entries.size }
+
+    LaunchedEffect(uiState.selectedTabIndex) {
+        if (pagerState.currentPage != uiState.selectedTabIndex) {
+            pagerState.animateScrollToPage(uiState.selectedTabIndex)
+        }
+    }
+
+    // 💡 `settledPage`, not `currentPage` -- see InsightsRoute.kt's identical fix for why: keying
+    // off `currentPage` pushes an intermediate, still-in-flight page value back to the ViewModel
+    // mid-swipe/mid-animation, which the effect above then reads and uses to correct the pager,
+    // fighting whatever gesture/animation is still running and leaving it stuck between two pages.
+    LaunchedEffect(pagerState.settledPage) {
+        if (pagerState.settledPage != uiState.selectedTabIndex) {
+            viewModel.onTabSelected(pagerState.settledPage)
+        }
+    }
+
+    // 💡 Collapsing Deep Dive banner state, shared across every tab (not per-tab) -- scrolling it
+    // away on one tab keeps it collapsed when you switch to another, matching a single physical
+    // banner rather than 6 independent ones. `bannerHeightPx` is the card's own natural (unclamped)
+    // height, measured once via the `Modifier.layout` override below; `collapseOffsetPx` ranges
+    // from 0 (fully expanded) to `-bannerHeightPx` (fully collapsed, banner entirely scrolled away).
+    var bannerHeightPx by remember { mutableFloatStateOf(0f) }
+    var collapseOffsetPx by remember { mutableFloatStateOf(0f) }
+
+    // 💡 Collapse-first, expand-on-overscroll: `onPreScroll` claims upward drags (content
+    // scrolling up) to shrink the banner BEFORE any tab's `LazyColumn` gets to scroll, so the
+    // banner always finishes collapsing before the list underneath moves. `onPostScroll` only
+    // sees leftover scroll a `LazyColumn` couldn't consume itself (i.e. it's already at its own
+    // top) -- claims downward drags there to expand the banner back. Placed on a node BETWEEN
+    // `PullToRefreshBox` and the pager (see below) rather than around `PullToRefreshBox`, so this
+    // gets first refusal on that leftover downward drag and pull-to-refresh only engages once the
+    // banner is already fully expanded -- otherwise pull-to-refresh (nested closer to the list)
+    // would claim every bit of leftover downward drag first and the banner could never reopen.
+    val bannerNestedScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                if (available.y >= 0f) return Offset.Zero
+                val newOffset = (collapseOffsetPx + available.y).coerceIn(-bannerHeightPx, 0f)
+                val consumed = newOffset - collapseOffsetPx
+                collapseOffsetPx = newOffset
+                return Offset(0f, consumed)
+            }
+
+            override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
+                if (available.y <= 0f) return Offset.Zero
+                val newOffset = (collapseOffsetPx + available.y).coerceIn(-bannerHeightPx, 0f)
+                val consumedNow = newOffset - collapseOffsetPx
+                collapseOffsetPx = newOffset
+                return Offset(0f, consumedNow)
+            }
+        }
+    }
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -86,6 +171,12 @@ fun StockDetailRoute(
         }
     }
 
+    // 💡 Which of DetailHeader's two tap-to-explain badges opened the glossary sheet -- same
+    // "local enum state picks which MarketGlossaryBottomSheet params to pass" shape Summary's own
+    // `glossaryTarget` uses (SummaryScreen.kt), just scoped to this screen's two badges instead of
+    // Summary's five.
+    var glossaryTarget by remember { mutableStateOf<StockGlossaryTarget?>(null) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -100,22 +191,83 @@ fun StockDetailRoute(
             regimeAtAnalysis = uiState.preview?.regimeAtAnalysis,
             analyzedAsOfTimestamp = uiState.detail?.timestamp,
             onNavigateUp = onNavigateUp,
+            onTechnicalSetupClick = { glossaryTarget = StockGlossaryTarget.TECHNICAL_SETUP },
+            onRegimeClick = { glossaryTarget = StockGlossaryTarget.REGIME },
             modifier = Modifier.fillMaxWidth()
         )
 
-        // 💡 Chrome-level, not tab content -- visible regardless of which tab is selected, per the
-        // per-symbol-intelligence spec's "a banner ... on the detailed page" placement.
-        DeepDiveCard(
-            deepAnalysisDate = uiState.preview?.deepAnalysisDate,
-            nextDeepDiveTriggerDate = uiState.preview?.nextDeepDiveTriggerDate,
-            onClick = { onNavigateToDeepDive(uiState.symbol) },
+        val technicalRead = uiState.detail?.technicalRead
+        val watchList = uiState.detail?.watchList
+        val hasHighAlert = watchList.orEmpty().any { it.urgency?.uppercase() == "HIGH" }
+
+        // 💡 Height driven entirely by `bannerHeightPx + collapseOffsetPx` (0 when fully
+        // collapsed), not by this Column's own measured size -- see the `Modifier.layout`
+        // override below for why it always measures at its true natural height regardless of how
+        // far this Box has shrunk. `clipToBounds()` hides whatever portion has scrolled above this
+        // Box's (shrinking) top edge. Deep Dive banner, `TechnicalRead`, and the HIGH-urgency alert
+        // all live in this one Column now (2026-09-05) -- one shared collapsing region, not three
+        // independent ones, so they scroll away and reappear together as a single unit.
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(
-                    horizontal = dimensionResource(id = R.dimen.padding_large),
-                    vertical = dimensionResource(id = R.dimen.padding_small)
+                .height(with(density) { (bannerHeightPx + collapseOffsetPx).coerceIn(0f, bannerHeightPx).toDp() })
+                .clipToBounds()
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .layout { measurable, constraints ->
+                        // 💡 Measured with height unbounded, ignoring whatever (possibly zero on
+                        // the very first frame, before `bannerHeightPx` is known) height constraint
+                        // the shrinking Box above passes down -- otherwise this Column would be
+                        // squeezed to match it and could never report its true height back.
+                        val placeable = measurable.measure(constraints.copy(minHeight = 0, maxHeight = Constraints.Infinity))
+                        if (bannerHeightPx != placeable.height.toFloat()) {
+                            bannerHeightPx = placeable.height.toFloat()
+                        }
+                        // 💡 Reports zero size upward -- this node's own contribution to the parent
+                        // Box's size is deliberately nothing; that Box's height is fully driven by
+                        // `bannerHeightPx`/`collapseOffsetPx` state instead, not by this child.
+                        layout(placeable.width, 0) {
+                            placeable.place(0, collapseOffsetPx.roundToInt())
+                        }
+                    }
+            ) {
+                DeepDiveCard(
+                    deepAnalysisDate = uiState.preview?.deepAnalysisDate,
+                    nextDeepDiveTriggerDate = uiState.preview?.nextDeepDiveTriggerDate,
+                    onClick = { onNavigateToDeepDive(uiState.symbol) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            horizontal = dimensionResource(id = R.dimen.padding_large),
+                            vertical = dimensionResource(id = R.dimen.padding_tiny)
+                        )
                 )
-        )
+
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+
+                // 💡 Moved here from each tab's own scrollable content 2026-09-05 -- general
+                // context shown once, chrome-level, with the same collapse-then-stick behavior as
+                // the Deep Dive banner above it, rather than duplicated identically into every tab.
+                if (technicalRead != null || hasHighAlert) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = dimensionResource(id = R.dimen.padding_large))
+                    ) {
+                        technicalRead?.let { TechnicalRead(technicalRead = it) }
+                        if (technicalRead != null && hasHighAlert) {
+                            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                        }
+                        if (hasHighAlert) {
+                            HighUrgencyAlertRow(watchList = watchList)
+                        }
+                        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_standard)))
+                    }
+                }
+            }
+        }
 
         PulseTabRow(
             tabs = DetailTab.entries.map { stringResource(id = it.labelRes) },
@@ -123,7 +275,22 @@ fun StockDetailRoute(
             onTabSelected = viewModel::onTabSelected
         )
 
-        Box(modifier = Modifier.fillMaxSize()) {
+        // 💡 `weight(1f)`, not just `fillMaxSize()` -- without it, if the collapsing chrome above
+        // (Deep Dive banner + TechnicalRead + HIGH alert) ever measured taller than the remaining
+        // screen height, a plain Column doesn't shrink earlier children to fit; it lets everything
+        // overflow, pushing this Box (and the only scrollable content in it) off-screen with no way
+        // to reach it to scroll back. `weight(1f)` guarantees this always gets whatever space is
+        // actually left, even a thin sliver -- still enough to catch a scroll gesture and collapse
+        // the chrome back down via `bannerNestedScrollConnection`. Same fix as
+        // `IndicatorsScreen.kt`'s identical structure, applied proactively here too -- none of this
+        // chrome's own content currently has an internal expand toggle the way Indicators' AI
+        // briefing card does, but the same overflow could still happen from content alone being
+        // long enough on a small screen.
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+        ) {
             PullToRefreshBox(
                 isRefreshing = uiState.isRefreshing,
                 onRefresh = { viewModel.refresh() },
@@ -136,43 +303,51 @@ fun StockDetailRoute(
                     )
                 }
             ) {
-                when {
-                    uiState.detail != null -> {
-                        StockDetailScreen(
-                            detail = uiState.detail,
-                            preview = uiState.preview,
-                            selectedTabIndex = uiState.selectedTabIndex,
-                            expandedChipIds = uiState.expandedChipIds,
-                            expandedNewsIds = uiState.expandedNewsIds,
-                            chartSeries = uiState.chartSeries,
-                            selectedChartRange = uiState.selectedChartRange,
-                            isChartLoading = uiState.isChartLoading,
-                            intradaySeries = uiState.intradaySeries,
-                            availableChartRanges = uiState.availableChartRanges,
-                            onChartRangeSelected = viewModel::selectChartRange,
-                            onToggleChip = viewModel::toggleChipExpanded,
-                            onToggleNews = viewModel::toggleNewsExpanded,
-                            onArticleClick = onNavigateToWebView,
-                            scaffoldPadding = scaffoldPadding
-                        )
-                    }
-
-                    uiState.isLoading -> {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            CircularProgressIndicator()
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .nestedScroll(bannerNestedScrollConnection)
+                ) {
+                    when {
+                        uiState.detail != null -> {
+                            StockDetailScreen(
+                                detail = uiState.detail,
+                                preview = uiState.preview,
+                                pagerState = pagerState,
+                                expandedChipIds = uiState.expandedChipIds,
+                                expandedNewsIds = uiState.expandedNewsIds,
+                                chartSeries = uiState.chartSeries,
+                                selectedChartRange = uiState.selectedChartRange,
+                                isChartLoading = uiState.isChartLoading,
+                                intradaySeries = uiState.intradaySeries,
+                                availableChartRanges = uiState.availableChartRanges,
+                                onChartRangeSelected = viewModel::selectChartRange,
+                                onToggleChip = viewModel::toggleChipExpanded,
+                                onToggleNews = viewModel::toggleNewsExpanded,
+                                onArticleClick = onNavigateToWebView,
+                                onViewMoreResolvedCalls = { onNavigateToResolvedCalls(uiState.symbol) },
+                                onViewMoreTimeline = { onNavigateToTechnicalTimeline(uiState.symbol) },
+                                scaffoldPadding = scaffoldPadding
+                            )
                         }
-                    }
 
-                    uiState.error != null -> {
-                        StockAnalysisErrorState(error = uiState.error!!, onRetry = { viewModel.refresh() })
-                    }
+                        uiState.isLoading -> {
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                CircularProgressIndicator()
+                            }
+                        }
 
-                    // Defensive fallback only -- `detail`/`isLoading`/`error` in practice always
-                    // cover the real states (the ViewModel starts `isLoading = true` and a fetch
-                    // is always in flight by the time this composes).
-                    else -> {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            CircularProgressIndicator()
+                        uiState.error != null -> {
+                            StockAnalysisErrorState(error = uiState.error!!, onRetry = { viewModel.refresh() })
+                        }
+
+                        // Defensive fallback only -- `detail`/`isLoading`/`error` in practice always
+                        // cover the real states (the ViewModel starts `isLoading = true` and a fetch
+                        // is always in flight by the time this composes).
+                        else -> {
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                CircularProgressIndicator()
+                            }
                         }
                     }
                 }
@@ -186,5 +361,36 @@ fun StockDetailRoute(
             )
         }
     }
+
+    when (glossaryTarget) {
+        StockGlossaryTarget.TECHNICAL_SETUP -> {
+            MarketGlossaryBottomSheet(
+                currentStockSetup = uiState.preview?.technicalSetup?.replace('_', ' ')?.uppercase(Locale.US),
+                title = stringResource(id = R.string.stock_signal_glossary_title),
+                onDismiss = { glossaryTarget = null }
+            )
+        }
+        StockGlossaryTarget.REGIME -> {
+            MarketGlossaryBottomSheet(
+                currentDirection = uiState.preview?.regimeAtAnalysis?.let { regimeDirectionLabel(it) },
+                title = stringResource(id = R.string.stock_signal_glossary_title),
+                onDismiss = { glossaryTarget = null }
+            )
+        }
+        null -> {}
+    }
 }
 
+private enum class StockGlossaryTarget { TECHNICAL_SETUP, REGIME }
+
+/**
+ * `regime_at_analysis` (`risk_on`/`risk_off`/`neutral`) is confirmed backend-side to be the exact
+ * same `system/market_regime` token Summary's `direction` field reads, just kept in its raw
+ * snake_case form here rather than relabeled -- this maps it onto the same `directions` glossary
+ * entries (`RISK ON`/`RISK OFF`/`MIXED`) rather than adding a duplicate glossary section.
+ */
+private fun regimeDirectionLabel(regimeAtAnalysis: String): String = when (regimeAtAnalysis.lowercase(Locale.US)) {
+    "risk_on" -> "RISK ON"
+    "risk_off" -> "RISK OFF"
+    else -> "MIXED"
+}

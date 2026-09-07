@@ -22,8 +22,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.core.glossary.StockAnalysisGlossaryProvider
+import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 /**
  * A `(display label, glossary key)` pair -- the label is what a section already renders (via
@@ -97,5 +99,28 @@ fun StockAnalysisGlossaryBottomSheet(
 
             item { Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars)) }
         }
+    }
+}
+
+@Preview(name = "Light", showBackground = true)
+@Composable
+private fun PreviewStockAnalysisGlossaryBottomSheet() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
+        StockAnalysisGlossaryBottomSheet(
+            title = "Key Levels",
+            entries = listOf(
+                GlossaryEntry(
+                    label = "ATR",
+                    term = "ATR",
+                    definitionOverride = "Average True Range -- a measure of how much a stock typically moves per day."
+                ),
+                GlossaryEntry(
+                    label = "Distance from 200-day SMA",
+                    term = "DIST_SMA200",
+                    definitionOverride = "How far the current price sits above or below its 200-day moving average."
+                )
+            ),
+            onDismiss = {}
+        )
     }
 }

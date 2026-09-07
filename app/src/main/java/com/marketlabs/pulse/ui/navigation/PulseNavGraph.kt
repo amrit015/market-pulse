@@ -26,6 +26,8 @@ import com.marketlabs.pulse.ui.screens.insights.views.InsightsTab
 import com.marketlabs.pulse.ui.screens.news.views.NewsRoute
 import com.marketlabs.pulse.ui.screens.stocks.deepdive.DeepDiveRoute
 import com.marketlabs.pulse.ui.screens.stocks.detail.StockDetailRoute
+import com.marketlabs.pulse.ui.screens.stocks.detail.timeline.ResolvedCallsListRoute
+import com.marketlabs.pulse.ui.screens.stocks.detail.timeline.TechnicalTimelineListRoute
 import com.marketlabs.pulse.ui.screens.stocks.views.StockAnalysisRoute
 import com.marketlabs.pulse.ui.screens.summary.views.MarketSummaryRoute
 import com.marketlabs.pulse.ui.settings.SettingsRoute
@@ -56,6 +58,12 @@ object PulseRoutes {
     // Its own full-screen destination, not a tab on STOCK_ANALYSIS_DETAIL -- "symbol" is a required
     // nav argument, same shape as STOCK_ANALYSIS_DETAIL above.
     const val DEEP_DIVE_DETAIL = "deepDiveDetail"
+
+    // Pushed from the "View More" row at the bottom of Stock Detail's Timeline tab (2026-09-06,
+    // capped-to-7 Resolved Calls / Technical Timeline cards). "symbol" is a required nav argument,
+    // same shape as STOCK_ANALYSIS_DETAIL above.
+    const val RESOLVED_CALLS_LIST = "resolvedCallsList"
+    const val TECHNICAL_TIMELINE_LIST = "technicalTimelineList"
 
     // Reached from the gear icon on the global top bar.
     const val SETTINGS = "settings"
@@ -363,6 +371,12 @@ fun PulseNavGraph(
                 },
                 onNavigateToDeepDive = { symbol ->
                     navController.navigate("${PulseRoutes.DEEP_DIVE_DETAIL}/$symbol")
+                },
+                onNavigateToResolvedCalls = { symbol ->
+                    navController.navigate("${PulseRoutes.RESOLVED_CALLS_LIST}/$symbol")
+                },
+                onNavigateToTechnicalTimeline = { symbol ->
+                    navController.navigate("${PulseRoutes.TECHNICAL_TIMELINE_LIST}/$symbol")
                 }
             )
         }
@@ -371,6 +385,21 @@ fun PulseNavGraph(
         // shape as STOCK_ANALYSIS_DETAIL above.
         composable("${PulseRoutes.DEEP_DIVE_DETAIL}/{symbol}") {
             DeepDiveRoute(
+                scaffoldPadding = scaffoldPadding,
+                onNavigateUp = { navController.popBackStack() }
+            )
+        }
+        // Pushed from the "View More" row on Stock Detail's Resolved Calls / Technical Timeline
+        // cards. "symbol" is read out of SavedStateHandle by each screen's own ViewModel, same
+        // shape as DEEP_DIVE_DETAIL above.
+        composable("${PulseRoutes.RESOLVED_CALLS_LIST}/{symbol}") {
+            ResolvedCallsListRoute(
+                scaffoldPadding = scaffoldPadding,
+                onNavigateUp = { navController.popBackStack() }
+            )
+        }
+        composable("${PulseRoutes.TECHNICAL_TIMELINE_LIST}/{symbol}") {
+            TechnicalTimelineListRoute(
                 scaffoldPadding = scaffoldPadding,
                 onNavigateUp = { navController.popBackStack() }
             )

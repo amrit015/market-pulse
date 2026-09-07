@@ -19,11 +19,13 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.components.widgets.ChangeDirection
 import com.marketlabs.pulse.ui.components.widgets.DirectionalChangePill
 import com.marketlabs.pulse.ui.components.widgets.SignalPill
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
+import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 import com.marketlabs.pulse.ui.theme.pillColor
 import com.marketlabs.pulse.ui.theme.textColor
 import com.marketlabs.pulse.utils.enums.SignalColor
@@ -160,5 +162,37 @@ fun UniversalMetricCard(
                 )
             }
         }
+    }
+}
+
+@Preview(name = "Light", showBackground = true)
+@Composable
+private fun PreviewUniversalMetricCard() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
+        UniversalMetricCard(
+            title = "CPI YoY",
+            value = "3.1%",
+            changeString = "-0.2%",
+            signalText = "Cooling",
+            signalColor = SignalColor.GREEN,
+            dateString = "2026-08-01",
+            onClick = {}
+        )
+    }
+}
+
+@Preview(name = "Dark", showBackground = true, backgroundColor = 0xFF0D0E12)
+@Composable
+private fun PreviewUniversalMetricCardDark() {
+    MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
+        UniversalMetricCard(
+            title = "Unemployment Rate",
+            value = "4.6%",
+            changeString = "+0.3%",
+            signalText = "Weakening",
+            signalColor = SignalColor.RED,
+            dateString = "2026-08-01",
+            onClick = {}
+        )
     }
 }

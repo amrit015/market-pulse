@@ -6,5 +6,6 @@ data class IndicatorsUiState(
     val data: MarketIndicators? = null,
     val isLoading: Boolean = false,
     val isRefreshing: Boolean = false,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val selectedTabIndex: Int = 0
 )

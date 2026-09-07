@@ -21,11 +21,14 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.dashboard.AssetOverview
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
+import com.marketlabs.pulse.ui.theme.MarketPulseTheme
+import com.marketlabs.pulse.utils.enums.AssetType
 import kotlin.math.abs
 
 @Composable
@@ -171,5 +174,41 @@ fun VixFullWidthCard(asset: AssetOverview, onClick: () -> Unit) {
                 )
             }
         }
+    }
+}
+
+@Preview(name = "Light", showBackground = true)
+@Composable
+private fun PreviewVixFullWidthCard() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
+        VixFullWidthCard(
+            asset = AssetOverview(
+                symbol = "VIX",
+                name = "CBOE Volatility Index",
+                type = AssetType.INDEX,
+                price = 18.42,
+                changePercent = -3.15,
+                rsiStatus = "GREED"
+            ),
+            onClick = {}
+        )
+    }
+}
+
+@Preview(name = "Dark", showBackground = true, backgroundColor = 0xFF0D0E12)
+@Composable
+private fun PreviewVixFullWidthCardDark() {
+    MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
+        VixFullWidthCard(
+            asset = AssetOverview(
+                symbol = "VIX",
+                name = "CBOE Volatility Index",
+                type = AssetType.INDEX,
+                price = 27.88,
+                changePercent = 9.4,
+                rsiStatus = "FEAR"
+            ),
+            onClick = {}
+        )
     }
 }

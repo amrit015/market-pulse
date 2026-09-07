@@ -35,12 +35,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.intraday.IntradayPoint
 import com.marketlabs.pulse.ui.components.widgets.CardEyebrowLabel
@@ -51,6 +51,8 @@ import com.marketlabs.pulse.ui.components.widgets.SignalPill
 import com.marketlabs.pulse.ui.components.widgets.SparklineChart
 import com.marketlabs.pulse.ui.screens.stocks.detail.DataCardTitleWithInfo
 import com.marketlabs.pulse.ui.screens.stocks.detail.OutlinedBadge
+import com.marketlabs.pulse.ui.screens.stocks.detail.StatGrid
+import com.marketlabs.pulse.ui.screens.stocks.detail.StatItem
 import com.marketlabs.pulse.ui.screens.stocks.detail.SubClusterLabel
 import com.marketlabs.pulse.ui.screens.stocks.detail.SynthesisCardHeader
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
@@ -131,99 +133,49 @@ private fun PreviewDataStatTile() {
 }
 
 // ============================================================================
-// DATA — 2. FlowRow stat clusters, divider between populated groups
-// Modeled on: stocks/detail/sections/Fundamentals.kt:99-157
+// DATA — 2. Stat grid: equal-width columns, partial last row expands to fill
+// Modeled on: stocks/detail/StatGrid.kt, used by Fundamentals.kt/Macro.kt/MomentumAndTrend.kt/
+// Returns.kt/HeadlineMetricsStrip.kt/KeyLevels.kt -- replaced what used to be two separate
+// hand-rolled patterns here (a FlowRow of fixed-96dp cells, and a bare fixed 3-up Row) with one
+// shared component once both were found to crowd/wrap a value that isn't a short number.
 // ============================================================================
 
 @Composable
-private fun DataFlowRowClustersSample() {
+private fun DataStatGridSample() {
     PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
             DataCardTitleWithInfo(title = "FUNDAMENTALS", onInfoClick = {})
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
             SubClusterLabel(title = "VALUATION")
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_xlarge)),
-                verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_medium))
-            ) {
-                StatColumnSample(value = "21.83", label = "TRAILING PE")
-                StatColumnSample(value = "26.44", label = "FORWARD PE")
-                StatColumnSample(value = "1.46", label = "PEG")
-            }
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
-            HorizontalDivider(
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                thickness = dimensionResource(id = R.dimen.border_thin)
+            // 💡 A full row of 3 divides evenly; the 4th stat gets a row to itself and expands to
+            // fill it (`Modifier.weight(1f)` per cell, not a fixed dp width) rather than sitting
+            // narrow and left-aligned with empty space beside it. The range value also shows why
+            // a plain space belongs on each side of the dash -- with none, a column this narrow
+            // has no valid line-break point and wraps mid-number instead.
+            StatGrid(
+                stats = listOf(
+                    StatItem("21.83", "TRAILING PE"),
+                    StatItem("26.44", "FORWARD PE"),
+                    StatItem("1.46", "PEG"),
+                    StatItem("$30.71 – $598.17", "5Y PE RANGE")
+                )
             )
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
-            SubClusterLabel(title = "PROFITABILITY")
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_xlarge)),
-                verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_medium))
-            ) {
-                StatColumnSample(value = "30.56%", label = "ROE")
-                StatColumnSample(value = "50.77%", label = "GROSS MARGIN")
-            }
         }
     }
 }
 
+@Preview(name = "2. DATA — Stat grid", showBackground = true)
 @Composable
-private fun StatColumnSample(value: String, label: String) {
-    Column(modifier = Modifier.width(dimensionResource(id = R.dimen.detail_stat_width))) {
-        Text(
-            value,
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        Text(
-            label,
-            style = MaterialTheme.typography.labelSmall,
-            color = LocalPulseColors.current.onSurfaceMuted
-        )
-    }
-}
-
-@Preview(name = "2. DATA — FlowRow clusters + divider", showBackground = true)
-@Composable
-private fun PreviewDataFlowRowClusters() {
-    MarketPulseTheme(theme = MarketPulseTheme.NAVY) { DataFlowRowClustersSample() }
+private fun PreviewDataStatGrid() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) { DataStatGridSample() }
 }
 
 // ============================================================================
-// DATA — 3. Fixed stat strip (no FlowRow wrapping)
-// Modeled on: stocks/detail/sections/HeadlineMetricsStrip.kt:50-92
-// ============================================================================
-
-@Composable
-private fun DataFixedStripSample() {
-    PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
-            DataCardTitleWithInfo(title = "KEY METRICS", onInfoClick = {})
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                StatColumnSample(value = "62", label = "RSI")
-                StatColumnSample(value = "1.8x", label = "RVOL")
-                StatColumnSample(value = "+9.1%", label = "DIST SMA20")
-            }
-        }
-    }
-}
-
-@Preview(name = "3. DATA — Fixed stat strip", showBackground = true)
-@Composable
-private fun PreviewDataFixedStrip() {
-    MarketPulseTheme(theme = MarketPulseTheme.NAVY) { DataFixedStripSample() }
-}
-
-// ============================================================================
-// DATA — 4. Colored left-rail / side-stripe accent, flush to card edges
-// Modeled on: insights/views/MarketRisksView.kt:153-227 (TailRiskCard), summary/views/SummaryScreen.kt:1082-1128 (MacroCard)
+// DATA — 3. Colored left-rail / side-stripe accent, flush to card edges
+// Modeled on: insights/views/MarketRisksView.kt:150-220 (TailRiskCard) -- the only card left using
+// this pattern; Summary's Macro Mix used to have an equivalent left-rail but dropped it for a plain
+// padded entry (see MacroMixSection's own doc comment), so it's no longer a second citation here.
 // ============================================================================
 
 @Composable
@@ -244,7 +196,7 @@ private fun DataLeftRailSample() {
             ) {
                 Text(
                     "Tariff Escalation Risk",
-                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                    style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
@@ -258,14 +210,14 @@ private fun DataLeftRailSample() {
     }
 }
 
-@Preview(name = "4. DATA — Colored left-rail", showBackground = true)
+@Preview(name = "3. DATA — Colored left-rail", showBackground = true)
 @Composable
 private fun PreviewDataLeftRail() {
     MarketPulseTheme(theme = MarketPulseTheme.NAVY) { DataLeftRailSample() }
 }
 
 // ============================================================================
-// DATA — 5. Gauge value + delta pill + trailing "tap for glossary" chevron, whole card clickable
+// DATA — 4. Gauge value + delta pill + trailing "tap for glossary" chevron, whole card clickable
 // Modeled on: insights/views/MarketPostureView.kt:191-266 (NaaimExposureCard/DarkPoolCard/NetLiquidityCard)
 // ============================================================================
 
@@ -305,14 +257,14 @@ private fun DataGaugeWithChevronSample() {
     }
 }
 
-@Preview(name = "5. DATA — Gauge + delta + chevron", showBackground = true)
+@Preview(name = "4. DATA — Gauge + delta + chevron", showBackground = true)
 @Composable
 private fun PreviewDataGaugeWithChevron() {
     MarketPulseTheme(theme = MarketPulseTheme.NAVY) { DataGaugeWithChevronSample() }
 }
 
 // ============================================================================
-// DATA — 6. One card, multiple independently-clickable rows, dividers between
+// DATA — 5. One card, multiple independently-clickable rows, dividers between
 // Modeled on: insights/views/MarketPositioningView.kt:313-346 (InstitutionalPositioningCard)
 // ============================================================================
 
@@ -375,14 +327,14 @@ private fun DataMultiRowSample() {
     }
 }
 
-@Preview(name = "6. DATA — Multi-row, per-row click + dividers", showBackground = true)
+@Preview(name = "5. DATA — Multi-row, per-row click + dividers", showBackground = true)
 @Composable
 private fun PreviewDataMultiRow() {
     MarketPulseTheme(theme = MarketPulseTheme.NAVY) { DataMultiRowSample() }
 }
 
 // ============================================================================
-// DATA — 7. Reasoning list, thin colored bar per row (confirms/conflicts)
+// DATA — 6. Reasoning list, thin colored bar per row (confirms/conflicts)
 // Modeled on: stocks/detail/sections/SetupReasoning.kt:143-171 (ReasoningRow/ReasoningBar)
 // ============================================================================
 
@@ -428,36 +380,34 @@ private fun DataReasoningListSample() {
     }
 }
 
-@Preview(name = "7. DATA — Reasoning list, colored bar per row", showBackground = true)
+@Preview(name = "6. DATA — Reasoning list, colored bar per row", showBackground = true)
 @Composable
 private fun PreviewDataReasoningList() {
     MarketPulseTheme(theme = MarketPulseTheme.NAVY) { DataReasoningListSample() }
 }
 
 // ============================================================================
-// DATA — 8. Timeline steps, dot nodes down the left edge
-// Modeled on: summary/views/SummaryScreen.kt:1140-1168 (DominoCard/DominoTimelineStep)
+// DATA — 7. Timeline steps, dot nodes down the left edge
+// Modeled on: summary/views/SummaryScreen.kt:1255-1295 (DominoCard), :1301-1343 (DominoTimelineStep)
 // ============================================================================
 
 private data class TimelineStepSample(val label: String, val text: String)
 
 @Composable
 private fun DataTimelineSample() {
-    val pulseColors = LocalPulseColors.current
     val steps = listOf(
         TimelineStepSample("TRIGGER", "Fed signals a pause at the next meeting"),
         TimelineStepSample("IMPACT", "10-year yield falls 12 basis points"),
         TimelineStepSample("OUTLOOK", "Rate-sensitive sectors likely to outperform")
     )
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
-    val paddingStandard = dimensionResource(id = R.dimen.padding_standard)
     PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
         Column {
             Text(
                 "THE DOMINO EFFECT",
                 style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                color = pulseColors.accentPrimary,
-                modifier = Modifier.padding(paddingStandard)
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(paddingLarge)
             )
             HorizontalDivider(
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
@@ -474,14 +424,14 @@ private fun DataTimelineSample() {
                             Box(
                                 modifier = Modifier
                                     .size(dimensionResource(id = R.dimen.timeline_dot_size))
-                                    .background(pulseColors.accentPrimary, CircleShape)
+                                    .background(MaterialTheme.colorScheme.primary, CircleShape)
                             )
                             if (index != steps.lastIndex) {
                                 Box(
                                     modifier = Modifier
                                         .width(dimensionResource(id = R.dimen.border_thin))
                                         .height(dimensionResource(id = R.dimen.padding_xxlarge))
-                                        .background(pulseColors.onSurfaceMuted.copy(alpha = 0.3f))
+                                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
                                 )
                             }
                         }
@@ -489,8 +439,8 @@ private fun DataTimelineSample() {
                         Column(modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.padding_medium))) {
                             Text(
                                 step.label,
-                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                                color = pulseColors.onSurfaceMuted
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary
                             )
                             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_tiny)))
                             Text(
@@ -506,14 +456,14 @@ private fun DataTimelineSample() {
     }
 }
 
-@Preview(name = "8. DATA — Timeline steps", showBackground = true)
+@Preview(name = "7. DATA — Timeline steps", showBackground = true)
 @Composable
 private fun PreviewDataTimeline() {
     MarketPulseTheme(theme = MarketPulseTheme.NAVY) { DataTimelineSample() }
 }
 
 // ============================================================================
-// DATA_SPARKLINE — 9. Sparkline asset tile
+// DATA_SPARKLINE — 8. Sparkline asset tile
 // Modeled on: dashboard/views/DashboardScreen.kt:468-682 (AssetCard, sparkline-eligible path), stocks/components/StockPreviewCard.kt:69-227
 // ============================================================================
 
@@ -581,14 +531,14 @@ private fun DataSparklineTileSample() {
     }
 }
 
-@Preview(name = "9. DATA_SPARKLINE — Sparkline tile", showBackground = true)
+@Preview(name = "8. DATA_SPARKLINE — Sparkline tile", showBackground = true)
 @Composable
 private fun PreviewDataSparklineTile() {
     MarketPulseTheme(theme = MarketPulseTheme.NAVY) { DataSparklineTileSample() }
 }
 
 // ============================================================================
-// SYNTHESIS — 10. Icon + title header, body text
+// SYNTHESIS — 9. Icon + title header, body text
 // Modeled on: stocks/detail/DetailSectionLabels.kt:113-133 (SynthesisCardHeader), used by TechnicalRead.kt/DeepStudy.kt/Scenarios.kt
 // ============================================================================
 
@@ -607,14 +557,14 @@ private fun SynthesisHeaderBodySample() {
     }
 }
 
-@Preview(name = "10. SYNTHESIS — Icon+title header", showBackground = true)
+@Preview(name = "9. SYNTHESIS — Icon+title header", showBackground = true)
 @Composable
 private fun PreviewSynthesisHeaderBody() {
     MarketPulseTheme(theme = MarketPulseTheme.NAVY) { SynthesisHeaderBodySample() }
 }
 
 // ============================================================================
-// SYNTHESIS — 11. Expandable hero: eyebrow + headline + tap-to-expand body
+// SYNTHESIS — 10. Expandable hero: eyebrow + headline + tap-to-expand body
 // Modeled on: components/SynthesisHeroCard.kt:75-128, indicators/views/IndicatorsScreen.kt:212-308 (AiExecutiveBriefingHero)
 // ============================================================================
 
@@ -664,15 +614,22 @@ private fun SynthesisExpandableHeroSample() {
     }
 }
 
-@Preview(name = "11. SYNTHESIS — Expandable hero (tap to expand)", showBackground = true)
+@Preview(name = "10. SYNTHESIS — Expandable hero (tap to expand)", showBackground = true)
 @Composable
 private fun PreviewSynthesisExpandableHero() {
     MarketPulseTheme(theme = MarketPulseTheme.NAVY) { SynthesisExpandableHeroSample() }
 }
 
 // ============================================================================
-// SYNTHESIS — 12. Eyebrow + pill + headline, divider, meter
-// Modeled on: summary/views/SummaryScreen.kt:341-436 (SignalSection)
+// SYNTHESIS — 11. Eyebrow, outlined + filled pill pair, tappable headline, divider, meter
+// Modeled on: summary/views/SummaryScreen.kt:292-450 (SignalSection) -- 2026-09-06: regime (an
+// outlined, neutral classification pill) and direction (a filled, signal-colored pill) render side
+// by side, each its own tap target opening a glossary sheet scoped to just that term; they used to
+// share one chip (regime's text tinted by direction's color) with no separate text for direction at
+// all. The headline itself is now also tappable (trailing chevron), opening a bottom sheet with the
+// fuller analysis + posture read. 2026-09-07: dropped the ▲/▼/▪ leading glyph the direction pill
+// briefly had -- redundant once the pill already says "RISK ON"/"RISK OFF"/"MIXED" in text, and the
+// MIXED glyph in particular read as a stray dot rather than a meaningful mark.
 // ============================================================================
 
 @Composable
@@ -680,21 +637,39 @@ private fun SynthesisHeadlineMeterSample() {
     val pulseColors = LocalPulseColors.current
     PulseCard(style = PulseCardStyle.SYNTHESIS, modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                CardEyebrowLabel(text = "Today's Signal", color = pulseColors.accentPrimary)
-                Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_medium)))
+            CardEyebrowLabel(text = "Market Signal", color = pulseColors.accentPrimary)
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+            Row(horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_small))) {
+                SignalPill(
+                    text = "SIDEWAYS RANGE",
+                    pillColor = Color.Transparent,
+                    contentColor = pulseColors.onSurfaceMuted,
+                    outlined = true,
+                    trailingIcon = { GlossaryTapChevron(tint = pulseColors.onSurfaceMuted) }
+                )
                 SignalPill(
                     text = "RISK ON",
                     pillColor = pulseColors.signalBullishPill,
-                    contentColor = pulseColors.signalBullishText
+                    contentColor = pulseColors.signalBullishText,
+                    trailingIcon = { GlossaryTapChevron(tint = pulseColors.signalBullishText) }
                 )
             }
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
-            Text(
-                "Momentum Broadens Across Sectors",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onSurface
-            )
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    "Momentum Broadens Across Sectors",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f)
+                )
+                Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_chevron_forward),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(dimensionResource(id = R.dimen.padding_large))
+                )
+            }
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
             HorizontalDivider(
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f),
@@ -710,16 +685,19 @@ private fun SynthesisHeadlineMeterSample() {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(8.dp)
+                    .height(dimensionResource(id = R.dimen.padding_medium))
                     .background(
-                        MaterialTheme.colorScheme.surfaceVariant,
+                        // 💡 Translucent onSurface overlay, not colorScheme.surfaceVariant -- this
+                        // card's own SYNTHESIS background (accentSurfaceStrong) reads too close in
+                        // value to surfaceVariant in dark mode for the track to stay visible.
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
                         RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_pill))
                     )
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth(0.72f)
-                        .height(8.dp)
+                        .height(dimensionResource(id = R.dimen.padding_medium))
                         .background(
                             pulseColors.signalBullishText,
                             RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_pill))
@@ -730,14 +708,14 @@ private fun SynthesisHeadlineMeterSample() {
     }
 }
 
-@Preview(name = "12. SYNTHESIS — Headline + divider + meter", showBackground = true)
+@Preview(name = "11. SYNTHESIS — Headline + divider + meter", showBackground = true)
 @Composable
 private fun PreviewSynthesisHeadlineMeter() {
     MarketPulseTheme(theme = MarketPulseTheme.NAVY) { SynthesisHeadlineMeterSample() }
 }
 
 // ============================================================================
-// SYNTHESIS — 13. Kicker + dynamic heading + body + delta chips
+// SYNTHESIS — 12. Kicker + dynamic heading + body + delta chips
 // Modeled on: stocks/deepdive/DeepDiveSectionCard.kt, stocks/deepdive/FundamentalsDeltaChips.kt
 // ============================================================================
 
@@ -746,18 +724,16 @@ private fun SynthesisKickerDeltaChipsSample() {
     val pulseColors = LocalPulseColors.current
     PulseCard(style = PulseCardStyle.SYNTHESIS, modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
-            Text(
-                "WHAT'S CHANGED",
-                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                color = pulseColors.accentPrimary
-            )
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_tiny)))
+            CardEyebrowLabel(text = "What's Changed", color = pulseColors.accentPrimary)
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
             Text(
                 "Analyst Targets Ticked Up on AI Capacity Buildout",
-                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                // 💡 Plain titleMedium, no bold override -- matches the app-wide content-heading
+                // convention for a list entry's own headline (was titleSmall.Bold until 2026-09-05).
+                style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
             Text(
                 "Since the last deep dive, Wall Street nudged its outlook higher after forward AWS capacity commitments came into view.",
                 style = MaterialTheme.typography.bodyMedium,
@@ -783,14 +759,14 @@ private fun SynthesisKickerDeltaChipsSample() {
     }
 }
 
-@Preview(name = "13. SYNTHESIS — Kicker + heading + delta chips", showBackground = true)
+@Preview(name = "12. SYNTHESIS — Kicker + heading + delta chips", showBackground = true)
 @Composable
 private fun PreviewSynthesisKickerDeltaChips() {
     MarketPulseTheme(theme = MarketPulseTheme.NAVY) { SynthesisKickerDeltaChipsSample() }
 }
 
 // ============================================================================
-// SYNTHESIS — 14. Multi-section digest, small-caps sub-headings, dividers between every block
+// SYNTHESIS — 13. Multi-section digest, small-caps sub-headings, dividers between every block
 // Modeled on: stocks/detail/sections/DigestCard.kt
 // ============================================================================
 
@@ -799,32 +775,29 @@ private fun SynthesisMultiSectionDigestSample() {
     val pulseColors = LocalPulseColors.current
     PulseCard(style = PulseCardStyle.SYNTHESIS, modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_ai_sparkle_filled),
-                    contentDescription = null,
-                    tint = pulseColors.accentPrimary,
-                    modifier = Modifier.size(dimensionResource(id = R.dimen.icon_size_small))
-                )
-                Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
-                Text(
-                    "DAILY DIGEST",
-                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                    color = pulseColors.accentPrimary
-                )
-            }
+            // 💡 `CardEyebrowLabel`, no icon -- every card on Stock Detail mixes quant data and AI
+            // narrative, so an AI-sparkle glyph singling this one out as "the AI card" would be
+            // misleading (unlike Today's Read/Insights' Digest, which do carry it).
+            CardEyebrowLabel(text = "Daily Digest", color = pulseColors.accentPrimary)
             val blocks = listOf(
-                null to "Amazon falls 2% amid DOJ beef-pricing antitrust probe",
+                // 💡 The headline goes through `smartTitleCase()` in production (Digest/ai-synthesis
+                // headlines only) -- this mock string is already title-cased so the sample doesn't
+                // need the call itself.
+                null to "Amazon Falls 2% Amid DOJ Beef-Pricing Antitrust Probe",
                 "REGULATORY PRESSURE MOUNTS" to "The Department of Justice expanded its antitrust inquiry into rising beef prices, demanding information from Amazon and other major retailers."
             )
             blocks.forEachIndexed { index, (heading, body) ->
-                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
+                // 💡 Header -> first block is padding_medium; every later block is padding_large
+                // around its divider -- two different gaps, not one uniform value.
+                Spacer(modifier = Modifier.height(dimensionResource(id = if (index == 0) R.dimen.padding_medium else R.dimen.padding_large)))
                 Column {
                     heading?.let {
+                        // 💡 accentPrimary, matching this card's own "DAILY DIGEST" eyebrow above --
+                        // was onSurfaceMuted, which read as a disconnected label family.
                         Text(
                             it,
                             style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                            color = pulseColors.onSurfaceMuted
+                            color = pulseColors.accentPrimary
                         )
                         Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
                     }
@@ -848,15 +821,20 @@ private fun SynthesisMultiSectionDigestSample() {
     }
 }
 
-@Preview(name = "14. SYNTHESIS — Multi-section digest, dividers", showBackground = true)
+@Preview(name = "13. SYNTHESIS — Multi-section digest, dividers", showBackground = true)
 @Composable
 private fun PreviewSynthesisMultiSectionDigest() {
     MarketPulseTheme(theme = MarketPulseTheme.NAVY) { SynthesisMultiSectionDigestSample() }
 }
 
 // ============================================================================
-// 15. Emphasis border layered ON TOP of PulseCard's own border/shadow -- "this one is selected"
-// Modeled on: indicators/detail/MetricDetailScreen.kt:192-240 (BandRow), insights/glossary/GlossaryDetailScreen.kt:157-198, news/views/NewsScreen.kt:206-240 (isHighlighted)
+// 14. Emphasis border layered ON TOP of PulseCard's own border/shadow -- "this one is selected"
+// Modeled on: indicators/detail/MetricDetailScreen.kt:192-240 (BandRow) -- the canonical version of
+// this pattern. components/bottomSheet/MarketBottomSheet.kt's GlossaryTermCard was rebuilt
+// 2026-09-07 to match this exactly (it briefly drifted -- see that file's own doc comment).
+// insights/glossary/GlossaryDetailScreen.kt's GlossaryBandRow still differs slightly (plain
+// "CURRENT" text instead of a SignalPill badge, term label re-colored to accent when current) --
+// not yet reconciled with BandRow, flagged but not silently changed.
 // ============================================================================
 
 @Composable
@@ -867,34 +845,46 @@ private fun EmphasisBorderOverlaySample() {
         modifier = Modifier
             .fillMaxWidth()
             .border(
-                dimensionResource(id = R.dimen.border_medium),
+                dimensionResource(id = R.dimen.border_thin),
                 pulseColors.accentPrimary,
                 RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card_large))
             )
     ) {
         Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    "62 – 75",
+                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                SignalPill(
+                    text = "CURRENT",
+                    pillColor = pulseColors.accentPrimary.copy(alpha = 0.16f),
+                    contentColor = pulseColors.accentPrimary
+                )
+            }
             Text(
-                "62 – 75",
-                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Text(
-                "Currently in this band — Neutral",
+                "Neutral -- reading sits mid-range, no strong tilt either way.",
                 style = MaterialTheme.typography.bodySmall,
-                color = pulseColors.onSurfaceMuted
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_small))
             )
         }
     }
 }
 
-@Preview(name = "15. Emphasis border overlay (current selection)", showBackground = true)
+@Preview(name = "14. Emphasis border overlay (current selection)", showBackground = true)
 @Composable
 private fun PreviewEmphasisBorderOverlay() {
     MarketPulseTheme(theme = MarketPulseTheme.NAVY) { EmphasisBorderOverlaySample() }
 }
 
 // ============================================================================
-// 16. Deliberately OUTSIDE PulseCard -- signal-owned background (documented exception)
+// 15. Deliberately OUTSIDE PulseCard -- signal-owned background (documented exception)
 // Modeled on: dashboard/views/DashboardScreen.kt:377 (SectorBlock), settings/components/PresetSwatchCard.kt:63
 // ============================================================================
 
@@ -925,14 +915,14 @@ private fun SignalOwnedBackgroundExceptionSample() {
     }
 }
 
-@Preview(name = "16. NOT PulseCard — signal-owned background", showBackground = true)
+@Preview(name = "15. NOT PulseCard — signal-owned background", showBackground = true)
 @Composable
 private fun PreviewSignalOwnedBackgroundException() {
     MarketPulseTheme(theme = MarketPulseTheme.NAVY) { SignalOwnedBackgroundExceptionSample() }
 }
 
 // ============================================================================
-// 17. "Tinted inset row" — a plain Surface nested INSIDE an already-PulseCard'd parent
+// 16. "Tinted inset row" — a plain Surface nested INSIDE an already-PulseCard'd parent
 // Modeled on: stocks/detail/sections/ForwardCalls.kt:146-234, stocks/detail/sections/Scenarios.kt:76-125, indicators/views/IndicatorsScreen.kt:315-343 (ShiftRow)
 // ============================================================================
 
@@ -963,10 +953,263 @@ private fun TintedInsetRowSample() {
     }
 }
 
-@Preview(name = "17. Tinted inset row nested in a card", showBackground = true)
+@Preview(name = "16. Tinted inset row nested in a card", showBackground = true)
 @Composable
 private fun PreviewTintedInsetRow() {
     MarketPulseTheme(theme = MarketPulseTheme.NAVY) { TintedInsetRowSample() }
+}
+
+// ============================================================================
+// 17. Section-title header + full-bleed divider (Summary screen convention, 2026-09-05)
+// See: docs/theming-system/card-heading-conventions.md
+// Modeled on: summary/views/SummaryScreen.kt's LeadStoriesSection/MacroMixSection/WatchSection/
+// RisksSection/DriversSection/MarketPositionSection/WhatsNewSection/DominoCard title treatment --
+// the "section-title" header family (as opposed to the eyebrow family, #19 below): small-caps,
+// bold, titleSmall, manually `.uppercase()`'d, `padding_large` all around, followed by a
+// full-bleed divider sitting OUTSIDE any padding (between two separately-padded blocks) before
+// any content. Chosen for cards whose job is to list discrete items, even a single-item "list."
+// ============================================================================
+
+@Composable
+private fun SectionTitleHeaderSample() {
+    PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
+        Column {
+            Text(
+                text = "LEAD STORIES",
+                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))
+            )
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                thickness = dimensionResource(id = R.dimen.border_thin)
+            )
+            Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
+                Text(
+                    text = "Amazon falls 2% amid DOJ beef-pricing antitrust probe",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        }
+    }
+}
+
+@Preview(name = "17. Section-title header + full-bleed divider", showBackground = true)
+@Composable
+private fun PreviewSectionTitleHeader() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) { SectionTitleHeaderSample() }
+}
+
+// ============================================================================
+// 18. Eyebrow header via CardEyebrowLabel, padding_medium gap to content
+// See: docs/theming-system/card-heading-conventions.md
+// Modeled on: summary/views/SummaryScreen.kt's SignalSection/MarketSentimentCard/TheReadSection --
+// the OTHER header family (as opposed to section-title, #18 above), for cards whose job is to say
+// one AI-authored thing: `CardEyebrowLabel` (labelSmall, bold, auto-uppercased -- no manual
+// `.uppercase()` needed) directly followed by `Spacer(padding_medium)`, then the actual headline
+// (titleMedium, bold) and body. That padding_medium gap was inconsistent as of 2026-09-04 (some
+// eyebrows had a 0dp or padding_tiny gap) and is now the fixed, uniform rule everywhere this
+// header family is used -- don't reintroduce a smaller gap on a new eyebrow-header card.
+// ============================================================================
+
+@Composable
+private fun EyebrowHeaderSample() {
+    val pulseColors = LocalPulseColors.current
+    PulseCard(style = PulseCardStyle.SYNTHESIS, modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
+            CardEyebrowLabel(text = "Market Sentiment", color = pulseColors.accentPrimary)
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+            Text(
+                text = "Risk-On Regime Intact",
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+            Text(
+                text = "Breadth has broadened over the past two weeks, with small caps and cyclicals joining the mega-cap leadership.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+    }
+}
+
+@Preview(name = "18. Eyebrow header (CardEyebrowLabel)", showBackground = true)
+@Composable
+private fun PreviewEyebrowHeader() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) { EyebrowHeaderSample() }
+}
+
+// ============================================================================
+// 19. Merged card, tag/pill below heading (not sharing a row with it)
+// See: docs/theming-system/card-heading-conventions.md
+// Modeled on: summary/views/SummaryScreen.kt's WatchSection/RisksSection/MacroMixSection --
+// same merged-card idiom as #6 (DataMultiRowSample) but with the 2026-09-05 fix: a tag/pill never
+// shares a row with its heading (it used to, and crowded long headings) -- it sits on its own line
+// directly below, gated behind `Spacer(padding_medium)` -- the same gap value the eyebrow header
+// family (#19) uses, unified from an earlier `padding_small` on 2026-09-05. A divider only ever
+// marks the boundary
+// BETWEEN two different entries, spanning the full card width; never within one entry's own
+// heading/tag/body.
+// ============================================================================
+
+private data class TagBelowHeadingEntrySample(val heading: String, val tag: String?, val body: String?)
+
+@Composable
+private fun MergedCardTagBelowHeadingSample() {
+    val entries = listOf(
+        TagBelowHeadingEntrySample(
+            heading = "Fed Signals Rate Pause",
+            tag = "MACRO",
+            body = "Markets rallied on dovish commentary from the latest FOMC minutes."
+        ),
+        TagBelowHeadingEntrySample(
+            heading = "Earnings Season Kicks Off",
+            tag = null,
+            body = "Big banks report this week, setting the tone for the broader market."
+        )
+    )
+    PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
+        Column {
+            Text(
+                text = "WHAT TO WATCH",
+                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))
+            )
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                thickness = dimensionResource(id = R.dimen.border_thin)
+            )
+            entries.forEachIndexed { index, entry ->
+                Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
+                    Text(
+                        text = entry.heading,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    entry.tag?.let {
+                        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                        TagPillSample(text = it)
+                    }
+                    entry.body?.let {
+                        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                        Text(
+                            text = it,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+                if (index != entries.lastIndex) {
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                        thickness = dimensionResource(id = R.dimen.border_thin)
+                    )
+                }
+            }
+        }
+    }
+}
+
+/** Stand-in for the real `TagPill` (summary-package-private) -- same neutral outlined shape, so this file has no cross-package dependency on it. */
+@Composable
+private fun TagPillSample(text: String) {
+    val pulseColors = LocalPulseColors.current
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_pill))
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelSmall,
+            color = pulseColors.onSurfaceMuted,
+            modifier = Modifier.padding(
+                horizontal = dimensionResource(id = R.dimen.padding_medium),
+                vertical = dimensionResource(id = R.dimen.padding_small)
+            )
+        )
+    }
+}
+
+@Preview(name = "19. Merged card, tag below heading", showBackground = true)
+@Composable
+private fun PreviewMergedCardTagBelowHeading() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) { MergedCardTagBelowHeadingSample() }
+}
+
+// ============================================================================
+// 20. Two independent tap targets on one card (header vs. content)
+// See: docs/theming-system/card-heading-conventions.md
+// Modeled on: summary/views/SummaryScreen.kt's DriversSection -- the one card on Summary where
+// the header and the content below it lead to DIFFERENT actions, so the whole card can't be one
+// `PulseCard(onClick = ...)`. The header row (title + info icon) navigates nowhere on its own;
+// only the info icon itself (its own nested `Modifier.clickable`) does anything. Only the content
+// row BELOW the divider carries `Modifier.clickable(onClick = ...)` directly -- never
+// `PulseCard`'s own `onClick`, which would make the whole card (header included) one tap target
+// and swallow the info icon's nested click.
+// ============================================================================
+
+@Composable
+private fun TwoTapTargetsSample() {
+    val pulseColors = LocalPulseColors.current
+    PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
+        Column {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(dimensionResource(id = R.dimen.padding_large)),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "DRIVERS",
+                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_info),
+                    contentDescription = null,
+                    tint = pulseColors.onSurfaceMuted,
+                    modifier = Modifier
+                        .size(dimensionResource(id = R.dimen.icon_size_small))
+                        .clickable(onClick = {})
+                )
+            }
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                thickness = dimensionResource(id = R.dimen.border_thin)
+            )
+            Row(
+                modifier = Modifier
+                    .clickable(onClick = {})
+                    .padding(dimensionResource(id = R.dimen.padding_large)),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                FlowRow(
+                    modifier = Modifier.weight(1f),
+                    horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_small))
+                ) {
+                    SignalPill(text = "Retail Sales", pillColor = pulseColors.signalBearishPill, contentColor = pulseColors.signalBearishText)
+                    SignalPill(text = "Crude Oil", pillColor = pulseColors.signalBullishPill, contentColor = pulseColors.signalBullishText)
+                }
+                Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_chevron_forward),
+                    contentDescription = null,
+                    tint = pulseColors.accentPrimary,
+                    modifier = Modifier.size(dimensionResource(id = R.dimen.padding_large))
+                )
+            }
+        }
+    }
+}
+
+@Preview(name = "20. Two independent tap targets", showBackground = true)
+@Composable
+private fun PreviewTwoTapTargets() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) { TwoTapTargetsSample() }
 }
 
 // ============================================================================
@@ -980,22 +1223,25 @@ private fun CardStyleGallery() {
         verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_xxlarge))
     ) {
         GallerySection("1. DATA — Stat tile") { DataStatTileSample() }
-        GallerySection("2. DATA — FlowRow clusters + divider") { DataFlowRowClustersSample() }
-        GallerySection("3. DATA — Fixed stat strip") { DataFixedStripSample() }
-        GallerySection("4. DATA — Colored left-rail") { DataLeftRailSample() }
-        GallerySection("5. DATA — Gauge + delta + chevron") { DataGaugeWithChevronSample() }
-        GallerySection("6. DATA — Multi-row, per-row click + dividers") { DataMultiRowSample() }
-        GallerySection("7. DATA — Reasoning list, colored bar per row") { DataReasoningListSample() }
-        GallerySection("8. DATA — Timeline steps") { DataTimelineSample() }
-        GallerySection("9. DATA_SPARKLINE — Sparkline tile") { DataSparklineTileSample() }
-        GallerySection("10. SYNTHESIS — Icon+title header") { SynthesisHeaderBodySample() }
-        GallerySection("11. SYNTHESIS — Expandable hero (tap to expand)") { SynthesisExpandableHeroSample() }
-        GallerySection("12. SYNTHESIS — Headline + divider + meter") { SynthesisHeadlineMeterSample() }
-        GallerySection("13. SYNTHESIS — Kicker + heading + delta chips") { SynthesisKickerDeltaChipsSample() }
-        GallerySection("14. SYNTHESIS — Multi-section digest, dividers") { SynthesisMultiSectionDigestSample() }
-        GallerySection("15. Emphasis border overlay (current selection)") { EmphasisBorderOverlaySample() }
-        GallerySection("16. NOT PulseCard — signal-owned background") { SignalOwnedBackgroundExceptionSample() }
-        GallerySection("17. Tinted inset row nested in a card") { TintedInsetRowSample() }
+        GallerySection("2. DATA — Stat grid") { DataStatGridSample() }
+        GallerySection("3. DATA — Colored left-rail") { DataLeftRailSample() }
+        GallerySection("4. DATA — Gauge + delta + chevron") { DataGaugeWithChevronSample() }
+        GallerySection("5. DATA — Multi-row, per-row click + dividers") { DataMultiRowSample() }
+        GallerySection("6. DATA — Reasoning list, colored bar per row") { DataReasoningListSample() }
+        GallerySection("7. DATA — Timeline steps") { DataTimelineSample() }
+        GallerySection("8. DATA_SPARKLINE — Sparkline tile") { DataSparklineTileSample() }
+        GallerySection("9. SYNTHESIS — Icon+title header") { SynthesisHeaderBodySample() }
+        GallerySection("10. SYNTHESIS — Expandable hero (tap to expand)") { SynthesisExpandableHeroSample() }
+        GallerySection("11. SYNTHESIS — Headline + divider + meter") { SynthesisHeadlineMeterSample() }
+        GallerySection("12. SYNTHESIS — Kicker + heading + delta chips") { SynthesisKickerDeltaChipsSample() }
+        GallerySection("13. SYNTHESIS — Multi-section digest, dividers") { SynthesisMultiSectionDigestSample() }
+        GallerySection("14. Emphasis border overlay (current selection)") { EmphasisBorderOverlaySample() }
+        GallerySection("15. NOT PulseCard — signal-owned background") { SignalOwnedBackgroundExceptionSample() }
+        GallerySection("16. Tinted inset row nested in a card") { TintedInsetRowSample() }
+        GallerySection("17. Section-title header + full-bleed divider") { SectionTitleHeaderSample() }
+        GallerySection("18. Eyebrow header (CardEyebrowLabel)") { EyebrowHeaderSample() }
+        GallerySection("19. Merged card, tag below heading") { MergedCardTagBelowHeadingSample() }
+        GallerySection("20. Two independent tap targets") { TwoTapTargetsSample() }
     }
 }
 

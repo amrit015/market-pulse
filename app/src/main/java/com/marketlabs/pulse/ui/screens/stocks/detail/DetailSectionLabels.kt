@@ -4,12 +4,15 @@ package com.marketlabs.pulse.ui.screens.stocks.detail
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -17,55 +20,110 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.ui.components.widgets.GlossaryTapChevron
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
+import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 /**
- * The three label styles every Detail section reuses, factored out once rather than duplicated
- * across 15 section files (the Design mockups repeat each of these verbatim across the sections
- * that use them):
+ * The label styles every Detail section reuses, factored out once rather than duplicated across
+ * 15 section files (the Design mockups repeat each of these verbatim across the sections that use
+ * them):
  *
- * - [SectionDividerLabel]: a page-level heading sitting directly on the background between cards
- *   (WHAT TO WATCH, SIGNAL CONDITIONS, CONSIDER, FORWARD CALLS, EVENT LOG, DIRECT NEWS) -- accent-
- *   colored, bold, all-caps, with an optional muted trailing bit of context on the same row
- *   ("tap a chip for why", "2 of 2 recent calls held").
+ * - [DataCardSectionHeader]: the small-caps title + full-bleed divider sitting *inside* a
+ *   `PulseCard(DATA)` that holds a list of entries (WHAT TO WATCH, SIGNAL CONDITIONS, THINGS TO
+ *   CHECK, FORWARD CALLS, RESOLVED CALLS, TECHNICAL TIMELINE) -- the same header treatment
+ *   Summary's Macro Mix/Drivers use, `titleSmall.Bold`/`primary`, with an optional muted trailing
+ *   bit of context on the same row ("tap a chip for why", "2 of 2 recent calls held"). Replaced
+ *   the page-level `SectionDividerLabel` (`titleLarge`/`accentPrimary`, sitting directly on the
+ *   background between cards) 2026-09-05, once these sections moved onto one `PulseCard` each
+ *   rather than floating loose content on the page background.
  * - [DataCardTitleLabel]: the muted title sitting inside a `PulseCard(DATA)` (KEY LEVELS,
  *   FUNDAMENTALS).
- * - [SynthesisCardHeader]: the Ai-glyph + title pairing inside a `PulseCard(SYNTHESIS)` (PLAIN
- *   READ, DEEP STUDY, SCENARIOS) -- same icon+sizing-to-text-height treatment
- *   `DashboardScreen`'s Technical Briefing card and `StockPreviewCard` already use elsewhere.
+ * - [SynthesisCardHeader]: the Ai-glyph + title pairing inside a `PulseCard(SYNTHESIS)` (DEEP
+ *   STUDY, SCENARIOS) -- same icon+sizing-to-text-height treatment `DashboardScreen`'s Technical
+ *   Briefing card and `StockPreviewCard` already use elsewhere. Note: TechnicalRead moved off this
+ *   onto [com.marketlabs.pulse.ui.components.widgets.CardEyebrowLabel] 2026-09-05 -- see that
+ *   composable's own doc comment and `docs/theming-system/card-heading-conventions.md` for why
+ *   this screen currently runs two different SYNTHESIS-card header families side by side.
  */
 @Composable
-fun SectionDividerLabel(title: String, trailing: String? = null) {
+fun DataCardSectionHeader(title: String, subtitle: String? = null, trailing: String? = null) {
     val pulseColors = LocalPulseColors.current
 
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(
-            text = title,
-            // 💡 titleLarge (Montserrat, 20sp, bold) -- was `labelLarge` (Inter, 14sp), the small
-            // terminal-style label font this app's type system reserves for meta text like "Last
-            // updated," not a page-level section heading. Every other screen's equivalent heading
-            // (Dashboard's "Sector Rotation," Summary's section titles, Insights' "Weekly
-            // Playbook"/"Institutional Posture," News, Indicators) already uses `titleLarge`, so
-            // this brought Stock Detail's section headings in line with the rest of the app instead
-            // of reading in a smaller, different typeface.
-            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-            color = pulseColors.accentPrimary,
-            modifier = Modifier.weight(1f, fill = false)
-        )
-        trailing?.let {
-            Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_medium)))
+    Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.weight(1f, fill = false)
+            )
+            trailing?.let {
+                Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_medium)))
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = pulseColors.onSurfaceMuted
+                )
+            }
+        }
+        // 💡 A separate line below the title, not sharing its row -- Forward Calls' "x of y recent
+        // calls held" and Technical Timeline's "Last 30 days" both used to double as `trailing`
+        // (same row as the title, right-aligned); moved here 2026-09-06 so both read as a proper
+        // subtitle instead of crowding the title row.
+        subtitle?.let {
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_tiny)))
             Text(
                 text = it,
                 style = MaterialTheme.typography.labelMedium,
                 color = pulseColors.onSurfaceMuted
             )
         }
+    }
+    HorizontalDivider(
+        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+        thickness = dimensionResource(id = R.dimen.border_thin)
+    )
+}
+
+/**
+ * The universal "see more" text-link row for this app -- a bold accent-colored label plus a
+ * trailing forward chevron (`ic_chevron_forward`), for any affordance that NAVIGATES to more
+ * content (a fuller list on its own screen, a full feature screen), as opposed to an in-place
+ * expand/collapse toggle (those keep their own up/down-arrow affordance, a different interaction
+ * model). Originally the footer link for a capped-to-7 list (Resolved Calls, Technical Timeline)
+ * pushing to that list's full-unclipped-list screen; generalized 2026-09-06 to take its own [text]
+ * so the same structure covers every "View More"/"Read More"/"Open full ..." CTA in the app
+ * (Resolved Calls, Technical Timeline, Deep Dive's "Open full Deep Dive") instead of each one
+ * hand-rolling its own near-identical Row.
+ */
+@Composable
+fun ViewMoreRow(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val pulseColors = LocalPulseColors.current
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier.clickable(onClick = onClick)
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+            color = pulseColors.accentPrimary
+        )
+        Icon(
+            painter = painterResource(id = R.drawable.ic_chevron_forward),
+            contentDescription = null,
+            tint = pulseColors.accentPrimary,
+            modifier = Modifier
+                .padding(start = dimensionResource(id = R.dimen.padding_tiny))
+                .size(dimensionResource(id = R.dimen.icon_size_small))
+        )
     }
 }
 
@@ -110,26 +168,17 @@ fun DataCardTitleWithInfo(title: String, onInfoClick: () -> Unit) {
     }
 }
 
+/**
+ * 💡 No AI-sparkle glyph -- every card on the Stock Detail screen mixes quant data and AI-authored
+ * narrative, so a sparkle icon singling this one card out as "the AI one" is misleading. Was an
+ * `Icon` + `Text` `Row`; now just the `titleMedium` bold title on its own.
+ */
 @Composable
 fun SynthesisCardHeader(title: String) {
     val pulseColors = LocalPulseColors.current
-    // 💡 titleMedium bold (Montserrat, 17sp) -- was `labelLarge` (Inter, 14sp). Matches the same
-    // AI-glyph + title treatment this function's own doc comment above cites as its model --
-    // Dashboard's Technical Briefing card and `StockPreviewCard` -- both of which size their glyph
-    // and title off `titleMedium.copy(Bold)`, not the small Inter label font.
     val titleStyle = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-    val glyphSize = with(LocalDensity.current) { titleStyle.fontSize.toDp() }
 
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(
-            painter = painterResource(id = R.drawable.ic_ai_sparkle_filled),
-            contentDescription = stringResource(id = R.string.stock_analysis_ai_glyph_content_description),
-            tint = pulseColors.accentPrimary,
-            modifier = Modifier.size(glyphSize)
-        )
-        Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
-        Text(text = title, style = titleStyle, color = pulseColors.accentPrimary)
-    }
+    Text(text = title, style = titleStyle, color = pulseColors.accentPrimary)
 }
 
 /** The small accent-colored cluster labels inside Fundamentals (VALUATION, PROFITABILITY, ...). */
@@ -145,25 +194,88 @@ fun SubClusterLabel(title: String) {
 /**
  * An unfilled, bordered pill for a classification that isn't a signal read on its own -- the
  * `technical_setup` badge on `DetailHeader` and the impact-level badge on `DirectNews` both use
- * this same treatment.
+ * this same treatment. `onClick` is optional (defaults to null/no-op, same shape as `SignalPill`'s
+ * own `onClick`/`trailingIcon`) -- when present, a trailing [GlossaryTapChevron] marks the badge as
+ * tappable-for-definition, matching Summary's own regime/setup pill affordance.
  */
 @Composable
-fun OutlinedBadge(text: String) {
+fun OutlinedBadge(text: String, onClick: (() -> Unit)? = null) {
     val pulseColors = LocalPulseColors.current
 
     Surface(
         color = MaterialTheme.colorScheme.background,
         shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_pill)),
-        border = BorderStroke(dimensionResource(id = R.dimen.border_thin), pulseColors.accentSurfaceBorder)
+        border = BorderStroke(dimensionResource(id = R.dimen.border_thin), pulseColors.accentSurfaceBorder),
+        modifier = if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier
     ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelMedium,
-            color = pulseColors.onSurfaceMuted,
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(
                 horizontal = dimensionResource(id = R.dimen.padding_medium),
                 vertical = dimensionResource(id = R.dimen.padding_small)
             )
-        )
+        ) {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.labelMedium,
+                color = pulseColors.onSurfaceMuted
+            )
+            onClick?.let {
+                Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_tiny)))
+                GlossaryTapChevron(tint = pulseColors.onSurfaceMuted)
+            }
+        }
+    }
+}
+
+// ============================================================================
+// 🎨 PREVIEWS
+// ============================================================================
+
+@Preview(name = "Section header", showBackground = true)
+@Composable
+private fun PreviewDataCardSectionHeader() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
+        DataCardSectionHeader(title = "SIGNAL CONDITIONS", trailing = "2 of 2 recent calls held")
+    }
+}
+
+@Preview(name = "Title label", showBackground = true)
+@Composable
+private fun PreviewDataCardTitleLabel() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
+        DataCardTitleLabel(title = "KEY LEVELS")
+    }
+}
+
+@Preview(name = "Title with info", showBackground = true)
+@Composable
+private fun PreviewDataCardTitleWithInfo() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
+        DataCardTitleWithInfo(title = "FUNDAMENTALS", onInfoClick = {})
+    }
+}
+
+@Preview(name = "Synthesis header", showBackground = true)
+@Composable
+private fun PreviewSynthesisCardHeader() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
+        SynthesisCardHeader(title = "DEEP STUDY")
+    }
+}
+
+@Preview(name = "Sub-cluster label", showBackground = true)
+@Composable
+private fun PreviewSubClusterLabel() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
+        SubClusterLabel(title = "VALUATION")
+    }
+}
+
+@Preview(name = "Outlined badge", showBackground = true)
+@Composable
+private fun PreviewOutlinedBadge() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
+        OutlinedBadge(text = "Technical Setup")
     }
 }

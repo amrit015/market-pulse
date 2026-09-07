@@ -6,19 +6,20 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.stocks.DomainExecutiveThesis
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.screens.stocks.detail.SynthesisCardHeader
+import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 /**
@@ -27,51 +28,60 @@ import com.marketlabs.pulse.ui.theme.MarketPulseTheme
  * which is the same object under a different class name (a naming holdover, not a data mismatch).
  * Each of the 3 subsections renders independently and is skipped if its own text is null, so a
  * partially-populated thesis still shows whatever it has.
+ *
+ * 2026-09-06: restructured onto Scenarios' merged-card shape -- header in its own padded `Column`,
+ * a full-width divider, then each subsection in its own padded block separated by a full-width
+ * divider (not the old trailing-`Spacer`-after-every-subsection, including the last one).
  */
 @Composable
 fun DeepStudy(thesis: DomainExecutiveThesis?, modifier: Modifier = Modifier) {
     if (thesis == null) return
-    if (thesis.whatTheNumbersSay == null && thesis.valuationContext == null && thesis.macroTransmissionVector == null) return
+    val subsections = listOfNotNull(
+        thesis.whatTheNumbersSay?.let { stringResource(id = R.string.stock_detail_what_the_numbers_say) to it },
+        thesis.valuationContext?.let { stringResource(id = R.string.stock_detail_valuation_context) to it },
+        thesis.macroTransmissionVector?.let { stringResource(id = R.string.stock_detail_macro_impact) to it }
+    )
+    if (subsections.isEmpty()) return
 
     PulseCard(style = PulseCardStyle.SYNTHESIS, modifier = modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
-            SynthesisCardHeader(title = stringResource(id = R.string.stock_detail_deep_study_title))
-            Spacer()
-
-            thesis.whatTheNumbersSay?.let {
-                Subsection(title = stringResource(id = R.string.stock_detail_what_the_numbers_say), text = it)
+        Column {
+            Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
+                SynthesisCardHeader(title = stringResource(id = R.string.stock_detail_deep_study_title))
             }
-            thesis.valuationContext?.let {
-                Subsection(title = stringResource(id = R.string.stock_detail_valuation_context), text = it)
-            }
-            thesis.macroTransmissionVector?.let {
-                Subsection(title = stringResource(id = R.string.stock_detail_macro_impact), text = it)
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                thickness = dimensionResource(id = R.dimen.border_thin)
+            )
+            subsections.forEachIndexed { index, (title, text) ->
+                Subsection(title = title, text = text, modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)))
+                if (index != subsections.lastIndex) {
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                        thickness = dimensionResource(id = R.dimen.border_thin)
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-private fun Subsection(title: String, text: String) {
-    Column {
+private fun Subsection(title: String, text: String, modifier: Modifier = Modifier) {
+    Column(modifier = modifier) {
+        // 💡 labelSmall/accentPrimary -- same per-entry kicker treatment Scenarios' "What It Would
+        // Mean"/"What Would Need To Happen" labels use, not the old titleSmall.Bold/onSurface.
         Text(
             text = title,
-            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colorScheme.onSurface
+            style = MaterialTheme.typography.labelSmall,
+            color = LocalPulseColors.current.accentPrimary
         )
-        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
+        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
         Text(
             text = text,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface
         )
-        Spacer()
     }
-}
-
-@Composable
-private fun Spacer() {
-    androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
 }
 
 // ============================================================================

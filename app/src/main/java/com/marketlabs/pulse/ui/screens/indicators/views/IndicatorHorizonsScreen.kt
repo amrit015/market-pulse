@@ -28,7 +28,9 @@ import com.marketlabs.pulse.storage.model.indicators.DomainHorizonBlock
 import com.marketlabs.pulse.storage.model.indicators.DomainHorizons
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
+import com.marketlabs.pulse.ui.components.widgets.CardEyebrowLabel
 import com.marketlabs.pulse.ui.components.widgets.SignalPill
+import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 import com.marketlabs.pulse.ui.theme.pillColor
 import com.marketlabs.pulse.ui.theme.textColor
@@ -76,71 +78,76 @@ fun IndicatorHorizonsScreen(
     }
 }
 
+/**
+ * `CardEyebrowLabel` (time window) + AI-sparkle icon, matching the same app-wide "ai style card"
+ * family Market Signal/Today's Read/Digest/Deep Dive all use (2026-09-06) -- was a hand-rolled
+ * `labelMedium`/`onSurfaceVariant` row with no icon, its own one-off treatment. The risk pill moved
+ * to its own row directly below the eyebrow rather than sharing its row (an eyebrow row never
+ * carries trailing content beside its own icon in this convention -- see Today's Read's alignment
+ * pill, which sits below its eyebrow the same way). `posture` (this card's own AI-authored
+ * headline) dropped from `titleLarge` to `titleMedium.Bold`, matching every other AI-card's content
+ * heading (Market Signal's `signalLine`, Digest's headline). Heading-to-body gaps are all
+ * `padding_medium` now too, same app-wide rule (was `padding_large` between `posture` and
+ * `whatThisMeans`, and between `whatThisMeans` and `watchFor`).
+ */
 @Composable
 private fun HorizonCard(horizon: DomainHorizonBlock) {
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
     val paddingMedium = dimensionResource(id = R.dimen.padding_medium)
+    val paddingSmall = dimensionResource(id = R.dimen.padding_small)
 
     // 💡 SYNTHESIS style -- same AI-sourced card family as the executive briefing hero and the
     // pillar scorecard cards, so every AI-authored surface in this domain reads consistently.
     PulseCard(style = PulseCardStyle.SYNTHESIS, modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(paddingLarge)) {
-            HorizonCardHeader(horizon)
+            CardEyebrowLabel(
+                text = horizon.timeWindow,
+                color = LocalPulseColors.current.accentPrimary,
+                iconRes = R.drawable.ic_ai_sparkle_filled,
+                iconContentDescription = "Analysis Engine"
+            )
+
+            Spacer(modifier = Modifier.height(paddingMedium))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                // 💡 "RISK" label -- the pill alone just reads LOW/MEDIUM/HIGH with no context for
+                // what that's rating.
+                Text(
+                    text = stringResource(id = R.string.indicators_risk_label),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.width(paddingSmall))
+                SignalPill(
+                    text = horizon.riskLevel.label.uppercase(),
+                    pillColor = horizon.riskLevel.pillColor,
+                    contentColor = horizon.riskLevel.textColor
+                )
+            }
 
             Spacer(modifier = Modifier.height(paddingMedium))
             Text(
                 text = horizon.posture,
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.onSurface
             )
 
-            Spacer(modifier = Modifier.height(paddingLarge))
+            Spacer(modifier = Modifier.height(paddingMedium))
             Text(
                 text = horizon.whatThisMeans,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface,
-                lineHeight = MaterialTheme.typography.bodyMedium.lineHeight * 1.2f
+                lineHeight = MaterialTheme.typography.bodyMedium.lineHeight
             )
 
             if (!horizon.watchFor.isNullOrBlank()) {
-                Spacer(modifier = Modifier.height(paddingLarge))
+                Spacer(modifier = Modifier.height(paddingMedium))
                 Text(
                     text = stringResource(id = R.string.indicators_watch_for_line, horizon.watchFor),
-                    style = MaterialTheme.typography.bodyMedium.copy(fontStyle = FontStyle.Italic),
+                    style = MaterialTheme.typography.bodySmall.copy(fontStyle = FontStyle.Italic),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    lineHeight = MaterialTheme.typography.bodyMedium.lineHeight * 1.2f
+                    lineHeight = MaterialTheme.typography.bodySmall.lineHeight
                 )
             }
-        }
-    }
-}
-
-@Composable
-private fun HorizonCardHeader(horizon: DomainHorizonBlock) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = horizon.timeWindow.uppercase(),
-            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            // 💡 "RISK" label -- the pill alone just reads LOW/MEDIUM/HIGH with no context for
-            // what that's rating.
-            Text(
-                text = stringResource(id = R.string.indicators_risk_label),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
-            SignalPill(
-                text = horizon.riskLevel.label.uppercase(),
-                pillColor = horizon.riskLevel.pillColor,
-                contentColor = horizon.riskLevel.textColor
-            )
         }
     }
 }

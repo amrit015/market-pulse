@@ -27,6 +27,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.components.widgets.ChangeDirection
 import com.marketlabs.pulse.ui.components.widgets.DirectionalChangePill
+import com.marketlabs.pulse.ui.components.widgets.GlossaryTapChevron
 import com.marketlabs.pulse.ui.components.widgets.SignalPill
 import com.marketlabs.pulse.ui.screens.stocks.detail.OutlinedBadge
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
@@ -47,6 +48,18 @@ import kotlin.math.abs
  * a muted tone, while `regimeAtAnalysis` (the market-wide backdrop this analysis was run against)
  * is a filled accent pill -- neither is a `signal.*` color, since neither is a bullish/bearish
  * read on its own.
+ *
+ * 2026-09-06: both badges are tap-to-explain, matching the same "tap a signal, see what it means"
+ * bottom sheet Market Signal and other Summary cards use -- `onTechnicalSetupClick`/`onRegimeClick`
+ * are wired by `StockDetailRoute` to open `MarketGlossaryBottomSheet` with `currentStockSetup`/
+ * `currentDirection` respectively. `technicalSetup`'s 6 values (BREAKDOWN/BREAKOUT/ACCUMULATION/
+ * DISTRIBUTION/MEAN_REVERSION/RANGE_BOUND) are a per-stock chart-pattern read with no overlap with
+ * Summary's own `setups` glossary (a market-wide RSI/momentum-extreme read that just happens to
+ * share the word "setup") -- see `market_glossary.json`'s new `stock_setups` section, backed by
+ * the backend's actual trigger logic, not guessed. `regimeAtAnalysis` (`risk_on`/`risk_off`/
+ * `neutral`) is confirmed (backend-side) to be the *same* underlying `system/market_regime` token
+ * Summary's `direction` field reads, just kept in its raw snake_case form here -- reuses that
+ * existing `directions` glossary section rather than adding a duplicate one.
  */
 @Composable
 fun DetailHeader(
@@ -58,6 +71,8 @@ fun DetailHeader(
     regimeAtAnalysis: String?,
     analyzedAsOfTimestamp: Long?,
     onNavigateUp: () -> Unit,
+    onTechnicalSetupClick: () -> Unit = {},
+    onRegimeClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val pulseColors = LocalPulseColors.current
@@ -142,14 +157,20 @@ fun DetailHeader(
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
             Row(horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_small))) {
                 technicalSetup?.let {
-                    OutlinedBadge(text = it.replace('_', ' ').uppercase(Locale.US))
+                    OutlinedBadge(text = it.replace('_', ' ').uppercase(Locale.US), onClick = onTechnicalSetupClick)
                 }
                 regimeAtAnalysis?.let {
                     val label = stringResource(
                         id = R.string.stock_detail_regime_suffix,
                         it.replace('_', '-').uppercase(Locale.US)
                     )
-                    SignalPill(text = label, pillColor = pulseColors.accentSurface, contentColor = pulseColors.accentPrimary)
+                    SignalPill(
+                        text = label,
+                        pillColor = pulseColors.accentSurface,
+                        contentColor = pulseColors.accentPrimary,
+                        trailingIcon = { GlossaryTapChevron(tint = pulseColors.accentPrimary) },
+                        onClick = onRegimeClick
+                    )
                 }
             }
         }

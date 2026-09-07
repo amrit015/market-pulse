@@ -168,12 +168,11 @@ fun StockPreviewCard(
                 )
             }
 
-            // 💡 Was a technical_setup label plus a separate "N new · M dropped" chip-delta count
-            // -- the delta counts didn't say which setup changed to which, just how many condition
-            // chips shifted underneath it (a different, less direct signal). Now: when the setup
+            // 💡 the delta counts didn't say which setup changed to which, just how many condition
+            // chips shifted underneath it (a different, less direct signal). When the setup
             // itself changed since the last analysis, show "OLD → NEW" directly; otherwise, just
             // the current setup, same as before. `chipsAdded`/`chipsRemoved` still drive which
-            // condition chips render as "new" in the row below -- only this delta-count text is gone.
+            // condition chips render as "new" in the row below
             val setupText = preview.technicalSetup?.let { setup ->
                 val previousSetup = preview.previousSetup
                 if (preview.setupChanged == true && previousSetup != null && previousSetup != setup) {
@@ -201,40 +200,13 @@ fun StockPreviewCard(
                 ConditionChipRow(chips = previewChips)
             }
 
-            if (preview.hasDirectNews == true && preview.topHeadline != null) {
-                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
-                HorizontalDivider(
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                    thickness = dimensionResource(id = R.dimen.border_thin)
-                )
-                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = stringResource(id = R.string.stock_analysis_news_label),
-                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                        color = pulseColors.onSurfaceMuted
-                    )
-                    Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_large)))
-                    Text(
-                        text = preview.topHeadline,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = pulseColors.onSurfaceMuted,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-            }
-
-            // 💡 Just below the news line, per the per-symbol-intelligence spec -- same divider
-            // treatment as the NEWS block above it, not a separate tap target (the whole card
-            // already opens Stock Detail, where the real Deep Dive card lives). Omitted entirely
-            // when neither date is present yet (see DeepDiveLabel/deepDiveDisplayText).
             if (preview.deepAnalysisDate != null || preview.nextDeepDiveTriggerDate != null) {
-                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_standard)))
                 HorizontalDivider(
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
                     thickness = dimensionResource(id = R.dimen.border_thin)
                 )
-                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_standard)))
                 DeepDiveLabel(
                     deepAnalysisDate = preview.deepAnalysisDate,
                     nextDeepDiveTriggerDate = preview.nextDeepDiveTriggerDate

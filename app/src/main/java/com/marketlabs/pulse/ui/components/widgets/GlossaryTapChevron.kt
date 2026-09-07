@@ -7,7 +7,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.ui.theme.LocalPulseColors
+import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 /**
  * Small forward chevron marking a value as tappable-for-definition -- a public sibling of
@@ -27,4 +30,12 @@ fun GlossaryTapChevron(tint: Color, modifier: Modifier = Modifier) {
         tint = tint,
         modifier = modifier.size(dimensionResource(id = R.dimen.icon_size_small))
     )
+}
+
+@Preview(name = "Light", showBackground = true)
+@Composable
+private fun PreviewGlossaryTapChevron() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
+        GlossaryTapChevron(tint = LocalPulseColors.current.onSurfaceMuted)
+    }
 }

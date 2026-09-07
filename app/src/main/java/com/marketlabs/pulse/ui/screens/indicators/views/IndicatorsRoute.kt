@@ -93,6 +93,8 @@ fun IndicatorsRoute(
                     IndicatorsScreen(
                         data = uiState.data!!,
                         scaffoldPadding = scaffoldPadding,
+                        selectedTabIndex = uiState.selectedTabIndex,
+                        onTabSelected = viewModel::onTabSelected,
                         onNavigateToHorizons = onNavigateToHorizons,
                         onNavigateToMetricDetail = onNavigateToMetricDetail
                     )
