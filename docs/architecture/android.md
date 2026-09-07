@@ -30,13 +30,18 @@ Every screen is two composables:
   `Scaffold`/`TopAppBar` with a back button.
 - **`XScreen`** — stateless. Plain data + lambdas, no ViewModel awareness.
 
-**Sub-pattern: a screen with its own internal tabs** (Stock Analysis detail, Insights). The Route
-pins a shared `PulseTabRow` (`ui/components/PulseTabRow.kt`) above the pull-to-refresh area; the
-ViewModel holds the selected index as `MutableStateFlow<Int>` folded into the UiState
-(`selectedTabIndex: Int`, `onTabSelected(index)`); the Screen branches on a per-screen
-`enum class XTab(val labelRes: Int)` and renders each tab as its own `LazyColumn` with its own
-`LazyListState`, so scroll position survives switching tabs and back. Full styling convention in
-`@docs/guidelines/compose-conventions.md`.
+**Sub-pattern: a screen with its own internal tabs** (Stock Analysis detail, Insights,
+Indicators). The Route renders a shared `PulseTabRow` (`ui/components/PulseTabRow.kt`) above the
+pull-to-refresh area; the ViewModel holds the selected index as `MutableStateFlow<Int>` folded into
+the UiState (`selectedTabIndex: Int`, `onTabSelected(index)`); the Screen branches on a per-screen
+`enum class XTab(val labelRes: Int)` and renders each tab as its own `HorizontalPager` page (swipe,
+not just tap, switches tabs — `PagerState` synced with `selectedTabIndex`), each with its own
+`LazyColumn`/`LazyListState` so scroll position survives switching tabs and back. Full pattern in
+`@docs/guidelines/compose-conventions.md`. Some of these screens (Stock Detail, Indicators) also
+have scrollable chrome above the tab row that collapses away as you scroll into a tab, with the tab
+row itself becoming sticky once it does — a separate, heavier mechanism than the tab row itself,
+documented in `@docs/architecture/collapsing-header-tabs.md`; Insights doesn't use it (its tab row
+is simply pinned, nothing above it needs to collapse).
 
 ## Navigation
 

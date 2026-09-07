@@ -28,9 +28,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.core.glossary.GlossaryTerm
 import com.marketlabs.pulse.core.glossary.MarketGlossaryProvider
+import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,7 +42,9 @@ fun MarketGlossaryBottomSheet(
     currentDirection: String? = null,
     currentCycleZone: String? = null,
     currentAction: String? = null,
+    currentStockSetup: String? = null,
     description: String? = null,
+    title: String = stringResource(id = R.string.market_status_and_glossary),
     onDismiss: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -60,7 +64,7 @@ fun MarketGlossaryBottomSheet(
         ) {
             item {
                 Text(
-                    text = stringResource(id = R.string.market_status_and_glossary),
+                    text = title,
                     style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.padding_large))
@@ -76,7 +80,7 @@ fun MarketGlossaryBottomSheet(
                 }
 
                 // 💡 NEW: Only show the "Current Verdict" section header and divider if at least one status is present
-                if (currentRegime != null || currentSetup != null || currentDirection != null || currentCycleZone != null || currentAction != null) {
+                if (currentRegime != null || currentSetup != null || currentDirection != null || currentCycleZone != null || currentAction != null || currentStockSetup != null) {
                     Text(
                         text = stringResource(id = R.string.current_verdict),
                         style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
@@ -98,6 +102,9 @@ fun MarketGlossaryBottomSheet(
                     }
                     if (currentAction != null) {
                         CurrentStatusRow(stringResource(id = R.string.action_signal_label), currentAction, glossary.actions)
+                    }
+                    if (currentStockSetup != null) {
+                        CurrentStatusRow(stringResource(id = R.string.stock_setup_label), currentStockSetup, glossary.stockSetups)
                     }
 
                     Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
@@ -125,6 +132,10 @@ fun MarketGlossaryBottomSheet(
 
             if (currentCycleZone != null) {
                 item { GlossarySection(stringResource(id = R.string.cycle_zone_glossary_title), glossary.cycleZones, currentCycleZone) }
+            }
+
+            if (currentStockSetup != null) {
+                item { GlossarySection(stringResource(id = R.string.stock_setup_glossary_title), glossary.stockSetups, currentStockSetup) }
             }
 
             item { Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars)) }
@@ -211,5 +222,21 @@ private fun GlossarySection(title: String, terms: List<GlossaryTerm>, currentVal
             )
         }
         Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
+    }
+}
+
+@Preview(name = "Light", showBackground = true)
+@Composable
+private fun PreviewMarketGlossaryBottomSheet() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
+        MarketGlossaryBottomSheet(
+            currentRegime = "RISK ON",
+            currentSetup = "BREAKOUT",
+            currentDirection = "BULLISH",
+            currentCycleZone = "EXPANSION",
+            currentAction = "ADD",
+            description = "The market's current read across regime, setup, direction, and cycle.",
+            onDismiss = {}
+        )
     }
 }

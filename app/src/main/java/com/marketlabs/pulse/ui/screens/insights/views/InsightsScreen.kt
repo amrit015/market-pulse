@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,8 +18,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.screens.insights.InsightsUiState
+import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 /**
  * The 4 sections this screen used to stack in one long scroll (separated by dividers) are now one
@@ -164,6 +167,21 @@ private fun LazyItemScope.InsightsTabEmptyState() {
             text = stringResource(id = R.string.insights_tab_empty_state),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Preview(name = "Empty state", showBackground = true)
+@Composable
+private fun PreviewInsightsScreenEmpty() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
+        InsightsScreen(
+            uiState = InsightsUiState(),
+            pagerState = rememberPagerState { InsightsTab.entries.size },
+            scaffoldPadding = PaddingValues(),
+            onNavigateToGlossaryDetail = { _, _, _, _ -> },
+            onDismissPositioningIntro = {},
+            onDismissPostureIntro = {}
         )
     }
 }

@@ -138,6 +138,8 @@ class MainActivity : ComponentActivity() {
                     currentRoute?.startsWith("webview/") == true ||
                     currentRoute?.startsWith("${PulseRoutes.STOCK_ANALYSIS_DETAIL}/") == true ||
                     currentRoute?.startsWith("${PulseRoutes.DEEP_DIVE_DETAIL}/") == true ||
+                    currentRoute?.startsWith("${PulseRoutes.RESOLVED_CALLS_LIST}/") == true ||
+                    currentRoute?.startsWith("${PulseRoutes.TECHNICAL_TIMELINE_LIST}/") == true ||
                     currentRoute?.startsWith("${PulseRoutes.ASSET_DETAIL}/") == true ||
                     currentRoute?.startsWith("${PulseRoutes.METRIC_DETAIL}/") == true ||
                     currentRoute?.startsWith("${PulseRoutes.GLOSSARY_DETAIL}/") == true

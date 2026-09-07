@@ -88,105 +88,122 @@ private fun NewsCard(item: DomainStockNewsItem, isExpanded: Boolean, onToggle: (
         // `Modifier.shadow` that clip cut straight through the shadow's rounded corners (a flat
         // greyish sliver past the bottom edge instead of a clean rounded shadow). Scoped to just
         // this Column, only the card's own content is clipped as it grows/shrinks.
-        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)).animateContentSize()) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                item.impactMagnitude?.let {
-                    val (pillColor, textColor) = impactSeverityColors(it, pulseColors)
-                    SignalPill(
-                        text = stringResource(id = R.string.stock_detail_impact_suffix, it.uppercase(Locale.US)),
-                        pillColor = pillColor,
-                        contentColor = textColor
-                    )
+        //
+        // 💡 2026-09-06: split into two padded blocks around the headline divider, Scenarios'/
+        // DeepStudy's merged-card shape -- was one uniformly-padded Column, which meant the
+        // headline/body divider was inset by `padding_large` on both sides instead of stretching
+        // the card's full width.
+        Column(modifier = Modifier.animateContentSize()) {
+            Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    item.impactMagnitude?.let {
+                        val (pillColor, textColor) = impactSeverityColors(it, pulseColors)
+                        SignalPill(
+                            text = stringResource(id = R.string.stock_detail_impact_suffix, it.uppercase(Locale.US)),
+                            pillColor = pillColor,
+                            contentColor = textColor
+                        )
+                    }
+                    item.sourceDate?.let {
+                        Text(text = it.toLongDateString(), style = MaterialTheme.typography.labelSmall, color = pulseColors.onSurfaceMuted)
+                    }
                 }
-                item.sourceDate?.let {
-                    Text(text = it.toLongDateString(), style = MaterialTheme.typography.labelSmall, color = pulseColors.onSurfaceMuted)
+
+                item.headline?.let { headline ->
+                    Spacer()
+                    // 💡 Title + chevron row, same layout `NewsArticleCard` uses on the News screen --
+                    // the chevron is only a visual affordance for the whole-card tap above, not its own
+                    // separate click target, so it only renders (no click handler of its own) when
+                    // there's actually a `url` to open.
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = headline,
+                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.weight(1f)
+                        )
+                        if (url != null) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_chevron_forward),
+                                contentDescription = stringResource(id = R.string.stock_detail_view_article_content_description),
+                                tint = pulseColors.accentPrimary,
+                                modifier = Modifier
+                                    .padding(start = dimensionResource(id = R.dimen.padding_small))
+                                    .size(dimensionResource(id = R.dimen.padding_large))
+                            )
+                        }
+                    }
                 }
             }
 
-            item.headline?.let { headline ->
-                Spacer()
-                // 💡 Title + chevron row, same layout `NewsArticleCard` uses on the News screen --
-                // the chevron is only a visual affordance for the whole-card tap above, not its own
-                // separate click target, so it only renders (no click handler of its own) when
-                // there's actually a `url` to open.
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = headline,
-                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.weight(1f)
-                    )
-                    if (url != null) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_chevron_forward),
-                            contentDescription = stringResource(id = R.string.stock_detail_view_article_content_description),
-                            tint = pulseColors.accentPrimary,
-                            modifier = Modifier
-                                .padding(start = dimensionResource(id = R.dimen.padding_small))
-                                .size(dimensionResource(id = R.dimen.padding_large))
-                        )
-                    }
-                }
-                // 💡 The line separating the headline from the body content below it, per the
-                // Design request -- only drawn alongside the headline itself, since there's nothing
-                // to separate it from when there's no headline to begin with.
-                Spacer()
+            // 💡 The line separating the headline from the body content below it, per the Design
+            // request -- only drawn alongside the headline itself, since there's nothing to
+            // separate it from when there's no headline to begin with. Sits at this outer,
+            // un-padded level (not inside either padded Column above/below it) so it stretches the
+            // card's full width.
+            if (item.headline != null) {
                 HorizontalDivider(
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
                     thickness = dimensionResource(id = R.dimen.border_thin)
                 )
             }
 
-            item.articleSynthesis?.let {
-                Spacer()
-                // 💡 onSurface, not onSurfaceMuted -- a full analytical sentence reads as this
-                // app's normal body-text color everywhere else, matching forwardImplication and
-                // transmissionMechanism below (both already onSurface).
-                Text(text = it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
-            }
-
-            if (isExpanded) {
-                item.forwardImplication?.let {
-                    Spacer()
-                    Text(
-                        text = stringResource(id = R.string.stock_detail_forward_implication_label),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = pulseColors.onSurfaceMuted
-                    )
+            Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
+                item.articleSynthesis?.let {
+                    // 💡 onSurface, not onSurfaceMuted -- a full analytical sentence reads as this
+                    // app's normal body-text color everywhere else, matching forwardImplication and
+                    // transmissionMechanism below (both already onSurface).
                     Text(text = it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
                 }
-                item.transmissionMechanism?.let {
-                    Spacer()
-                    Text(
-                        text = stringResource(id = R.string.stock_detail_transmission_mechanism_label),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = pulseColors.onSurfaceMuted
-                    )
-                    Text(text = it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
-                }
-            }
 
-            if (item.url != null) {
                 Spacer()
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable(onClick = onToggle)
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.stock_detail_read_the_analysis),
-                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                        color = pulseColors.accentPrimary
-                    )
-                    Icon(
-                        painter = painterResource(id = if (isExpanded) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down),
-                        contentDescription = null,
-                        tint = pulseColors.accentPrimary,
-                        modifier = Modifier.padding(start = dimensionResource(id = R.dimen.padding_small))
-                    )
+                if (isExpanded) {
+                    item.forwardImplication?.let {
+                        if (item.articleSynthesis != null) Spacer()
+                        // 💡 accentPrimary -- same per-entry kicker treatment every other
+                        // CardEyebrowLabel-style sub-label in the app uses now (Digest, Scenarios,
+                        // Deep Study), not the old onSurfaceMuted.
+                        Text(
+                            text = stringResource(id = R.string.stock_detail_forward_implication_label),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = pulseColors.accentPrimary
+                        )
+                        Text(text = it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
+                    }
+                    Spacer()
+                    item.transmissionMechanism?.let {
+                        Spacer()
+                        Text(
+                            text = stringResource(id = R.string.stock_detail_transmission_mechanism_label),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = pulseColors.accentPrimary
+                        )
+                        Text(text = it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
+                    }
+                }
+
+                if (item.url != null) {
+                    if (item.articleSynthesis != null || isExpanded) Spacer()
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.clickable(onClick = onToggle)
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.stock_detail_read_the_analysis),
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                            color = pulseColors.accentPrimary
+                        )
+                        Icon(
+                            painter = painterResource(id = if (isExpanded) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down),
+                            contentDescription = null,
+                            tint = pulseColors.accentPrimary,
+                            modifier = Modifier.padding(start = dimensionResource(id = R.dimen.padding_small))
+                        )
+                    }
                 }
             }
         }

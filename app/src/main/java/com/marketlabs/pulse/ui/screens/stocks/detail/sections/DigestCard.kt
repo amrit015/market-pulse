@@ -23,6 +23,7 @@ import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.widgets.CardEyebrowLabel
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
+import com.marketlabs.pulse.utils.extensions.smartTitleCase
 
 /**
  * ONE `PulseCard(SYNTHESIS)` for the whole Digest tab (unlike Deep Dive, which is multiple cards)
@@ -41,21 +42,19 @@ fun DigestCard(headline: String?, sections: List<DomainDigestSection>, modifier:
             // 💡 `CardEyebrowLabel`, not `SynthesisCardHeader` -- Digest is an "ai style card" in
             // the app-wide sense (Market Signal/Market Sentiment/Today's Read/Insights' Digest),
             // not Stock Detail's own screen-local `SynthesisCardHeader` family (TechnicalRead/
-            // DeepStudy/Scenarios). `labelSmall` + the AI-sparkle icon, matching Today's Read/
-            // Insights' Digest exactly (both AI-narrative cards that carry the icon) rather than
-            // Market Signal/Sentiment's icon-less variant (those are computed-verdict cards, not
-            // AI-narrative ones) -- see `CardEyebrowLabel`'s own doc comment on that split.
+            // DeepStudy/Scenarios). No `iconRes` -- every card on the Stock Detail screen mixes
+            // quant data and AI narrative, so the AI-sparkle glyph singling this one out as "the AI
+            // card" is misleading here (unlike Today's Read/Insights' Digest, which carry it).
             CardEyebrowLabel(
                 text = stringResource(id = R.string.stock_detail_digest_header),
-                color = pulseColors.accentPrimary,
-                iconRes = R.drawable.ic_ai_sparkle_filled
+                color = pulseColors.accentPrimary
             )
 
             val blocks: List<@Composable () -> Unit> = buildList {
                 headline?.let { text ->
                     add {
                         Text(
-                            text = text,
+                            text = text.smartTitleCase(),
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -64,10 +63,13 @@ fun DigestCard(headline: String?, sections: List<DomainDigestSection>, modifier:
                 sections.forEach { section ->
                     add {
                         Column {
+                            // 💡 accentPrimary, matching the card's own "DAILY DIGEST" eyebrow above
+                            // -- was onSurfaceMuted, which read as a different, disconnected label
+                            // family from the header it sits under.
                             Text(
                                 text = section.heading.orEmpty().uppercase(),
                                 style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                                color = pulseColors.onSurfaceMuted
+                                color = pulseColors.accentPrimary
                             )
                             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
                             Text(

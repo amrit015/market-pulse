@@ -1,5 +1,6 @@
 package com.marketlabs.pulse.ui.screens.indicators.views
 
+import android.R.attr.textStyle
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -20,11 +21,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -65,6 +64,7 @@ import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.PulseTabRow
 import com.marketlabs.pulse.ui.components.UniversalMetricCard
 import com.marketlabs.pulse.ui.components.widgets.CardEyebrowLabel
+import com.marketlabs.pulse.ui.components.widgets.MetricInfoAction
 import com.marketlabs.pulse.ui.components.widgets.SignalPill
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
@@ -76,6 +76,7 @@ import com.marketlabs.pulse.utils.enums.IndicatorCategory
 import com.marketlabs.pulse.utils.enums.ShiftDirection
 import com.marketlabs.pulse.utils.enums.SignalColor
 import com.marketlabs.pulse.utils.enums.SubcategoryEnums
+import com.marketlabs.pulse.utils.extensions.smartTitleCase
 import kotlin.math.roundToInt
 
 /**
@@ -427,7 +428,7 @@ private fun AiExecutiveBriefingHero(
             // left at Icon's default size.
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = executive.headline,
+                    text = executive.headline.smartTitleCase(),
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f)
@@ -477,9 +478,27 @@ private fun AiExecutiveBriefingHero(
 
                 if (executive.shifts.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(paddingMedium))
-                    Column(verticalArrangement = Arrangement.spacedBy(paddingSmall)) {
-                        executive.shifts.forEach { shift ->
-                            ShiftRow(shift = shift, metricName = metricNames[shift.metricId] ?: shift.metricId)
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                        thickness = dimensionResource(id = R.dimen.border_thin)
+                    )
+                    // 💡 No inner card/tinted Surface per shift -- same "no cards nested inside
+                    // cards" fix already applied to WatchList/ForwardCalls/Scenarios: each shift is
+                    // a plain block, separated from its neighbor by a full-width divider inside
+                    // this one Today's Read card, not its own boxed row.
+                    Column {
+                        executive.shifts.forEachIndexed { index, shift ->
+                            ShiftRow(
+                                shift = shift,
+                                metricName = metricNames[shift.metricId] ?: shift.metricId,
+                                modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))
+                            )
+                            if (index != executive.shifts.lastIndex) {
+                                HorizontalDivider(
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                                    thickness = dimensionResource(id = R.dimen.border_thin)
+                                )
+                            }
                         }
                     }
                 }
@@ -489,37 +508,30 @@ private fun AiExecutiveBriefingHero(
 }
 
 @Composable
-private fun ShiftRow(shift: DomainShift, metricName: String) {
-    val paddingMedium = dimensionResource(id = R.dimen.padding_medium)
+private fun ShiftRow(shift: DomainShift, metricName: String, modifier: Modifier = Modifier) {
     val paddingSmall = dimensionResource(id = R.dimen.padding_small)
 
-    Surface(
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
-        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_small)),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(modifier = Modifier.padding(paddingMedium)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = metricName,
-                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.weight(1f, fill = false)
-                )
-                Spacer(modifier = Modifier.width(paddingSmall))
-                SignalPill(
-                    text = shift.direction.name,
-                    pillColor = shift.direction.pillColor,
-                    contentColor = shift.direction.textColor,
-                    outlined = true
-                )
-            }
+    Column(modifier = modifier) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = shift.note,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                text = metricName,
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f, fill = false)
+            )
+            Spacer(modifier = Modifier.width(paddingSmall))
+            SignalPill(
+                text = shift.direction.name,
+                pillColor = shift.direction.pillColor,
+                contentColor = shift.direction.textColor,
+                outlined = true
             )
         }
+        Text(
+            text = shift.note,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
@@ -540,10 +552,11 @@ private fun HorizonNavigationCard(onClick: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(
+                CardEyebrowLabel(
                     text = stringResource(id = R.string.indicators_horizons_title),
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = LocalPulseColors.current.accentPrimary,
+                    iconRes = R.drawable.ic_ai_sparkle_filled,
+                    iconContentDescription = "Analysis Engine"
                 )
                 // 💡 `padding_medium` + 1.2x line height -- was `padding_tiny` (2dp) with no line
                 // height override, out of step with every other AI-card's heading-to-body gap and
@@ -562,7 +575,7 @@ private fun HorizonNavigationCard(onClick: () -> Unit) {
                 painter = painterResource(id = R.drawable.ic_chevron_forward),
                 contentDescription = null,
                 tint = LocalPulseColors.current.accentPrimary,
-                modifier = Modifier.padding(start = dimensionResource(id = R.dimen.padding_medium))
+                modifier = Modifier.size(dimensionResource(id = R.dimen.padding_large))
             )
         }
     }
@@ -583,14 +596,31 @@ private fun PillarSection(
 ) {
     val paddingMedium = dimensionResource(id = R.dimen.padding_medium)
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
+    val textStyle = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+    val iconSize = with(LocalDensity.current) { textStyle.fontSize.toDp() }
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = config.title,
-            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(bottom = paddingLarge)
-        )
+        Row(modifier = Modifier.fillMaxWidth().padding(bottom = paddingLarge),
+            verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_engine_quant),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(iconSize)
+            )
+            Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+            Text(
+                text = config.title,
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+            // todo: add for each pillar
+            MetricInfoAction(
+                title = stringResource(id = R.string.positioning_section_title),
+                description = stringResource(id = R.string.positioning_explainer_text)
+            )
+        }
 
         scorecardEntry?.let { entry ->
             PillarScorecardCard(entry = entry, modifier = Modifier.padding(bottom = paddingMedium))

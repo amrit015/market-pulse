@@ -29,6 +29,7 @@ import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.components.widgets.CardEyebrowLabel
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
+import com.marketlabs.pulse.utils.extensions.smartTitleCase
 
 /**
  * Shared hero card for the small Gemini-authored narrative layer both the Posture and Positioning
@@ -102,7 +103,7 @@ fun SynthesisHeroCard(
             } else {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = headline,
+                        text = headline.smartTitleCase(),
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.weight(1f)

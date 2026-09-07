@@ -18,7 +18,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 /**
  * Same `ModalBottomSheet` shell/styling `MarketGlossaryBottomSheet`/`StockAnalysisGlossaryBottomSheet`
@@ -69,5 +71,13 @@ fun DriversInfoBottomSheet(onDismiss: () -> Unit) {
             Spacer(modifier = Modifier.height(paddingLarge))
             Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
         }
+    }
+}
+
+@Preview(name = "Light", showBackground = true)
+@Composable
+private fun PreviewDriversInfoBottomSheet() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
+        DriversInfoBottomSheet(onDismiss = {})
     }
 }

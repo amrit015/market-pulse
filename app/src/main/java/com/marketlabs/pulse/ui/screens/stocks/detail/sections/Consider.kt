@@ -41,9 +41,13 @@ fun Consider(considerations: List<String>?, modifier: Modifier = Modifier) {
             ) {
                 items.forEach { text ->
                     Row {
+                        // 💡 A size up from bodyMedium -- a plain-size bullet next to normal body
+                        // text reads as a low, easy-to-miss dot rather than a clear list marker.
                         Text(
-                            text = "•",
-                            style = MaterialTheme.typography.bodyMedium,
+                            text = stringResource(id = R.string.bullet_separator),
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontSize = MaterialTheme.typography.bodyMedium.fontSize
+                            ),
                             color = LocalPulseColors.current.onSurfaceMuted
                         )
                         androidx.compose.foundation.layout.Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_medium)))

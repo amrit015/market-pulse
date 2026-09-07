@@ -15,22 +15,40 @@ a handful of sibling sections** — a horizontally-scrolling row of segmented-co
 solid `accentPrimary` fill + `accentOn` text for the selected chip, outlined
 `accentSurfaceBorder` hairline + `onSurfaceMuted` text for the rest, `corner_radius_small` shape.
 Established on the Stock Analysis detail screen (originally a private `DetailPillTabRow`), now
-shared with Insights. Never hand-roll a new tab bar (`TabRow`, `ScrollableTabRow`, a bespoke `Row`
-of `Surface`s) — call `PulseTabRow`.
+shared with Insights and Indicators. Never hand-roll a new tab bar (`TabRow`, `ScrollableTabRow`, a
+bespoke `Row` of `Surface`s) — call `PulseTabRow`.
 
-The full pattern (see `StockDetailViewModel`/`StockDetailScreen`/`StockDetailRoute` or
-`InsightsViewModel`/`InsightsScreen`/`InsightsRoute` for worked examples):
+The full pattern (see `StockDetailViewModel`/`StockDetailScreen`/`StockDetailRoute`,
+`InsightsViewModel`/`InsightsScreen`/`InsightsRoute`, or `IndicatorsViewModel`/`IndicatorsScreen`
+for worked examples):
 
-- A per-screen `enum class XTab(val labelRes: Int)`, one entry per tab.
+- A per-screen `enum class XTab(val labelRes: Int)`, one entry per tab. Tab labels can be a short
+  nav label distinct from a longer inner-content heading the same string used to double as
+  (Indicators' tabs read "Momentum"/"Macro"; each tab's own inner section heading still reads
+  "Tactical Momentum"/"Macro Economy") — this is a deliberate split, not drift to reconcile.
 - The ViewModel keeps the selected index as `MutableStateFlow<Int>`, folded into the screen's
   `UiState` as `selectedTabIndex: Int`, with an `onTabSelected(index: Int)` setter.
-- The Route renders
+- **Tab content is swipeable**, not just tap-switched (2026-09-05 on Stock Detail/Indicators,
+  matching Insights' own earlier `HorizontalPager` move): a `PagerState` from
+  `rememberPagerState(initialPage = uiState.selectedTabIndex) { XTab.entries.size }`, kept in sync
+  with `selectedTabIndex` via two one-directional `LaunchedEffect`s (tap → `animateScrollToPage`;
+  swipe-settle, keyed on `pagerState.settledPage` **not** `currentPage`, → `onTabSelected`) — see
+  `@docs/architecture/collapsing-header-tabs.md` for the exact effect shape and why `settledPage`
+  specifically. `PulseTabRow` itself auto-scrolls to bring the selected chip into view whenever
+  `selectedTabIndex` changes (a `BringIntoViewRequester` per chip) — needed once a swipe, not just
+  a tap, can select a tab that's currently off-screen in the tab row itself.
+- `PulseTabRow` renders
   `PulseTabRow(tabs = XTab.entries.map { stringResource(it.labelRes) }, selectedTabIndex = uiState.selectedTabIndex, onTabSelected = viewModel::onTabSelected)`
   pinned above the scrollable/pull-to-refresh content area, so tabs stay reachable regardless of
-  what that area is showing (loading/error/data).
-- The Screen branches on `XTab.entries[selectedTabIndex]`, each tab as its own `LazyColumn` with
-  its own `LazyListState` (`remember { List(XTab.entries.size) { LazyListState() } }`) so scroll
-  position survives switching tabs and back.
+  what that area is showing (loading/error/data) — pinned outright on a screen with nothing above
+  it that needs to scroll away (Insights); collapse-then-stick below some scrollable chrome on a
+  screen that has some (Stock Detail, Indicators) — see
+  `@docs/architecture/collapsing-header-tabs.md` for that heavier mechanism, only needed for the
+  latter case.
+- Each tab renders as its own `HorizontalPager` page, each with its own `LazyColumn`/
+  `LazyListState` (`remember { List(XTab.entries.size) { LazyListState() } }`, hoisted above the
+  pager so it survives pages scrolling in and out) so scroll position survives swiping/tapping away
+  and back.
 
 `ChartRangePicker` shares this same visual language (fill/outline treatment,
 `corner_radius_small`, `labelMedium` bold) but is intentionally a **separate** component, not a
@@ -64,6 +82,33 @@ dozen+ screens with no ViewModel in between — threading Hilt through every int
 ViewModel/UiState would buy nothing over a process-cached in-memory map. Match whichever pattern
 fits a new glossary's actual call sites; don't force Hilt onto a leaf-composable-only glossary
 just for consistency with `MetricGlossaryProvider`.
+
+## "See more" navigation links
+
+**`ViewMoreRow` (`ui/screens/stocks/detail/DetailSectionLabels.kt`) is the one shared structure for
+any CTA that navigates to more content** — a bold accent-colored `text` plus a trailing forward
+chevron (`ic_chevron_forward`): `ViewMoreRow(text = stringResource(...), onClick = ...)`. Covers a
+capped list's "View More" link to its own fuller-list screen (Resolved Calls, Technical Timeline)
+and a card's "Open full ..." entry point (Deep Dive) alike — don't hand-roll a new
+`Row { Text(labelMedium.Bold, accentPrimary); Icon(ic_chevron_forward) }` for a new one. This is
+**not** for in-place expand/collapse toggles (an up/down-arrow chevron, a different interaction
+model — navigate away vs. reveal more of the same card) — those keep their own hand-rolled header
+row (see card-heading-conventions.md's Seventh step for the exact split).
+
+## Inline separator glyphs
+
+Two different separator dots are in active use, and they're not interchangeable:
+
+- **Middle dot (`" · "`, U+00B7)** — this app's long-standing plain-text join for two short fields
+  on one line (`"{name} · {symbol}"`-style captions across many screens). No shared helper; just an
+  inline `" · "` in a string template, unstyled.
+- **Bullet (`R.string.bullet_separator`, "•", U+2022)** — a smaller, newer set of joins (an event's
+  date + time, a relative-timestamp prefix, a bulleted list marker) that specifically want the dot
+  rendered a size up from the surrounding text. **Never hardcode a literal `"•"` in a Kotlin
+  string** — resolve `R.string.bullet_separator` and join via `buildBulletJoinedText`
+  (`ui/components/widgets/BulletText.kt`), which builds the `AnnotatedString` with the bullet in a
+  bumped `SpanStyle` font size. It's plain (non-`@Composable`) — callers resolve the string resource
+  and the surrounding `TextStyle.fontSize` themselves and pass both in.
 
 ## Resources
 

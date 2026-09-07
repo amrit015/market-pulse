@@ -106,10 +106,13 @@ private fun ScenarioCase(
 
         scenario.whatItWouldMean?.let {
             Spacer()
+            // 💡 accentPrimary, not onSurfaceMuted -- same per-entry kicker role as DigestCard's
+            // section heading and SignalConditions' category label, all now matching the app-wide
+            // eyebrow-label color instead of reading as a disconnected muted caption.
             Text(
                 text = stringResource(id = R.string.stock_detail_what_it_would_mean),
                 style = MaterialTheme.typography.labelSmall,
-                color = pulseColors.onSurfaceMuted
+                color = pulseColors.accentPrimary
             )
             Spacer()
             Text(
@@ -119,12 +122,13 @@ private fun ScenarioCase(
             )
         }
 
+        Spacer()
         scenario.whatWouldNeedToHappen?.let {
             Spacer()
             Text(
                 text = stringResource(id = R.string.stock_detail_what_would_need_to_happen),
                 style = MaterialTheme.typography.labelSmall,
-                color = pulseColors.onSurfaceMuted
+                color = pulseColors.accentPrimary
             )
             Spacer()
             Text(

@@ -201,12 +201,12 @@ fun StockPreviewCard(
             }
 
             if (preview.deepAnalysisDate != null || preview.nextDeepDiveTriggerDate != null) {
-                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_standard)))
                 HorizontalDivider(
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
                     thickness = dimensionResource(id = R.dimen.border_thin)
                 )
-                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_standard)))
                 DeepDiveLabel(
                     deepAnalysisDate = preview.deepAnalysisDate,
                     nextDeepDiveTriggerDate = preview.nextDeepDiveTriggerDate

@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -26,8 +27,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 import com.marketlabs.pulse.storage.model.charts.ChartRange
 import com.marketlabs.pulse.storage.model.charts.ChartSeries
 import com.marketlabs.pulse.storage.model.intraday.IntradaySeries
@@ -117,6 +120,8 @@ fun StockDetailScreen(
     onToggleChip: (String) -> Unit,
     onToggleNews: (String) -> Unit,
     onArticleClick: (String) -> Unit,
+    onViewMoreResolvedCalls: () -> Unit,
+    onViewMoreTimeline: () -> Unit,
     scaffoldPadding: PaddingValues,
     modifier: Modifier = Modifier
 ) {
@@ -180,6 +185,8 @@ fun StockDetailScreen(
 
             DetailTab.TIMELINE -> TimelineTabContent(
                 detail = detail,
+                onViewMoreResolvedCalls = onViewMoreResolvedCalls,
+                onViewMoreTimeline = onViewMoreTimeline,
                 lazyListState = lazyListStates[DetailTab.TIMELINE.ordinal],
                 contentPadding = contentPadding,
                 sectionSpacing = sectionSpacing
@@ -307,16 +314,15 @@ private fun TechnicalsTabContent(
                 )
             }
         }
-
-        if (hasHeadlineMetrics) {
-            item { HeadlineMetricsStrip(indicators = detail?.technicalIndicators) }
-            item { MomentumAndTrend(indicators = detail?.technicalIndicators) }
-        }
         if (detail?.technicalIndicators?.returns != null) {
             item { Returns(returns = detail.technicalIndicators.returns) }
         }
         if (hasKeyLevels) {
             item { KeyLevels(levels = detail?.levels, price = preview?.price) }
+        }
+        if (hasHeadlineMetrics) {
+            item { HeadlineMetricsStrip(indicators = detail?.technicalIndicators) }
+            item { MomentumAndTrend(indicators = detail?.technicalIndicators) }
         }
         if (hasWatchList) {
             item { WatchList(items = detail?.watchList) }
@@ -394,21 +400,23 @@ private fun ThesisTabContent(
 @Composable
 private fun TimelineTabContent(
     detail: StockDetail?,
+    onViewMoreResolvedCalls: () -> Unit,
+    onViewMoreTimeline: () -> Unit,
     lazyListState: LazyListState,
     contentPadding: PaddingValues,
     sectionSpacing: Dp
 ) {
-    val hasForwardCalls = !detail?.calls?.open.isNullOrEmpty()
+    val hasForwardCalls = !detail?.calls?.open.isNullOrEmpty() || !detail?.calls?.resolved.isNullOrEmpty()
     val contextVault = detail?.contextVault
     val hasEventLog = contextVault != null && (!contextVault.eventLog.isNullOrEmpty() || contextVault.thirtyDayTrendTimeline != null)
     val hasTabContent = hasForwardCalls || hasEventLog
 
     DetailTabContent(hasTabContent, lazyListState, contentPadding, sectionSpacing) {
         if (hasForwardCalls) {
-            item { ForwardCalls(calls = detail?.calls) }
+            item { ForwardCalls(calls = detail?.calls, onViewMoreResolved = onViewMoreResolvedCalls) }
         }
         if (hasEventLog) {
-            item { EventLog(contextVault = contextVault) }
+            item { EventLog(contextVault = contextVault, onViewMore = onViewMoreTimeline) }
         }
     }
 }
@@ -478,5 +486,31 @@ private fun DetailTabContent(
         verticalArrangement = Arrangement.spacedBy(sectionSpacing)
     ) {
         content()
+    }
+}
+
+@Preview(name = "Cold start", showBackground = true)
+@Composable
+private fun PreviewStockDetailScreen() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
+        StockDetailScreen(
+            detail = null,
+            preview = null,
+            pagerState = rememberPagerState { DetailTab.entries.size },
+            expandedChipIds = emptySet(),
+            expandedNewsIds = emptySet(),
+            chartSeries = null,
+            selectedChartRange = ChartRange.ONE_DAY,
+            isChartLoading = false,
+            intradaySeries = null,
+            availableChartRanges = ChartRange.entries,
+            onChartRangeSelected = {},
+            onToggleChip = {},
+            onToggleNews = {},
+            onArticleClick = {},
+            onViewMoreResolvedCalls = {},
+            onViewMoreTimeline = {},
+            scaffoldPadding = PaddingValues()
+        )
     }
 }

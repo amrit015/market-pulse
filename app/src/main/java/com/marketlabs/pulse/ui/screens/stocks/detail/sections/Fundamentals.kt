@@ -4,12 +4,10 @@ package com.marketlabs.pulse.ui.screens.stocks.detail.sections
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -32,6 +30,8 @@ import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.bottomSheet.GlossaryEntry
 import com.marketlabs.pulse.ui.components.bottomSheet.StockAnalysisGlossaryBottomSheet
 import com.marketlabs.pulse.ui.screens.stocks.detail.DataCardTitleWithInfo
+import com.marketlabs.pulse.ui.screens.stocks.detail.StatGrid
+import com.marketlabs.pulse.ui.screens.stocks.detail.StatItem
 import com.marketlabs.pulse.ui.screens.stocks.detail.SubClusterLabel
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
@@ -70,8 +70,12 @@ fun Fundamentals(fundamentals: DomainFundamentals?, modifier: Modifier = Modifie
         // 💡 `pe_history_5y` as a lightweight min/max range rather than a sparkline -- a real chart
         // is a bigger lift consistent with the deferred main price chart (`ChartPlaceholder` in
         // `StockDetailScreen.kt`); this surfaces the data now without that scope.
+        // 💡 A space on each side of the dash, not "$X–$Y" run together -- with no space
+        // anywhere in the string, a column too narrow to fit the whole range had no break
+        // opportunity except mid-number (e.g. "$598." / "17"). The space gives text layout a
+        // clean place to wrap if it ever needs to.
         fundamentals.peHistory5y?.takeIf { it.isNotEmpty() }?.let {
-            stat(R.string.stock_detail_metric_pe_5y_range, "$${formatDecimal(it.min())}–$${formatDecimal(it.max())}", "TRAILING_PE")
+            stat(R.string.stock_detail_metric_pe_5y_range, "$${formatDecimal(it.min())} – $${formatDecimal(it.max())}", "TRAILING_PE")
         }
     )
     val balanceSheetStats = listOfNotNull(
@@ -173,25 +177,11 @@ private fun Cluster(title: String, stats: List<Stat>) {
     Column {
         SubClusterLabel(title = title)
         Spacer()
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_xlarge)),
-            verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_medium))
-        ) {
-            stats.forEach { s ->
-                Column(modifier = Modifier.width(dimensionResource(id = R.dimen.detail_stat_width))) {
-                    Text(
-                        text = s.value,
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = stringResource(id = s.labelRes),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = LocalPulseColors.current.onSurfaceMuted
-                    )
-                }
-            }
-        }
+        // 💡 PROTOTYPE: `StatGrid` (see its own doc comment) -- equal-width columns instead of a
+        // fixed 96dp cell per stat, so a partial last row (e.g. Growth's 2 stats, or a cluster
+        // whose count isn't a multiple of 3) divides evenly across the row instead of sitting
+        // narrow and left-aligned with unused space beside it.
+        StatGrid(stats = stats.map { StatItem(value = it.value, label = stringResource(id = it.labelRes)) })
         Spacer()
     }
 }

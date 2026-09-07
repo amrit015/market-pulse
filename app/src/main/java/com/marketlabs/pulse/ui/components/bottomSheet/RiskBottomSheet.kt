@@ -28,9 +28,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.core.glossary.GlossaryTerm
 import com.marketlabs.pulse.core.glossary.RiskGlossaryProvider
+import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -234,5 +236,17 @@ private fun RiskGlossarySection(title: String, terms: List<GlossaryTerm>, curren
             )
         }
         Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
+    }
+}
+
+@Preview(name = "Light", showBackground = true)
+@Composable
+private fun PreviewRiskGlossaryBottomSheet() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
+        RiskGlossaryBottomSheet(
+            currentStatus = "ELEVATED",
+            currentTrend = "RISING",
+            onDismiss = {}
+        )
     }
 }

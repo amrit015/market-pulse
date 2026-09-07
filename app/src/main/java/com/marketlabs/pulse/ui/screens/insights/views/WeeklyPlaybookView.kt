@@ -38,6 +38,7 @@ import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.SynthesisHeroCard
 import com.marketlabs.pulse.ui.components.widgets.MetricInfoAction
+import com.marketlabs.pulse.ui.components.widgets.buildBulletJoinedText
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 import java.text.SimpleDateFormat
@@ -59,7 +60,7 @@ fun WeeklyPlaybookSection(playbook: WeeklyPlaybook) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_ai_sparkle_filled),
                 contentDescription = "Analysis Engine",
-                tint = MaterialTheme.colorScheme.secondary,
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(iconSize)
             )
 
@@ -141,11 +142,16 @@ fun WeeklyEventCard(event: WeeklyEvent) {
 
             event.date?.let { rawDate ->
                 val formattedDate = remember(rawDate) { formatEventDateSafe(rawDate) }
+                val baseFontSize = MaterialTheme.typography.labelMedium.fontSize
 
                 Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
 
                 Text(
-                    text = formattedDate,
+                    text = buildBulletJoinedText(
+                        parts = listOf(formattedDate.datePart, formattedDate.timePart),
+                        bullet = stringResource(id = R.string.bullet_separator),
+                        baseFontSize = baseFontSize
+                    ),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -267,7 +273,10 @@ private fun EventDataColumn(label: String, value: String, isActual: Boolean = fa
     }
 }
 
-private fun formatEventDateSafe(rawDate: String): String {
+/** Date part, and a time part only when [rawDate] carried a time component. */
+private data class FormattedEventDate(val datePart: String, val timePart: String? = null)
+
+private fun formatEventDateSafe(rawDate: String): FormattedEventDate {
     return try {
         val isIsoWithTime = rawDate.contains("T")
         val parser = if (isIsoWithTime) {
@@ -279,17 +288,14 @@ private fun formatEventDateSafe(rawDate: String): String {
         val parsed = parser.parse(rawDate)
 
         if (parsed != null) {
-            val outputFormat = if (isIsoWithTime) {
-                SimpleDateFormat("EEEE, MMM dd • h:mm a", Locale.getDefault())
-            } else {
-                SimpleDateFormat("EEEE, MMM dd", Locale.getDefault())
-            }
-            outputFormat.format(parsed)
+            val datePart = SimpleDateFormat("EEEE, MMM dd", Locale.getDefault()).format(parsed)
+            val timePart = if (isIsoWithTime) SimpleDateFormat("h:mm a", Locale.getDefault()).format(parsed) else null
+            FormattedEventDate(datePart, timePart)
         } else {
-            rawDate
+            FormattedEventDate(rawDate)
         }
     } catch (e: Exception) {
-        rawDate
+        FormattedEventDate(rawDate)
     }
 }
 

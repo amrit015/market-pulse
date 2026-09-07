@@ -36,15 +36,20 @@ are run manually, not gated by anything automated yet.
 - Transport strategies, Room caching, `SyncManager`, a worked example → `@docs/architecture/data-flow.md`
 - Backend field/flag-name contracts (the invisible cross-repo dependencies) → `@docs/architecture/cross-repo-contracts.md`
 - Confirmed stale/inconsistent spots in the current code (verify before trusting) → `@docs/architecture/known-gaps.md`
+- The collapsing-chrome + sticky-tab-row + swipeable-pager pattern (Stock Detail, Indicators) —
+  LIVING doc, real bugs hit and fixed, read before reusing on a new screen →
+  `@docs/architecture/collapsing-header-tabs.md`.
 - Hilt DI conventions, null handling, naming → `@docs/guidelines/kotlin-style.md`
-- `PulseTabRow`, the glossary system, resource conventions → `@docs/guidelines/compose-conventions.md`
+- `PulseTabRow` (including the swipeable-pager + tab-sync pattern), the glossary system, resource
+  conventions → `@docs/guidelines/compose-conventions.md`
 - What a review actually checks → `@docs/guidelines/review-standards.md`
 - Color tokens, the card system, light/dark presets — **check this before adding a new color,
   card style, or badge** → `@docs/theming-system/theming-spec.md`. History/rationale for how it
   got this way → `@docs/theming-system/theming-history.md`.
 - Card heading/spacing conventions (section-title vs. eyebrow header, content-heading sizing, the
-  merged-card-with-dividers pattern) — piloted on Summary, LIVING doc, not yet applied to other
-  screens → `@docs/theming-system/card-heading-conventions.md`.
+  merged-card-with-dividers pattern) — piloted on Summary, LIVING doc, rolling out screen-by-screen
+  (Indicators, Insights, Stock Detail, Deep Dive so far, still partial) →
+  `@docs/theming-system/card-heading-conventions.md`.
 - Product context for design work → `@docs/product-brief.md`
 - Notion brain (product context, ADRs, cross-repo contracts, design system) —
   `https://app.notion.com/p/marketPulse-brain-3b07c8397e7b801abfc8f8ceb1d9fdae`. Ask before

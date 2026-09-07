@@ -43,8 +43,7 @@ fun TechnicalRead(technicalRead: String?, modifier: Modifier = Modifier) {
         Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
             CardEyebrowLabel(
                 text = stringResource(id = R.string.stock_detail_technical_read_title),
-                color = pulseColors.accentPrimary,
-                iconRes = R.drawable.ic_ai_sparkle_filled
+                color = pulseColors.accentPrimary
             )
             androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
             Text(

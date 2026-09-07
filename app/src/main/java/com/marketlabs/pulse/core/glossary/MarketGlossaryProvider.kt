@@ -7,7 +7,12 @@ data class MarketGlossaryData(
     val setups: List<GlossaryTerm>,
     val directions: List<GlossaryTerm>,
     val cycleZones: List<GlossaryTerm>,
-    val actions: List<GlossaryTerm>
+    val actions: List<GlossaryTerm>,
+    /** Per-stock `technical_setup` values (BREAKDOWN/BREAKOUT/ACCUMULATION/DISTRIBUTION/MEAN
+     * REVERSION/RANGE BOUND) -- a different classification domain than [setups] above, which is
+     * the market-wide RSI/momentum-extreme read (OVERSOLD/OVERBOUGHT/...); despite both being
+     * called "setup," they share no values. */
+    val stockSetups: List<GlossaryTerm>
 )
 
 /**
@@ -34,7 +39,8 @@ object MarketGlossaryProvider {
             setups = raw["setups"].orEmpty().toGlossaryTerms(),
             directions = raw["directions"].orEmpty().toGlossaryTerms(),
             cycleZones = raw["cycle_zones"].orEmpty().toGlossaryTerms(),
-            actions = raw["actions"].orEmpty().toGlossaryTerms()
+            actions = raw["actions"].orEmpty().toGlossaryTerms(),
+            stockSetups = raw["stock_setups"].orEmpty().toGlossaryTerms()
         ).also { cache = it }
     }
 }

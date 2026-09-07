@@ -167,10 +167,14 @@ private fun CategoryGroup(
     val pulseColors = LocalPulseColors.current
 
     Column {
+        // 💡 colorScheme.primary, matching this card's own DataCardSectionHeader title above --
+        // was onSurfaceMuted, which read as a disconnected label family from the header it sits
+        // under. Not accentPrimary: this is a DATA-style card (DataCardSectionHeader), not an
+        // AI-narrative CardEyebrowLabel card like Digest, whose own header is accentPrimary.
         Text(
             text = title,
             style = MaterialTheme.typography.labelMedium,
-            color = pulseColors.onSurfaceMuted
+            color = MaterialTheme.colorScheme.primary
         )
         androidx.compose.foundation.layout.Spacer(modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_small)))
         Column(verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_small))) {

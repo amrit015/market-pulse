@@ -27,8 +27,11 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.ui.theme.LocalPulseColors
+import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 @Composable
 fun UniversalGaugeCard(
@@ -139,5 +142,39 @@ fun UniversalGaugeCard(
                 }
             }
         }
+    }
+}
+
+@Preview(name = "Light", showBackground = true)
+@Composable
+private fun PreviewUniversalGaugeCard() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
+        val pulseColors = LocalPulseColors.current
+        UniversalGaugeCard(
+            title = "Momentum Score",
+            value = "68",
+            score = 68,
+            signalText = "Bullish",
+            baseColor = pulseColors.signalBullishText,
+            bgColor = pulseColors.accentSurface,
+            onClick = {}
+        )
+    }
+}
+
+@Preview(name = "Dark", showBackground = true, backgroundColor = 0xFF0D0E12)
+@Composable
+private fun PreviewUniversalGaugeCardDark() {
+    MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
+        val pulseColors = LocalPulseColors.current
+        UniversalGaugeCard(
+            title = "Momentum Score",
+            value = "32",
+            score = 32,
+            signalText = "Bearish",
+            baseColor = pulseColors.signalBearishText,
+            bgColor = pulseColors.accentSurface,
+            onClick = {}
+        )
     }
 }

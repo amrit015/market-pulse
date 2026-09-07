@@ -34,8 +34,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
+import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 import kotlin.math.abs
 
 @Composable
@@ -155,5 +157,33 @@ fun ScoreGauge(
                 )
             }
         }
+    }
+}
+
+@Preview(name = "Light", showBackground = true)
+@Composable
+private fun PreviewScoreGauge() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
+        ScoreGauge(
+            score = 68,
+            previousScore = 61,
+            isHigherBetter = true,
+            statusText = "Bull Trend",
+            ringColor = LocalPulseColors.current.signalBullishText
+        )
+    }
+}
+
+@Preview(name = "Dark", showBackground = true, backgroundColor = 0xFF0D0E12)
+@Composable
+private fun PreviewScoreGaugeDark() {
+    MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
+        ScoreGauge(
+            score = 32,
+            previousScore = 40,
+            isHigherBetter = false,
+            statusText = "Sideways Range",
+            ringColor = LocalPulseColors.current.signalBearishText
+        )
     }
 }

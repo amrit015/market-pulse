@@ -39,6 +39,7 @@ import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.widgets.SignalPill
 import com.marketlabs.pulse.ui.screens.stocks.detail.DataCardSectionHeader
+import com.marketlabs.pulse.ui.screens.stocks.detail.ViewMoreRow
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 import com.marketlabs.pulse.utils.extensions.toLongDateString
@@ -53,15 +54,9 @@ import java.util.Locale
  * `HOLDS_BELOW` / `STAYS_WITHIN`) -- the backend doesn't tag a bullish/bearish direction on it
  * directly, so the pill color here is derived from the ABOVE/BELOW/WITHIN keyword itself (a call
  * that price stays above a level reads bullish, below reads bearish, within is non-directional).
- *
- * Resolved calls stay collapsed to just a tappable header until expanded -- unlike Open calls,
- * they're historical record rather than something needing attention, so nothing renders until the
- * user asks for it. `BringIntoViewRequester` on the header handles collapsing a long expanded list
- * back down (same fix `EventLog.kt` uses for its own collapse, see that file's doc comment for why
- * it's anchored to the header specifically and not the whole section).
  */
 @Composable
-fun ForwardCalls(calls: DomainCallRecord?, modifier: Modifier = Modifier) {
+fun ForwardCalls(calls: DomainCallRecord?, onViewMoreResolved: () -> Unit = {}, modifier: Modifier = Modifier) {
     val open = calls?.open.orEmpty()
     val resolved = calls?.resolved.orEmpty()
     if (open.isEmpty() && resolved.isEmpty()) return
@@ -69,7 +64,7 @@ fun ForwardCalls(calls: DomainCallRecord?, modifier: Modifier = Modifier) {
     Column(modifier = modifier.fillMaxWidth()) {
         if (open.isNotEmpty()) {
             val stats = calls?.stats
-            val trailing = if (stats?.held != null && stats.totalResolved != null) {
+            val subtitle = if (stats?.held != null && stats.totalResolved != null) {
                 buildString {
                     append(stringResource(id = R.string.stock_detail_calls_held_of_total, stats.held, stats.totalResolved))
                     // 💡 The space before each suffix is added here, not baked into the XML string
@@ -82,7 +77,7 @@ fun ForwardCalls(calls: DomainCallRecord?, modifier: Modifier = Modifier) {
 
             PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
                 Column {
-                    DataCardSectionHeader(title = stringResource(id = R.string.stock_detail_forward_calls_title), trailing = trailing)
+                    DataCardSectionHeader(title = stringResource(id = R.string.stock_detail_forward_calls_title), subtitle = subtitle)
                     open.forEachIndexed { index, call ->
                         ForwardCallCard(call, modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)))
                         if (index != open.lastIndex) {
@@ -100,25 +95,33 @@ fun ForwardCalls(calls: DomainCallRecord?, modifier: Modifier = Modifier) {
             if (open.isNotEmpty()) {
                 androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_xxlarge)))
             }
-            ResolvedCallsSection(resolved = resolved)
+            ResolvedCallsSection(resolved = resolved, onViewMore = onViewMoreResolved)
         }
     }
 }
 
+private const val COLLAPSED_RESOLVED_COUNT = 7
+
 /**
- * Its own `PulseCard(DATA)`, 2026-09-05 -- header IS the toggle here (there's no separate content
- * region competing for taps the way Drivers has), so the `.clickable` sits on the header `Row`
- * itself rather than on `PulseCard`'s own `onClick`; scoping it to the header (not the whole card)
- * means tapping inside an expanded entry never accidentally collapses the section. Divider only
- * renders when expanded -- a divider with nothing below it would read as a stray line above the
- * card's bottom edge when collapsed.
+ * Its own `PulseCard(DATA)` -- header IS the toggle here (there's no separate content region
+ * competing for taps the way Drivers has), so the `.clickable` sits on the header `Row` itself
+ * rather than on `PulseCard`'s own `onClick`; scoping it to the header (not the whole card) means
+ * tapping inside an expanded entry never accidentally collapses the section. Collapsed by default
+ * -- historical record, not something needing attention, so nothing renders below the header until
+ * the user asks for it. Once expanded, shows its latest 7 (by `resolvedOn`, falling back to
+ * `madeOn` for the rare resolved call missing that field), newest first, with a [ViewMoreRow]
+ * pushing to the full sorted list when there are more than 7. `BringIntoViewRequester` on the
+ * header handles collapsing a long expanded list back down (same fix `EventLog.kt` used to use for
+ * its own collapse, before it moved to the "View More" push-navigation pattern).
  */
 @Composable
-private fun ResolvedCallsSection(resolved: List<DomainForwardCall>) {
+private fun ResolvedCallsSection(resolved: List<DomainForwardCall>, onViewMore: () -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val coroutineScope = rememberCoroutineScope()
     val pulseColors = LocalPulseColors.current
+    val sorted = resolved.sortedByDescending { it.resolvedOn ?: it.madeOn ?: "" }
+    val visible = sorted.take(COLLAPSED_RESOLVED_COUNT)
 
     PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
         Column {
@@ -157,14 +160,25 @@ private fun ResolvedCallsSection(resolved: List<DomainForwardCall>) {
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
                     thickness = dimensionResource(id = R.dimen.border_thin)
                 )
-                resolved.forEachIndexed { index, call ->
+                visible.forEachIndexed { index, call ->
                     ResolvedCallCard(call, modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)))
-                    if (index != resolved.lastIndex) {
+                    if (index != visible.lastIndex) {
                         HorizontalDivider(
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
                             thickness = dimensionResource(id = R.dimen.border_thin)
                         )
                     }
+                }
+                if (sorted.size > COLLAPSED_RESOLVED_COUNT) {
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                        thickness = dimensionResource(id = R.dimen.border_thin)
+                    )
+                    ViewMoreRow(
+                        text = stringResource(id = R.string.stock_detail_view_more),
+                        onClick = onViewMore,
+                        modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))
+                    )
                 }
             }
         }
@@ -172,7 +186,7 @@ private fun ResolvedCallsSection(resolved: List<DomainForwardCall>) {
 }
 
 @Composable
-private fun ResolvedCallCard(call: DomainForwardCall, modifier: Modifier = Modifier) {
+fun ResolvedCallCard(call: DomainForwardCall, modifier: Modifier = Modifier) {
     val pulseColors = LocalPulseColors.current
     val (predicateLabel, predicateColor, predicatePillColor) = predicateStyle(call, pulseColors)
     val (statusLabel, statusColor, statusPillColor) = resolvedStatusStyle(call.status, pulseColors)

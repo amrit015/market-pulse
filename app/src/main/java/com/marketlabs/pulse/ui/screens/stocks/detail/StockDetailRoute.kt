@@ -28,6 +28,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -49,11 +50,13 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.components.PulseTabRow
+import com.marketlabs.pulse.ui.components.bottomSheet.MarketGlossaryBottomSheet
 import com.marketlabs.pulse.ui.screens.stocks.StockDetailViewModel
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.DeepDiveCard
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.DetailHeader
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.TechnicalRead
 import com.marketlabs.pulse.ui.screens.stocks.views.StockAnalysisErrorState
+import java.util.Locale
 import kotlin.math.roundToInt
 
 /**
@@ -82,6 +85,8 @@ fun StockDetailRoute(
     onNavigateUp: () -> Unit,
     onNavigateToWebView: (String) -> Unit,
     onNavigateToDeepDive: (String) -> Unit,
+    onNavigateToResolvedCalls: (String) -> Unit,
+    onNavigateToTechnicalTimeline: (String) -> Unit,
     viewModel: StockDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -166,6 +171,12 @@ fun StockDetailRoute(
         }
     }
 
+    // 💡 Which of DetailHeader's two tap-to-explain badges opened the glossary sheet -- same
+    // "local enum state picks which MarketGlossaryBottomSheet params to pass" shape Summary's own
+    // `glossaryTarget` uses (SummaryScreen.kt), just scoped to this screen's two badges instead of
+    // Summary's five.
+    var glossaryTarget by remember { mutableStateOf<StockGlossaryTarget?>(null) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -180,6 +191,8 @@ fun StockDetailRoute(
             regimeAtAnalysis = uiState.preview?.regimeAtAnalysis,
             analyzedAsOfTimestamp = uiState.detail?.timestamp,
             onNavigateUp = onNavigateUp,
+            onTechnicalSetupClick = { glossaryTarget = StockGlossaryTarget.TECHNICAL_SETUP },
+            onRegimeClick = { glossaryTarget = StockGlossaryTarget.REGIME },
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -228,9 +241,11 @@ fun StockDetailRoute(
                         .fillMaxWidth()
                         .padding(
                             horizontal = dimensionResource(id = R.dimen.padding_large),
-                            vertical = dimensionResource(id = R.dimen.padding_small)
+                            vertical = dimensionResource(id = R.dimen.padding_tiny)
                         )
                 )
+
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
 
                 // 💡 Moved here from each tab's own scrollable content 2026-09-05 -- general
                 // context shown once, chrome-level, with the same collapse-then-stick behavior as
@@ -243,16 +258,12 @@ fun StockDetailRoute(
                     ) {
                         technicalRead?.let { TechnicalRead(technicalRead = it) }
                         if (technicalRead != null && hasHighAlert) {
-                            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
+                            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
                         }
                         if (hasHighAlert) {
                             HighUrgencyAlertRow(watchList = watchList)
                         }
-                        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
-                        HorizontalDivider(
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                            thickness = dimensionResource(id = R.dimen.border_thin)
-                        )
+                        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_standard)))
                     }
                 }
             }
@@ -314,6 +325,8 @@ fun StockDetailRoute(
                                 onToggleChip = viewModel::toggleChipExpanded,
                                 onToggleNews = viewModel::toggleNewsExpanded,
                                 onArticleClick = onNavigateToWebView,
+                                onViewMoreResolvedCalls = { onNavigateToResolvedCalls(uiState.symbol) },
+                                onViewMoreTimeline = { onNavigateToTechnicalTimeline(uiState.symbol) },
                                 scaffoldPadding = scaffoldPadding
                             )
                         }
@@ -348,4 +361,36 @@ fun StockDetailRoute(
             )
         }
     }
+
+    when (glossaryTarget) {
+        StockGlossaryTarget.TECHNICAL_SETUP -> {
+            MarketGlossaryBottomSheet(
+                currentStockSetup = uiState.preview?.technicalSetup?.replace('_', ' ')?.uppercase(Locale.US),
+                title = stringResource(id = R.string.stock_signal_glossary_title),
+                onDismiss = { glossaryTarget = null }
+            )
+        }
+        StockGlossaryTarget.REGIME -> {
+            MarketGlossaryBottomSheet(
+                currentDirection = uiState.preview?.regimeAtAnalysis?.let { regimeDirectionLabel(it) },
+                title = stringResource(id = R.string.stock_signal_glossary_title),
+                onDismiss = { glossaryTarget = null }
+            )
+        }
+        null -> {}
+    }
+}
+
+private enum class StockGlossaryTarget { TECHNICAL_SETUP, REGIME }
+
+/**
+ * `regime_at_analysis` (`risk_on`/`risk_off`/`neutral`) is confirmed backend-side to be the exact
+ * same `system/market_regime` token Summary's `direction` field reads, just kept in its raw
+ * snake_case form here rather than relabeled -- this maps it onto the same `directions` glossary
+ * entries (`RISK ON`/`RISK OFF`/`MIXED`) rather than adding a duplicate glossary section.
+ */
+private fun regimeDirectionLabel(regimeAtAnalysis: String): String = when (regimeAtAnalysis.lowercase(Locale.US)) {
+    "risk_on" -> "RISK ON"
+    "risk_off" -> "RISK OFF"
+    else -> "MIXED"
 }

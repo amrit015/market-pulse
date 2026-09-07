@@ -26,15 +26,20 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.marketRisk.MarketRiskAssessment
 import com.marketlabs.pulse.storage.model.marketRisk.MarketRiskFactor
+import com.marketlabs.pulse.storage.model.marketRisk.MarketRiskSynthesis
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.SynthesisHeroCard
 import com.marketlabs.pulse.ui.components.widgets.MetricInfoAction
 import com.marketlabs.pulse.ui.components.widgets.SignalPill
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
+import com.marketlabs.pulse.ui.theme.MarketPulseTheme
+import com.marketlabs.pulse.ui.theme.pillColor
+import com.marketlabs.pulse.ui.theme.textColor
 import com.marketlabs.pulse.utils.enums.RiskImpactLevel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -63,9 +68,13 @@ fun TailRisksSection(risksData: MarketRiskAssessment) {
         }
 
         if (!risksData.risks.isNullOrEmpty()) {
-            risksData.risks.forEach { risk ->
-                TailRiskCard(risk = risk)
-            }
+            // 💡 Most severe first (EXTREME/HIGH → MEDIUM → LOW), unknown severity last -- the
+            // enum's own declared order already matches this, so ordinal is the sort key.
+            risksData.risks
+                .sortedBy { it.impactLevel?.ordinal ?: RiskImpactLevel.UNKNOWN.ordinal }
+                .forEach { risk ->
+                    TailRiskCard(risk = risk)
+                }
         } else {
             Text(
                 text = stringResource(id = R.string.no_tail_risks_available),
@@ -86,7 +95,7 @@ private fun RiskAssessmentHeader(data: MarketRiskAssessment) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_ai_sparkle_filled),
                 contentDescription = "Analysis Engine",
-                tint = MaterialTheme.colorScheme.secondary,
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(iconSize)
             )
             Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
@@ -123,26 +132,14 @@ private fun RiskAssessmentHeader(data: MarketRiskAssessment) {
 
 @Composable
 private fun TailRiskCard(risk: MarketRiskFactor) {
-    val pulseColors = LocalPulseColors.current
-
     // 💡 The old flat, non-theme-aware AlertRed constant is gone. EXTREME used to get its own raw
     // red, kept visually distinct from HIGH's theme-aware bearish red. This app's signal system
     // has exactly four tiers (bullish/bearish/neutral/warning) and no fifth "beyond bearish" tier,
     // so EXTREME and HIGH now collapse to the same signalBearishText/.pill pair. A real visual
     // change worth knowing about: EXTREME risk cards no longer look distinctly redder than HIGH ones.
-    val impactTextColor = when (risk.impactLevel) {
-        RiskImpactLevel.EXTREME, RiskImpactLevel.HIGH -> pulseColors.signalBearishText
-        RiskImpactLevel.MEDIUM -> pulseColors.signalWarningText
-        RiskImpactLevel.LOW -> pulseColors.signalBullishText
-        else -> MaterialTheme.colorScheme.onSurfaceVariant
-    }
-
-    val impactBgColor = when (risk.impactLevel) {
-        RiskImpactLevel.EXTREME, RiskImpactLevel.HIGH -> pulseColors.signalBearishPill
-        RiskImpactLevel.MEDIUM -> pulseColors.signalWarningPill
-        RiskImpactLevel.LOW -> pulseColors.signalBullishPill
-        else -> MaterialTheme.colorScheme.surfaceVariant
-    }
+    val impactTextColor = risk.impactLevel.textColor
+    val impactBgColor = risk.impactLevel.pillColor
+    val pulseColors = LocalPulseColors.current
 
     // 💡 DATA style -- was SYNTHESIS (an AI-assessed tail risk, treated as AI content). This app's
     // darker SYNTHESIS background is now reserved for the one AI briefing/verdict hero card per
@@ -186,21 +183,20 @@ private fun TailRiskCard(risk: MarketRiskFactor) {
                     horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_small))
                 ) {
                     if (risk.category != null) {
-                        // 💡 Text style/padding now matches SignalPill's exactly (labelMedium.Bold,
-                        // padding_medium horizontal / padding_small vertical) -- was labelSmall
-                        // regular with padding_tiny vertical, which made this chip read smaller and
-                        // shorter than the impact pill next to it.
+                        // 💡 Same TagPill treatment as Summary's What to Watch/Macro Mix tags
+                        // (accentPrimary fill + accentOn text) -- the old secondaryContainer fill
+                        // blended into the card background instead of standing out as a tag.
                         Surface(
-                            color = MaterialTheme.colorScheme.secondaryContainer,
+                            color = pulseColors.accentPrimary,
                             shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_chip))
                         ) {
                             Text(
                                 text = risk.category.uppercase(),
-                                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = pulseColors.accentOn,
                                 modifier = Modifier.padding(
                                     horizontal = dimensionResource(id = R.dimen.padding_medium),
-                                    vertical = dimensionResource(id = R.dimen.padding_small)
+                                    vertical = dimensionResource(id = R.dimen.padding_tiny)
                                 )
                             )
                         }
@@ -224,5 +220,38 @@ private fun TailRiskCard(risk: MarketRiskFactor) {
                 )
             }
         }
+    }
+}
+
+@Preview(name = "Light", showBackground = true)
+@Composable
+private fun PreviewTailRisksSection() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
+        TailRisksSection(
+            risksData = MarketRiskAssessment(
+                lastUpdated = System.currentTimeMillis(),
+                synthesis = MarketRiskSynthesis(
+                    headline = "Credit stress is building beneath a calm surface",
+                    detail = "Spreads have widened quietly over the past two weeks while equity vol stays subdued -- a divergence worth watching.",
+                    generatedAt = System.currentTimeMillis(),
+                    contentFlags = emptyList(),
+                    state = "ready"
+                ),
+                risks = listOf(
+                    MarketRiskFactor(
+                        riskFactor = "Widening credit spreads",
+                        category = "Credit",
+                        impactLevel = RiskImpactLevel.HIGH,
+                        context = "High-yield spreads have widened 40bps over two weeks, historically a leading indicator of equity drawdowns."
+                    ),
+                    MarketRiskFactor(
+                        riskFactor = "Crowded short-vol positioning",
+                        category = "Positioning",
+                        impactLevel = RiskImpactLevel.MEDIUM,
+                        context = "Systematic vol-selling strategies remain near record size, amplifying downside moves if realized vol spikes."
+                    )
+                )
+            )
+        )
     }
 }

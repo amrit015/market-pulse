@@ -47,12 +47,12 @@ fun DeepDiveSectionCard(
     PulseCard(style = PulseCardStyle.SYNTHESIS, modifier = modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
             kicker?.let {
-                // 💡 `CardEyebrowLabel`, no icon -- this screen's own `DeepDiveHeaderBanner`
-                // already establishes "this whole screen is AI-generated" once, at the top, so
-                // each of the 8 section cards doesn't repeat the AI-sparkle icon (same reasoning
-                // Summary's Lead Stories/Macro Mix/Watch/Risks entries don't each repeat one
-                // either). Was a hand-rolled `Text` with the identical style; now calls the shared
-                // widget directly.
+                // 💡 `CardEyebrowLabel`, no icon -- consistent with Stock Detail's own "no
+                // AI-sparkle anywhere on this screen" exception (its content mixes quant and AI
+                // throughout, so singling out one card as "the AI one" is misleading); the
+                // Deep Dive screen this card lives on is the same kind of screen. Was a
+                // hand-rolled `Text` with the identical style; now calls the shared widget
+                // directly.
                 CardEyebrowLabel(text = it, color = pulseColors.accentPrimary)
                 // 💡 `padding_medium`, matching the heading-to-content gap every other SYNTHESIS
                 // card on this screen uses (was `padding_small` until 2026-09-05).

@@ -3,13 +3,14 @@
 > **Status: LIVING / IN PROGRESS.** This documents a set of card-heading/spacing conventions
 > established on the Summary screen (`ui/screens/summary/views/SummaryScreen.kt`) during an
 > initial 2026-09-05 pass, with the explicit intent to roll the same conventions out to other
-> screens once they're settled. As of 2026-09-05 that rollout is underway (see "Resolved" below for
+> screens once they're settled. As of 2026-09-06 that rollout is underway (see "Resolved" below for
 > exactly what's landed on Indicators/Insights/Stock Detail/Deep Dive so far, including six Stock
-> Detail sections moved from a page-level heading onto one `PulseCard` each) but still partial --
-> most of News, and several DATA-style cards elsewhere, are untouched. Several open questions are
-> called out explicitly at the bottom rather than silently resolved — read those before extending
-> this pattern to a new screen. Verified against source on 2026-09-05; re-check line numbers before citing them
-> if this file is read much later.
+> Detail sections moved from a page-level heading onto one `PulseCard` each, and Indicators' own
+> pillar tabs + Horizons cards) but still partial -- most of News, and several DATA-style cards
+> elsewhere, are untouched. Several open questions are called out explicitly at the bottom rather
+> than silently resolved — read those before extending this pattern to a new screen. Verified
+> against source on 2026-09-06; re-check line numbers before citing them if this file is read much
+> later.
 
 This is a companion to `theming-spec.md` §6 (card system) and §8 (typography — card title
 convention), not a replacement. §8's existing DATA/SYNTHESIS two-tier table describes each card's
@@ -352,6 +353,196 @@ Not touched: `DirectNews`' per-item cards and `ForwardCalls`'/`Fundamentals`' sm
 `OutlinedBadge` and `HighUrgencyAlertRow` are also plain badges/standalone banners, not nested
 inside another card, so out of scope here too.
 
+## Sixth step (2026-09-06): Indicators' pillar tabs, its Horizons cards, and a rejected line-height experiment
+
+- **Indicators gained real tabs** (`IndicatorsScreen.kt`) -- the 4 pillars (Tactical Momentum,
+  Systemic Risk, Valuation, Macro Vitals) that used to stack in one long scroll are now one
+  `PulseTabRow` tab apiece, swipeable via `HorizontalPager`, same shape Insights already used for
+  its own 4 sections. Tab *labels* are short (`indicators_tab_momentum` = "Momentum",
+  `indicators_tab_systemic_risk`, `indicators_tab_valuation`, `indicators_tab_macro` = "Macro") and
+  deliberately distinct from the `pillar_*` strings each tab's own inner section heading still uses
+  ("Tactical Momentum", "Macro Economy") -- a short nav label vs. a longer page title, not a
+  duplication to fix. The "Analyzed as of" timestamp, Today's Read (the AI executive briefing
+  card), and the Horizons nav card all stay shared chrome above the tab row rather than becoming
+  tab-specific content -- see `docs/architecture/collapsing-header-tabs.md` for the scroll/pager
+  mechanics that make that chrome collapse-then-stick, which is a separate concern from this doc's
+  own card/heading/spacing scope.
+- **Horizons' per-timeframe cards** (`HorizonCard`, `IndicatorHorizonsScreen.kt`) converged onto
+  the same `CardEyebrowLabel` family as every other AI-style card: the hand-rolled
+  `labelMedium`/`onSurfaceVariant` time-window row (no icon) became `CardEyebrowLabel` (icon +
+  `accentPrimary`); the risk pill moved off the eyebrow's own row onto its own row directly below
+  it (an eyebrow row never carries trailing content beside its own icon in this convention -- see
+  Today's Read's alignment pill, which sits below its eyebrow the same way); `posture` (this card's
+  own AI-authored headline) dropped from `titleLarge` to `titleMedium.Bold`, matching every other
+  AI-card's content heading; every heading-to-body gap is `padding_medium` now (`posture` →
+  `whatThisMeans`, and `whatThisMeans` → `watchFor`, were both `padding_large`).
+- **`HorizonNavigationCard`** (the "Horizons" entry-point card on Indicators' own main feed, not to
+  be confused with the per-timeframe `HorizonCard`s above) had a `padding_tiny` (2dp) gap between
+  its title and subtitle -- a leftover from before it became a `PulseCard(SYNTHESIS)`, never caught
+  until this pass. Fixed to `padding_medium`, matching every other AI-card's heading-to-body gap.
+- **A proportional line-height boost (`lineHeight = MaterialTheme.typography.bodyMedium.lineHeight
+  * 1.2f`) was tried on several AI-cards' body text and then explicitly rejected** -- present before
+  this session on `AiExecutiveBriefingHero`'s `whatChanged` and the pillar scorecard's `oneLiner`;
+  added to `HorizonCard`'s `whatThisMeans`/`watchFor` and (briefly) `HorizonNavigationCard`'s
+  subtitle during this same pass, reasoning it should match those two. The owner then removed the
+  multiplier from all of them, back to each style's own plain default line height -- **this was a
+  deliberate design call, not an oversight to "fix" back in**. If a future card is tempted to add
+  `* 1.2f` (or any other line-height multiplier) to match an older card that still has it, treat the
+  multiplier itself as the outlier to remove, not a pattern to propagate -- plain default line
+  height is the settled convention for AI-card body text app-wide now.
+
+## Seventh step (2026-09-06): Deep Study converged onto Scenarios, no AI-sparkle icon on Stock Detail, a universal "see more" CTA, and a shared bullet-join helper
+
+- **`DeepStudy` restructured onto `Scenarios`' merged-card shape**, per explicit instruction to
+  match the two. Was one padded `Column` holding the header plus all 3 subsections back-to-back
+  with a trailing `Spacer` after each (including the last); now the header sits in its own padded
+  block, followed by a full-width `HorizontalDivider`, then each subsection in its own padded block
+  separated by a full-width divider (skipped after the last one) — identical shape to `Scenarios`'
+  Bull/Bear blocks. Each subsection's title also converged onto `Scenarios`' kicker style
+  (`labelSmall`/`accentPrimary`) from its previous `titleSmall.Bold`/`onSurface` — this resolves
+  open item #5 below's note that `DeepStudy`'s subsection titles were an unconverged third case;
+  they're now the same per-entry-kicker treatment every other card in this family uses. (`DeepStudy`'s
+  own *card* header still calls `SynthesisCardHeader`, unchanged — this step only touched the
+  subsections inside it, not the card-level header family; see the note on the icon removal below
+  for what did change about `SynthesisCardHeader` itself.)
+- **No AI-sparkle icon anywhere on the Stock Detail screen — a Stock-Detail-specific exception to
+  the app-wide "AI-narrative cards carry the icon" convention** described under "Eyebrow header"
+  above. Reasoning: every card on this screen mixes quant data and AI-authored narrative, so a
+  sparkle singling out "the AI card" among siblings that are equally AI-touched is misleading in a
+  way it isn't on Summary/Indicators/Insights (where a genuine DATA-vs-AI card split exists).
+  Concretely: `SynthesisCardHeader` (`ui/screens/stocks/detail/DetailSectionLabels.kt`) dropped its
+  hardwired `Icon` entirely — it's now just the `titleMedium.Bold`/`accentPrimary` text, no icon
+  parameter at all (it never took one; the icon was baked in, so this is a body change, not a
+  signature change). This affects both of its remaining callers, `DeepStudy` and `Scenarios`.
+  `DigestCard` (`ui/screens/stocks/detail/sections/DigestCard.kt`) dropped `iconRes =
+  ic_ai_sparkle_filled` from its `CardEyebrowLabel` call for the same reason. **Not** touched:
+  `DeepDiveCard`/`DeepDiveLabel`/`DeepDiveHeaderBanner` all still carry an icon, but it's
+  `ic_deep_dive` — a feature glyph marking "this opens/is the Deep Dive feature," not the general
+  "AI-authored content" sparkle, so it isn't the icon this exception is about. If a future Stock
+  Detail card is tempted to add `ic_ai_sparkle_filled`, treat that as the thing to question, not a
+  gap to fill in.
+- **`ViewMoreRow` (`ui/screens/stocks/detail/DetailSectionLabels.kt`) generalized into this app's one
+  universal "see more" CTA** — added a required `text: String` param (was hardcoded to "View More").
+  Any affordance that *navigates* to more content (a fuller list on its own screen, a full feature
+  screen) should render as `ViewMoreRow(text = ..., onClick = ...)` rather than hand-rolling its own
+  `Row { Text(labelMedium.Bold, accentPrimary); Icon(ic_chevron_forward, accentPrimary) }` — Resolved
+  Calls' and Technical Timeline's "View More" links and Deep Dive's "Open full Deep Dive" CTA
+  (`DeepDiveCard.kt`) all route through it now. This does **not** cover in-place expand/collapse
+  toggles (an up/down-arrow chevron, not a forward chevron) — those are a different interaction
+  model (accordion, not navigation) and keep their own hand-rolled affordance (Resolved Calls' own
+  header row, Technical Timeline's own header row, `DirectNews`' "Read the analysis" toggle).
+- **A shared bullet-join helper, `buildBulletJoinedText` (new file
+  `ui/components/widgets/BulletText.kt`), plus a new `R.string.bullet_separator` ("•") resource.**
+  Every literal `"•"` hardcoded inline in a Kotlin string (`SimpleDateFormat` patterns,
+  `joinToString(" • ")`, plain string templates) moved onto this: `Consider.kt`'s bulleted-list
+  marker, `NewsScreen.kt`'s "· {relative time}" caption, `WeeklyPlaybookView.kt`'s event date/time
+  line (its `formatEventDateSafe` helper was split to return date and time as separate parts instead
+  of one pre-joined string, since the join now has to happen in a composable that can resolve the
+  string resource), and every Deep Dive touchpoint (see below). The helper renders the bullet
+  glyph itself ~1.4× the surrounding text's font size via an `AnnotatedString` `SpanStyle` — a
+  plain-size bullet next to normal text read as a low, easy-to-miss dot. It's plain (non-
+  `@Composable`) so it can't reach into `stringResource`/`MaterialTheme` itself; callers resolve
+  `bullet`/`baseFontSize` and pass them in. **Not** used for the app's other, pre-existing `" · "`
+  (middle-dot, U+00B7) joins scattered across many screens (`"{name} · {symbol}"`-style captions)
+  — those are a visually different, more common glyph and weren't in scope for this pass; don't
+  conflate the two characters if extending this further.
+- **Deep Dive's date/status text, unified across all three touchpoints** (`DeepDiveCard`'s chrome
+  card, `DeepDiveLabel`'s compact preview-card row, `DeepDiveHeaderBanner`'s screen banner) into one
+  format: `(icon) DEEP DIVE AVAILABLE, {date} • NEXT: {date}` (cold start, no deep dive yet:
+  `NEXT DEEP DIVE: {date}` alone). The label half of each piece (`"DEEP DIVE AVAILABLE, %1$s"`,
+  `"NEXT: %1$s"`, `"NEXT DEEP DIVE: %1$s"`) is now **pre-uppercased in the string resource itself**,
+  not runtime-`.uppercase()`'d at render time — the interpolated date must stay natural case
+  ("Sept 4", not "SEPT 4"), which a blanket `.uppercase()` on the whole composed string can't do.
+  Because of this, `DeepDiveCard` no longer routes its dated line through `CardEyebrowLabel` (which
+  always calls `.uppercase()` on its full `text` — would re-uppercase the date too); it hand-rolls
+  the same icon-sized-to-text-height technique directly instead. `deepDiveDisplayParts`
+  (`ui/screens/stocks/detail/sections/DeepDiveText.kt`) is the one shared source for the compact
+  (no-year) date parts, consumed by `DeepDiveLabel` and `DeepDiveCard`; `DeepDiveHeaderBanner` keeps
+  its own separate parts (it needs the with-year date format for its more prominent, standalone
+  banner) but follows the same pre-cased-parts-joined-via-the-bullet-helper shape. The old
+  `deepDiveDisplayText` (a plain-`String`-returning wrapper, needed only for the now-removed
+  `CardEyebrowLabel` call site) was deleted as dead code. **Superseded the same day -- see the
+  Ninth step below**: the three touchpoints no longer share one identical format, and the
+  "banner" described here doesn't exist anymore.
+- **`DirectNews`' headline/body divider now stretches the card's full width.** It used to sit inside
+  one uniformly-`padding_large`-padded `Column` spanning the whole card's content, so the divider
+  itself was inset by `padding_large` on both sides instead of reaching the card's edges. Fixed by
+  splitting that one `Column` into two padded blocks (impact/date + headline/chevron; then
+  synthesis/expanded-detail/read-the-analysis) with the divider sitting at the outer, unpadded level
+  between them — the same "divider outside any padded container" idiom every merged-card section
+  already uses (see "The merged card pattern" above). Its `forwardImplication`/
+  `transmissionMechanism` kickers also moved from `onSurfaceMuted` to `accentPrimary`, matching
+  every other per-entry kicker in this family (see the Eighth step below for the fuller kicker
+  convention writeup).
+
+## Eighth step (2026-09-06, same day): per-entry kicker sub-labels are ALL CAPS, and match the card's own header color
+
+Generalizing a pattern that had been applied piecemeal (Scenarios' "WHAT IT WOULD MEAN"/"WHAT WOULD
+NEED TO HAPPEN" were already caps; `SignalConditions`' category labels were already caps; `DeepStudy`'s
+3 subsection titles and `DirectNews`' 2 expanded-detail labels were not) into one explicit rule for
+this whole family — the small `labelSmall`/`labelMedium` caption sitting directly above an entry's
+own body text, inside an already-headered card (Digest's per-section heading, Scenarios' two kicker
+labels, Deep Study's 3 subsection titles, Signal Conditions' category labels, Direct News' forward
+implication/transmission mechanism labels):
+
+- **All caps.** `DeepStudy`'s `stock_detail_what_the_numbers_say`/`stock_detail_valuation_context`/
+  `stock_detail_macro_impact` and `DirectNews`' `stock_detail_forward_implication_label`/
+  `stock_detail_transmission_mechanism_label` string resources were re-cased to literal caps in the
+  XML (`"WHAT THE NUMBERS SAY"`, not `"What the numbers say"`) — matching the established approach
+  every other static kicker string already used (pre-uppercased in the resource, no runtime
+  `.uppercase()` call), rather than mixing in a second, code-side transform. `DigestCard`'s
+  per-section heading is the one exception that still calls `.uppercase()` at the render site
+  (`section.heading.orEmpty().uppercase()`) — its text is model-generated, not a fixed resource, so
+  there's nothing to pre-case in XML.
+- **Color matches the card's own header, not a blanket single color.** Confirmed/re-stated from the
+  color pass two sessions ago: a card built on `CardEyebrowLabel`/`SynthesisCardHeader` (both
+  `accentPrimary`) gets `accentPrimary` kickers — Digest, Scenarios, Deep Study, Direct News (whose
+  own card has no header of its own, but was explicitly asked to match this family anyway). A card
+  built on `DataCardSectionHeader` (`colorScheme.primary`) gets `colorScheme.primary` kickers —
+  Signal Conditions' category labels, Summary's Domino Effect timeline labels. Don't default a new
+  kicker to `accentPrimary` without checking which header family its own card actually uses.
+
+## Ninth step (2026-09-06, later the same day): Deep Dive's three touchpoints diverge on purpose, and the screen banner is gone
+
+Corrects the Seventh step's "unified across all three touchpoints, one identical format" framing --
+that lasted about one turn before the owner asked for each touchpoint to say something different,
+suited to its own context. The one thing that's still shared: `"DEEP DIVE AVAILABLE, ..."` /
+`"NEXT: ..."` / `"NEXT DEEP DIVE: ..."` stay the label halves, pre-uppercased in their string
+resources, date natural case, per the Seventh step's reasoning -- only *which* touchpoints combine
+them, and which date format each uses, changed.
+
+- **Preview card (`DeepDiveLabel`)**: full month name (`toLongDateString()`, "September 4"), and
+  shows **exactly one** of the two states, never both joined -- `"DEEP DIVE AVAILABLE, September 4"`
+  when a deep dive has run (even if a next-trigger date also exists -- the next date is dropped
+  entirely in that case, not appended), or `"NEXT DEEP DIVE: September 18"` alone at cold start.
+  New `deepDivePreviewText` (`ui/screens/stocks/detail/sections/DeepDiveText.kt`) is this exact
+  two-state branch -- deliberately not `deepDiveDisplayParts` (which returns *all* present parts
+  for the joined-together case), and no longer needs the bullet-join helper at all since there's
+  only ever one part to render.
+- **Stock Detail chrome (`DeepDiveCard`)**: unchanged from the Seventh step --
+  `"DEEP DIVE AVAILABLE, Sep 4 • NEXT: Sep 18"` (abbreviated month, `deepDiveDisplayParts`, both
+  parts joined when both are present) or `"NEXT DEEP DIVE: Sep 18"` alone at cold start.
+- **Deep Dive screen -- no more banner.** The pill-shaped `accentPrimary`-on-`accentSurfaceStrong`
+  `Surface` with the `ic_deep_dive` icon (previously `DeepDiveHeaderBanner`) is gone entirely,
+  replaced by a plain caption line -- `labelSmall`/`onSurfaceMuted`, no icon, no colored container --
+  matching the same "Analyzed as of" treatment `DetailHeader`'s own `analyzedAsOfTimestamp` line and
+  the shared `AnalyzedAtHeader` (Indicators/Summary) already use elsewhere: this is fundamentally
+  the same "here's when this was last updated" fact every other screen states plainly, not a thing
+  that needed its own more prominent chrome. Its label also changed from `"DEEP DIVE AVAILABLE, ..."`
+  to `"Updated as of ..."` (sentence case, no eyebrow caps) -- this screen already establishes "this
+  is the Deep Dive" by being it, so restating "DEEP DIVE AVAILABLE" read as redundant in a way it
+  doesn't on the preview card or Stock Detail's own chrome. Renamed `DeepDiveHeaderBanner.kt` →
+  `DeepDiveUpdatedAtLine.kt`, composable `DeepDiveHeaderBanner` → `DeepDiveUpdatedAtLine`, to match
+  what it actually is now. Still shows `"Updated as of Sep 4, 2026 • NEXT: Sep 18"` (with-year,
+  own separate parts, same bigger-bullet join) when available; cold-start behavior (next-only,
+  standalone) is unchanged.
+- **Consequence for `DeepDiveSectionCard`'s per-section kicker (no icon):** its doc comment used to
+  justify the missing icon by pointing at `DeepDiveHeaderBanner` "establishing this whole screen is
+  AI-generated once, at the top" -- with the banner (and its icon) gone, that reasoning no longer
+  holds. Re-justified instead by the same reasoning as Stock Detail's own no-AI-icon exception
+  (Seventh step, above): the Deep Dive screen mixes quant and AI content throughout, so no single
+  card should carry a sparkle singling itself out. The *outcome* (no icon) didn't change, only why.
+
 ## Open items for the next pass (not yet decided — don't assume an answer)
 
 1. **Content-heading weight** (Signal/Sentiment bold vs. the four list cards plain) — intentional
@@ -362,13 +553,14 @@ inside another card, so out of scope here too.
    doesn't mention either header family here — worth reconciling once these conventions are
    confirmed stable, so there's one authoritative typography section instead of two.
 4. **Everything above "Resolved" is Summary-only; the rollout to other screens is tracked in
-   "Resolved" as it happens** — as of 2026-09-05: Indicators' "Today's Read" and Insights' "Digest"
+   "Resolved" as it happens** — as of 2026-09-06: Indicators' "Today's Read" and Insights' "Digest"
    (step 1, spacing/icon-sizing only), Insights' Positioning (step 2, group headers moved inside
-   their cards), and Stock Detail's Digest + the Deep Dive screen (step 3, converged onto
+   their cards), Stock Detail's Digest + the Deep Dive screen (step 3, converged onto
    `CardEyebrowLabel` — the app-wide "ai style card" family — not Stock Detail's own
-   `SynthesisCardHeader`). News, and the DATA-style cards on Stocks/Indicators/Insights, are still
-   untouched — don't treat a pattern documented here as already applied to a screen or card family
-   not named in "Resolved."
+   `SynthesisCardHeader`), and Indicators' Horizons cards (step 6, same `CardEyebrowLabel`
+   convergence plus a spacing fix). News, and the DATA-style cards on Stocks/Indicators/Insights,
+   are still untouched — don't treat a pattern documented here as already applied to a screen or
+   card family not named in "Resolved."
 5. **Stock Detail still runs two SYNTHESIS-card header families side by side, shrinking one card
    at a time**: `DeepStudy`/`Scenarios` remain on the screen's own `SynthesisCardHeader`
    (`titleMedium.Bold`); `TechnicalRead`/`DigestCard`/`DeepDiveCard`/`DeepDiveSectionCard` are now

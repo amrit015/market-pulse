@@ -61,6 +61,7 @@ import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.bottomSheet.DriversInfoBottomSheet
 import com.marketlabs.pulse.ui.components.bottomSheet.MarketGlossaryBottomSheet
+import com.marketlabs.pulse.ui.components.bottomSheet.MarketReadBottomSheet
 import com.marketlabs.pulse.ui.components.widgets.CardEyebrowLabel
 import com.marketlabs.pulse.ui.components.widgets.SignalPill
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
@@ -75,6 +76,7 @@ import com.marketlabs.pulse.utils.enums.RiskImpactLevel
 import com.marketlabs.pulse.utils.enums.SignalColor
 import com.marketlabs.pulse.utils.enums.SignalDirection
 import com.marketlabs.pulse.utils.enums.TechnicalSetup
+import com.marketlabs.pulse.utils.extensions.smartTitleCase
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -107,6 +109,10 @@ fun MarketSummaryScreen(
     // not just open/closed.
     var glossaryTarget by remember { mutableStateOf<GlossaryTarget?>(null) }
     var showDriversInfo by remember { mutableStateOf(false) }
+    // 💡 2026-09-06: the Signal card's flash headline is now its own tap target, opening the same
+    // analysis + posture prose TheReadSection renders lower on the page -- a shortcut for the
+    // reader who wants the "why" right away, not a replacement for that card (which stays put).
+    var showMarketRead by remember { mutableStateOf(false) }
 
     // 💡 Top padding uses `scaffoldPadding`'s top component (the Scaffold's own measurement of
     // the top bar's real rendered height) instead of the raw status bar inset alone -- the raw
@@ -145,7 +151,10 @@ fun MarketSummaryScreen(
                 item {
                     SignalSection(
                         verdict = verdict,
-                        onRegimeClick = { glossaryTarget = GlossaryTarget.REGIME })
+                        onRegimeClick = { glossaryTarget = GlossaryTarget.REGIME },
+                        onDirectionClick = { glossaryTarget = GlossaryTarget.DIRECTION },
+                        onSignalLineClick = { showMarketRead = true }
+                    )
                 }
             }
 
@@ -227,12 +236,20 @@ fun MarketSummaryScreen(
 
     // 💡 One sheet per tapped chip, not one combined sheet for the whole card -- `call` no longer
     // exists on MarketVerdict (the backend removed it project-wide) so there's nothing left that
-    // needs a "verdict-wide" glossary. Regime's sheet also carries direction (never its own text,
-    // only this chip's tint) since they're the two things that one chip communicates together.
+    // needs a "verdict-wide" glossary. Regime and direction used to share one combined sheet (the
+    // regime chip's own tint carried direction, with no separate text of its own); now that
+    // direction renders as its own pill alongside regime, each gets its own single-term sheet
+    // instead, matching every other chip on this screen (setup, cycle zone).
     when (glossaryTarget) {
         GlossaryTarget.REGIME -> {
             MarketGlossaryBottomSheet(
                 currentRegime = data?.verdict?.regime?.label?.uppercase(),
+                onDismiss = { glossaryTarget = null }
+            )
+        }
+
+        GlossaryTarget.DIRECTION -> {
+            MarketGlossaryBottomSheet(
                 currentDirection = data?.verdict?.direction?.label?.uppercase(),
                 onDismiss = { glossaryTarget = null }
             )
@@ -258,9 +275,15 @@ fun MarketSummaryScreen(
     if (showDriversInfo) {
         DriversInfoBottomSheet(onDismiss = { showDriversInfo = false })
     }
+
+    if (showMarketRead) {
+        data?.verdict?.let { verdict ->
+            MarketReadBottomSheet(verdict = verdict, onDismiss = { showMarketRead = false })
+        }
+    }
 }
 
-private enum class GlossaryTarget { REGIME, SETUP, CYCLE_ZONE }
+private enum class GlossaryTarget { REGIME, DIRECTION, SETUP, CYCLE_ZONE }
 
 // ---------------------------------------------------------
 // COMPONENT LIBRARY
@@ -269,19 +292,27 @@ private enum class GlossaryTarget { REGIME, SETUP, CYCLE_ZONE }
 /**
  * The top-of-screen Signal card and the closing "The Read" card both read from the same
  * [MarketVerdict] (the backend folded the old signal + the_read split into one object). This one
- * renders the glanceable top flash: `regime` as the one headline chip, tinted and arrow-marked by
- * `direction` (RISK_ON/RISK_OFF/MIXED) rather than `direction` getting its own redundant text
- * pill -- the color/arrow *is* the direction read, not a second word saying the same thing.
- * `signal_line` is the largest prose on the card (the flash itself); `conviction` +
- * `convictionReason` render together, always inline, never behind a tap -- this is the field that
- * makes the verdict earned confidence instead of a black-box "trust me," and seeing e.g. "2 of 4"
- * signals aligned is what makes the mixed drivers underneath read as a contested call rather than
- * a contradiction. `setup` moved to the Market Position card. The card itself is no longer a tap
- * target -- only the regime chip is (trailing chevron), opening the regime+direction glossary,
- * since direction is only ever expressed as this chip's tint, never its own text.
+ * renders the glanceable top flash: `regime` (the model's 6-value classification of the market's
+ * current phase) and `direction` (RISK_ON/RISK_OFF/MIXED, the code-derived aggregate read) render
+ * as two separate pills side by side, each its own tap target with a trailing chevron opening a
+ * glossary sheet scoped to just that term -- they used to share one chip (regime's text, tinted by
+ * direction's color) but that made direction's own value invisible as text, readable only as a
+ * tint. `signal_line` (the flash headline) is the largest prose on the card and is itself tappable
+ * (trailing chevron), opening a bottom sheet with the fuller analysis + posture read (the same
+ * content [TheReadSection] renders lower on the page) for a reader who wants the "why" without
+ * scrolling. `conviction` + `convictionReason` render together, always inline, never behind a tap
+ * -- this is the field that makes the verdict earned confidence instead of a black-box "trust me,"
+ * and seeing e.g. "2 of 4" signals aligned is what makes the mixed drivers underneath read as a
+ * contested call rather than a contradiction. `setup` moved to the Market Position card.
  */
 @Composable
-fun SignalSection(verdict: MarketVerdict, onRegimeClick: () -> Unit) {
+fun SignalSection(
+    verdict: MarketVerdict,
+    onRegimeClick: () -> Unit,
+    onDirectionClick: () -> Unit,
+    onSignalLineClick: () -> Unit
+) {
+    val pulseColors = LocalPulseColors.current
     val directionColor = verdict.direction.toSignalColor()
     // 💡 Same ▲/▼/▪ glyph convention DriversSection/ScoreGauge already use.
     val directionGlyph = when (verdict.direction) {
@@ -303,35 +334,65 @@ fun SignalSection(verdict: MarketVerdict, onRegimeClick: () -> Unit) {
                     color = MaterialTheme.colorScheme.primary
                 )
 
-                Spacer(modifier = Modifier.height(paddingMedium))
-                verdict.regime?.let {
-                    SignalPill(
-                        text = it.label,
-                        pillColor = directionColor.pillColor,
-                        contentColor = directionColor.textColor,
-                        leadingIcon = directionGlyph?.let { glyph ->
-                            {
-                                Text(
-                                    text = glyph,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = directionColor.textColor
-                                )
-                            }
-                        },
-                        trailingIcon = { GlossaryChevron(tint = directionColor.textColor) },
-                        onClick = onRegimeClick
-                    )
+                if (verdict.regime != null || verdict.direction != null) {
+                    Spacer(modifier = Modifier.height(paddingMedium))
+                    Row(horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_small))) {
+                        // 💡 Outlined, not signal-colored -- regime is a classification (which of
+                        // 6 phases the model thinks we're in), not a bullish/bearish read on its
+                        // own; the direction pill next to it is where the color/arrow read lives.
+                        verdict.regime?.let {
+                            SignalPill(
+                                text = it.label,
+                                pillColor = Color.Transparent,
+                                contentColor = pulseColors.onSurfaceMuted,
+                                outlined = true,
+                                trailingIcon = { GlossaryChevron(tint = pulseColors.onSurfaceMuted) },
+                                onClick = onRegimeClick
+                            )
+                        }
+                        verdict.direction?.let {
+                            SignalPill(
+                                text = it.label,
+                                pillColor = directionColor.pillColor,
+                                contentColor = directionColor.textColor,
+                                leadingIcon = directionGlyph?.let { glyph ->
+                                    {
+                                        Text(
+                                            text = glyph,
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = directionColor.textColor
+                                        )
+                                    }
+                                },
+                                trailingIcon = { GlossaryChevron(tint = directionColor.textColor) },
+                                onClick = onDirectionClick
+                            )
+                        }
+                    }
                 }
                 Spacer(modifier = Modifier.height(paddingMedium))
 
                 // 💡 The flash -- largest prose on the card, no callout box around it; a headline
-                // doesn't need to be quoted. titleMedium/bold.
+                // doesn't need to be quoted. titleMedium/bold. Trailing chevron opens the fuller
+                // analysis + posture read as a bottom sheet (see SignalSection's doc comment).
                 verdict.signalLine?.let {
-                    Text(
-                        text = it,
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = it.smartTitleCase(),
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_chevron_forward),
+                            contentDescription = stringResource(id = R.string.market_read_navigate_content_description),
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .size(dimensionResource(id = R.dimen.padding_large))
+                                .clickable(onClick = onSignalLineClick)
+                        )
+                    }
                 }
             }
 
@@ -342,24 +403,23 @@ fun SignalSection(verdict: MarketVerdict, onRegimeClick: () -> Unit) {
 
             Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
                 if (verdict.conviction != null) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.label_conviction),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_medium)))
-                        // 💡 .textColor, not .pillColor -- pillColor is tuned to be a soft background a
-                        // bolder text color sits on top of, so it read as a near-invisible fill when
-                        // used as the filled color of a bar itself. .textColor is the more saturated
-                        // half of the pair, tuned to already read clearly as a foreground color.
-                        ConvictionMeter(
-                            conviction = verdict.conviction,
-                            filledColor = directionColor.textColor
-                        )
-                    }
+                    // 💡 Label-above-bar, matching CardStyleShowcase.kt's SYNTHESIS "headline +
+                    // divider + meter" sample -- a full-width continuous fill reads strength at a
+                    // glance better than the 3 discrete segments this used to be.
+                    Text(
+                        text = stringResource(id = R.string.label_conviction),
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                        color = pulseColors.onSurfaceMuted
+                    )
+                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
+                    // 💡 .textColor, not .pillColor -- pillColor is tuned to be a soft background a
+                    // bolder text color sits on top of, so it read as a near-invisible fill when
+                    // used as the filled color of a bar itself. .textColor is the more saturated
+                    // half of the pair, tuned to already read clearly as a foreground color.
+                    ConvictionMeter(
+                        conviction = verdict.conviction,
+                        filledColor = directionColor.textColor
+                    )
 
                     val reason = verdict.convictionReason?.stripRegimeToken()
                     Text(
@@ -409,9 +469,9 @@ private fun SignalDirection?.toSignalColor(): SignalColor = when (this) {
 // market_position's signal_color -- setup is read contrarian throughout this app (see
 // assets/market_glossary.json's "setups" definitions: EXHAUSTED OVERSOLD/OVERSOLD read as buying
 // opportunities, OVERBOUGHT/BLOW-OFF TOP as danger), so the color has to be derived client-side from that same
-// contrarian reading, not a literal "up = green" mapping. `regime` no longer gets an equivalent
-// mapping here -- its chip is tinted by `direction` (the code-derived aggregate read) instead of
-// a second, client-guessed color for the same card.
+// contrarian reading, not a literal "up = green" mapping. `regime` gets no equivalent mapping at
+// all -- its pill on the Signal card is outlined/neutral, not signal-colored (see SignalSection's
+// doc comment).
 private fun TechnicalSetup?.toSignalColor(): SignalColor = when (this) {
     TechnicalSetup.EXHAUSTED_OVERSOLD, TechnicalSetup.OVERSOLD -> SignalColor.GREEN
     TechnicalSetup.NEUTRAL_MEAN -> SignalColor.YELLOW
@@ -432,31 +492,38 @@ private fun String?.cycleZoneToSignalColor(): SignalColor = when {
 }
 
 /**
- * A 3-segment bar, filled left-to-right by [conviction] (LOW = 1, MODERATE = 2, HIGH = 3) --
- * a compact at-a-glance strength read next to the "CONVICTION" label, rather than relying on the
- * word alone to carry how strong a LOW vs. HIGH read is.
+ * A full-width continuous bar, filled left-to-right by [conviction] (LOW = 1/3, MODERATE = 2/3,
+ * HIGH = full) -- same shape as CardStyleShowcase.kt's SYNTHESIS "headline + divider + meter"
+ * sample, swapped in for the 3 discrete segments this used to be: a continuous fill reads relative
+ * strength at a glance the way a real progress/strength meter would, rather than 3 blocky steps.
  */
 @Composable
 private fun ConvictionMeter(conviction: Conviction, filledColor: Color) {
-    val filledSegments = when (conviction) {
-        Conviction.LOW -> 1
-        Conviction.MODERATE -> 2
-        Conviction.HIGH -> 3
-        Conviction.UNKNOWN -> 0
+    val filledFraction = when (conviction) {
+        Conviction.LOW -> 1f / 3f
+        Conviction.MODERATE -> 2f / 3f
+        Conviction.HIGH -> 1f
+        Conviction.UNKNOWN -> 0f
     }
-    val emptyColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
-    Row(horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_tiny))) {
-        repeat(3) { index ->
-            Box(
-                modifier = Modifier
-                    .width(dimensionResource(id = R.dimen.padding_xlarge))
-                    .height(dimensionResource(id = R.dimen.padding_small))
-                    .background(
-                        color = if (index < filledSegments) filledColor else emptyColor,
-                        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_chip))
-                    )
+    val barHeight = dimensionResource(id = R.dimen.padding_medium)
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(barHeight)
+            .background(
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_pill))
             )
-        }
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(filledFraction)
+                .height(barHeight)
+                .background(
+                    color = filledColor,
+                    shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_pill))
+                )
+        )
     }
 }
 
@@ -1065,7 +1132,7 @@ fun MarketSentimentCard(sentiment: MarketSentiment, onClick: () -> Unit) {
                 Spacer(modifier = Modifier.height(paddingMedium))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = headline,
+                        text = headline.smartTitleCase(),
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.weight(1f)
@@ -1257,13 +1324,13 @@ private fun DominoTimelineStep(title: String, text: String, isLast: Boolean) {
         Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_standard)))
 
         Column(modifier = Modifier.padding(bottom = if (isLast) 0.dp else dimensionResource(id = R.dimen.padding_xlarge))) {
-            // 💡 "TRIGGER"/"IMPACT"/"OUTLOOK" -- a label naming the text below it, not a date, so
-            // it follows the same onSurface rule as every other card label. Was `colorScheme.
-            // secondary` (mapped to the muted onSurfaceMuted tone).
+            // 💡 colorScheme.primary, matching this card's own "DOMINO EFFECT" header above --
+            // was onSurfaceMuted, which read as a disconnected label family from the header it
+            // sits under (same fix applied to every other per-entry kicker of this shape).
             Text(
                 text = title,
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.primary
             )
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
             Text(
@@ -1337,7 +1404,12 @@ private val previewVerdict = MarketVerdict(
 private fun PreviewSignalSection() {
     MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
         Column(modifier = Modifier.padding(16.dp)) {
-            SignalSection(verdict = previewVerdict, onRegimeClick = {})
+            SignalSection(
+                verdict = previewVerdict,
+                onRegimeClick = {},
+                onDirectionClick = {},
+                onSignalLineClick = {}
+            )
         }
     }
 }
