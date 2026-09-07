@@ -49,6 +49,7 @@ import com.marketlabs.pulse.storage.model.summary.MacroItem
 import com.marketlabs.pulse.storage.model.summary.MarketDriver
 import com.marketlabs.pulse.storage.model.summary.MarketPosition
 import com.marketlabs.pulse.storage.model.summary.MarketPulse
+import com.marketlabs.pulse.storage.model.summary.MarketSentiment
 import com.marketlabs.pulse.storage.model.summary.MarketVerdict
 import com.marketlabs.pulse.storage.model.summary.NewsItem
 import com.marketlabs.pulse.storage.model.summary.Positioning
@@ -61,6 +62,7 @@ import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.bottomSheet.DriversInfoBottomSheet
 import com.marketlabs.pulse.ui.components.bottomSheet.MarketGlossaryBottomSheet
+import com.marketlabs.pulse.ui.components.widgets.CardEyebrowLabel
 import com.marketlabs.pulse.ui.components.widgets.SignalPill
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
@@ -92,7 +94,11 @@ import java.util.Locale
 fun MarketSummaryScreen(
     data: MarketPulse?,
     scaffoldPadding: PaddingValues,
-    onNavigateToIndicators: () -> Unit
+    onNavigateToIndicators: () -> Unit,
+    // spec-20260902-market-sentiment-android.md: the Market Sentiment card's whole-card tap
+    // target -- Posture is a tab on the Insights screen, not its own destination, same shape as
+    // onNavigateToIndicators above but landing on a specific Insights tab.
+    onNavigateToPosture: () -> Unit = {}
 ) {
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
 
@@ -144,15 +150,25 @@ fun MarketSummaryScreen(
                 }
             }
 
+            // spec-20260902-market-sentiment-android.md: placed directly below the primary
+            // verdict/read block, grouped with the narrative sections rather than the trailing
+            // watch/risks -- sentiment is context for the read, not a footnote. No external
+            // SectionTitle -- same shape as SignalSection above, whose "Market Signal" header
+            // lives inside the card itself rather than as a separate list item. The whole card
+            // always navigates to Posture (not a per-link choice) -- Positioning is reachable from
+            // there once on Insights.
+            validData.marketSentiment?.let { sentiment ->
+                item {
+                    MarketSentimentCard(sentiment = sentiment, onClick = onNavigateToPosture)
+                }
+            }
+
             val drivers = validData.drivers
             if (!drivers.isNullOrEmpty()) {
                 item {
-                    DriversSectionHeader(
-                        onClick = onNavigateToIndicators,
-                        onInfoClick = { showDriversInfo = true }
-                    )
+                    DriversSectionHeader(onInfoClick = { showDriversInfo = true })
                 }
-                item { DriversSection(drivers) }
+                item { DriversSection(drivers = drivers, onClick = onNavigateToIndicators) }
             }
 
             validData.position?.let { position ->
@@ -328,9 +344,8 @@ fun SignalSection(verdict: MarketVerdict, onRegimeClick: () -> Unit) {
     ) {
         Column {
             Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
-                Text(
+                CardEyebrowLabel(
                     text = stringResource(id = R.string.section_signal),
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.primary
                 )
 
@@ -510,43 +525,29 @@ private fun ConvictionMeter(conviction: Conviction, filledColor: Color) {
  * can't communicate.
  */
 @Composable
-private fun DriversSectionHeader(onClick: () -> Unit, onInfoClick: () -> Unit) {
-    // 💡 The clickable is on this outer Row now, not just the title+info-icon inner group -- it
-    // used to stop short of the chevron, so the one part of the row visually signaling "tap here"
-    // was the one part that wasn't actually tappable. The info icon still carves out its own
-    // nested tap target inside (a nested `clickable` consumes its own taps before they reach this
-    // outer one, same as everywhere else in this file that pairs the two).
+private fun DriversSectionHeader(onInfoClick: () -> Unit) {
+    // 💡 Title-only now -- no longer clickable, no trailing chevron. The tap-to-navigate
+    // affordance (and the chevron signaling it) moved onto DriversSection's card below, so the
+    // whole card is the tap target rather than just this header row.
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
             .padding(top = dimensionResource(id = R.dimen.padding_medium)),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            modifier = Modifier.weight(1f),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = stringResource(id = R.string.section_drivers),
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.primary
-            )
-            Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
-            Icon(
-                painter = painterResource(id = R.drawable.ic_info),
-                contentDescription = stringResource(id = R.string.drivers_info_content_description),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier
-                    .size(dimensionResource(id = R.dimen.icon_size_small))
-                    .clickable(onClick = onInfoClick)
-            )
-        }
+        Text(
+            text = stringResource(id = R.string.section_drivers),
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.primary
+        )
+        Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
         Icon(
-            painter = painterResource(id = R.drawable.ic_chevron_forward),
-            contentDescription = stringResource(id = R.string.drivers_navigate_content_description),
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(dimensionResource(id = R.dimen.padding_large))
+            painter = painterResource(id = R.drawable.ic_info),
+            contentDescription = stringResource(id = R.string.drivers_info_content_description),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier
+                .size(dimensionResource(id = R.dimen.icon_size_small))
+                .clickable(onClick = onInfoClick)
         )
     }
 }
@@ -563,20 +564,45 @@ private fun DriversSectionHeader(onClick: () -> Unit, onInfoClick: () -> Unit) {
  * effect-on-equities call rather than a mechanical copy of the indicator's own reading (backend
  * change, 2026-08-18; see [DriversInfoBottomSheet]). The color alone still carries that signal;
  * the glyph was adding a second, now-misleading claim on top of it.
+ *
+ * 💡 Pills now sit on their own `PulseCard` (DATA -- a chip visualization of raw driver signals,
+ * same category as every other data-display card on this screen) rather than bare in the list.
+ * The trailing chevron -- previously on `DriversSectionHeader`'s title row -- moved in here
+ * alongside it, and `onClick` is the card's own `PulseCard(onClick = ...)`, so the whole card is
+ * now the tap target into Indicators, not just the header row above it.
  */
 @Composable
-fun DriversSection(drivers: List<MarketDriver>) {
+fun DriversSection(drivers: List<MarketDriver>, onClick: () -> Unit) {
     val sorted = drivers.sortedBy { if (it.impact == DriverImpact.HIGH) 0 else 1 }
 
-    FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_small)),
-        verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_small))
+    PulseCard(
+        style = PulseCardStyle.DATA,
+        modifier = Modifier.fillMaxWidth(),
+        onClick = onClick
     ) {
-        sorted.forEach { driver ->
-            SignalPill(
-                text = driver.label ?: "",
-                pillColor = driver.direction.pillColor,
-                contentColor = driver.direction.textColor
+        Row(
+            modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            FlowRow(
+                modifier = Modifier.weight(1f),
+                horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_small)),
+                verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_small))
+            ) {
+                sorted.forEach { driver ->
+                    SignalPill(
+                        text = driver.label ?: "",
+                        pillColor = driver.direction.pillColor,
+                        contentColor = driver.direction.textColor
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+            Icon(
+                painter = painterResource(id = R.drawable.ic_chevron_forward),
+                contentDescription = stringResource(id = R.string.drivers_navigate_content_description),
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(dimensionResource(id = R.dimen.padding_large))
             )
         }
     }
@@ -885,10 +911,9 @@ fun TheReadSection(verdict: MarketVerdict) {
                     vertical = paddingLarge,
                 )
             ) {
-                Text(
-                    text = stringResource(id = R.string.market_read).uppercase(),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                CardEyebrowLabel(
+                    text = stringResource(id = R.string.market_read),
+                    color = MaterialTheme.colorScheme.primary
                 )
                 // 💡 The depth -- the full paragraph, for the user who scrolls this far.
                 verdict.analysis?.let {
@@ -914,10 +939,9 @@ fun TheReadSection(verdict: MarketVerdict) {
                         vertical = paddingLarge
                     )
                 ) {
-                    Text(
+                    CardEyebrowLabel(
                         text = stringResource(id = R.string.label_posture),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.primary
                     )
                     Text(
                         text = posture,
@@ -978,6 +1002,69 @@ fun LeadStoryCard(story: NewsItem) {
                     color = MaterialTheme.colorScheme.onSurface
                 )
             }
+        }
+    }
+}
+
+/**
+ * spec-20260902-market-sentiment-android.md's Market Sentiment card -- AI-authored cohort-
+ * positioning synthesis (headline + summary), styled SYNTHESIS like Signal/The Read (the two
+ * other AI-narrative cards on this screen). The whole card is the tap target (same
+ * `PulseCard(onClick = ...)` + trailing-chevron shape as `DriversSection` below), always landing
+ * on the Posture tab on Insights -- that screen (and Positioning alongside it) owns the raw gauge
+ * numbers, this card deliberately doesn't duplicate them.
+ *
+ * @param sentiment The [MarketSentiment] to display. Caller (`MarketSummaryScreen`) already omits
+ * this card entirely when both headline and summary are blank; either field alone still renders.
+ */
+@Composable
+fun MarketSentimentCard(sentiment: MarketSentiment, onClick: () -> Unit) {
+    val paddingMedium = dimensionResource(id = R.dimen.padding_medium)
+    PulseCard(
+        style = PulseCardStyle.SYNTHESIS,
+        modifier = Modifier.fillMaxWidth(),
+        onClick = onClick
+    ) {
+        // 💡 The chevron sits in its own Row wrapping the whole text column now, vertically
+        // centered against the card's full height (not just the header line) -- it reads as "the
+        // whole card leads somewhere" rather than being pinned to one line inside it.
+        Row(
+            modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                // 💡 Header lives inside the card, same as SignalSection's "Market Signal" -- not
+                // a separate SectionTitle list item.
+                CardEyebrowLabel(
+                    text = stringResource(id = R.string.section_market_sentiment),
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                sentiment.headline?.let {
+                    Spacer(modifier = Modifier.height(paddingMedium))
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+                sentiment.summary?.let {
+                    Spacer(modifier = Modifier.height(paddingMedium))
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+            Icon(
+                painter = painterResource(id = R.drawable.ic_chevron_forward),
+                contentDescription = stringResource(id = R.string.market_sentiment_navigate_content_description),
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(dimensionResource(id = R.dimen.padding_large))
+            )
         }
     }
 }
@@ -1212,7 +1299,7 @@ private fun PreviewSignalSection() {
 private fun PreviewDriversSectionHeader() {
     MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
         Column(modifier = Modifier.padding(16.dp)) {
-            DriversSectionHeader(onClick = {}, onInfoClick = {})
+            DriversSectionHeader(onInfoClick = {})
         }
     }
 }
@@ -1223,7 +1310,7 @@ private fun PreviewDriversSection() {
     MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
         Column(modifier = Modifier.padding(16.dp)) {
             DriversSection(
-                listOf(
+                drivers = listOf(
                     MarketDriver(
                         label = "Retail Sales (MoM)",
                         direction = SignalColor.RED,
@@ -1248,7 +1335,8 @@ private fun PreviewDriversSection() {
                         category = IndicatorCategory.MACRO_ECONOMY,
                         impact = DriverImpact.MODERATE
                     )
-                )
+                ),
+                onClick = {}
             )
         }
     }

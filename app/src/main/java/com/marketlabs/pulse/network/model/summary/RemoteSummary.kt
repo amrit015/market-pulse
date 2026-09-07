@@ -28,7 +28,14 @@ data class NetworkMarketPulse(
     // explicit decision, not an oversight.
     @Json(name = "rolling_narrative") val rollingNarrative: String? = null,
     @Json(name = "macro_call") val macroCall: NetworkMacroCall? = null,
-    @Json(name = "market_outlook") val marketOutlook: NetworkMarketOutlook? = null
+    @Json(name = "market_outlook") val marketOutlook: NetworkMarketOutlook? = null,
+    // 💡 spec-20260902-market-sentiment-android.md: AI-authored cohort-positioning synthesis
+    // (retail vs. active managers vs. leveraged futures vs. short-side), additive on the same
+    // pulse response -- no new endpoint. Nullable end-to-end so a pre-field or degraded response
+    // (either field can independently fail the backend's compliance sanitizer) deserializes
+    // cleanly; see SummaryMappers.kt's NetworkMarketSentiment.toDomain() for the null/blank
+    // collapse rule.
+    @Json(name = "market_sentiment") val marketSentiment: NetworkMarketSentiment? = null
 )
 
 @JsonClass(generateAdapter = true)
@@ -101,6 +108,14 @@ data class NetworkValuation(
 
 @JsonClass(generateAdapter = true)
 data class NetworkNewsItem(
+    @Json(name = "headline") val headline: String? = null,
+    @Json(name = "summary") val summary: String? = null
+)
+
+// spec-20260902-market-sentiment-android.md -- same flat headline/summary shape as
+// NetworkNewsItem, both AI-authored and already compliance-sanitized backend-side.
+@JsonClass(generateAdapter = true)
+data class NetworkMarketSentiment(
     @Json(name = "headline") val headline: String? = null,
     @Json(name = "summary") val summary: String? = null
 )

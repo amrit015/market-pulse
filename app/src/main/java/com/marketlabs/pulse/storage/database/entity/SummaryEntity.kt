@@ -8,6 +8,7 @@ import com.marketlabs.pulse.storage.model.summary.DominoEffect
 import com.marketlabs.pulse.storage.model.summary.MacroItem
 import com.marketlabs.pulse.storage.model.summary.MarketDriver
 import com.marketlabs.pulse.storage.model.summary.MarketPosition
+import com.marketlabs.pulse.storage.model.summary.MarketSentiment
 import com.marketlabs.pulse.storage.model.summary.MarketVerdict
 import com.marketlabs.pulse.storage.model.summary.NewsItem
 import com.marketlabs.pulse.storage.model.summary.RiskItem
@@ -36,5 +37,7 @@ data class MarketPulseEntity(
     val whatChanged: String? = null,
     // New 2026-08-21 -- own column (MIGRATION_15_16), same pattern as watch/risks/drivers rather
     // than nested inside an existing JSON blob.
-    val whatsNew: List<WhatsNewItem>? = null
+    val whatsNew: List<WhatsNewItem>? = null,
+    // New 2026-09-02 -- own column (MIGRATION_20_21), same pattern as whatsNew above.
+    val marketSentiment: MarketSentiment? = null
 )

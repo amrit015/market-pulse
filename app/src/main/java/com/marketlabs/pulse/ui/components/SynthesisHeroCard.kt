@@ -20,7 +20,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -28,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.ui.components.widgets.CardEyebrowLabel
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
@@ -83,23 +83,11 @@ fun SynthesisHeroCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    val textStyle = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                    val iconSize = with(LocalDensity.current) { textStyle.fontSize.toDp() }
-
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_ai_sparkle_filled),
-                        contentDescription = null,
-                        tint = pulseColors.accentPrimary,
-                        modifier = Modifier.size(iconSize)
-                    )
-                    Spacer(modifier = Modifier.width(paddingSmall))
-                    Text(
-                        text = stringResource(id = R.string.insights_synthesis_label),
-                        style = textStyle,
-                        color = pulseColors.accentPrimary
-                    )
-                }
+                CardEyebrowLabel(
+                    text = stringResource(id = R.string.insights_synthesis_label),
+                    color = pulseColors.accentPrimary,
+                    iconRes = R.drawable.ic_ai_sparkle_filled
+                )
                 if (!detail.isNullOrBlank()) {
                     Icon(
                         painter = painterResource(id = if (isExpanded) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down),

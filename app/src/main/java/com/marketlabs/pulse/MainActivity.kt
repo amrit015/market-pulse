@@ -161,6 +161,17 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
+                // spec-20260902-market-sentiment-android.md: same "arrived via a same-tab-switch
+                // jump, not a real tab click" tracking as reachedIndicatorsFromDrivers above, for
+                // the Market Sentiment card's jump to Insights (Posture) -- default back behavior
+                // would otherwise return to Overview instead of Summary.
+                var reachedInsightsFromMarketSentiment by remember { mutableStateOf(false) }
+                LaunchedEffect(currentRoute) {
+                    if (currentRoute != PulseRoutes.MARKET_INSIGHTS) {
+                        reachedInsightsFromMarketSentiment = false
+                    }
+                }
+
                 // 💡 Summary's own in-content header is gone (the report-type label used to live
                 // there) -- the global top bar shows it instead now, reported up via
                 // PulseNavGraph's onSummaryReportTypeLoaded (see MarketSummaryRoute.kt). Null
@@ -235,6 +246,9 @@ class MainActivity : ComponentActivity() {
                         onDriversNavigatedToIndicators = { reachedIndicatorsFromDrivers = true },
                         reachedIndicatorsFromDrivers = reachedIndicatorsFromDrivers,
                         onIndicatorsBackHandled = { reachedIndicatorsFromDrivers = false },
+                        onMarketSentimentNavigatedToInsights = { reachedInsightsFromMarketSentiment = true },
+                        reachedInsightsFromMarketSentiment = reachedInsightsFromMarketSentiment,
+                        onInsightsBackHandled = { reachedInsightsFromMarketSentiment = false },
                         onSummaryReportTypeLoaded = { summaryReportType = it }
                     )
                 }

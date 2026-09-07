@@ -7,6 +7,7 @@ import com.marketlabs.pulse.network.model.summary.NetworkHorizons
 import com.marketlabs.pulse.network.model.summary.NetworkMacroItem
 import com.marketlabs.pulse.network.model.summary.NetworkMarketPosition
 import com.marketlabs.pulse.network.model.summary.NetworkMarketPulse
+import com.marketlabs.pulse.network.model.summary.NetworkMarketSentiment
 import com.marketlabs.pulse.network.model.summary.NetworkNewsItem
 import com.marketlabs.pulse.network.model.summary.NetworkPositioning
 import com.marketlabs.pulse.network.model.summary.NetworkRiskItem
@@ -22,6 +23,7 @@ import com.marketlabs.pulse.storage.model.summary.MacroItem
 import com.marketlabs.pulse.storage.model.summary.MarketDriver
 import com.marketlabs.pulse.storage.model.summary.MarketPosition
 import com.marketlabs.pulse.storage.model.summary.MarketPulse
+import com.marketlabs.pulse.storage.model.summary.MarketSentiment
 import com.marketlabs.pulse.storage.model.summary.MarketVerdict
 import com.marketlabs.pulse.storage.model.summary.NewsItem
 import com.marketlabs.pulse.storage.model.summary.Positioning
@@ -60,7 +62,8 @@ fun MarketPulse.toMarketPulseEntity(): MarketPulseEntity {
         watch = this.watch,
         risks = this.risks,
         whatChanged = this.whatChanged,
-        whatsNew = this.whatsNew
+        whatsNew = this.whatsNew,
+        marketSentiment = this.marketSentiment
     )
 }
 
@@ -83,7 +86,8 @@ fun MarketPulseEntity.toDomain(): MarketPulse {
         watch = this.watch,
         risks = this.risks,
         whatChanged = this.whatChanged,
-        whatsNew = this.whatsNew
+        whatsNew = this.whatsNew,
+        marketSentiment = this.marketSentiment
     )
 }
 
@@ -111,7 +115,8 @@ fun NetworkMarketPulse.toDomain(): MarketPulse {
         watch = this.watch?.map { it.toDomain() },
         risks = this.risks?.map { it.toDomain() },
         whatChanged = this.whatChanged,
-        whatsNew = this.whatsNew?.map { it.toDomain() } ?: emptyList()
+        whatsNew = this.whatsNew?.map { it.toDomain() } ?: emptyList(),
+        marketSentiment = this.marketSentiment?.toDomain()
     )
 }
 
@@ -202,6 +207,18 @@ fun NetworkNewsItem.toDomain(): NewsItem {
     return NewsItem(
         headline = this.headline,
         summary = this.summary
+    )
+}
+
+// spec-20260902-market-sentiment-android.md's null/blank collapse rule: both fields blank means
+// the card isn't shown at all (returns null, not an empty MarketSentiment), but either field
+// present alone still renders -- so a single blank field collapses to null on its own rather than
+// being passed through as an empty string.
+fun NetworkMarketSentiment.toDomain(): MarketSentiment? {
+    if (headline.isNullOrBlank() && summary.isNullOrBlank()) return null
+    return MarketSentiment(
+        headline = headline?.takeUnless { it.isBlank() },
+        summary = summary?.takeUnless { it.isBlank() }
     )
 }
 

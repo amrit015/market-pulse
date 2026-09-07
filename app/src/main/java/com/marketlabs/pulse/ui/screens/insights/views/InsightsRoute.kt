@@ -40,6 +40,14 @@ import com.marketlabs.pulse.ui.screens.insights.InsightsViewModel
 fun InsightsRoute(
     scaffoldPadding: PaddingValues,
     onNavigateToGlossaryDetail: (metricIds: List<String>, title: String, description: String?, status: String?) -> Unit,
+    // spec-20260902-market-sentiment-android.md: Market Sentiment's two footer links need to land
+    // on a specific tab. Same one-shot hoisted-state shape PulseNavGraph already uses for
+    // `highlightedNewsArticleUrl` (News' scroll-to-article signal) -- not a nav argument, so
+    // `PulseRoutes.MARKET_INSIGHTS`'s plain route string (and FloatingBottomNav's route-equality
+    // tab-selected check) stays untouched. Consumed once via onInitialTabConsumed so it doesn't
+    // re-fire the tab jump on every recomposition (e.g. after a config change).
+    initialTab: InsightsTab? = null,
+    onInitialTabConsumed: () -> Unit = {},
     viewModel: InsightsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -51,10 +59,22 @@ fun InsightsRoute(
     // lives here rather than inside PulseTabRow. Two one-directional effects keep `pagerState` and
     // the ViewModel's `selectedTabIndex` in sync without fighting each other: tapping a PulseTabRow
     // chip changes `selectedTabIndex` first, which animates the pager to match; swiping the pager
-    // changes `pagerState.currentPage` first, which tells the ViewModel so the tab row's
-    // highlighted chip follows. Each effect no-ops when the two are already equal, so one side
-    // settling never bounces back into re-triggering the other.
+    // changes `pagerState.settledPage` (see that effect's own comment below for why not
+    // `currentPage`) first, which tells the ViewModel so the tab row's highlighted chip follows.
+    // Each effect no-ops when the two are already equal, so one side settling never bounces back
+    // into re-triggering the other.
     val pagerState = rememberPagerState(initialPage = uiState.selectedTabIndex) { InsightsTab.entries.size }
+
+    // 💡 Fires once per non-null `initialTab` -- jumps the ViewModel's selectedTabIndex, which the
+    // effect below then animates the pager to match, same as a manual PulseTabRow tap. Consuming
+    // it immediately (rather than waiting on some "arrived" signal) means a rapid double-tap on
+    // the Market Sentiment card's two links from Summary can't leave this stuck on the first tab.
+    LaunchedEffect(initialTab) {
+        initialTab?.let { tab ->
+            viewModel.onTabSelected(tab.ordinal)
+            onInitialTabConsumed()
+        }
+    }
 
     LaunchedEffect(uiState.selectedTabIndex) {
         if (pagerState.currentPage != uiState.selectedTabIndex) {
@@ -62,9 +82,19 @@ fun InsightsRoute(
         }
     }
 
-    LaunchedEffect(pagerState.currentPage) {
-        if (pagerState.currentPage != uiState.selectedTabIndex) {
-            viewModel.onTabSelected(pagerState.currentPage)
+    // 💡 Fixes "lands in between tabs": this used to key off `pagerState.currentPage`, which
+    // updates continuously the moment scroll progress crosses the halfway point -- including
+    // *during* an in-flight `animateScrollToPage` (ours or the pager's own fling), not just once
+    // it's finished. A fast two-page swipe, or a programmatic multi-page jump like Market
+    // Sentiment's "always land on Posture" from an unrelated tab, passes through an intermediate
+    // page on the way to its target; with `currentPage`, that intermediate value got pushed to the
+    // ViewModel mid-transition, which the effect above then read back and used to correct the
+    // pager -- fighting the animation/fling that was still in progress and leaving it stuck
+    // between two pages. `settledPage` only updates once the pager has actually come to rest, so
+    // there's no longer a competing target for an active gesture or animation to race against.
+    LaunchedEffect(pagerState.settledPage) {
+        if (pagerState.settledPage != uiState.selectedTabIndex) {
+            viewModel.onTabSelected(pagerState.settledPage)
         }
     }
 
