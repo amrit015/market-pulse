@@ -69,17 +69,37 @@ this way — see the worked example below — but was migrated to strategy A onc
 ## Caching — Room
 
 Every domain except the ones intentionally left one-shot-only caches its data in a single shared
-Room database, `AppDatabase` (schema **version 19** as of 2026-08-26 — bumped for `positioning`'s
-own table plus new columns on `market_posture` — `di/DatabaseModule.kt` builds it with
-`DatabaseMigrations.ALL_MIGRATIONS` applied, no destructive fallback).
+Room database, `AppDatabase` (schema **version 25** as of 2026-09-07 — `di/DatabaseModule.kt` builds
+it with `DatabaseMigrations.ALL_MIGRATIONS` applied, no destructive fallback; re-check this number
+before citing it, it moves often).
 
 - **Entities** (`storage/database/entity/`) mostly mirror the domain model 1:1. Two row-shapes
   exist:
   - *Singleton-per-day/id* (`IndicatorsEntity` keyed by `dateId`, `MarketPostureEntity` keyed by
-    a fixed `id`, `MarketPulseEntity` keyed by `dateId`) — one row holds the whole domain's
-    current snapshot.
+    a fixed `id`) — one row holds the whole domain's current snapshot, and only that one row is
+    ever read or written.
   - *Multi-row-per-symbol* (`AssetOverviewEntity` keyed by `symbol`, `StockEntity` keyed by
     `symbol`) — used when a domain is naturally a list of independent items.
+  - **`MarketPulseEntity` (keyed by `dateId`) moved from the first bucket to the second, 2026-09-07
+    (Summary calendar strip).** Before, exactly one row ever existed (whichever day's report was
+    most recently generated, found via `ORDER BY lastUpdated DESC LIMIT 1` and always overwritten
+    on the next sync) — genuinely a singleton despite the `dateId` key. The calendar strip now
+    caches one row per day the reader has actually opened (today's live row, plus every past date
+    swiped to — a real report row, or a tombstone (`hasReport = false`) confirming none exists), so
+    the table can hold many rows at once and every read goes through
+    `SummaryDao.getByDateId(dateId)`, never a bare "latest" query. **The "latest row" query pattern
+    silently stops meaning "today's row" the moment a domain like this grows a second, independent
+    reason to have more than one row** — check what a `dateId`/timestamp-keyed entity is actually
+    being used for before assuming "keyed by dateId" alone tells you it's still a singleton.
+  - **A related latent bug this same feature made load-bearing:** `Long.toDateIdString()`
+    (`utils/DateExtension.kt`) read epoch millis via `Instant.ofEpochSecond(this)` instead of
+    `ofEpochMilli` — silently produced a garbage far-future date, harmless for years because
+    `dateId` was only ever used as an opaque Room primary key, never queried by value or displayed.
+    The calendar strip's `syncPastDate` now looks rows up BY `dateId`, so the wrong conversion
+    would have broken every past-date cache check. Fixed alongside the calendar work. General
+    lesson: a timestamp/date helper with no visible bug today can still be silently wrong — audit
+    its actual arithmetic before a new caller starts depending on its output being correct, not
+    just present.
 - **Nested objects don't get their own tables.** A domain's rich nested structure is stored as a
   single JSON text column, (de)serialized by a per-domain `*Converters.kt` class using a local
   `Moshi.Builder().add(KotlinJsonAdapterFactory())` instance. This keeps the domain model reusable
@@ -89,6 +109,14 @@ own table plus new columns on `market_posture` — `di/DatabaseModule.kt` builds
     (still just `TEXT`) doesn't need a migration — a row cached under the old type crashes
     Moshi's default enum adapter on read. Needs its own migration bump, even a no-op
     `DELETE FROM` to force a re-fetch.
+  - **Recurrence (2026-09-07, `market_stock_details.setupConfirming`/`setupConflicting`):** same
+    failure shape, a `List<String>` column moved onto a `List<DomainSetupSignal>` shape (see
+    `card-heading-conventions.md`'s Fifteenth step) — real crash on a device with pre-change cached
+    data, `JsonDataException: Expected BEGIN_OBJECT but was STRING`. Fixed with a migration that
+    `UPDATE`s just the two affected columns to `NULL` (a surgical alternative to the whole-table
+    `DELETE FROM` above, when only specific columns' shape changed). Treat this as the standing
+    rule, not a one-off: **any type change on an existing JSON-blob column needs a migration**,
+    full stop — "the SQL column type didn't change" is never sufficient reasoning to skip one.
   - **Narrower alternative (2026-08-22, `indicators` `schema_version 2`):** if the entire nested
     object is already nullable on the containing domain model, wrapping the converter's
     `fromJson` in `try/catch (JsonDataException)` that logs and returns `null` lets a

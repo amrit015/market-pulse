@@ -7,7 +7,9 @@
 > (which covers card/heading/spacing rules) and `@docs/guidelines/compose-conventions.md`'s
 > `PulseTabRow` section (which covers the base tab-bar pattern every tabbed screen uses, with or
 > without this heavier mechanism) -- this file is specifically about the collapsing-chrome
-> mechanics, not styling. Verified against source on 2026-09-06.
+> mechanics, not styling. Verified against source on 2026-09-06; Summary's simpler pinned-zone
+> variant (added 2026-09-07, by a separate session) folded in without a fresh full re-verification
+> of the rest of this file -- re-check line numbers/specifics before citing them if read much later.
 
 ## What this pattern is for
 
@@ -19,7 +21,8 @@ this: **Insights doesn't** -- its `PulseTabRow` is simply pinned, unconditionall
 above it that needs to collapse. Reach for this only when a screen actually has scrollable chrome
 above its tabs; a plain pinned tab row (see `compose-conventions.md`) is the default.
 
-Two live examples, different in how much chrome is pinned vs. collapsing:
+Two live examples of the FULL pattern (pinned zone + collapsing chrome + `NestedScrollConnection`),
+different in how much chrome is pinned vs. collapsing:
 
 - **Stock Detail** (`StockDetailRoute.kt`): `DetailHeader` (ticker/price) is the only thing
   genuinely pinned. The Deep Dive banner + `TechnicalRead` + the HIGH-urgency alert are all one
@@ -28,6 +31,17 @@ Two live examples, different in how much chrome is pinned vs. collapsing:
   is the only thing pinned. Today's Read (the AI executive briefing card, itself expandable in
   place) + the Horizons nav card are the collapsing region; the tab row settles below the
   timestamp.
+
+**Summary** (`SummaryScreen.kt`'s `MarketSummaryScreen`, added 2026-09-07) is a THIRD case, but the
+simpler shape Insights already established, not the full pattern above -- worth naming explicitly
+so a reader doesn't assume it needs pieces #2/#3 below just because it's listed here. Its pinned
+zone (`SummaryCalendarStrip`, the 7-day date pills) never collapses at all -- there's no
+collapsing-chrome `Box`/`Modifier.layout` override and no `NestedScrollConnection`, because nothing
+above the pager needs to scroll away. What it DOES reuse: the `weight(1f)` `Box` + `HorizontalPager`
+shape (piece #4) and the full "Pager ↔ ViewModel sync" sub-pattern below (a swipe between calendar
+days is exactly a tab swipe, just keyed by `dateId` instead of a tab index) -- and, per Bug #4
+below, the same `MainActivity.kt` global-top-bar fix Indicators/Insights needed, for the identical
+reason.
 
 ## The four pieces
 
@@ -85,7 +99,8 @@ to the pager than `PullToRefreshBox`'s own internal connection means:
 ## Pager ↔ ViewModel sync
 
 Exactly the same two-effect shape `InsightsRoute.kt` established first, reused verbatim by
-`StockDetailRoute.kt` and `IndicatorsScreen.kt`:
+`StockDetailRoute.kt`, `IndicatorsScreen.kt`, and `SummaryScreen.kt` (keyed by `dateId` instead of
+a tab index -- see that file's own doc comment on `MarketSummaryScreen`):
 
 ```kotlin
 val pagerState = rememberPagerState(initialPage = uiState.selectedTabIndex) { XTab.entries.size }
@@ -166,6 +181,13 @@ one-directional and only act when the two are out of sync, so neither ever chase
    global top bar (rather than suppressing it entirely, `isPushedDestination`-style, the way Stock
    Detail does), it needs the same pinned-behavior treatment in `MainActivity.kt` or it will
    reproduce this exact conflict.
+   - **Materialized exactly as predicted, 2026-09-07:** `MARKET_SUMMARY` adopted the pager shape
+     above (see "Summary" under "What this pattern is for") and hit this identical conflict even
+     though it has no collapsing chrome at all -- the pinned calendar strip alone was enough to
+     fight the global bar the same way. Added to the same `hasStaticTopBar`/`pinnedScrollBehavior`
+     list in `MainActivity.kt` as `MARKET_INDICATORS`/`MARKET_INSIGHTS`. Confirms this bug isn't
+     specific to the full collapsing-chrome mechanism -- any screen with its OWN pinned zone above a
+     `HorizontalPager`, collapsing or not, needs this treatment.
 
 ## Checklist for adding this to a new screen
 

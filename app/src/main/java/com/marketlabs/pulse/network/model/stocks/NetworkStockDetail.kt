@@ -39,11 +39,12 @@ data class NetworkStockDetail(
     @Json(name = "setup_signals")
     val setupSignals: List<NetworkSetupSignal>? = null,
 
+    /** 2026-09-06 backend change (`54c2f93`): was `List<String>` (a plain reasoning sentence per entry) -- now the same structured `NetworkSetupSignal` shape `setup_signals` already uses (label/meaning/direction), so a confirming/conflicting entry can carry its own plain-English `meaning` the way `condition_labels` already does. `confirming` = signals whose `direction` matches the setup's implied bias; `conflicting` = signals whose `direction` opposes it (NEUTRAL-direction signals appear in `setup_signals` only, never in either list). */
     @Json(name = "setup_confirming")
-    val setupConfirming: List<String>? = null,
+    val setupConfirming: List<NetworkSetupSignal>? = null,
 
     @Json(name = "setup_conflicting")
-    val setupConflicting: List<String>? = null,
+    val setupConflicting: List<NetworkSetupSignal>? = null,
 
     /** Same chip vocabulary as the preview's `condition_chips`, but WITH plain-English `meaning`. */
     @Json(name = "condition_labels")
@@ -180,6 +181,9 @@ data class NetworkLevels(
 @JsonClass(generateAdapter = true)
 data class NetworkSetupSignal(
     val label: String? = null,
+
+    /** Plain-English explanation of what `label` means, e.g. "MACD's signal line turned up 5 sessions ago, marking a shift in short-term momentum." Added 2026-09-06 alongside `setup_confirming`/`setup_conflicting` moving onto this same shape -- same "explanatory style" `condition_labels`' own `meaning` field already established. */
+    val meaning: String? = null,
 
     /** One of BULLISH | BEARISH | NEUTRAL. */
     val direction: String? = null

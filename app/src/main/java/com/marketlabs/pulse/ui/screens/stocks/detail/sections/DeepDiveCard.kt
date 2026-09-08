@@ -32,7 +32,7 @@ import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 /**
  * Chrome-level `PulseCard(SYNTHESIS)` on Stock Detail (pinned between `DetailHeader` and the tab
  * row, not tab content -- visible regardless of which tab is selected): an icon + date line, a
- * fixed description of what a deep dive covers (not model-generated -- the 8 topics are a fixed
+ * fixed description of what a deep dive covers (not model-generated -- the 9 topics are a fixed
  * schema, so this is static copy), and a [ViewMoreRow] "Open full Deep Dive" CTA. Omitted entirely
  * when the symbol has neither a `deepAnalysisDate` nor a `nextDeepDiveTriggerDate` yet -- see
  * [deepDiveDisplayParts] for the exact cold-start text rules.

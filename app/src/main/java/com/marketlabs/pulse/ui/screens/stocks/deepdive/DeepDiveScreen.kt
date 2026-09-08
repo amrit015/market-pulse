@@ -17,6 +17,8 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.storage.model.stocks.DomainDeepDiveHeadlineStat
+import com.marketlabs.pulse.storage.model.stocks.DomainDeepDiveHighlight
 import com.marketlabs.pulse.storage.model.stocks.DomainDeepDiveSection
 import com.marketlabs.pulse.storage.model.stocks.DomainFundamentalsDelta
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
@@ -62,6 +64,8 @@ fun DeepDiveScreen(
                 kicker = topicKickerRes(section.topic)?.let { stringResource(id = it) },
                 heading = section.heading.orEmpty(),
                 body = section.body.orEmpty(),
+                headlineStat = section.headlineStat,
+                highlights = section.highlights,
                 deltaChips = if (section.topic == "WHATS_CHANGED") fundamentalsDelta else emptyList()
             )
         }
@@ -82,6 +86,16 @@ private val mockSections = listOf(
         topic = "WHATS_CHANGED",
         heading = "Analyst Targets Ticked Up on AI Capacity Buildout",
         body = "Since the last deep dive, Wall Street nudged its outlook higher after Amazon's forward AWS capacity commitments came into view."
+    ),
+    DomainDeepDiveSection(
+        topic = "WHAT_MOVES_IT",
+        heading = "AWS Growth Reacceleration Is the Key Swing Factor",
+        body = "Cloud infrastructure demand tied to AI workloads is the single biggest lever on the stock from here -- a reacceleration in AWS growth would broaden the bull case beyond retail margins alone.",
+        headlineStat = DomainDeepDiveHeadlineStat(label = "AWS Revenue Growth (YoY)", value = "19.1%"),
+        highlights = listOf(
+            DomainDeepDiveHighlight(label = "AWS Op. Margin", value = "35.5%", note = "vs. 31.6% a year ago"),
+            DomainDeepDiveHighlight(label = "Backlog", value = "$195B")
+        )
     )
 )
 

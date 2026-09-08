@@ -626,12 +626,43 @@ object DatabaseMigrations {
         }
     }
 
+    // Migration from Version 23 to 24: market_pulse gains `hasReport` -- distinguishes a real
+    // cached report from a tombstone row (Summary calendar strip, core/summary/SummaryRepository.kt's
+    // syncPastDate) written when a past date is confirmed to have no report (weekend/holiday/before
+    // the app tracked history), so that date is never re-fetched from Firestore on a later visit.
+    // Existing rows are all real reports, hence the `DEFAULT 1` (true) rather than false. Purely
+    // additive, same style as every migration above -- no existing column touched.
+    val MIGRATION_23_24 = object : Migration(23, 24) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE `market_pulse` ADD COLUMN `hasReport` INTEGER NOT NULL DEFAULT 1")
+        }
+    }
+
+    // Migration from Version 24 to 25: `market_stock_details.setupConfirming`/`setupConflicting`
+    // moved off `List<String>` onto the same structured `List<DomainSetupSignal>` shape
+    // `setupSignals` already used (backend change `54c2f93`, see card-heading-conventions.md's
+    // Fifteenth step). Unlike every migration above, this one is NOT purely additive -- the SQL
+    // column type is unchanged (still TEXT, both are JSON-blob columns), but the JSON *content* an
+    // existing row holds is now incompatible with what `StocksConverters.toSetupSignals` expects to
+    // parse (a plain string element where an object is now expected), and that mismatch isn't
+    // something a schema migration can normally see since Room only validates column names/types,
+    // not blob contents. Confirmed via a real crash report (`JsonDataException: Expected
+    // BEGIN_OBJECT but was STRING at path $[0]`) on a device that still had pre-change data cached.
+    // Nulls out both columns on upgrade so `StocksDao` reads back `null` (a normal "not cached yet"
+    // state, same as a symbol that's never had its detail fetched) instead of crashing on the old
+    // shape -- the very next `refreshDetail` repopulates them correctly from the network.
+    val MIGRATION_24_25 = object : Migration(24, 25) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("UPDATE `market_stock_details` SET `setupConfirming` = NULL, `setupConflicting` = NULL")
+        }
+    }
+
     val ALL_MIGRATIONS = arrayOf(
         MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5,
         MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9,
         MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13,
         MIGRATION_13_14, MIGRATION_14_15, MIGRATION_15_16, MIGRATION_16_17,
         MIGRATION_17_18, MIGRATION_18_19, MIGRATION_19_20, MIGRATION_20_21,
-        MIGRATION_21_22, MIGRATION_22_23 // 💡 Added to registry
+        MIGRATION_21_22, MIGRATION_22_23, MIGRATION_23_24, MIGRATION_24_25 // 💡 Added to registry
     )
 }

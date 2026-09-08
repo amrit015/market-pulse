@@ -60,16 +60,17 @@ import javax.inject.Inject
  * `verticalScroll` is actually producing scroll deltas, so this single attachment point is enough;
  * no individual screen file needed touching for the collapsing behavior itself.
  *
- * `scrollBehavior` is one of two instances, picked per-route (2026-09-06): Indicators and Insights
- * both grew their own in-content collapsing/sticky chrome (a scrolling banner region topped with a
- * `PulseTabRow`), and letting the global bar ALSO react to the same scroll deltas via
+ * `scrollBehavior` is one of two instances, picked per-route (2026-09-06, Summary added
+ * 2026-09-07): Indicators and Insights both grew their own in-content collapsing/sticky chrome (a
+ * scrolling banner region topped with a `PulseTabRow`); Summary grew a pinned calendar strip above
+ * a swipeable per-day pager. Letting the global bar ALSO react to the same scroll deltas via
  * `enterAlwaysScrollBehavior` meant two independent `NestedScrollConnection`s were competing over
  * one gesture stream -- the in-screen chrome consuming part of each scroll delta before the global
  * bar's own connection (further up the tree) ever saw it, leaving the bar's hide/show animation
- * starved of consistent input and behaving erratically. `pinnedScrollBehavior()` for those two
- * routes means the global bar simply never reacts to scroll at all there (fully static, matching
- * what was asked), leaving all of the scroll delta for each screen's own chrome to consume;
- * every other route keeps the original `enterAlwaysScrollBehavior()` unchanged.
+ * starved of consistent input and behaving erratically. `pinnedScrollBehavior()` for those routes
+ * means the global bar simply never reacts to scroll at all there (fully static, matching what was
+ * asked), leaving all of the scroll delta for each screen's own chrome to consume; every other
+ * route keeps the original `enterAlwaysScrollBehavior()` unchanged.
  */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -111,11 +112,17 @@ class MainActivity : ComponentActivity() {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route
 
-                // 💡 See this file's own header comment on why these two routes get a static
+                // 💡 See this file's own header comment on why these routes get a static
                 // (`pinnedScrollBehavior`) top bar instead of the collapsing one every other route
-                // still uses.
+                // still uses. Summary added alongside its own calendar-strip pager (pinned strip/
+                // date label/timestamp above a swipeable per-day pager, same shape as Indicators'
+                // pinned timestamp above its tab pager) -- the global collapsing bar fighting the
+                // screen's own scroll is exactly the conflict this file's header comment already
+                // describes for Indicators/Insights (see docs/architecture/collapsing-header-
+                // tabs.md, "The global top app bar fighting a screen's own collapsing chrome").
                 val hasStaticTopBar = currentRoute == PulseRoutes.MARKET_INDICATORS ||
-                    currentRoute == PulseRoutes.MARKET_INSIGHTS
+                    currentRoute == PulseRoutes.MARKET_INSIGHTS ||
+                    currentRoute == PulseRoutes.MARKET_SUMMARY
                 val scrollBehavior = if (hasStaticTopBar) pinnedScrollBehavior else enterAlwaysScrollBehavior
 
                 // 💡 News, Settings, Indicator Horizons, the in-app web view, and the stock detail
@@ -162,7 +169,10 @@ class MainActivity : ComponentActivity() {
                 var lastRoute by remember { mutableStateOf<String?>(null) }
                 LaunchedEffect(currentRoute) {
                     lastRoute?.let { previousRoute ->
-                        if (previousRoute != PulseRoutes.MARKET_INDICATORS && previousRoute != PulseRoutes.MARKET_INSIGHTS) {
+                        if (previousRoute != PulseRoutes.MARKET_INDICATORS &&
+                            previousRoute != PulseRoutes.MARKET_INSIGHTS &&
+                            previousRoute != PulseRoutes.MARKET_SUMMARY
+                        ) {
                             routeHeightOffsets[previousRoute] = enterAlwaysScrollBehavior.state.heightOffset
                         }
                     }

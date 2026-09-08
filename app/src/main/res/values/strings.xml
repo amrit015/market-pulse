@@ -4,6 +4,9 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="analyzed_at">Analyzed as of: %1$s</string>
+    <!-- Calendar strip (7-day Summary history) -->
+    <string name="summary_not_available_for_date">Market Summary not available for this date</string>
+    <string name="summary_today_not_ready">Summary is yet to be generated, check back here later</string>
     <string name="section_lead_stories">Market Movers</string>
     <string name="section_macro_mix">Macro Mix</string>
 
@@ -527,6 +530,7 @@
     <string name="deep_dive_topic_investment_risks">Investment Risks</string>
     <string name="deep_dive_topic_whats_changed">What\'s Changed</string>
     <string name="deep_dive_topic_current_standing">Current Standing</string>
+    <string name="deep_dive_topic_what_moves_it">What Moves It</string>
     <string name="deep_dive_topic_near_term_outlook">Near-Term Outlook</string>
     <string name="deep_dive_topic_long_term_structural">Long-Term View</string>
     <string name="deep_dive_topic_analyst_consensus">Analyst Consensus</string>

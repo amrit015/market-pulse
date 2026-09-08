@@ -682,6 +682,124 @@ Only `MarketGlossaryBottomSheet` was changed — it's the one bottom sheet in th
 `surfaceContainerHighest` still works fine for them (no card fill to collide with) and none were
 touched.
 
+## Fourteenth step (2026-09-07; layout corrected later the same day): Deep Dive sections gain a hero stat + a highlights grid, `StatGrid` gains `note`
+
+Backend As-Built Update #2 (companion to the already-implemented `spec-20260904-deep-dive-expansion.md`)
+added two new fields to every Deep Dive section — `headline_stat: {label, value} | null` and
+`highlights: [{label, value, note?}]` (always an array, 2-5 items typical) — plus a 9th topic,
+`WHAT_MOVES_IT` (between `CURRENT_STANDING` and `NEAR_TERM_OUTLOOK` in the backend's own fixed
+order; the client renders by array order / `topic` match, never a fixed index, so no ordering logic
+needed updating). Confirmed against backend source (`deepDivePrompt.ts`) before implementing, not
+assumed from the spec doc alone — the doc's schema notation matched exactly, but nullability details
+(`headline_stat` is an explicit `null`, never omitted; `highlights` is always `[]`, never `null`/
+omitted; `note` is genuinely optional) needed the source check to get the Moshi types right.
+
+- **`headline_stat` placement, corrected same day**: originally landed as its own block directly
+  under the kicker, before the heading (reasoning: the hero number reads before the section's own
+  AI-written heading). The owner flipped this after seeing it live — moved to AFTER the heading+body
+  instead, so the narrative reads first and the supporting figure follows. Final stacking order:
+  kicker → heading → body → `headlineStat` → `highlights` → `deltaChips`.
+- **An inset `HorizontalDivider`** (inside the card's own content padding, not full-bleed
+  edge-to-edge like a card's header divider) now separates each of the 3 populated blocks
+  (heading+body / `headlineStat` / `highlights`) from the one before it — never inserted next to an
+  absent block, so a section with only `highlights` gets exactly one divider, not two. New shared
+  `InsetSectionDivider` composable in `DeepDiveSectionCard.kt` (Spacer/Divider/Spacer, same
+  `onSurface.copy(alpha = 0.1f)`/`border_thin` treatment every divider in the app uses).
+- **`headlineStat`'s value uses `colorScheme.primary`**, not `onSurface` — the one hero number this
+  section calls out reads as emphasized, distinct from every other plain value on the card.
+- **`highlights`** renders via the shared `StatGrid` (see Tenth step) — the same equal-width
+  metric-grid convention Fundamentals/Macro/etc. already use, now also backing a second, unrelated
+  screen (Deep Dive). `StatGrid`'s `StatItem` gained an optional third field, `note: String?`,
+  rendered as a smaller, further-muted (`onSurfaceMuted.copy(alpha = 0.7f)`) line under the label —
+  every other `StatItem` call site leaves it null and is unaffected.
+- **`FundamentalsDeltaChips` (the WHATS_CHANGED-only pills after `highlights`) stack one per line**
+  now, a plain `Column` instead of a wrapping `FlowRow` — each delta's full "{label}: {from} →
+  {to}" text ran long enough that letting chips wrap crowded together with ragged leftover space
+  instead of each getting a clean full-width line.
+- **No severity/color inference.** Neither field ever carries a severity/sentiment from the backend
+  — label/value/comparison only. `DeepDiveSectionCard` doesn't tint or icon-mark anything based on a
+  highlight's presence or wording; any future visual emphasis has to come from the app's own
+  deterministic logic on a field it already has elsewhere (matching this app's existing rule for
+  `setup`'s color, see the Eleventh step's sibling reasoning on `SignalSection`).
+- **Room needed no migration** — `sections` is a JSON-blob column (Moshi reflection adapter via
+  `StocksConverters`), so new nullable fields on the nested `DomainDeepDiveSection` just change what
+  the same column's JSON contains, not its SQL shape.
+
+See `CardStyleShowcase.kt`'s "12. SYNTHESIS — Kicker + stat + heading + highlights + delta chips"
+sample, extended to show all three optional blocks (headline stat, highlights grid, delta chips)
+stacked in one card — a demonstration of the card's full possible range, not a claim that a real
+section carries every block at once.
+
+## Fifteenth step (2026-09-07): `setup_confirming`/`setup_conflicting` gain a `meaning` field, tap-to-expand
+
+Backend change (`54c2f93`, 2026-09-06) moved Stock Detail's `setup_confirming`/`setup_conflicting`
+off plain `string[]` onto the same structured `{label, meaning, direction}` shape `setup_signals`
+already used — explicitly "to match `condition_labels`' explanatory style" per the backend's own
+commit message. Confirmed against backend source before implementing (not assumed from a report
+alone): `classification.ts`'s `SetupSignal` interface and `stockAnalysisEngine.ts`'s write path.
+
+Caught mid-change: the Kotlin-side `NetworkSetupSignal`/`DomainSetupSignal` types already existed
+(added in an earlier pass for `setup_signals`) but were missing the new `meaning` field entirely —
+so this fixed two gaps at once: `setup_confirming`/`setup_conflicting` moving off `List<String>?`,
+and `SetupSignal`'s own shape catching up to what the backend actually sends.
+
+`SetupReasoning.kt`'s `ReasoningRow` mirrors the exact interaction `SignalConditions.kt`'s
+`CategoryGroup` already uses for `condition_labels`' own `meaning` field (see the Seventh step) —
+tap the whole row to toggle `meaning` open as a smaller, muted caption beneath it, rather than
+always showing it. `label` keeps rendering in the row's existing position (no visual regression for
+someone who never taps); the caption indents to align under the reasoning text column, not the
+bar/label columns, so it reads as elaborating on that text specifically.
+
+**Correction, same day:** this was first shipped on the assumption that no Room migration was
+needed, since `setupConfirming`/`setupConflicting` already had `TEXT` columns and Room resolves
+`@TypeConverters` by Kotlin type database-wide (see `StocksConverters.kt`'s own doc comment) — true
+for the SQL schema, but wrong about existing cached *content*. A real crash proved it:
+`JsonDataException: Expected BEGIN_OBJECT but was STRING at path $[0]` in `toSetupSignals`, on a
+device whose cached `market_stock_details` rows still held the old `["reason one", "reason two"]`
+plain-string JSON from before this change -- Room's schema validation checks column names/types,
+not blob contents, so the mismatch only surfaced at decode time. Fixed with `MIGRATION_24_25`
+(version bump 24 → 25), which `UPDATE`s both columns to `NULL` on upgrade rather than trying to
+transform the old shape in SQL -- the next `refreshDetail` repopulates them correctly from the
+network, same as a symbol whose detail was never cached. **Lesson for any future field-shape
+change that reuses an existing TEXT/JSON-blob column** (not just adding a new column): a migration
+is still needed even though the SQL column type doesn't change, specifically to clear or transform
+existing rows' now-incompatible JSON content -- "the column already exists as TEXT" is not the same
+guarantee as "existing rows' JSON already matches what the new type expects."
+
+**Second correction, next day:** the owner reported the tap-to-expand wasn't discoverable -- nothing
+about a `ReasoningRow` visually distinguished it from a plain, non-interactive one. Added a trailing
+up/down chevron (`ic_arrow_up`/`ic_arrow_down`, `icon_size_small`, `onSurfaceMuted`) to the end of
+the row, shown ONLY when `meaning != null` -- the same in-place-expand-toggle icon
+`SynthesisExpandableHeroSample` and every other "reveal more of this same card" control in the app
+already uses (see `compose-conventions.md`'s "See more" section, which explicitly separates this
+icon family from the navigate-away chevron). The row's `clickable` modifier is now also
+conditional on `meaning != null` -- a row with nothing to reveal is no longer tappable at all, so
+the affordance never implies an action that does nothing. `SignalConditions.kt`'s `CategoryGroup`
+has the exact same "tap with no visual hint" gap for `condition_labels`' own `meaning` field and
+was NOT touched here (out of scope for this ask) -- flagged as a follow-up, not fixed silently.
+
+## Sixteenth step (2026-09-07): `StockAnalysisGlossaryBottomSheet` matches the Regime/Bands card style too
+
+`StockAnalysisGlossaryBottomSheet` (the whole-card multi-metric glossary sheet — Key Levels,
+Fundamentals, Macro, Returns, HeadlineMetricsStrip, MomentumAndTrend, SetupReasoning all open it
+from their own info icon) still had its pre-Twelfth-step look: a plain `Column` per entry,
+`titleMedium`/`bodyMedium`. Brought in line with the same "list of terms" card shape
+`MarketGlossaryBottomSheet`'s term cards were fixed to match a day earlier (Twelfth/Fifteenth
+steps, itself matching Indicators' `BandRow`):
+
+- Each entry is now its own `PulseCard(DATA)`, `titleSmall`/`bodySmall` (was plain
+  `titleMedium`/`bodyMedium` with no card at all).
+- **No accent border or "CURRENT" badge here** — deliberately not a full match to `BandRow`. This
+  sheet lists every metric a section renders, not one reading against a set of bands, so there's no
+  "current" concept to highlight; only the card shape and type scale carry over.
+- Title dropped from `headlineSmall` to `titleLarge`, matching `MarketGlossaryBottomSheet`'s own
+  title-size correction.
+- **`containerColor` fixed proactively, same day, before it could reproduce the Thirteenth step's
+  bug**: since entries now nest `PulseCard(DATA)`, `surfaceContainerHighest` would have resolved to
+  the literal same value as the card's own fill (this app's simplified surface ramp, see Thirteenth
+  step) and made every card invisible against the sheet. Set to `colorScheme.surface` up front
+  instead of waiting for a bug report.
+
 ## Open items for the next pass (not yet decided — don't assume an answer)
 
 1. **Content-heading weight** (Signal/Sentiment bold vs. the four list cards plain) — intentional

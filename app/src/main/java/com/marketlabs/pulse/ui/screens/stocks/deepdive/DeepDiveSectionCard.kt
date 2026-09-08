@@ -7,24 +7,30 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.storage.model.stocks.DomainDeepDiveHeadlineStat
+import com.marketlabs.pulse.storage.model.stocks.DomainDeepDiveHighlight
 import com.marketlabs.pulse.storage.model.stocks.DomainFundamentalsDelta
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.widgets.CardEyebrowLabel
+import com.marketlabs.pulse.ui.screens.stocks.detail.StatGrid
+import com.marketlabs.pulse.ui.screens.stocks.detail.StatItem
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 /**
  * One `PulseCard(SYNTHESIS)` per Deep Dive section -- the Deep Dive screen renders one of these
  * per entry in `sections`, NOT one big card holding all of them (per the confirmed design: "Deep
- * Dive" itself is a page-level title outside any card, and each of the 8 sections is its own
+ * Dive" itself is a page-level title outside any card, and each of the 9 sections is its own
  * card). `kicker` is the section's fixed `topic` resolved to a display label (see
  * [topicKickerRes]) -- small caps, accent-colored, sitting above the section's own dynamic
  * `heading`.
@@ -33,12 +39,30 @@ import com.marketlabs.pulse.ui.theme.MarketPulseTheme
  * `fundamentals_delta` to that one card only, since the deltas are what that section's prose
  * narrates. Renders below the body as small pills when present; nothing extra otherwise (a
  * symbol's first-ever deep dive, or a same-day rerun with no real change, both leave this empty).
+ *
+ * `headlineStat`/`highlights` (2026-09-07, backend As-Built Update #2): structured quick-view data
+ * on every section, alongside the prose `heading`/`body`, not a replacement for them. Stacking order
+ * is kicker -> heading -> body -> `headlineStat` -> `highlights` -> `deltaChips` (2026-09-07: moved
+ * `headlineStat` from above the heading to below the body, per the owner's call -- the AI-written
+ * narrative reads first, the supporting figures after). An inset `HorizontalDivider` (inside this
+ * Column's own padding, not full-bleed like a card's header divider) separates each populated block
+ * from the one before it -- never between two blocks where one is absent, so a section with only
+ * `highlights` and no `headlineStat` gets exactly one divider, not two. `headlineStat`'s value uses
+ * `colorScheme.primary` (was `onSurface`) so the one hero number reads as emphasized, not just big.
+ * `highlights` (2-5 short figure-only stat chips) render via the shared [StatGrid] (the same
+ * metric-grid convention Fundamentals/Macro/etc. use on Stock Detail). Neither field ever carries a
+ * severity/sentiment from the backend -- label/value/comparison only -- so nothing here infers a
+ * color or icon from a highlight's presence or wording; if this section ever needs visual emphasis,
+ * it has to come from the app's own deterministic logic on a field it already has elsewhere, not
+ * from `headlineStat`/`highlights` themselves.
  */
 @Composable
 fun DeepDiveSectionCard(
     kicker: String?,
     heading: String,
     body: String,
+    headlineStat: DomainDeepDiveHeadlineStat? = null,
+    highlights: List<DomainDeepDiveHighlight> = emptyList(),
     deltaChips: List<DomainFundamentalsDelta> = emptyList(),
     modifier: Modifier = Modifier
 ) {
@@ -73,12 +97,58 @@ fun DeepDiveSectionCard(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )
+
+            val statValue = headlineStat?.value
+            if (statValue != null) {
+                InsetSectionDivider()
+                headlineStat.label?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = pulseColors.onSurfaceMuted
+                    )
+                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_tiny)))
+                }
+                Text(
+                    text = statValue,
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
+                    // 💡 colorScheme.primary -- the one hero number this section calls out, distinct
+                    // from every other plain-onSurface value on this card.
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            val highlightStats = highlights.mapNotNull { highlight ->
+                val value = highlight.value ?: return@mapNotNull null
+                val label = highlight.label ?: return@mapNotNull null
+                StatItem(value = value, label = label, note = highlight.note)
+            }
+            if (highlightStats.isNotEmpty()) {
+                InsetSectionDivider()
+                StatGrid(stats = highlightStats)
+            }
             if (deltaChips.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
                 FundamentalsDeltaChips(deltas = deltaChips)
             }
         }
     }
+}
+
+/**
+ * The divider between two populated blocks within one section card (heading+body / `headlineStat`
+ * / `highlights`) -- sits inside the card's own content padding (an inset divider, not full-bleed
+ * edge-to-edge like a card's header divider), since it's marking a boundary within one card's
+ * content, not between two cards or a header and its content.
+ */
+@Composable
+private fun InsetSectionDivider() {
+    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+    HorizontalDivider(
+        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+        thickness = dimensionResource(id = R.dimen.border_thin)
+    )
+    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
 }
 
 // ============================================================================
@@ -105,6 +175,24 @@ private fun PreviewDeepDiveSectionCardDark() {
             kicker = "Where It Stands",
             heading = "Strong Margins and Heavy Infrastructure Reinvestment",
             body = "Amazon shows robust profitability with a gross margin of 50.77%, supported by a growing mix of high-margin AWS and advertising revenue against lower-margin retail."
+        )
+    }
+}
+
+@Preview(name = "Where It Stands, with headline stat + highlights", showBackground = true)
+@Composable
+private fun PreviewDeepDiveSectionCardWithHighlights() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
+        DeepDiveSectionCard(
+            kicker = "Where It Stands",
+            heading = "Strong Margins and Heavy Infrastructure Reinvestment",
+            body = "Amazon shows robust profitability with a gross margin of 50.77%, supported by a growing mix of high-margin AWS and advertising revenue against lower-margin retail.",
+            headlineStat = DomainDeepDiveHeadlineStat(label = "Gross Margin", value = "50.77%"),
+            highlights = listOf(
+                DomainDeepDiveHighlight(label = "Operating Margin", value = "9.9%", note = "up from 6.4% a year ago"),
+                DomainDeepDiveHighlight(label = "FCF Yield", value = "2.1%"),
+                DomainDeepDiveHighlight(label = "ROIC", value = "12.8%", note = "above 10% cost of capital")
+            )
         )
     }
 }

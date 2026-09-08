@@ -30,7 +30,7 @@ data class NetworkStockDeepDive(
     @Json(name = "earnings_triggered")
     val earningsTriggered: Boolean? = null,
 
-    /** 8 fixed topics (schema-validated on the backend), order not guaranteed to match display order — match by `topic` value, not position. */
+    /** 9 fixed topics (schema-validated on the backend), order not guaranteed to match display order — match by `topic` value, not position. */
     val sections: List<NetworkDeepDiveSection>? = null,
 
     /** Empty on a symbol's first-ever deep dive (no prior snapshot to diff against) or a same-day rerun with no real change -- both normal, not errors. Renders as small chips under the WHATS_CHANGED section. */
@@ -60,8 +60,29 @@ data class NetworkFundamentalsDelta(
 
 @JsonClass(generateAdapter = true)
 data class NetworkDeepDiveSection(
-    /** One of WHAT_THE_COMPANY_IS | WHERE_IT_STANDS_NOW | INVESTMENT_RISKS | WHATS_CHANGED | CURRENT_STANDING | NEAR_TERM_OUTLOOK | LONG_TERM_STRUCTURAL | ANALYST_CONSENSUS. */
+    /** One of WHAT_THE_COMPANY_IS | WHERE_IT_STANDS_NOW | INVESTMENT_RISKS | WHATS_CHANGED | CURRENT_STANDING | WHAT_MOVES_IT | NEAR_TERM_OUTLOOK | LONG_TERM_STRUCTURAL | ANALYST_CONSENSUS. */
     val topic: String? = null,
     val heading: String? = null,
-    val body: String? = null
+    val body: String? = null,
+
+    /** The one hero number for this section's quick-view, e.g. `{label: "Forward P/E", value: "24.75x"}` — `null` when this section has no single standout figure. Backend sends this key as an explicit `null`, never omits it. No severity/sentiment on this or [highlights] ever comes from the backend (label/value/comparison only) — any visual emphasis (color, icon) has to come from the app's own deterministic logic on fields it already has, never inferred from a highlight's presence or wording. */
+    @Json(name = "headline_stat")
+    val headlineStat: NetworkDeepDiveHeadlineStat? = null,
+
+    /** 2-5 short figure-only stat chips backing this section's prose — always an array (possibly empty), never omitted or null on the wire. */
+    val highlights: List<NetworkDeepDiveHighlight> = emptyList()
+)
+
+@JsonClass(generateAdapter = true)
+data class NetworkDeepDiveHeadlineStat(
+    val label: String? = null,
+    val value: String? = null
+)
+
+/** `note` is genuinely optional (may be absent or explicitly null) — a short comparison only, per the backend's own rule that it never states a verdict. */
+@JsonClass(generateAdapter = true)
+data class NetworkDeepDiveHighlight(
+    val label: String? = null,
+    val value: String? = null,
+    val note: String? = null
 )
