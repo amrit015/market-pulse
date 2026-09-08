@@ -25,6 +25,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.core.glossary.StockAnalysisGlossaryProvider
+import com.marketlabs.pulse.ui.components.PulseCard
+import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 /**
@@ -45,6 +47,14 @@ data class GlossaryEntry(val label: String, val term: String, val definitionOver
  * actually rendering (a caller passes the same non-null-filtered list it used to lay out its own
  * stats), not the glossary's full term list, so this never shows a definition for something not
  * currently on screen.
+ *
+ * 2026-09-07: each entry now renders as its own `PulseCard(DATA)`, `titleSmall`/`bodySmall` (was a
+ * plain `Column`, `titleMedium`/`bodyMedium`) -- matches `MetricDetailScreen`'s `BandRow`, the same
+ * "list of terms" card shape `MarketGlossaryBottomSheet`'s own term cards were fixed to match a day
+ * earlier (see `card-heading-conventions.md`'s Twelfth/Fifteenth steps). No accent border/"CURRENT"
+ * badge here, unlike `BandRow` -- this sheet has no single current value to highlight (it's every
+ * metric a section renders, not one reading against a set of bands), so only the card shape and
+ * type scale carry over, not the current-highlight treatment.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,7 +72,14 @@ fun StockAnalysisGlossaryBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
+        // 💡 colorScheme.surface, not surfaceContainerHighest -- this sheet now nests
+        // `PulseCard(DATA)` per entry (see the doc comment above), and this app's simplified
+        // surface ramp resolves `surfaceContainerHighest`/`surfaceVariant` to the literal same
+        // value as `PulseCard`'s own DATA fill (see card-heading-conventions.md's Thirteenth
+        // step) -- a card sitting on a `surfaceContainerHighest` sheet has zero contrast against
+        // it. `colorScheme.surface` is the one remaining token distinct from both `background`
+        // (the screen behind the sheet) and `surfaceVariant` (the card's own fill).
+        containerColor = MaterialTheme.colorScheme.surface
     ) {
         LazyColumn(
             modifier = Modifier
@@ -72,7 +89,7 @@ fun StockAnalysisGlossaryBottomSheet(
             item {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.padding(bottom = paddingLarge)
                 )
@@ -81,19 +98,22 @@ fun StockAnalysisGlossaryBottomSheet(
             items(entries) { entry ->
                 val definition = entry.definitionOverride ?: StockAnalysisGlossaryProvider.definitionFor(context, entry.term)
                 if (definition != null) {
-                    Column(modifier = Modifier.padding(bottom = paddingLarge)) {
-                        Text(
-                            text = entry.label,
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Spacer(modifier = Modifier.height(paddingSmall))
-                        Text(
-                            text = definition,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                    PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.padding(paddingLarge)) {
+                            Text(
+                                text = entry.label,
+                                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = definition,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = paddingSmall)
+                            )
+                        }
                     }
+                    Spacer(modifier = Modifier.height(paddingSmall))
                 }
             }
 

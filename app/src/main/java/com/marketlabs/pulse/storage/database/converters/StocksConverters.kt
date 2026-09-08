@@ -30,12 +30,16 @@ import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
  * approach as `IndicatorsConverters` for the indicators domain. One converter pair per distinct
  * Kotlin type.
  *
- * `List<String>?` columns (`chipsAdded`, `chipsRemoved`, `contentFlags`, `setupConfirming`,
- * `setupConflicting`, `considerations`) deliberately have NO converter defined here —
- * `NewsConverters.fromStringList`/`toStringList` already registers that exact conversion on
- * `AppDatabase`, and Room resolves `@TypeConverters` database-wide, not scoped to the entity/class
- * that declares them. A second `List<String>?` pair here would be a duplicate conversion and fails
- * KSP's `kspDebugKotlin` step with "Multiple functions define the same conversion."
+ * `List<String>?` columns (`chipsAdded`, `chipsRemoved`, `contentFlags`, `considerations`)
+ * deliberately have NO converter defined here — `NewsConverters.fromStringList`/`toStringList`
+ * already registers that exact conversion on `AppDatabase`, and Room resolves `@TypeConverters`
+ * database-wide, not scoped to the entity/class that declares them. A second `List<String>?` pair
+ * here would be a duplicate conversion and fails KSP's `kspDebugKotlin` step with "Multiple
+ * functions define the same conversion." `setupConfirming`/`setupConflicting` used to be in this
+ * group too (plain `List<String>?`) — 2026-09-06 backend change moved them onto the same
+ * `List<DomainSetupSignal>?` shape `setupSignals` already uses, so they now share *that* type's
+ * `fromSetupSignals`/`toSetupSignals` pair below (same database-wide resolution, just a different
+ * shared type) rather than needing a converter pair of their own.
  */
 class StocksConverters {
     private val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()

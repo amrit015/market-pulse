@@ -28,7 +28,22 @@ data class StockDeepDive(
 data class DomainDeepDiveSection(
     val topic: String? = null,
     val heading: String? = null,
-    val body: String? = null
+    val body: String? = null,
+    val headlineStat: DomainDeepDiveHeadlineStat? = null,
+    val highlights: List<DomainDeepDiveHighlight> = emptyList()
+)
+
+/** The one hero number for a Deep Dive section's quick-view, e.g. "Forward P/E" / "24.75x". No severity/color of its own -- see [DomainDeepDiveSection]'s doc comment. */
+data class DomainDeepDiveHeadlineStat(
+    val label: String? = null,
+    val value: String? = null
+)
+
+/** One of 2-5 short figure-only stat chips backing a Deep Dive section's prose. `note`, when present, states a comparison, never a verdict -- the backend's own rule, not enforced client-side. */
+data class DomainDeepDiveHighlight(
+    val label: String? = null,
+    val value: String? = null,
+    val note: String? = null
 )
 
 /** One changed `market_fundamentals` numeric field between this deep dive and the prior one. `field` is the backend's raw snake_case field name (e.g. "target_mean", "pe_forward"), not a fixed enum. */

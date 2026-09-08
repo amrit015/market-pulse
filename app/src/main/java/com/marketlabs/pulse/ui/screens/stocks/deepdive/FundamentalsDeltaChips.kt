@@ -4,7 +4,7 @@ package com.marketlabs.pulse.ui.screens.stocks.deepdive
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
@@ -25,6 +25,12 @@ import java.util.Locale
  * bullish/bearish (a higher P/E isn't a directional read on its own), so this doesn't attempt the
  * BULLISH/BEARISH/NEUTRAL coloring `ConditionChipRow` uses for actual signal chips.
  *
+ * Stacked one per line (`Column`, was a wrapping `FlowRow`) -- a delta's full "{label}: {from} →
+ * {to}" text runs long enough that letting chips flow left-to-right meant however many fit a row
+ * crowded together with ragged leftover space, rather than each one getting its own full-width line
+ * to read cleanly. Each pill still sizes to its own content (`Column`'s default start alignment),
+ * not stretched to fill the row.
+ *
  * Empty `deltas` -> renders nothing (a symbol's first-ever deep dive, or a same-day rerun with no
  * real change, are both normal and expected, not an error state).
  */
@@ -33,9 +39,8 @@ fun FundamentalsDeltaChips(deltas: List<DomainFundamentalsDelta>, modifier: Modi
     if (deltas.isEmpty()) return
     val pulseColors = LocalPulseColors.current
 
-    FlowRow(
+    Column(
         modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_small)),
         verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_small))
     ) {
         deltas.forEach { delta ->

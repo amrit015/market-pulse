@@ -7,13 +7,15 @@ import com.marketlabs.pulse.R
 
 /**
  * Static lookup from a Deep Dive section's fixed `topic` enum (schema-validated on the backend,
- * 8 values, `isCompleteTopicSet()` guarantees all 8 appear) to its display kicker string resource
- * -- rendered as a small label above the section's own model-written dynamic heading, e.g. so
- * "Cloud Dominance and High-Return Capital Allocation" reads as "this is the long-term view"
- * without reading the whole paragraph. Unlike this codebase's other free-form backend enums
- * (`technicalSetup`, `recommendationKey`), these 8 are genuinely fixed, user-visible labels, so
- * they're `strings.xml` resources rather than a plain Kotlin string map. An unrecognized topic
- * (a future backend addition) returns null -- the section still renders, just without a kicker.
+ * 9 values, order per `deepDivePrompt.ts` is WHAT_THE_COMPANY_IS/WHERE_IT_STANDS_NOW/
+ * INVESTMENT_RISKS/WHATS_CHANGED/CURRENT_STANDING/WHAT_MOVES_IT/NEAR_TERM_OUTLOOK/
+ * LONG_TERM_STRUCTURAL/ANALYST_CONSENSUS) to its display kicker string resource -- rendered as a
+ * small label above the section's own model-written dynamic heading, e.g. so "Cloud Dominance and
+ * High-Return Capital Allocation" reads as "this is the long-term view" without reading the whole
+ * paragraph. Unlike this codebase's other free-form backend enums (`technicalSetup`,
+ * `recommendationKey`), these 9 are genuinely fixed, user-visible labels, so they're `strings.xml`
+ * resources rather than a plain Kotlin string map. An unrecognized topic (a future backend
+ * addition) returns null -- the section still renders, just without a kicker.
  */
 @StringRes
 fun topicKickerRes(topic: String?): Int? = when (topic) {
@@ -22,6 +24,7 @@ fun topicKickerRes(topic: String?): Int? = when (topic) {
     "INVESTMENT_RISKS" -> R.string.deep_dive_topic_investment_risks
     "WHATS_CHANGED" -> R.string.deep_dive_topic_whats_changed
     "CURRENT_STANDING" -> R.string.deep_dive_topic_current_standing
+    "WHAT_MOVES_IT" -> R.string.deep_dive_topic_what_moves_it
     "NEAR_TERM_OUTLOOK" -> R.string.deep_dive_topic_near_term_outlook
     "LONG_TERM_STRUCTURAL" -> R.string.deep_dive_topic_long_term_structural
     "ANALYST_CONSENSUS" -> R.string.deep_dive_topic_analyst_consensus

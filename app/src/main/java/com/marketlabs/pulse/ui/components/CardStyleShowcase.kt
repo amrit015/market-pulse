@@ -715,8 +715,19 @@ private fun PreviewSynthesisHeadlineMeter() {
 }
 
 // ============================================================================
-// SYNTHESIS — 12. Kicker + dynamic heading + body + delta chips
-// Modeled on: stocks/deepdive/DeepDiveSectionCard.kt, stocks/deepdive/FundamentalsDeltaChips.kt
+// SYNTHESIS — 12. Kicker + heading + body + headline stat + highlights grid + delta chips
+// Modeled on: stocks/deepdive/DeepDiveSectionCard.kt, stocks/deepdive/FundamentalsDeltaChips.kt --
+// 2026-09-07 (backend As-Built Update #2), reordered 2026-09-07 later the same day per the owner's
+// call: every section can also carry `headline_stat` (the ONE hero number, own block AFTER the
+// heading+body -- the narrative reads first, the number after) and `highlights[]` (2-5 stat chips
+// via the shared StatGrid, extended with an optional `note` line). An inset `HorizontalDivider`
+// (inside the card's own padding, not full-bleed) separates each of the 3 populated blocks
+// (heading+body / headline stat / highlights) from the one before it. `headline_stat`'s value is
+// `colorScheme.primary`, distinct from every other plain-onSurface value on the card. `deltaChips`
+// (WHATS_CHANGED-only) now stack one per line (a `Column`, was a wrapping `FlowRow`) -- each
+// delta's full "{label}: {from} → {to}" text ran long enough that letting them wrap crowded
+// together with ragged leftover space. This sample stacks all three optional blocks to show the
+// card's full possible range, not a claim that a real section always has every block at once.
 // ============================================================================
 
 @Composable
@@ -739,11 +750,27 @@ private fun SynthesisKickerDeltaChipsSample() {
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )
+            InsetDividerSample()
+            Text(
+                "Forward P/E",
+                style = MaterialTheme.typography.labelSmall,
+                color = pulseColors.onSurfaceMuted
+            )
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_tiny)))
+            Text(
+                "24.75x",
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
+                color = MaterialTheme.colorScheme.primary
+            )
+            InsetDividerSample()
+            StatGrid(
+                stats = listOf(
+                    StatItem("25.64x → 24.75x", "FORWARD P/E", note = "compressing"),
+                    StatItem("\$327 → \$328", "ANALYST TARGET")
+                )
+            )
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_small)),
-                verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_small))
-            ) {
+            Column(verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_small))) {
                 SignalPill(
                     text = "Analyst Target: \$327 → \$328",
                     pillColor = pulseColors.signalNeutralPill,
@@ -759,10 +786,21 @@ private fun SynthesisKickerDeltaChipsSample() {
     }
 }
 
-@Preview(name = "12. SYNTHESIS — Kicker + heading + delta chips", showBackground = true)
+@Preview(name = "12. SYNTHESIS — Kicker + stat + heading + highlights + delta chips", showBackground = true)
 @Composable
 private fun PreviewSynthesisKickerDeltaChips() {
     MarketPulseTheme(theme = MarketPulseTheme.NAVY) { SynthesisKickerDeltaChipsSample() }
+}
+
+/** The divider between two populated blocks within one section card -- inset (inside the card's own content padding), not full-bleed edge-to-edge like a card's header divider. */
+@Composable
+private fun InsetDividerSample() {
+    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+    HorizontalDivider(
+        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+        thickness = dimensionResource(id = R.dimen.border_thin)
+    )
+    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
 }
 
 // ============================================================================
@@ -1233,7 +1271,7 @@ private fun CardStyleGallery() {
         GallerySection("9. SYNTHESIS — Icon+title header") { SynthesisHeaderBodySample() }
         GallerySection("10. SYNTHESIS — Expandable hero (tap to expand)") { SynthesisExpandableHeroSample() }
         GallerySection("11. SYNTHESIS — Headline + divider + meter") { SynthesisHeadlineMeterSample() }
-        GallerySection("12. SYNTHESIS — Kicker + heading + delta chips") { SynthesisKickerDeltaChipsSample() }
+        GallerySection("12. SYNTHESIS — Kicker + stat + heading + highlights + delta chips") { SynthesisKickerDeltaChipsSample() }
         GallerySection("13. SYNTHESIS — Multi-section digest, dividers") { SynthesisMultiSectionDigestSample() }
         GallerySection("14. Emphasis border overlay (current selection)") { EmphasisBorderOverlaySample() }
         GallerySection("15. NOT PulseCard — signal-owned background") { SignalOwnedBackgroundExceptionSample() }

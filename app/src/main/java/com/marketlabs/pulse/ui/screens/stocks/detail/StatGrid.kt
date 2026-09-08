@@ -18,8 +18,8 @@ import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
-/** One label+value pair for [StatGrid]. `valueColor` defaults to plain `onSurface` when null (most stats aren't signal-colored). */
-data class StatItem(val value: String, val label: String, val valueColor: Color? = null)
+/** One label+value pair for [StatGrid]. `valueColor` defaults to plain `onSurface` when null (most stats aren't signal-colored). `note` (2026-09-07, added for Deep Dive's `highlights[]`) is an optional third, smaller trailing line under the label -- a short comparison, never a verdict; null everywhere else in the app. */
+data class StatItem(val value: String, val label: String, val valueColor: Color? = null, val note: String? = null)
 
 /**
  * 2026-09-06 -- prototyped on `Macro`/`Fundamentals` first, then rolled out to every metric-grid
@@ -32,9 +32,11 @@ data class StatItem(val value: String, val label: String, val valueColor: Color?
  * is a short number, but a stat whose value is a full word or a min–max range (`Macro`'s Rate
  * Sensitive, e.g. "MODERATE NEGATIVE"; Fundamentals' 5Y PE range) either cramps inside that width
  * or wraps awkwardly, and a lone leftover stat in the last row sits narrow and left-aligned with
- * empty space beside it instead of using the row it has to itself. Still not written into
- * `docs/theming-system/card-heading-conventions.md` as a formal convention -- ask before assuming
- * every future stat grid elsewhere in the app should reach for this without checking first.
+ * empty space beside it instead of using the row it has to itself. Formalized into
+ * `docs/theming-system/card-heading-conventions.md`'s Tenth step (2026-09-06) as the app's one
+ * metric-grid convention. 2026-09-07: also backs Deep Dive's `highlights[]` (`DeepDiveSectionCard`,
+ * a different screen/package from every other call site above) -- reach for this on any new
+ * label+value stat row before hand-rolling another one-off layout, regardless of which screen.
  *
  * Chunks [stats] into rows of [columns] (3 by default) and gives every cell in a row equal
  * `Modifier.weight(1f)` width instead of a fixed dp value -- a full row of 3 divides evenly; a
@@ -63,6 +65,7 @@ fun StatGrid(stats: List<StatItem>, modifier: Modifier = Modifier, columns: Int 
 
 @Composable
 private fun StatCell(item: StatItem, modifier: Modifier = Modifier) {
+    val onSurfaceMuted = LocalPulseColors.current.onSurfaceMuted
     Column(modifier = modifier) {
         Text(
             text = item.value,
@@ -72,8 +75,15 @@ private fun StatCell(item: StatItem, modifier: Modifier = Modifier) {
         Text(
             text = item.label,
             style = MaterialTheme.typography.labelSmall,
-            color = LocalPulseColors.current.onSurfaceMuted
+            color = onSurfaceMuted
         )
+        item.note?.let {
+            Text(
+                text = it,
+                style = MaterialTheme.typography.labelSmall,
+                color = onSurfaceMuted.copy(alpha = 0.7f)
+            )
+        }
     }
 }
 
@@ -109,5 +119,19 @@ private fun PreviewStatGridFullRows() {
 private fun PreviewStatGridLoneLeftover() {
     MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
         StatGrid(stats = mockStatsLoneLeftover)
+    }
+}
+
+private val mockStatsWithNotes = listOf(
+    StatItem("24.75x", "FORWARD P/E", note = "vs. 27.1x sector avg"),
+    StatItem("+3.2%", "REVENUE GROWTH", note = "accelerating"),
+    StatItem("18.4%", "OPERATING MARGIN")
+)
+
+@Preview(name = "Deep Dive highlights, with notes", showBackground = true)
+@Composable
+private fun PreviewStatGridWithNotes() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
+        StatGrid(stats = mockStatsWithNotes)
     }
 }

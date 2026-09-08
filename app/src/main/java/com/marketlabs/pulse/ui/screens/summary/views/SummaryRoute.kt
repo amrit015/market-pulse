@@ -146,12 +146,18 @@ fun MarketSummaryRoute(
                 // We have data (either fresh or cached). We delegate rendering to the stateless screen.
                 is SummaryUiState.Success -> {
 
-                    LaunchedEffect(state.dataV3?.reportType) {
-                        onReportTypeLoaded(state.dataV3?.reportType)
+                    // 💡 The selected day's own weekday (Daily vs. Weekend), not from any report's
+                    // reportType field -- see SummaryUiState.Success.reportType's doc comment.
+                    LaunchedEffect(state.reportType) {
+                        onReportTypeLoaded(state.reportType)
                     }
 
                     MarketSummaryScreen(
-                        data = state.dataV3,
+                        contentByDateId = state.contentByDateId,
+                        calendarDayIds = state.calendarDayIds,
+                        selectedDateId = state.selectedDateId,
+                        todayDateId = state.todayDateId,
+                        onDateSelected = viewModel::selectDate,
                         scaffoldPadding = scaffoldPadding,
                         onNavigateToIndicators = onNavigateToIndicators,
                         onNavigateToPosture = onNavigateToPosture

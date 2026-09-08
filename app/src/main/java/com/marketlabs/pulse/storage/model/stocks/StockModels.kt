@@ -99,8 +99,8 @@ data class StockDetail(
     val technicalIndicators: DomainTechnicalIndicators? = null,
     val levels: DomainLevels? = null,
     val setupSignals: List<DomainSetupSignal>? = null,
-    val setupConfirming: List<String>? = null,
-    val setupConflicting: List<String>? = null,
+    val setupConfirming: List<DomainSetupSignal>? = null,
+    val setupConflicting: List<DomainSetupSignal>? = null,
     val conditionLabels: List<DomainConditionLabel>? = null,
     val watchList: List<DomainWatchItem>? = null,
     val fundamentals: DomainFundamentals? = null,
@@ -169,6 +169,7 @@ data class DomainLevels(
 
 data class DomainSetupSignal(
     val label: String? = null,
+    val meaning: String? = null,
     val direction: String? = null
 )
 

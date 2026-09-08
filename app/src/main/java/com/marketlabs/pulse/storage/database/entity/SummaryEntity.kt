@@ -39,5 +39,10 @@ data class MarketPulseEntity(
     // than nested inside an existing JSON blob.
     val whatsNew: List<WhatsNewItem>? = null,
     // New 2026-09-02 -- own column (MIGRATION_20_21), same pattern as whatsNew above.
-    val marketSentiment: MarketSentiment? = null
+    val marketSentiment: MarketSentiment? = null,
+    // New -- own column (MIGRATION_23_24). false marks a tombstone row: the Summary calendar
+    // strip confirmed no report exists for this dateId (weekend/holiday/pre-history), written so
+    // that date is never re-fetched from Firestore again. All content fields on a tombstone row
+    // stay null/blank; only dateId/lastSyncedTimestamp are meaningful.
+    val hasReport: Boolean = true
 )

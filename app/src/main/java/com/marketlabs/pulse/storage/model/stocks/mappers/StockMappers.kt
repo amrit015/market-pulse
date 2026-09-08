@@ -8,6 +8,8 @@ import com.marketlabs.pulse.network.model.stocks.NetworkCallStats
 import com.marketlabs.pulse.network.model.stocks.NetworkConditionChip
 import com.marketlabs.pulse.network.model.stocks.NetworkConditionLabel
 import com.marketlabs.pulse.network.model.stocks.NetworkContextVault
+import com.marketlabs.pulse.network.model.stocks.NetworkDeepDiveHeadlineStat
+import com.marketlabs.pulse.network.model.stocks.NetworkDeepDiveHighlight
 import com.marketlabs.pulse.network.model.stocks.NetworkDeepDiveSection
 import com.marketlabs.pulse.network.model.stocks.NetworkDigestSection
 import com.marketlabs.pulse.network.model.stocks.NetworkFundamentalsDelta
@@ -36,6 +38,8 @@ import com.marketlabs.pulse.storage.model.stocks.DomainCallStats
 import com.marketlabs.pulse.storage.model.stocks.DomainConditionChip
 import com.marketlabs.pulse.storage.model.stocks.DomainConditionLabel
 import com.marketlabs.pulse.storage.model.stocks.DomainContextVault
+import com.marketlabs.pulse.storage.model.stocks.DomainDeepDiveHeadlineStat
+import com.marketlabs.pulse.storage.model.stocks.DomainDeepDiveHighlight
 import com.marketlabs.pulse.storage.model.stocks.DomainDeepDiveSection
 import com.marketlabs.pulse.storage.model.stocks.DomainDigestSection
 import com.marketlabs.pulse.storage.model.stocks.DomainEventLogItem
@@ -140,8 +144,8 @@ fun NetworkStockDetail.toDomain(symbol: String, lastSyncedTimestamp: Long): Stoc
         technicalIndicators = technicalIndicators?.toDomain(),
         levels = levels?.toDomain(),
         setupSignals = setupSignals?.map { it.toDomain() },
-        setupConfirming = setupConfirming,
-        setupConflicting = setupConflicting,
+        setupConfirming = setupConfirming?.map { it.toDomain() },
+        setupConflicting = setupConflicting?.map { it.toDomain() },
         conditionLabels = conditionLabels?.map { it.toDomain() },
         watchList = watchList?.map { it.toDomain() },
         fundamentals = fundamentals?.toDomain(),
@@ -183,7 +187,21 @@ fun NetworkStockDeepDive.toDomain(symbol: String, lastSyncedTimestamp: Long): St
 }
 
 fun NetworkDeepDiveSection.toDomain(): DomainDeepDiveSection {
-    return DomainDeepDiveSection(topic = topic, heading = heading, body = body)
+    return DomainDeepDiveSection(
+        topic = topic,
+        heading = heading,
+        body = body,
+        headlineStat = headlineStat?.toDomain(),
+        highlights = highlights.map { it.toDomain() }
+    )
+}
+
+fun NetworkDeepDiveHeadlineStat.toDomain(): DomainDeepDiveHeadlineStat {
+    return DomainDeepDiveHeadlineStat(label = label, value = value)
+}
+
+fun NetworkDeepDiveHighlight.toDomain(): DomainDeepDiveHighlight {
+    return DomainDeepDiveHighlight(label = label, value = value, note = note)
 }
 
 fun NetworkFundamentalsDelta.toDomain(): DomainFundamentalsDelta {
@@ -232,7 +250,7 @@ fun NetworkLevels.toDomain(): DomainLevels {
 }
 
 fun NetworkSetupSignal.toDomain(): DomainSetupSignal {
-    return DomainSetupSignal(label = label, direction = direction)
+    return DomainSetupSignal(label = label, meaning = meaning, direction = direction)
 }
 
 fun NetworkConditionLabel.toDomain(): DomainConditionLabel {

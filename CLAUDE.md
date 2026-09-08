@@ -36,9 +36,9 @@ are run manually, not gated by anything automated yet.
 - Transport strategies, Room caching, `SyncManager`, a worked example → `@docs/architecture/data-flow.md`
 - Backend field/flag-name contracts (the invisible cross-repo dependencies) → `@docs/architecture/cross-repo-contracts.md`
 - Confirmed stale/inconsistent spots in the current code (verify before trusting) → `@docs/architecture/known-gaps.md`
-- The collapsing-chrome + sticky-tab-row + swipeable-pager pattern (Stock Detail, Indicators) —
-  LIVING doc, real bugs hit and fixed, read before reusing on a new screen →
-  `@docs/architecture/collapsing-header-tabs.md`.
+- The collapsing-chrome + sticky-tab-row + swipeable-pager pattern (Stock Detail, Indicators; plus
+  Summary's simpler pinned-zone-only variant) — LIVING doc, real bugs hit and fixed, read before
+  reusing on a new screen → `@docs/architecture/collapsing-header-tabs.md`.
 - Hilt DI conventions, null handling, naming → `@docs/guidelines/kotlin-style.md`
 - `PulseTabRow` (including the swipeable-pager + tab-sync pattern), the glossary system, resource
   conventions → `@docs/guidelines/compose-conventions.md`
