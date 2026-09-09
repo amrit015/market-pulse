@@ -65,7 +65,7 @@ import kotlin.math.roundToInt
 @Composable
 fun InstitutionalPostureSection(
     postureData: DomainMarketPosture,
-    onNavigateToGlossaryDetail: (metricIds: List<String>, title: String, description: String?, status: String?) -> Unit,
+    onNavigateToGlossaryDetail: (metricIds: List<String>, chartMetricId: String, title: String, description: String?, status: String?) -> Unit,
     isIntroDismissed: Boolean,
     onDismissIntro: () -> Unit
 ) {
@@ -183,7 +183,7 @@ private fun bullishBearishDeltaColors(direction: DeltaDirection): Pair<Color, Co
 }
 
 @Composable
-private fun NaaimExposureCard(naaim: DomainNaaimExposure, onNavigateToGlossaryDetail: (List<String>, String, String?, String?) -> Unit) {
+private fun NaaimExposureCard(naaim: DomainNaaimExposure, onNavigateToGlossaryDetail: (List<String>, String, String, String?, String?) -> Unit) {
     val status = NaaimStatus.fromString(naaim.status)
     val title = stringResource(id = R.string.posture_naaim_title)
     val description = stringResource(id = R.string.posture_naaim_description)
@@ -191,7 +191,7 @@ private fun NaaimExposureCard(naaim: DomainNaaimExposure, onNavigateToGlossaryDe
     PulseCard(
         style = PulseCardStyle.DATA,
         modifier = Modifier.fillMaxWidth(),
-        onClick = { onNavigateToGlossaryDetail(listOf("posture.naaim_exposure"), title, description, naaim.status) }
+        onClick = { onNavigateToGlossaryDetail(listOf("posture.naaim_exposure"), "naaim_exposure", title, description, naaim.status) }
     ) {
         Row(
             modifier = Modifier
@@ -266,7 +266,7 @@ private fun NaaimExposureCard(naaim: DomainNaaimExposure, onNavigateToGlossaryDe
 }
 
 @Composable
-private fun DarkPoolCard(dix: DomainDarkPoolIndex, onNavigateToGlossaryDetail: (List<String>, String, String?, String?) -> Unit) {
+private fun DarkPoolCard(dix: DomainDarkPoolIndex, onNavigateToGlossaryDetail: (List<String>, String, String, String?, String?) -> Unit) {
     val status = DixStatus.fromString(dix.status)
     val title = stringResource(id = R.string.posture_dix_title)
     val description = stringResource(id = R.string.posture_dix_description)
@@ -274,7 +274,7 @@ private fun DarkPoolCard(dix: DomainDarkPoolIndex, onNavigateToGlossaryDetail: (
     PulseCard(
         style = PulseCardStyle.DATA,
         modifier = Modifier.fillMaxWidth(),
-        onClick = { onNavigateToGlossaryDetail(listOf("posture.dark_pool_index"), title, description, dix.status) }
+        onClick = { onNavigateToGlossaryDetail(listOf("posture.dark_pool_index"), "dark_pool_index", title, description, dix.status) }
     ) {
         Row(
             modifier = Modifier
@@ -347,7 +347,7 @@ private fun DarkPoolCard(dix: DomainDarkPoolIndex, onNavigateToGlossaryDetail: (
 }
 
 @Composable
-private fun NetLiquidityCard(liquidity: DomainNetLiquidity, onNavigateToGlossaryDetail: (List<String>, String, String?, String?) -> Unit) {
+private fun NetLiquidityCard(liquidity: DomainNetLiquidity, onNavigateToGlossaryDetail: (List<String>, String, String, String?, String?) -> Unit) {
     val status = NetLiquidityStatus.fromString(liquidity.status)
     val title = stringResource(id = R.string.posture_net_liquidity_title)
     val description = stringResource(id = R.string.posture_net_liquidity_description)
@@ -355,7 +355,7 @@ private fun NetLiquidityCard(liquidity: DomainNetLiquidity, onNavigateToGlossary
     PulseCard(
         style = PulseCardStyle.DATA,
         modifier = Modifier.fillMaxWidth(),
-        onClick = { onNavigateToGlossaryDetail(listOf("posture.net_liquidity"), title, description, liquidity.status) }
+        onClick = { onNavigateToGlossaryDetail(listOf("posture.net_liquidity"), "net_liquidity", title, description, liquidity.status) }
     ) {
         Row(
             modifier = Modifier
@@ -504,7 +504,7 @@ fun PreviewInstitutionalPosture() {
         Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
             InstitutionalPostureSection(
                 mockData,
-                onNavigateToGlossaryDetail = { _, _, _, _ -> },
+                onNavigateToGlossaryDetail = { _, _, _, _, _ -> },
                 isIntroDismissed = true,
                 onDismissIntro = {}
             )

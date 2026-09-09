@@ -546,6 +546,10 @@
     <!-- Shown in place of the period chart when the symbol has no chart doc yet or the selected
          range hasn't loaded yet; a 404 from GET /charts/:symbol is treated as "no data", not an error. -->
     <string name="stock_detail_chart_empty_state">No chart history yet</string>
+    <!-- Shown in place of an indicator's history chart when the backend has recorded exactly one
+         point for that metric so far, since a line/curve needs at least two points to draw. Shows
+         a single centered value+date rather than an empty-looking plot area. -->
+    <string name="metric_history_single_point_caption">Only reading so far, %1$s</string>
 
     <!-- Global top bar, floating nav, Settings screen, theme picker. -->
     <string name="app_top_bar_settings_content_description">Settings</string>

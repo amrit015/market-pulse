@@ -62,7 +62,7 @@ import kotlin.math.abs
 @Composable
 fun MarketPositioningSection(
     positioningData: DomainMarketPositioning,
-    onNavigateToGlossaryDetail: (metricIds: List<String>, title: String, description: String?, status: String?) -> Unit,
+    onNavigateToGlossaryDetail: (metricIds: List<String>, chartMetricId: String, title: String, description: String?, status: String?) -> Unit,
     isIntroDismissed: Boolean,
     onDismissIntro: () -> Unit
 ) {
@@ -219,7 +219,7 @@ private fun RetailSentimentCard(
     sectionTitle: String,
     infoDescription: String?,
     retail: DomainRetailSentiment,
-    onNavigateToGlossaryDetail: (List<String>, String, String?, String?) -> Unit
+    onNavigateToGlossaryDetail: (List<String>, String, String, String?, String?) -> Unit
 ) {
     val status = RetailSentimentStatus.fromString(retail.status)
     val title = stringResource(id = R.string.positioning_retail_sentiment_title)
@@ -238,7 +238,7 @@ private fun RetailSentimentCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable {
-                        onNavigateToGlossaryDetail(listOf("positioning.aaii_bull_bear_spread"), title, description, retail.status)
+                        onNavigateToGlossaryDetail(listOf("positioning.aaii_bull_bear_spread"), "retail_sentiment", title, description, retail.status)
                     }
                     .padding(dimensionResource(id = R.dimen.padding_large)),
                 verticalAlignment = Alignment.CenterVertically
@@ -336,15 +336,15 @@ private fun InstitutionalPositioningCard(
     sectionTitle: String,
     infoDescription: String?,
     institutional: DomainInstitutionalPositioning,
-    onNavigateToGlossaryDetail: (List<String>, String, String?, String?) -> Unit
+    onNavigateToGlossaryDetail: (List<String>, String, String, String?, String?) -> Unit
 ) {
-    data class ContractEntry(val label: String, val contract: DomainFuturesContract)
+    data class ContractEntry(val label: String, val chartMetricId: String, val contract: DomainFuturesContract)
 
     val entries = listOfNotNull(
-        institutional.es?.let { ContractEntry(stringResource(id = R.string.positioning_futures_es), it) },
-        institutional.dia?.let { ContractEntry(stringResource(id = R.string.positioning_futures_dia), it) },
-        institutional.nq?.let { ContractEntry(stringResource(id = R.string.positioning_futures_nq), it) },
-        institutional.rty?.let { ContractEntry(stringResource(id = R.string.positioning_futures_rty), it) }
+        institutional.es?.let { ContractEntry(stringResource(id = R.string.positioning_futures_es), "institutional_positioning_es", it) },
+        institutional.dia?.let { ContractEntry(stringResource(id = R.string.positioning_futures_dia), "institutional_positioning_dia", it) },
+        institutional.nq?.let { ContractEntry(stringResource(id = R.string.positioning_futures_nq), "institutional_positioning_nq", it) },
+        institutional.rty?.let { ContractEntry(stringResource(id = R.string.positioning_futures_rty), "institutional_positioning_rty", it) }
     )
     if (entries.isEmpty()) return
 
@@ -356,7 +356,7 @@ private fun InstitutionalPositioningCard(
 
             Column(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.padding_large))) {
                 entries.forEachIndexed { index, entry ->
-                    FuturesContractRow(entry.label, entry.contract, onNavigateToGlossaryDetail, modifier = rowHorizontalPadding)
+                    FuturesContractRow(entry.label, entry.chartMetricId, entry.contract, onNavigateToGlossaryDetail, modifier = rowHorizontalPadding)
                     if (index != entries.lastIndex) {
                         Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
                         HorizontalDivider(
@@ -388,8 +388,9 @@ private fun InstitutionalPositioningCard(
 @Composable
 private fun FuturesContractRow(
     displayName: String,
+    chartMetricId: String,
     contract: DomainFuturesContract,
-    onNavigateToGlossaryDetail: (List<String>, String, String?, String?) -> Unit,
+    onNavigateToGlossaryDetail: (List<String>, String, String, String?, String?) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val status = CotPositioningStatus.fromString(contract.status)
@@ -401,6 +402,7 @@ private fun FuturesContractRow(
             .clickable {
                 onNavigateToGlossaryDetail(
                     listOf("positioning.cot_nc_net_pct_oi", "positioning.cot_percentile"),
+                    chartMetricId,
                     displayName,
                     methodologyText,
                     contract.status
@@ -515,17 +517,17 @@ private fun ShortInterestCombinedCard(
     sectionTitle: String,
     infoDescription: String?,
     shortInterest: DomainShortInterest,
-    onNavigateToGlossaryDetail: (List<String>, String, String?, String?) -> Unit
+    onNavigateToGlossaryDetail: (List<String>, String, String, String?, String?) -> Unit
 ) {
-    data class InstrumentEntry(val label: String, val instrument: DomainShortInterestInstrument)
+    data class InstrumentEntry(val label: String, val chartMetricId: String, val instrument: DomainShortInterestInstrument)
 
     val entries = listOfNotNull(
-        shortInterest.spy?.let { InstrumentEntry(stringResource(id = R.string.positioning_etf_spy), it) },
-        shortInterest.dia?.let { InstrumentEntry(stringResource(id = R.string.positioning_etf_dia), it) },
-        shortInterest.qqq?.let { InstrumentEntry(stringResource(id = R.string.positioning_etf_qqq), it) },
-        shortInterest.rsp?.let { InstrumentEntry(stringResource(id = R.string.positioning_etf_rsp), it) },
-        shortInterest.iwm?.let { InstrumentEntry(stringResource(id = R.string.positioning_etf_iwm), it) },
-        shortInterest.mags?.let { InstrumentEntry(stringResource(id = R.string.positioning_etf_mags), it) }
+        shortInterest.spy?.let { InstrumentEntry(stringResource(id = R.string.positioning_etf_spy), "short_interest_spy", it) },
+        shortInterest.dia?.let { InstrumentEntry(stringResource(id = R.string.positioning_etf_dia), "short_interest_dia", it) },
+        shortInterest.qqq?.let { InstrumentEntry(stringResource(id = R.string.positioning_etf_qqq), "short_interest_qqq", it) },
+        shortInterest.rsp?.let { InstrumentEntry(stringResource(id = R.string.positioning_etf_rsp), "short_interest_rsp", it) },
+        shortInterest.iwm?.let { InstrumentEntry(stringResource(id = R.string.positioning_etf_iwm), "short_interest_iwm", it) },
+        shortInterest.mags?.let { InstrumentEntry(stringResource(id = R.string.positioning_etf_mags), "short_interest_mags", it) }
     )
     if (entries.isEmpty()) return
 
@@ -537,7 +539,7 @@ private fun ShortInterestCombinedCard(
 
             Column(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.padding_large))) {
                 entries.forEachIndexed { index, entry ->
-                    ShortInterestRow(entry.label, entry.instrument, shortInterest.description, onNavigateToGlossaryDetail, modifier = rowHorizontalPadding)
+                    ShortInterestRow(entry.label, entry.chartMetricId, entry.instrument, shortInterest.description, onNavigateToGlossaryDetail, modifier = rowHorizontalPadding)
                     if (index != entries.lastIndex) {
                         Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
                         HorizontalDivider(
@@ -559,9 +561,10 @@ private fun ShortInterestCombinedCard(
 @Composable
 private fun ShortInterestRow(
     displayName: String,
+    chartMetricId: String,
     instrument: DomainShortInterestInstrument,
     description: String?,
-    onNavigateToGlossaryDetail: (List<String>, String, String?, String?) -> Unit,
+    onNavigateToGlossaryDetail: (List<String>, String, String, String?, String?) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val status = ShortInterestStatus.fromString(instrument.status)
@@ -576,6 +579,7 @@ private fun ShortInterestRow(
                         "positioning.short_interest_shares",
                         "positioning.short_interest_mom_change"
                     ),
+                    chartMetricId,
                     displayName,
                     description,
                     instrument.status
@@ -724,7 +728,7 @@ private fun PreviewMarketPositioningSection() {
         Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
             MarketPositioningSection(
                 mockData,
-                onNavigateToGlossaryDetail = { _, _, _, _ -> },
+                onNavigateToGlossaryDetail = { _, _, _, _, _ -> },
                 isIntroDismissed = true,
                 onDismissIntro = {}
             )

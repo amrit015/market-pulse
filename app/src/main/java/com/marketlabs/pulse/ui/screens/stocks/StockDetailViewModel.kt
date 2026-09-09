@@ -78,7 +78,9 @@ class StockDetailViewModel @Inject constructor(
     // the default landing tab stays Technicals -- the spec asked for tab *position*, not a change
     // to which tab opens by default.
     private val _selectedTabIndex = MutableStateFlow(DetailTab.TECHNICALS.ordinal)
-    private val _selectedChartRange = MutableStateFlow(ChartRange.FIVE_DAY)
+    // Product decision: every symbol on Market Analysis (Analysis tab) opens on the 1M chart, not
+    // the 5D every other detail page used to default to.
+    private val _selectedChartRange = MutableStateFlow(ChartRange.ONE_MONTH)
     private val _isChartLoading = MutableStateFlow(false)
 
     private val matchingPreview: Flow<StockPreview?> = repository.getStockPreviewsStream()

@@ -30,19 +30,37 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.core.glossary.MetricGlossaryBand
+import com.marketlabs.pulse.core.insights.InsightsHistoryPillar
+import com.marketlabs.pulse.storage.model.charts.ChartRange
+import com.marketlabs.pulse.storage.model.indicators.MetricHistoryPoint
+import com.marketlabs.pulse.storage.model.insights.InsightsHistoryPoint
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
+import com.marketlabs.pulse.ui.components.charts.ChartRangePicker
+import com.marketlabs.pulse.ui.components.charts.IndicatorHistoryChart
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
+import com.marketlabs.pulse.utils.enums.SignalColor
 import com.marketlabs.pulse.utils.verticalScrollbar
+import java.util.Locale
+import kotlin.math.abs
 
 /**
  * Stateless content for the pushed glossary-detail page (2026-08-27 convergence pass -- one whole
  * Positioning/Posture CARD is the tap target, not its individual values, so this screen shows
- * everything the card covers in one place: the card's own "what is this" description, then each
- * underlying value's what-it-is/how-to-read/gotcha, then one merged bands list with the card's
- * live status highlighted -- same "current" concept `MetricDetailScreen` uses for Indicators,
- * resolved once across every section here instead of one entry's own bands.
+ * everything the card covers in one place: the card's own "what is this" description, then the
+ * history chart, then each underlying value's what-it-is/how-to-read/gotcha, then one merged bands
+ * list with the card's live status highlighted -- same "current" concept `MetricDetailScreen` uses
+ * for Indicators, resolved once across every section here instead of one entry's own bands.
+ *
+ * The chart section (added alongside Posture/Positioning's own history spec) reuses
+ * [IndicatorHistoryChart] unchanged -- [historyPoints] (this domain's own raw `{date, value,
+ * status}` shape, no backend `value_display`/`signal_color`) is mapped to that composable's
+ * `MetricHistoryPoint` shape right here via [formatInsightsValue], the one genuinely new piece of
+ * client-side formatting this domain's spec calls for (percent/$ trillions/raw share counts all
+ * need different treatment -- see that function's own doc comment). `signalColor` is always
+ * [SignalColor.UNKNOWN]: per product decision, this domain's chart stays plain-text/no-color,
+ * matching how Indicators' own chart already treats `signal_color` as optional and unused.
  */
 @Composable
 fun GlossaryDetailScreen(
@@ -51,6 +69,12 @@ fun GlossaryDetailScreen(
     sections: List<GlossarySection>,
     mergedBands: List<MetricGlossaryBand>,
     currentBandIndex: Int?,
+    chartMetricId: String,
+    historyPoints: List<InsightsHistoryPoint>,
+    isHistoryLoading: Boolean,
+    selectedChartRange: ChartRange,
+    availableChartRanges: List<ChartRange>,
+    onRangeSelected: (ChartRange) -> Unit,
     scaffoldPadding: PaddingValues,
     modifier: Modifier = Modifier
 ) {
@@ -81,6 +105,34 @@ fun GlossaryDetailScreen(
             )
             Spacer(modifier = Modifier.height(paddingExtraLarge))
         }
+
+        // History chart -- see this screen's own doc comment. Called directly in the composable
+        // body (not memoized behind `remember`), since `formatInsightsValue` calls `stringResource`
+        // for the shares/pts suffixes and `remember`'s calculation lambda disallows composable
+        // calls; ~180 points' worth of formatting per recomposition is cheap.
+        val chartPoints = historyPoints.map { point ->
+            MetricHistoryPoint(
+                date = point.date,
+                value = point.value,
+                valueDisplay = formatInsightsValue(chartMetricId, point.value),
+                signalColor = SignalColor.UNKNOWN
+            )
+        }
+        IndicatorHistoryChart(
+            points = chartPoints,
+            isStepLine = InsightsHistoryPillar.isSparseCadence(chartMetricId),
+            isLoading = isHistoryLoading,
+            modifier = Modifier.fillMaxWidth()
+        )
+        if (availableChartRanges.size > 1) {
+            Spacer(modifier = Modifier.height(paddingMedium))
+            ChartRangePicker(
+                selectedRange = selectedChartRange,
+                onRangeSelected = onRangeSelected,
+                availableRanges = availableChartRanges
+            )
+        }
+        Spacer(modifier = Modifier.height(paddingExtraLarge))
 
         sections.forEachIndexed { index, section ->
             if (showSectionLabels) {
@@ -217,9 +269,50 @@ private fun GlossaryGotchaCallout(text: String) {
     }
 }
 
+/**
+ * Client-side formatting for the chart's `valueDisplay` -- the Posture/Positioning history spec's
+ * `value` has no fixed unit across metrics (a raw percent, a raw share count in the tens of
+ * millions, a $ trillions figure...) and, unlike Indicators, the backend never computes a display
+ * string for it. Mirrors each metric's own LIVE card formatting exactly (`MarketPostureView.kt`/
+ * `MarketPositioningView.kt`), not a fresh format invented here, so a historical point on the chart
+ * reads identically to today's own reading on the card above it. `retail_sentiment`'s spread and
+ * `institutional_positioning_*`'s % OI are shown with their real sign (can be negative) -- no
+ * `abs()` -- same as their live cards' own main value (only their *delta* pills show magnitude only).
+ */
+@Composable
+private fun formatInsightsValue(chartMetricId: String, value: Double): String = when (chartMetricId) {
+    "dark_pool_index" -> String.format(Locale.US, "%.1f", value)
+    "net_liquidity" -> "$${String.format(Locale.US, "%.2f", value)}T"
+    "naaim_exposure" -> "${String.format(Locale.US, "%.1f", value)}%"
+    "retail_sentiment" -> stringResource(id = R.string.insights_pts_suffix, String.format(Locale.US, "%.1f", value))
+    "institutional_positioning_es", "institutional_positioning_nq",
+    "institutional_positioning_rty", "institutional_positioning_dia" ->
+        "${String.format(Locale.US, "%.2f", value)}%"
+    "short_interest_spy", "short_interest_qqq", "short_interest_iwm",
+    "short_interest_dia", "short_interest_rsp", "short_interest_mags" -> formatSharesForChart(value)
+    else -> String.format(Locale.US, "%.2f", value)
+}
+
+/** Raw share counts read far more naturally with a K/M suffix -- mirrors `MarketPositioningView.kt`'s identical `formatShares`. */
+@Composable
+private fun formatSharesForChart(shares: Double): String {
+    val absShares = abs(shares)
+    return when {
+        absShares >= 1_000_000 -> stringResource(id = R.string.insights_shares_millions, String.format(Locale.US, "%.2f", shares / 1_000_000.0))
+        absShares >= 1_000 -> stringResource(id = R.string.insights_shares_thousands, String.format(Locale.US, "%.0f", shares / 1_000.0))
+        else -> stringResource(id = R.string.insights_shares_plain, shares.toLong().toString())
+    }
+}
+
 // ============================================================================
 // 🎨 PREVIEWS
 // ============================================================================
+
+private val previewHistoryPoints = listOf(
+    InsightsHistoryPoint("2026-06-15", 42_100_000.0, "NEUTRAL"),
+    InsightsHistoryPoint("2026-07-01", 43_800_000.0, "NEUTRAL"),
+    InsightsHistoryPoint("2026-07-15", 45_230_000.0, "NEUTRAL")
+)
 
 private val previewSections = listOf(
     GlossarySection(
@@ -252,6 +345,12 @@ private fun PreviewGlossaryDetailScreenLight() {
             sections = previewSections,
             mergedBands = previewBands,
             currentBandIndex = 1,
+            chartMetricId = "short_interest_spy",
+            historyPoints = previewHistoryPoints,
+            isHistoryLoading = false,
+            selectedChartRange = ChartRange.ONE_MONTH,
+            availableChartRanges = listOf(ChartRange.ONE_MONTH, ChartRange.SIX_MONTH),
+            onRangeSelected = {},
             scaffoldPadding = PaddingValues()
         )
     }
@@ -267,6 +366,12 @@ private fun PreviewGlossaryDetailScreenDark() {
             sections = previewSections,
             mergedBands = previewBands,
             currentBandIndex = 1,
+            chartMetricId = "short_interest_spy",
+            historyPoints = previewHistoryPoints,
+            isHistoryLoading = false,
+            selectedChartRange = ChartRange.ONE_MONTH,
+            availableChartRanges = listOf(ChartRange.ONE_MONTH, ChartRange.SIX_MONTH),
+            onRangeSelected = {},
             scaffoldPadding = PaddingValues()
         )
     }

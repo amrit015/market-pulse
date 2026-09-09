@@ -9,6 +9,7 @@ import com.marketlabs.pulse.storage.database.dao.IndicatorsDao
 import com.marketlabs.pulse.storage.database.dao.MarketPositioningDao
 import com.marketlabs.pulse.storage.database.dao.MarketPostureDao
 import com.marketlabs.pulse.storage.database.dao.MarketRiskDao
+import com.marketlabs.pulse.storage.database.dao.InsightsHistoryDao
 import com.marketlabs.pulse.storage.database.dao.MetricHistoryDao
 import com.marketlabs.pulse.storage.database.dao.NewsDao
 import com.marketlabs.pulse.storage.database.dao.StocksDao
@@ -110,5 +111,12 @@ object DatabaseModule {
     @Singleton
     fun provideMetricHistoryDao(database: AppDatabase): MetricHistoryDao {
         return database.metricHistoryDao()
+    }
+
+    /** Provides the DAO for the `insights_history` table backing Posture/Positioning's glossary-detail history chart. */
+    @Provides
+    @Singleton
+    fun provideInsightsHistoryDao(database: AppDatabase): InsightsHistoryDao {
+        return database.insightsHistoryDao()
     }
 }

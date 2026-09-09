@@ -50,7 +50,7 @@ fun InsightsScreen(
     uiState: InsightsUiState,
     pagerState: PagerState,
     scaffoldPadding: PaddingValues,
-    onNavigateToGlossaryDetail: (metricIds: List<String>, title: String, description: String?, status: String?) -> Unit,
+    onNavigateToGlossaryDetail: (metricIds: List<String>, chartMetricId: String, title: String, description: String?, status: String?) -> Unit,
     onDismissPositioningIntro: () -> Unit,
     onDismissPostureIntro: () -> Unit
 ) {
@@ -179,7 +179,7 @@ private fun PreviewInsightsScreenEmpty() {
             uiState = InsightsUiState(),
             pagerState = rememberPagerState { InsightsTab.entries.size },
             scaffoldPadding = PaddingValues(),
-            onNavigateToGlossaryDetail = { _, _, _, _ -> },
+            onNavigateToGlossaryDetail = { _, _, _, _, _ -> },
             onDismissPositioningIntro = {},
             onDismissPostureIntro = {}
         )

@@ -80,6 +80,9 @@ fun MetricDetailRoute(
                 glossaryEntry = uiState.glossaryEntry,
                 historyPoints = uiState.historyPoints,
                 isHistoryLoading = uiState.isHistoryLoading,
+                selectedChartRange = uiState.selectedChartRange,
+                availableChartRanges = uiState.availableChartRanges,
+                onRangeSelected = viewModel::onRangeSelected,
                 scaffoldPadding = PaddingValues(
                     top = topBarPadding.calculateTopPadding(),
                     bottom = scaffoldPadding.calculateBottomPadding()
