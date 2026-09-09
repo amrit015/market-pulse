@@ -56,6 +56,7 @@ import com.patrykandpatrick.vico.core.cartesian.decoration.HorizontalLine
 import com.patrykandpatrick.vico.core.cartesian.layer.CartesianLayerDimensions
 import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer
 import com.patrykandpatrick.vico.core.cartesian.marker.CartesianMarker
+import com.patrykandpatrick.vico.core.cartesian.marker.CartesianMarkerVisibilityListener
 import com.patrykandpatrick.vico.core.common.Fill
 import com.patrykandpatrick.vico.core.common.component.LineComponent
 import com.patrykandpatrick.vico.core.common.shader.ShaderProvider
@@ -101,6 +102,15 @@ import kotlin.math.roundToInt
  * first/last point, so the caption is the reliable way to read the range's start/end price; it
  * doesn't repeat the date, which the x-axis right below it already shows.
  *
+ * [onMarkerVisibilityChanged], when supplied, fires `true` while a press/drag-to-scrub gesture is
+ * active on the chart (Vico's [CartesianMarkerVisibilityListener], `onShown`/`onUpdated`) and
+ * `false` once it ends (`onHidden`) -- callers embedding this inside a swipeable
+ * [androidx.compose.foundation.pager.HorizontalPager] (Stock Detail's tab pager) use this to
+ * disable the pager's own `userScrollEnabled` for the duration of a touch, so scrubbing the
+ * marker doesn't also swipe the pager to a different tab underneath it (both are horizontal
+ * gestures, so Compose's orthogonal-direction arbitration that already separates this chart's own
+ * horizontal scrub from the page's vertical scroll doesn't apply between two horizontal ones).
+ *
  * [currentPrice], when supplied, replaces the last point's price for display purposes if that
  * point's own date is today (ET) -- `market_charts`' daily close for the current trading day is
  * only written once the session ends, so while the market's still open the stored point can lag
@@ -122,7 +132,8 @@ fun PeriodChart(
     isLoading: Boolean = false,
     modifier: Modifier = Modifier,
     currentPrice: Double? = null,
-    useAccentColor: Boolean = false
+    useAccentColor: Boolean = false,
+    onMarkerVisibilityChanged: ((Boolean) -> Unit)? = null
 ) {
     val pulseColors = LocalPulseColors.current
     val effectivePoints = if (currentPrice != null) points.withCurrentPriceForToday(currentPrice) else points
@@ -144,6 +155,7 @@ fun PeriodChart(
                         points = effectivePoints,
                         lineColor = lineColor,
                         valueFormat = valueFormat,
+                        onMarkerVisibilityChanged = onMarkerVisibilityChanged,
                         modifier = Modifier.fillMaxSize()
                     )
                 isLoading -> CircularProgressIndicator()
@@ -205,6 +217,7 @@ private fun PeriodChartPlot(
     points: List<ChartPoint>,
     lineColor: Color,
     valueFormat: DecimalFormat,
+    onMarkerVisibilityChanged: ((Boolean) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     // Vico probes this for label-width measurement and boundary gridlines too, not just the
@@ -240,6 +253,7 @@ private fun PeriodChartPlot(
         xValueFormatter = xValueFormatter,
         itemPlacer = itemPlacer,
         marker = marker,
+        onMarkerVisibilityChanged = onMarkerVisibilityChanged,
         modifier = modifier
     )
 }
@@ -274,11 +288,29 @@ internal fun VicoLinePlot(
     xValueFormatter: CartesianValueFormatter,
     itemPlacer: HorizontalAxis.ItemPlacer,
     marker: CartesianMarker,
+    onMarkerVisibilityChanged: ((Boolean) -> Unit)? = null,
     modifier: Modifier = Modifier,
     referenceLineValue: Double? = null,
     pointConnector: LineCartesianLayer.PointConnector = LineCartesianLayer.PointConnector.cubic()
 ) {
     val modelProducer = remember { CartesianChartModelProducer() }
+
+    // 💡 The one way to know a press/drag-to-scrub gesture is active on the chart right now --
+    // used by callers (Stock Detail's TechnicalsTabContent) to disable the enclosing
+    // HorizontalPager's own swipe-between-tabs while the chart is being touched. Both the marker's
+    // scrub and the pager's swipe are horizontal gestures, so Compose's orthogonal-direction
+    // arbitration (what already lets vertical page-scroll and horizontal marker-scrub coexist --
+    // see this function's own scrollState comment below) doesn't separate them; disabling
+    // HorizontalPager's userScrollEnabled for the duration of a touch is what does.
+    val markerVisibilityListener = remember(onMarkerVisibilityChanged) {
+        onMarkerVisibilityChanged?.let { callback ->
+            object : CartesianMarkerVisibilityListener {
+                override fun onShown(marker: CartesianMarker, targets: List<CartesianMarker.Target>) = callback(true)
+                override fun onUpdated(marker: CartesianMarker, targets: List<CartesianMarker.Target>) = callback(true)
+                override fun onHidden(marker: CartesianMarker) = callback(false)
+            }
+        }
+    }
 
     LaunchedEffect(prices) {
         modelProducer.runTransaction {
@@ -369,6 +401,7 @@ internal fun VicoLinePlot(
                     itemPlacer = itemPlacer
                 ),
                 marker = marker,
+                markerVisibilityListener = markerVisibilityListener,
                 decorations = decorations
                 // Marker controller left at its default (showOnPress -- press-and-drag to scrub
                 // across points). An earlier attempt disabled Vico's own horizontal-scroll gesture
@@ -419,7 +452,8 @@ fun IntradayPeriodChart(
     date: String?,
     isLoading: Boolean = false,
     modifier: Modifier = Modifier,
-    useAccentColor: Boolean = false
+    useAccentColor: Boolean = false,
+    onMarkerVisibilityChanged: ((Boolean) -> Unit)? = null
 ) {
     val pulseColors = LocalPulseColors.current
     // See PeriodChart's doc comment on useAccentColor -- same reasoning applies here for VIX/
@@ -444,6 +478,7 @@ fun IntradayPeriodChart(
                         previousClose = previousClose,
                         lineColor = lineColor,
                         valueFormat = valueFormat,
+                        onMarkerVisibilityChanged = onMarkerVisibilityChanged,
                         modifier = Modifier.fillMaxSize()
                     )
                 isLoading -> CircularProgressIndicator()
@@ -505,6 +540,7 @@ private fun IntradayChartPlot(
     previousClose: Double?,
     lineColor: Color,
     valueFormat: DecimalFormat,
+    onMarkerVisibilityChanged: ((Boolean) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val localTimes = remember(points, date) { points.toLocalTimes(date) }
@@ -543,6 +579,7 @@ private fun IntradayChartPlot(
         xValueFormatter = xValueFormatter,
         itemPlacer = itemPlacer,
         marker = marker,
+        onMarkerVisibilityChanged = onMarkerVisibilityChanged,
         modifier = modifier,
         // Faint flat previous-close baseline -- see VicoLinePlot's doc comment on
         // referenceLineValue. `null` (no line drawn) only when there's genuinely no previous

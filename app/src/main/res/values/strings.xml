@@ -26,14 +26,19 @@
          hierarchy or visual design has landed for this section yet; see WhatsNewSection's doc
          comment in SummaryScreen.kt. -->
     <string name="section_whats_new">What\'s New</string>
+    <string name="label_whats_new_current">Current: %1$s</string>
+    <!-- WhatsNewItem.previousValueDisplay: requested backend addition, not sent yet, see
+         NetworkWhatsNewEntry's doc comment. This line just doesn't render until it ships. -->
+    <string name="label_whats_new_previous">Previous: %1$s</string>
     <!-- New 2026-09-02 (spec-20260902-market-sentiment-android.md): AI-authored cohort-positioning
          synthesis, rides inside the existing pulse response. -->
     <string name="section_market_sentiment">Market Sentiment</string>
-    <string name="market_sentiment_navigate_content_description">View Posture in Insights</string>
-    <!-- 2026-09-06: chevron on the Signal card's flash headline, opens Market Read (analysis +
-         posture) as a bottom sheet instead of requiring a scroll to the bottom of Summary. -->
-    <string name="market_read_navigate_content_description">Open Market Read</string>
-    <string name="drivers_navigate_content_description">View drivers in Indicators</string>
+    <!-- ViewMoreRow link text (DetailSectionLabels.kt's shared "View More" style): Market
+         Signal/Sentiment/Drivers each navigate elsewhere via this row now, not a bare trailing
+         chevron on the whole card/headline. -->
+    <string name="summary_show_market_read">Show Market Read</string>
+    <string name="summary_show_posture_positioning">Show Posture &amp; Positioning</string>
+    <string name="summary_show_indicators">Show Indicators</string>
     <string name="drivers_info_content_description">About drivers</string>
     <string name="drivers_info_title">About Drivers</string>
     <string name="drivers_info_body_impact">Each driver\'s color shows how it\'s currently affecting the market read — green means it\'s supporting the case, red means it\'s working against it, and yellow means it\'s roughly neutral.</string>
@@ -314,7 +319,7 @@
     <string name="summary_analysis_engine_content_description">Analysis Engine</string>
 
     <!-- Analysis tab (list): StockAnalysisScreen and StockPreviewCard. -->
-    <string name="stock_analysis_subtitle">%1$d TRACKED · %2$s</string>
+    <string name="stock_analysis_subtitle">%1$d TRACKED ‣ %2$s</string>
     <string name="stock_analysis_empty_message">No stocks tracked</string>
     <string name="stock_analysis_ai_glyph_content_description">AI-generated read</string>
     <string name="stock_analysis_setup_changed_format">%1$s → %2$s</string>
@@ -367,7 +372,7 @@
     <string name="watch_urgency_medium">MEDIUM</string>
     <string name="watch_urgency_low">LOW</string>
     <string name="stock_detail_technical_read_title">TECHNICAL READ</string>
-    <string name="stock_detail_signal_conditions_title">SIGNAL CONDITIONS · %1$d</string>
+    <string name="stock_detail_signal_conditions_title">SIGNAL CONDITIONS ‣ %1$d</string>
     <string name="stock_detail_signal_conditions_hint">tap a chip for why</string>
     <string name="stock_detail_what_changed_title">WHAT CHANGED SINCE LAST RUN</string>
     <string name="stock_detail_chip_added">+ %1$s</string>
@@ -415,7 +420,7 @@
     <string name="stock_detail_metric_fcf_yield">FCF YIELD</string>
     <string name="stock_detail_metric_revenue_yoy">REVENUE YOY</string>
     <string name="stock_detail_metric_eps_yoy">EPS YOY</string>
-    <string name="stock_detail_mean_target_label">MEAN TARGET · $%1$s–$%2$s</string>
+    <string name="stock_detail_mean_target_label">MEAN TARGET ‣ $%1$s–$%2$s</string>
     <string name="stock_detail_analysts_covering">%1$d analysts covering</string>
     <string name="stock_detail_next_earnings">Next earnings %1$s</string>
 
@@ -433,7 +438,7 @@
     <string name="stock_detail_calls_held_of_total">%1$d of %2$d recent calls held</string>
     <string name="stock_detail_calls_hit_rate_suffix">(%1$d%%)</string>
     <string name="stock_detail_calls_failed_suffix">, %1$d failed</string>
-    <string name="stock_detail_call_made_resolves">Made %1$s · resolves %2$s</string>
+    <string name="stock_detail_call_made_resolves">Made %1$s ‣ resolves %2$s</string>
     <string name="stock_detail_resolved_calls_title">RESOLVED CALLS</string>
     <string name="stock_detail_resolved_calls_page_title">Resolved Calls</string>
     <string name="stock_detail_call_status_held">HELD</string>
@@ -613,9 +618,9 @@
     <string name="posture_net_liquidity_separator">-</string>
 
     <string name="positioning_section_title">Market Positioning</string>
-    <string name="positioning_retail_sentiment_section">RETAIL SENTIMENT · AAII</string>
-    <string name="positioning_institutional_section">INSTITUTIONAL POSITIONING · CFTC COT</string>
-    <string name="positioning_short_interest_section">SHORT INTEREST · FINRA</string>
+    <string name="positioning_retail_sentiment_section">RETAIL SENTIMENT ‣ AAII</string>
+    <string name="positioning_institutional_section">INSTITUTIONAL POSITIONING ‣ CFTC COT</string>
+    <string name="positioning_short_interest_section">SHORT INTEREST ‣ FINRA</string>
     <!-- 2026-08-27: backend removed retail_sentiment/institutional_positioning/short_interest .description from Firestore ; these three replace them, verbatim from the backend team's own copy, and also back the new section-header info icons (previously only the top-level Positioning icon existed; these three sub-sections had none). -->
     <string name="positioning_retail_sentiment_description">Weekly AAII survey of individual investor sentiment. The bull-bear spread is a classic contrarian indicator — extreme optimism or pessimism among retail investors has historically preceded a reversal.</string>
     <string name="positioning_institutional_description">Speculative net futures positioning as a percentage of open interest, framed against a trailing ~1-year percentile per contract. A crowded long or short reading has historically preceded a reversal as that positioning unwinds — first-pass framing, not backtested. Reflects the prior Tuesday\'s book, not the report\'s Friday release date. ES/NQ/RTY use CFTC\'s Legacy non-commercial category; DIA uses TFF\'s Leveraged Funds category instead (Dow futures aren\'t reported under Legacy) — see each contract\'s own methodology before comparing DIA directly against the other three.</string>
@@ -629,8 +634,8 @@
     <string name="positioning_futures_rty">E-mini Russell 2000 (RTY)</string>
     <!-- New 2026-08-27, live-verified: a 4th COT contract, sourced from a different CFTC report/category than the other three (see positioning_institutional_description). -->
     <string name="positioning_futures_dia">E-mini Dow (DIA)</string>
-    <string name="positioning_futures_methodology_legacy">CFTC Legacy · Non-Commercial</string>
-    <string name="positioning_futures_methodology_tff">CFTC TFF · Leveraged Funds</string>
+    <string name="positioning_futures_methodology_legacy">CFTC Legacy ‣ Non-Commercial</string>
+    <string name="positioning_futures_methodology_tff">CFTC TFF ‣ Leveraged Funds</string>
     <string name="positioning_futures_caption">Net spec. position (% OI)</string>
     <!-- Layer 2 (2026-08-27 interpretive-layer spec): the raw % and the percentile only mean something read TOGETHER; this pairs them in one on-card line rather than requiring a tap into two separate glossary entries to connect them. -->
     <string name="positioning_futures_reading_extreme_long">%1$s percentile — among the most long-leaning readings in the past year.</string>
@@ -649,7 +654,7 @@
     <string name="positioning_etf_dia">SPDR Dow Jones Industrial Average (DIA)</string>
     <string name="positioning_etf_rsp">Invesco S&amp;P 500 Equal Weight (RSP)</string>
     <string name="positioning_etf_mags">Roundhill Magnificent Seven (MAGS)</string>
-    <!-- 2026-08-27: was "Days to cover · %1$s" while actually substituting the SHARE count, not a
+    <!-- 2026-08-27: was "Days to cover ‣ %1$s" while actually substituting the SHARE count, not a
          days-to-cover value; read as a duplicate of the real days-to-cover figure already shown
          in the headline number above and in positioning_short_interest_reading_* below it. -->
     <string name="positioning_short_interest_caption">%1$s shares short</string>

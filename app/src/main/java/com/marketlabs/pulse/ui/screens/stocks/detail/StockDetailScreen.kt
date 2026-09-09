@@ -22,7 +22,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
@@ -137,8 +140,15 @@ fun StockDetailScreen(
     )
     val lazyListStates = remember { List(DetailTab.entries.size) { LazyListState() } }
 
+    // 💡 Disables the pager's own swipe-between-tabs for as long as a press/drag-to-scrub gesture
+    // is active on the period chart (Technicals tab) -- both are horizontal gestures, so without
+    // this, dragging across the chart to scrub its marker also swipes the pager to the next/
+    // previous tab underneath it. See PeriodChart's onMarkerVisibilityChanged doc comment.
+    var isChartInteractionActive by remember { mutableStateOf(false) }
+
     HorizontalPager(
         state = pagerState,
+        userScrollEnabled = !isChartInteractionActive,
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
@@ -161,6 +171,7 @@ fun StockDetailScreen(
                 intradaySeries = intradaySeries,
                 availableChartRanges = availableChartRanges,
                 onChartRangeSelected = onChartRangeSelected,
+                onChartInteractionChanged = { isChartInteractionActive = it },
                 lazyListState = lazyListStates[DetailTab.TECHNICALS.ordinal],
                 contentPadding = contentPadding,
                 sectionSpacing = sectionSpacing
@@ -255,6 +266,7 @@ private fun TechnicalsTabContent(
     intradaySeries: IntradaySeries?,
     availableChartRanges: List<ChartRange>,
     onChartRangeSelected: (ChartRange) -> Unit,
+    onChartInteractionChanged: (Boolean) -> Unit,
     lazyListState: LazyListState,
     contentPadding: PaddingValues,
     sectionSpacing: Dp
@@ -293,6 +305,7 @@ private fun TechnicalsTabContent(
                         previousClose = intradaySeries?.previousClose,
                         date = intradaySeries?.date,
                         isLoading = isChartLoading,
+                        onMarkerVisibilityChanged = onChartInteractionChanged,
                         modifier = Modifier.fillMaxWidth()
                     )
                 } else {
@@ -303,6 +316,7 @@ private fun TechnicalsTabContent(
                         points = chartSeries?.points.orEmpty(),
                         isLoading = isChartLoading,
                         currentPrice = preview?.price,
+                        onMarkerVisibilityChanged = onChartInteractionChanged,
                         modifier = Modifier.fillMaxWidth()
                     )
                 }

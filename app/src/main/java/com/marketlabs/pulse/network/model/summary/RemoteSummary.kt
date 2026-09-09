@@ -177,6 +177,11 @@ data class NetworkWhatsNewEntry(
     @Json(name = "category") val category: String? = null,
     @Json(name = "value_display") val valueDisplay: String? = null,
     @Json(name = "change_display") val changeDisplay: String? = null,
+    // Not sent by the backend yet -- requested addition to buildWhatsNew() in
+    // marketPulseComposer.ts (already computed as previous_value_display on every metric in
+    // marketDataEngine.ts's buildMetric(), just not forwarded into /pulse/v3's whats_new[] yet).
+    // Null until that ships; the Previous line in WhatsNewSection just doesn't render until then.
+    @Json(name = "previous_value_display") val previousValueDisplay: String? = null,
     @Json(name = "signal_text") val signalText: String? = null,
     @Json(name = "signal_color") val signalColor: String? = null,
     @Json(name = "release_date") val releaseDate: String? = null

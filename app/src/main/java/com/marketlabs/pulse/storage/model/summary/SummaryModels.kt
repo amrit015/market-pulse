@@ -180,6 +180,8 @@ data class WhatsNewItem(
     val category: IndicatorCategory? = null,
     val valueDisplay: String? = null,
     val changeDisplay: String? = null,
+    // Not sent by the backend yet -- see NetworkWhatsNewEntry.previousValueDisplay's doc comment.
+    val previousValueDisplay: String? = null,
     val signalText: String? = null,
     val signalColor: SignalColor? = null,
     val releaseDate: String? = null

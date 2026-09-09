@@ -23,6 +23,7 @@
     <dimen name="icon_size_small">16dp</dimen>
     <dimen name="icon_size_medium">20dp</dimen>
     <dimen name="icon_size_large">24dp</dimen>
+    <dimen name="icon_size_extra_large">28dp</dimen>
     <dimen name="bullet_size">6dp</dimen>
 
     <dimen name="padding_micro">3dp</dimen>
