@@ -2,14 +2,19 @@ package com.marketlabs.pulse.storage.database.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.marketlabs.pulse.storage.model.stocks.DomainDigestSection
 
 @Entity(tableName = "market_state")
 data class MarketStateEntity(
     @PrimaryKey val id: Int = 1,
     val isEquityOpen: Boolean?,
     val isFuturesOpen: Boolean?,
-    val technicalSummary: String?, // 💡 NEW
-    val technicalSummaryTimestamp: Long?, // 💡 NEW
+    // Flattened, same precedent as MarketPostureEntity/MarketPositioningEntity's own synthesis field.
+    val synthesisHeadline: String?,
+    val synthesisDetail: String?,
+    val synthesisState: String?,
+    // JSON-blob column reusing StocksConverters' existing List<DomainDigestSection> adapter.
+    val dailyDigestSections: List<DomainDigestSection>?,
     val lastUpdated: Long?
 )
 
@@ -18,7 +23,6 @@ data class AssetOverviewEntity(
     @PrimaryKey val symbol: String,
     val name: String?,
     val type: String?,
-    val description: String?,
     val isInverted: Boolean?,
 
     val price: Double?,

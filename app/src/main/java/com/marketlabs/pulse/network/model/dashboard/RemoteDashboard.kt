@@ -20,18 +20,71 @@ data class NetworkMarketState(
     @Json(name = "is_futures_open")
     @get:PropertyName("is_futures_open")
     @set:PropertyName("is_futures_open")
-    var isFuturesOpen: Boolean = false,
+    var isFuturesOpen: Boolean = false
+)
 
-    // 💡 NEW: Summary fields to be populated from the new Firestore doc
-    @Json(name = "summary")
-    @get:PropertyName("summary")
-    @set:PropertyName("summary")
-    var technicalSummary: String? = null,
+/**
+ * The `market_overview/technical_summary` doc's shape post-rewrite: `summary: String?` (deleted
+ * outright on the backend, no transition window) is replaced by a nested `synthesis` narrative +
+ * a top-level `state` ("unavailable" | "current"), plus the new market-wide `daily_digest`
+ * ("what moved today") riding on the same doc.
+ */
+@JsonClass(generateAdapter = true)
+data class NetworkTechnicalSummary(
+    @Json(name = "synthesis")
+    @get:PropertyName("synthesis")
+    @set:PropertyName("synthesis")
+    var synthesis: NetworkSynthesis? = null,
 
-    @Json(name = "timestamp")
-    @get:PropertyName("timestamp")
-    @set:PropertyName("timestamp")
-    var technicalSummaryTimestamp: Long? = null
+    @Json(name = "state")
+    @get:PropertyName("state")
+    @set:PropertyName("state")
+    var state: String? = null,
+
+    @Json(name = "daily_digest")
+    @get:PropertyName("daily_digest")
+    @set:PropertyName("daily_digest")
+    var dailyDigest: NetworkDailyDigest? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class NetworkSynthesis(
+    @Json(name = "headline")
+    @get:PropertyName("headline")
+    @set:PropertyName("headline")
+    var headline: String? = null,
+
+    @Json(name = "detail")
+    @get:PropertyName("detail")
+    @set:PropertyName("detail")
+    var detail: String? = null
+)
+
+/** Model-chosen `{category, heading, body}` sections, max 4 -- `category` is a routing field, not a UI kicker. */
+@JsonClass(generateAdapter = true)
+data class NetworkDailyDigest(
+    @Json(name = "sections")
+    @get:PropertyName("sections")
+    @set:PropertyName("sections")
+    var sections: List<NetworkDigestSection>? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class NetworkDigestSection(
+    @Json(name = "category")
+    @get:PropertyName("category")
+    @set:PropertyName("category")
+    var category: String? = null,
+
+    @Json(name = "heading")
+    @get:PropertyName("heading")
+    @set:PropertyName("heading")
+    var heading: String? = null,
+
+    @Json(name = "body")
+    @get:PropertyName("body")
+    @set:PropertyName("body")
+    var body: String? = null
 )
 
 @JsonClass(generateAdapter = true)
@@ -39,7 +92,6 @@ data class NetworkAssetOverview(
     var symbol: String = "",
     var name: String = "",
     var type: String = "",
-    var description: String = "",
     var price: Double = 0.0,
     var rsi: Double? = null,
     var timestamp: Long = 0L,

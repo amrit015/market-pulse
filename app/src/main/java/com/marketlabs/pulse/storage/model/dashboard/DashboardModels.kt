@@ -1,15 +1,24 @@
 package com.marketlabs.pulse.storage.model.dashboard
 
+import com.marketlabs.pulse.storage.model.stocks.DomainDigestSection
 import com.marketlabs.pulse.utils.enums.AssetType
 
 /**
  * Represents the master state of the market (Open/Closed) and the Global Technical Summary.
+ *
+ * `synthesisHeadline`/`synthesisDetail`/`synthesisState` replace the old flat `technicalSummary`
+ * String (backend deleted `summary` outright, no transition window) -- same `{headline, detail}` +
+ * `state: "unavailable"|"current"` shape Posture/Positioning already use for their own synthesis
+ * field. `dailyDigestSections` is new market-wide AI content riding on the same `market_overview`
+ * collection listener.
  */
 data class MarketState(
     val isEquityOpen: Boolean? = null,
     val isFuturesOpen: Boolean? = null,
-    val technicalSummary: String? = null,
-    val technicalSummaryTimestamp: Long? = null,
+    val synthesisHeadline: String? = null,
+    val synthesisDetail: String? = null,
+    val synthesisState: String? = null,
+    val dailyDigestSections: List<DomainDigestSection>? = null,
     val lastUpdated: Long? = null
 )
 
@@ -19,7 +28,6 @@ data class MarketState(
 data class AssetOverview(
     val symbol: String,
     val name: String? = null,
-    val description: String? = null,
     val type: AssetType,
     val isInverted: Boolean? = null,
 

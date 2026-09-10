@@ -26,6 +26,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.core.glossary.AssetDescriptionProvider
 import com.marketlabs.pulse.core.glossary.DashboardGlossaryProvider
 import com.marketlabs.pulse.storage.model.charts.ChartPoint
 import com.marketlabs.pulse.storage.model.charts.ChartRange
@@ -108,9 +109,10 @@ fun AssetDetailScreen(
 
         Spacer(modifier = Modifier.height(paddingLarge))
 
-        if (!asset.description.isNullOrEmpty()) {
+        val description = AssetDescriptionProvider.descriptionFor(context, asset.symbol)
+        if (!description.isNullOrEmpty()) {
             Text(
-                text = asset.description,
+                text = description,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
             )
@@ -325,7 +327,6 @@ fun GlossaryItem(term: String, definition: String) {
 private val mockAsset = AssetOverview(
     symbol = "SPY",
     name = "S&P 500",
-    description = "Tracks the S&P 500 index, a broad benchmark of large-cap U.S. equities.",
     type = AssetType.EQUITY,
     price = 764.25,
     previousClose = 765.68,

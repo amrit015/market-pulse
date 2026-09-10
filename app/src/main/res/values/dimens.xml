@@ -90,4 +90,8 @@
     <dimen name="tri_segment_bar_height">12dp</dimen>
     <dimen name="percentile_bar_track_height">6dp</dimen>
     <dimen name="percentile_bar_marker_radius">7dp</dimen>
+
+    <!-- Google AdMob & Native Ad Cards -->
+    <dimen name="ad_creative_image_height">140dp</dimen>
+    <dimen name="ad_logo_size">20dp</dimen>
 </resources>

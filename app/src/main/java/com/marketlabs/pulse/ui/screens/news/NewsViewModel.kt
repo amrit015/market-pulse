@@ -2,6 +2,7 @@ package com.marketlabs.pulse.ui.screens.news
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.marketlabs.pulse.core.ads.AdManager
 import com.marketlabs.pulse.core.news.NewsRepository
 import com.marketlabs.pulse.core.sync.SyncManager
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,22 +18,25 @@ import javax.inject.Inject
 @HiltViewModel
 class NewsViewModel @Inject constructor(
     private val repository: NewsRepository,
-    private val syncManager: SyncManager
+    private val syncManager: SyncManager,
+    private val adManager: AdManager
 ) : ViewModel() {
 
     private val _isLoading = MutableStateFlow(false)
     private val _errorMessage = MutableStateFlow<String?>(null)
 
-    // Combine local states with the persistent Room stream
+    // Combine local states with the persistent Room stream and freemium ad status
     val uiState: StateFlow<NewsUiState> = combine(
         repository.getNewsStream(),
         _isLoading,
-        _errorMessage
-    ) { newsData, loading, error ->
+        _errorMessage,
+        adManager.isAdFree
+    ) { newsData, loading, error, adFree ->
         NewsUiState(
             isLoading = loading,
             news = newsData,
-            errorMessage = error
+            errorMessage = error,
+            isAdFree = adFree
         )
     }.stateIn(
         scope = viewModelScope,

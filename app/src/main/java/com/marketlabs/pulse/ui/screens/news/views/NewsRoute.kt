@@ -143,7 +143,8 @@ fun NewsRoute(
                             data = uiState.news!!,
                             scaffoldPadding = scaffoldPadding,
                             onArticleClick = onNavigateToWebView,
-                            highlightedArticleUrl = localHighlightedArticleUrl
+                            highlightedArticleUrl = localHighlightedArticleUrl,
+                            isAdFree = uiState.isAdFree
                         )
                     }
 

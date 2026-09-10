@@ -204,6 +204,8 @@
     <string name="phase_title_risk">Risk Phase</string>
     <string name="phase_title_valuation">Valuation Phase</string>
     <string name="dashboard_technical_briefing">Technical Briefing</string>
+    <string name="dashboard_daily_digest_header">Daily Digest</string>
+    <string name="dashboard_daily_digest_unavailable">Digest unavailable for this run.</string>
     <string name="released_date">Released %1$s</string>
     <string name="current">Current</string>
 
@@ -667,4 +669,32 @@
     <string name="positioning_short_interest_reading_building">Short interest rose %1$s%% since the last settlement — shorts appear to be adding.</string>
     <string name="positioning_short_interest_reading_neutral">%1$sx days to cover, little changed since the last settlement.</string>
     <string name="positioning_short_interest_settled">Settled %1$s</string>
+
+    <!-- Google AdMob & Sponsored Native Ad Cards -->
+    <string name="admob_app_id">ca-app-pub-3940256099942544~3347511713</string>
+    <string name="admob_native_ad_unit_id">ca-app-pub-3940256099942544/2247696110</string>
+    <string name="ad_sponsored_label">SPONSORED</string>
+    <string name="ad_learn_more">Learn More</string>
+    <string name="ad_fake_advertiser">Vanguard ETF Desk</string>
+    <string name="ad_fake_headline">Commission-Free US Equity &amp; Bond Portfolio ETFs</string>
+    <string name="ad_fake_body">Explore index-tracking ETFs built for long-term quantitative allocators. Real-time liquidity, ultra-low expense ratios, and institutional trade execution.</string>
+    <string name="ad_fake_cta">Explore Funds</string>
+    <string name="ad_vanguard_tag">ETF ALLOCATION STRATEGY</string>
+
+    <string name="ad_ibkr_advertiser">Interactive Brokers Pro</string>
+    <string name="ad_ibkr_headline">Institutional Direct Market Access &amp; Algorithmic Routing</string>
+    <string name="ad_ibkr_body">Trade US equities, options, and futures with ultra-low margin rates, deep liquidity access, and automated VWAP/TWAP order execution.</string>
+    <string name="ad_ibkr_cta">Open Account</string>
+    <string name="ad_ibkr_tag">INSTITUTIONAL EXECUTION &amp; PRIME LIQUIDITY</string>
+
+    <string name="ad_schwab_advertiser">Charles Schwab</string>
+    <string name="ad_schwab_headline">Automated Quantitative Multi-Factor Stock Screener</string>
+    <string name="ad_schwab_body">Screen US equities across valuation percentiles, institutional ownership changes, and technical momentum indicators directly on desktop.</string>
+    <string name="ad_schwab_cta">Get Started</string>
+
+    <string name="ad_ishares_advertiser">BlackRock iShares</string>
+    <string name="ad_ishares_headline">Systemic Risk &amp; Sector Rotation Liquidity Vehicles</string>
+    <string name="ad_ishares_body">Navigate macro market cycles with precision sector ETFs and fixed-income duration hedging instruments.</string>
+    <string name="ad_ishares_cta">View Strategies</string>
+    <string name="ad_ishares_tag">MACRO HEDGING &amp; DURATION</string>
 </resources>

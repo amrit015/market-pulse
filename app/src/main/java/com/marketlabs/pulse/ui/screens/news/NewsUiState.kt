@@ -5,5 +5,6 @@ import com.marketlabs.pulse.storage.model.news.MarketNews
 data class NewsUiState(
     val isLoading: Boolean = false,
     val news: MarketNews? = null,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val isAdFree: Boolean = false
 )

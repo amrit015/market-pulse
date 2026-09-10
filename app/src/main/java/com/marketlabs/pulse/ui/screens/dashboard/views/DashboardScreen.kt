@@ -20,12 +20,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -53,13 +51,13 @@ import com.marketlabs.pulse.storage.model.dashboard.AssetOverview
 import com.marketlabs.pulse.storage.model.dashboard.MarketState
 import com.marketlabs.pulse.storage.model.news.NewsArticle
 import com.marketlabs.pulse.storage.model.intraday.IntradaySeries
+import com.marketlabs.pulse.ui.components.AnalyzedAtHeader
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.bottomSheet.MarketGlossaryBottomSheet
 import com.marketlabs.pulse.ui.components.widgets.ChangeDirection
 import com.marketlabs.pulse.ui.components.widgets.DirectionalChangePill
 import com.marketlabs.pulse.ui.components.widgets.PutCallHorizontalBar
-import com.marketlabs.pulse.ui.components.widgets.SignalPill
 import com.marketlabs.pulse.ui.components.widgets.SparklineChart
 import com.marketlabs.pulse.ui.components.widgets.SpeedometerGauge
 import com.marketlabs.pulse.ui.components.widgets.VixFullWidthCard
@@ -67,11 +65,8 @@ import com.marketlabs.pulse.ui.screens.news.views.NewsPreviewSection
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 import com.marketlabs.pulse.utils.enums.AssetType
-import dev.jeziellago.compose.markdowntext.MarkdownText
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
-import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
 import kotlin.math.abs
 
@@ -137,14 +132,17 @@ fun DashboardScreen(
     // 💡 Top padding uses `scaffoldPadding`'s top component (the Scaffold's own measurement of
     // the top bar's real rendered height) instead of the raw status bar inset alone -- the raw
     // inset only accounts for the system status bar, not the app's own top bar sitting below it,
-    // so content used to start underneath the top bar rather than below it.
+    // so content used to start underneath the top bar rather than below it. No extra top padding
+    // beyond that -- `AnalyzedAtHeader` (below) is the first thing in this Column, at the same
+    // `scaffoldPadding.calculateTopPadding()` offset `IndicatorsScreen.kt` places its own copy at,
+    // so the timestamp reads at the exact same pixel on both screens.
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .verticalScroll(scrollState)
             .padding(
-                top = scaffoldPadding.calculateTopPadding() + paddingExtraLarge,
+                top = scaffoldPadding.calculateTopPadding(),
                 bottom = scaffoldPadding.calculateBottomPadding() + paddingExtraLarge,
                 start = paddingLarge,
                 end = paddingLarge
@@ -152,9 +150,15 @@ fun DashboardScreen(
         verticalArrangement = Arrangement.spacedBy(paddingExtraLarge)
     ) {
 
-        TechnicalSummaryCard(
-            summaryText = marketState?.technicalSummary,
-            timestamp = marketState?.technicalSummaryTimestamp,
+        marketState?.lastUpdated?.let { timestamp ->
+            AnalyzedAtHeader(timestamp = timestamp)
+        }
+
+        DailyDigestHeroCard(
+            headline = marketState?.synthesisHeadline,
+            detail = marketState?.synthesisDetail,
+            sections = marketState?.dailyDigestSections.orEmpty(),
+            isUnavailable = marketState?.synthesisState == "unavailable",
             isEquityOpen = isEquityOpen
         )
 
@@ -682,120 +686,6 @@ fun AssetCard(
 }
 
 @Composable
-fun TechnicalSummaryCard(summaryText: String?, timestamp: Long?, isEquityOpen: Boolean) {
-    if (summaryText.isNullOrBlank() || timestamp == null) return
-
-    var isExpanded by remember { mutableStateOf(false) }
-    val date = Date(timestamp)
-    val format = SimpleDateFormat("MMM dd, h:mm a", Locale.getDefault())
-
-    val paddingSmall = dimensionResource(id = R.dimen.padding_small)
-    val paddingMedium = dimensionResource(id = R.dimen.padding_medium)
-    val paddingLarge = dimensionResource(id = R.dimen.padding_large)
-
-    val pulseColors = LocalPulseColors.current
-    val badgeBgColor =
-        if (isEquityOpen) pulseColors.signalBullishPill else MaterialTheme.colorScheme.surfaceVariant
-    val badgeTextColor =
-        if (isEquityOpen) pulseColors.signalBullishText else MaterialTheme.colorScheme.onSurfaceVariant
-
-    // 💡 This is the AI-generated "Technical Briefing" card -- interpreted, editorial content, not
-    // raw market data. SYNTHESIS style, the same darker background as Indicators' AI Executive
-    // Briefing and Summary's VerdictCard -- these three are this app's "AI briefing/verdict" hero
-    // cards, one per screen, and share the same treatment for that reason. This is narrower than
-    // SYNTHESIS used to be applied (news articles, list-style AI content, and per-symbol preview
-    // cards all moved to the plain DATA background since only a screen's single leading AI
-    // conclusion keeps the darker tint now). Contrast this with UnifiedScoreHeaderCard, whose
-    // colors are all passed in by the caller as real signal colors (bullish/bearish/neutral pillar
-    // scores) -- that one stays signal-colored on purpose, since it is showing raw computed data,
-    // not an AI's interpretation of it.
-    // 💡 `animateContentSize()` sits on the inner `Column` below, not on `PulseCard`'s own outer
-    // `modifier` -- `PulseCard` draws its shadow via `Modifier.shadow`, and `animateContentSize()`
-    // clips whatever it wraps to its own animated rectangle each frame. Placed outside the shadow
-    // (on the Card's own modifier), that rectangular clip cut straight through the shadow's rounded
-    // corners, leaving a flat greyish sliver poking out past the bottom edge instead of a clean
-    // rounded shadow.
-    PulseCard(
-        style = PulseCardStyle.SYNTHESIS,
-        modifier = Modifier.fillMaxWidth(),
-        onClick = { isExpanded = !isExpanded }
-    ) {
-        Column(modifier = Modifier.padding(paddingLarge).animateContentSize()) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        val textStyle =
-                            MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                        val iconSize = with(LocalDensity.current) { textStyle.fontSize.toDp() }
-
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_ai_sparkle_filled),
-                            contentDescription = "Analysis Engine",
-                            tint = pulseColors.accentPrimary,
-                            modifier = Modifier.size(iconSize)
-                        )
-
-                        Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
-
-                        Text(
-                            text = stringResource(id = R.string.dashboard_technical_briefing),
-                            style = textStyle,
-                            color = pulseColors.accentPrimary
-                        )
-                    }
-                    Text(
-                        text = stringResource(id = R.string.analyzed_at, format.format(date)),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                Icon(
-                    painter = painterResource(id = if (isExpanded) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(start = paddingMedium)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(paddingMedium))
-            HorizontalDivider(
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                thickness = dimensionResource(id = R.dimen.border_thin)
-            )
-            Spacer(modifier = Modifier.height(paddingMedium))
-
-            // Changed to MarkdownText to support bold blocks and line endings natively
-            MarkdownText(
-                markdown = summaryText,
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    color = MaterialTheme.colorScheme.onSurface
-                ),
-                maxLines = if (isExpanded) Int.MAX_VALUE else 3
-            )
-
-            Spacer(modifier = Modifier.height(paddingLarge))
-            SignalPill(
-                text = if (isEquityOpen) stringResource(id = R.string.dashboard_market_open)
-                else stringResource(id = R.string.dashboard_market_closed),
-                pillColor = badgeBgColor,
-                contentColor = badgeTextColor,
-                leadingIcon = {
-                    Box(
-                        modifier = Modifier
-                            .size(dimensionResource(id = R.dimen.icon_size_small))
-                            .background(color = badgeTextColor, shape = CircleShape)
-                    )
-                }
-            )
-        }
-    }
-}
-
-@Composable
 fun SentimentConsensusBadge(sentimentAssets: List<AssetOverview?>, onClick: (String) -> Unit) {
     var score = 0
     var validAssets = 0
@@ -895,28 +785,6 @@ fun SentimentConsensusBadge(sentimentAssets: List<AssetOverview?>, onClick: (Str
                 contentDescription = "View Glossary",
                 tint = textColor,
                 modifier = Modifier.size(dimensionResource(id = R.dimen.icon_size_small))
-            )
-        }
-    }
-}
-
-@Preview(showBackground = true, backgroundColor = 0xFF121212)
-@Composable
-fun PreviewTechnicalSummaryCard() {
-    MaterialTheme {
-        val mockSummary = """
-            Equities are showing resilience, with SPY testing its 20-day SMA. Tech continues to lead while small caps lag, indicating a concentrated rally.
-            
-            Commodities are mixed. Gold is catching a safe-haven bid while Copper pulls back slightly, pointing to mixed global economic signals.
-            
-            Overall sentiment remains neutral to slightly bullish, as the Fear & Greed index hovers near 55 and Put/Call ratios normalize.
-        """.trimIndent()
-
-        Column(modifier = Modifier.padding(16.dp)) {
-            TechnicalSummaryCard(
-                summaryText = mockSummary,
-                timestamp = System.currentTimeMillis(),
-                isEquityOpen = true
             )
         }
     }

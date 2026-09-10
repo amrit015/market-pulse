@@ -35,11 +35,13 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
+import com.google.android.gms.ads.nativead.NativeAd
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.news.MarketNews
 import com.marketlabs.pulse.storage.model.news.NewsArticle
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
+import com.marketlabs.pulse.ui.components.ads.PulseNativeAdCard
 import com.marketlabs.pulse.ui.components.widgets.SignalPill
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
@@ -69,7 +71,10 @@ fun NewsScreen(
     data: MarketNews,
     scaffoldPadding: PaddingValues,
     onArticleClick: (String) -> Unit,
-    highlightedArticleUrl: String? = null // Added with Claude Code assistance.
+    highlightedArticleUrl: String? = null, // Added with Claude Code assistance.
+    nativeAd: NativeAd? = null,
+    isAdFree: Boolean = false,
+    showAdPlaceholder: Boolean = true
 ) {
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
     val listState = rememberLazyListState()
@@ -130,23 +135,85 @@ fun NewsScreen(
             }
         } else {
             // Render Articles safely
-            items(todayStories) { article ->
-                NewsArticleCard(
-                    article = article,
-                    onClick = { url -> onArticleClick(url) },
-                    isHighlighted = article.url != null && article.url == highlightedArticleUrl
-                )
-            }
-
-            if (earlierStories.isNotEmpty()) {
-                item { LastTwoDaysBanner() }
-
-                items(earlierStories) { article ->
+            todayStories.forEachIndexed { index, article ->
+                item(key = article.url ?: "today_$index") {
                     NewsArticleCard(
                         article = article,
                         onClick = { url -> onArticleClick(url) },
                         isHighlighted = article.url != null && article.url == highlightedArticleUrl
                     )
+                }
+
+                // Insertion interval 1 (after 2nd article): Creative Image Banner Ad (Vanguard)
+                if ((index == 1 || (todayStories.size <= 1 && index == todayStories.lastIndex)) && !isAdFree) {
+                    item(key = "news_ad_vanguard_banner_$index") {
+                        PulseNativeAdCard(
+                            nativeAd = nativeAd,
+                            showPlaceholderIfNull = showAdPlaceholder,
+                            showCreativeImageInPlaceholder = true,
+                            placeholderTag = stringResource(id = R.string.ad_vanguard_tag)
+                        )
+                    }
+                }
+
+                // Insertion interval 2 (after 5th article): Compact Direct Market Access Ad (IBKR)
+                if (index == 4 && !isAdFree) {
+                    item(key = "news_ad_ibkr_compact_$index") {
+                        PulseNativeAdCard(
+                            nativeAd = nativeAd,
+                            showPlaceholderIfNull = showAdPlaceholder,
+                            showCreativeImageInPlaceholder = false,
+                            placeholderAdvertiser = stringResource(id = R.string.ad_ibkr_advertiser),
+                            placeholderHeadline = stringResource(id = R.string.ad_ibkr_headline),
+                            placeholderBody = stringResource(id = R.string.ad_ibkr_body),
+                            placeholderCta = stringResource(id = R.string.ad_ibkr_cta)
+                        )
+                    }
+                }
+            }
+
+            if (earlierStories.isNotEmpty()) {
+                item { LastTwoDaysBanner() }
+
+                earlierStories.forEachIndexed { index, article ->
+                    item(key = article.url ?: "earlier_$index") {
+                        NewsArticleCard(
+                            article = article,
+                            onClick = { url -> onArticleClick(url) },
+                            isHighlighted = article.url != null && article.url == highlightedArticleUrl
+                        )
+                    }
+
+                    // Insertion interval 3 (after 3rd archive article): Compact Screener Ad (Schwab)
+                    if (index == 2 && !isAdFree) {
+                        item(key = "news_ad_schwab_compact_$index") {
+                            PulseNativeAdCard(
+                                nativeAd = nativeAd,
+                                showPlaceholderIfNull = showAdPlaceholder,
+                                showCreativeImageInPlaceholder = false,
+                                placeholderAdvertiser = stringResource(id = R.string.ad_schwab_advertiser),
+                                placeholderHeadline = stringResource(id = R.string.ad_schwab_headline),
+                                placeholderBody = stringResource(id = R.string.ad_schwab_body),
+                                placeholderCta = stringResource(id = R.string.ad_schwab_cta)
+                            )
+                        }
+                    }
+
+                    // Insertion interval 4 (after 7th archive article): Macro Hedging Banner Ad (iShares)
+                    if (index == 6 && !isAdFree) {
+                        item(key = "news_ad_ishares_banner_$index") {
+                            PulseNativeAdCard(
+                                nativeAd = nativeAd,
+                                showPlaceholderIfNull = showAdPlaceholder,
+                                showCreativeImageInPlaceholder = true,
+                                placeholderAdvertiser = stringResource(id = R.string.ad_ishares_advertiser),
+                                placeholderHeadline = stringResource(id = R.string.ad_ishares_headline),
+                                placeholderBody = stringResource(id = R.string.ad_ishares_body),
+                                placeholderCta = stringResource(id = R.string.ad_ishares_cta),
+                                placeholderTag = stringResource(id = R.string.ad_ishares_tag)
+                            )
+                        }
+                    }
                 }
             }
         }

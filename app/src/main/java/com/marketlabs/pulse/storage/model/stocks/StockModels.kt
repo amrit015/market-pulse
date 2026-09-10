@@ -122,7 +122,10 @@ data class StockDetail(
 
 data class DomainDigestSection(
     val heading: String? = null,
-    val body: String? = null
+    val body: String? = null,
+    /** Model-assigned routing category (e.g. "SECTOR_ROTATION") -- Dashboard's own digest sections
+     *  carry this; stock-detail's digest sections leave it null. Not rendered as a UI kicker. */
+    val category: String? = null
 )
 
 data class DomainTechnicalIndicators(

@@ -800,6 +800,42 @@ steps, itself matching Indicators' `BandRow`):
   step) and made every card invisible against the sheet. Set to `colorScheme.surface` up front
   instead of waiting for a bug report.
 
+## Seventeenth step (2026-09-09): 3-line collapsed body is now the universal default, and expand/collapse gets exactly one click target
+
+Checked three touchpoints together on request — Dashboard/Overview's merged synthesis+digest hero
+card (`DailyDigestHeroCard.kt`, new that day), Summary's `MarketSentimentCard`, and Summary's
+`MarketPositionSection` "What Changed" block — and found them on three different clamp values (no
+clamp at all/full-hide, no clamp, 2 lines) despite all three being the same kind of thing: an
+AI-synthesis body paragraph sitting under a tappable headline/eyebrow row.
+
+- **Rule going forward: any collapsible AI-synthesis body paragraph clamps to exactly 3 lines when
+  collapsed, never fewer, never fully hidden, and never a different number** (2 was `MarketPositionSection`'s
+  own one-off before this pass). 3 was already `SynthesisHeroCard`'s number (Posture/Positioning/
+  Risks/Playbook) — the other two were brought in line with it, not the other way round:
+  - `DailyDigestHeroCard.kt` (Overview): `detail` was briefly fully hidden when collapsed (an
+    intermediate version of this same card, same day) — changed to a 3-line clamp, matching
+    `SynthesisHeroCard` exactly. `sections` (a list of `{heading, body}` blocks below `detail`, a
+    shape `SynthesisHeroCard` itself doesn't have) stay gated fully behind the same expand toggle
+    rather than getting their own clamp — a 3-line clamp doesn't mean much applied to a list of
+    several separate blocks, and showing them collapsed would defeat the point of collapsing at all.
+  - `MarketSentimentCard` (Summary): `summary` was fully hidden when collapsed (only the headline
+    showed) — changed to a 3-line clamp. The pre-existing headline-less edge case (no headline to
+    collapse *to*, so `summary` always renders in full) is unchanged — that's a different situation
+    (nothing to collapse against), not a second clamp value.
+  - `MarketPositionSection`'s "What Changed" (Summary): was clamped to 2 lines, the one outlier —
+    changed to 3 to match.
+- **Exactly one click target for the whole collapsible block, not one on the header row and a
+  second, independent one on the body text.** `MarketPositionSection`'s "What Changed" had both the
+  eyebrow+chevron `Row` and the body `Text` each carrying their own separate `.clickable { whatChangedExpanded = !whatChangedExpanded }`
+  — functionally harmless (both toggled the same state) but two separate ripple/tap regions for one
+  logical toggle, and not what `MarketSentimentCard`/`DailyDigestHeroCard` do (a single `PulseCard`-level
+  `onClick` covering the whole card). Fixed by wrapping the eyebrow row + body text in one `Column`
+  and moving the single `.clickable` there instead of on each child individually.
+
+Not touched: any non-AI-synthesis body text (e.g. plain data captions, `pctText` above What Changed
+in the same card) — this rule is scoped to the same "AI-narrative paragraph under a headline/eyebrow"
+case the rest of this doc already tracks, not every clamped `Text` in the app.
+
 ## Open items for the next pass (not yet decided — don't assume an answer)
 
 1. **Content-heading weight** (Signal/Sentiment bold vs. the four list cards plain) — intentional

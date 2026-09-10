@@ -677,6 +677,133 @@ object DatabaseMigrations {
         }
     }
 
+    // Migration from Version 26 to 27: `market_state.technicalSummary`/`technicalSummaryTimestamp`
+    // (the old flat Technical Briefing text) are dropped -- the backend deletes `summary` outright,
+    // no transition window -- replaced by flattened `synthesisHeadline`/`synthesisDetail`/
+    // `synthesisState` (same shape Posture/Positioning already use for their own synthesis field)
+    // plus two new JSON-blob columns: `dailyDigestSections` (reuses StocksConverters' existing
+    // List<DomainDigestSection> adapter) and `sectorRotation` (new DashboardConverters adapter, one
+    // whole DomainSectorRotation object per row). Recreates the table (SQLite has no DROP COLUMN in
+    // the version this app targets) using the same create-new/copy-surviving-columns/drop/rename
+    // shape as MIGRATION_6_7/MIGRATION_19_20 -- `technicalSummary`/`technicalSummaryTimestamp` have
+    // no surviving equivalent column, so they're simply not carried into the INSERT.
+    val MIGRATION_26_27 = object : Migration(26, 27) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `market_state_new` (
+                    `id` INTEGER NOT NULL,
+                    `isEquityOpen` INTEGER,
+                    `isFuturesOpen` INTEGER,
+                    `synthesisHeadline` TEXT,
+                    `synthesisDetail` TEXT,
+                    `synthesisState` TEXT,
+                    `dailyDigestSections` TEXT,
+                    `sectorRotation` TEXT,
+                    `lastUpdated` INTEGER,
+                    PRIMARY KEY(`id`)
+                )
+                """.trimIndent()
+            )
+
+            db.execSQL(
+                """
+                INSERT INTO `market_state_new`
+                (`id`, `isEquityOpen`, `isFuturesOpen`, `lastUpdated`)
+                SELECT `id`, `isEquityOpen`, `isFuturesOpen`, `lastUpdated`
+                FROM `market_state`
+                """.trimIndent()
+            )
+
+            db.execSQL("DROP TABLE `market_state`")
+            db.execSQL("ALTER TABLE `market_state_new` RENAME TO `market_state`")
+        }
+    }
+
+    // Migration from Version 27 to 28: `dashboard_assets.description` dropped -- the backend
+    // removed `market_overview/{symbol}.description` from every asset doc entirely, same hard
+    // cutover as MIGRATION_26_27. The per-asset blurb it used to back (`AssetDetailScreen.kt`) now
+    // comes from a bundled `assets/asset_descriptions.json` + `AssetDescriptionProvider` instead of
+    // the network, so the column has no replacement to migrate data into -- same
+    // create-new/copy-surviving-columns/drop/rename shape as MIGRATION_26_27, just dropping a
+    // column with nothing added in its place.
+    val MIGRATION_27_28 = object : Migration(27, 28) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `dashboard_assets_new` (
+                    `symbol` TEXT NOT NULL,
+                    `name` TEXT,
+                    `type` TEXT,
+                    `isInverted` INTEGER,
+                    `price` REAL,
+                    `previousClose` REAL,
+                    `changePercent` REAL,
+                    `rsi` REAL,
+                    `rsiStatus` TEXT,
+                    `macdSignal` TEXT,
+                    `technicalStatus` TEXT,
+                    `lastUpdated` INTEGER,
+                    `sma20` REAL,
+                    `sma50` REAL,
+                    `sma200` REAL,
+                    PRIMARY KEY(`symbol`)
+                )
+                """.trimIndent()
+            )
+
+            db.execSQL(
+                """
+                INSERT INTO `dashboard_assets_new`
+                (`symbol`, `name`, `type`, `isInverted`, `price`, `previousClose`, `changePercent`, `rsi`, `rsiStatus`, `macdSignal`, `technicalStatus`, `lastUpdated`, `sma20`, `sma50`, `sma200`)
+                SELECT `symbol`, `name`, `type`, `isInverted`, `price`, `previousClose`, `changePercent`, `rsi`, `rsiStatus`, `macdSignal`, `technicalStatus`, `lastUpdated`, `sma20`, `sma50`, `sma200`
+                FROM `dashboard_assets`
+                """.trimIndent()
+            )
+
+            db.execSQL("DROP TABLE `dashboard_assets`")
+            db.execSQL("ALTER TABLE `dashboard_assets_new` RENAME TO `dashboard_assets`")
+        }
+    }
+
+    // Migration from Version 28 to 29: `market_state.sectorRotation` dropped -- Rotation Read (the
+    // card built against `market_overview/sector_rotation` in MIGRATION_26_27) was pulled from the
+    // Dashboard screen before that backend doc ever went live ("nothing reads it today" per the
+    // backend team, and now nothing does again). Straightforward column drop, same
+    // create-new/copy-surviving-columns/drop/rename shape as MIGRATION_27_28 -- if this card comes
+    // back later, re-add the column fresh rather than reverting this migration.
+    val MIGRATION_28_29 = object : Migration(28, 29) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `market_state_new` (
+                    `id` INTEGER NOT NULL,
+                    `isEquityOpen` INTEGER,
+                    `isFuturesOpen` INTEGER,
+                    `synthesisHeadline` TEXT,
+                    `synthesisDetail` TEXT,
+                    `synthesisState` TEXT,
+                    `dailyDigestSections` TEXT,
+                    `lastUpdated` INTEGER,
+                    PRIMARY KEY(`id`)
+                )
+                """.trimIndent()
+            )
+
+            db.execSQL(
+                """
+                INSERT INTO `market_state_new`
+                (`id`, `isEquityOpen`, `isFuturesOpen`, `synthesisHeadline`, `synthesisDetail`, `synthesisState`, `dailyDigestSections`, `lastUpdated`)
+                SELECT `id`, `isEquityOpen`, `isFuturesOpen`, `synthesisHeadline`, `synthesisDetail`, `synthesisState`, `dailyDigestSections`, `lastUpdated`
+                FROM `market_state`
+                """.trimIndent()
+            )
+
+            db.execSQL("DROP TABLE `market_state`")
+            db.execSQL("ALTER TABLE `market_state_new` RENAME TO `market_state`")
+        }
+    }
+
     val ALL_MIGRATIONS = arrayOf(
         MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5,
         MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9,
@@ -684,6 +811,6 @@ object DatabaseMigrations {
         MIGRATION_13_14, MIGRATION_14_15, MIGRATION_15_16, MIGRATION_16_17,
         MIGRATION_17_18, MIGRATION_18_19, MIGRATION_19_20, MIGRATION_20_21,
         MIGRATION_21_22, MIGRATION_22_23, MIGRATION_23_24, MIGRATION_24_25,
-        MIGRATION_25_26 // 💡 Added to registry
+        MIGRATION_25_26, MIGRATION_26_27, MIGRATION_27_28, MIGRATION_28_29
     )
 }

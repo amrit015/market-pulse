@@ -3,6 +3,9 @@ package com.marketlabs.pulse.ui.screens.indicators.views
 import android.R.attr.textStyle
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.rememberScrollableState
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -199,6 +202,24 @@ private fun IndicatorsMainFeed(
         }
     }
 
+    // 💡 Bug fix: the chrome region itself (below) has no scrollable ancestor of its own -- only
+    // the pager's Box (`chromeNestedScrollConnection`, attached further down) receives scroll
+    // deltas, and only once they're dispatched *from* the LazyColumn inside the pager. A drag that
+    // starts directly on `AiExecutiveBriefingHero` (once expanded, tall enough to want scrolling
+    // past) had nothing to claim it as a scroll, so `PulseCard`'s plain `Modifier.clickable` (see
+    // `PulseCard.kt`) never got its tap cancelled by touch-slop the way it does for
+    // `SynthesisHeroCard`/`MarketSentimentCard`, both of which sit inside a real `LazyColumn.item{}`
+    // -- so the drag-to-scroll gesture fired `onClick` on release instead, snapping the card straight
+    // back to collapsed. This gives the chrome region its own real `scrollable`, mirroring the exact
+    // same clamp math `chromeNestedScrollConnection` already uses, so a drag beginning here is
+    // claimed by touch-slop like any other scrollable ancestor and no longer misfires as a tap.
+    val chromeScrollableState = rememberScrollableState { delta ->
+        val newOffset = (collapseOffsetPx + delta).coerceIn(-chromeHeightPx, 0f)
+        val consumed = newOffset - collapseOffsetPx
+        collapseOffsetPx = newOffset
+        consumed
+    }
+
     val pillarConfigByTab = mapOf(
         IndicatorsTab.TACTICAL_MOMENTUM to data.tacticalMomentum?.let {
             PillarUIConfig(stringResource(id = R.string.pillar_tactical_momentum), IndicatorCategory.TACTICAL_MOMENTUM, it)
@@ -242,6 +263,7 @@ private fun IndicatorsMainFeed(
                 .fillMaxWidth()
                 .height(with(density) { (chromeHeightPx + collapseOffsetPx).coerceIn(0f, chromeHeightPx).toDp() })
                 .clipToBounds()
+                .scrollable(state = chromeScrollableState, orientation = Orientation.Vertical)
         ) {
             Column(
                 modifier = Modifier

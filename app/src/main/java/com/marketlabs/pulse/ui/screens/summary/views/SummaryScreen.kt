@@ -795,10 +795,11 @@ fun MarketPositionSection(
     onSetupClick: () -> Unit,
     onCycleZoneClick: () -> Unit
 ) {
-    // 💡 Collapsed to 2 lines by default, tap to read the rest -- What Changed can run several
-    // sentences and this card already carries the position gauges/pills above it, so an
-    // uncollapsed paragraph pushed everything below it (Lead Stories, Macro Mix, ...) further down
-    // the page than its own importance justified.
+    // 💡 Collapsed to 3 lines by default, tap to read the rest -- the app-wide default for
+    // AI-synthesis body text (docs/theming-system/card-heading-conventions.md's Seventeenth step).
+    // What Changed can run several sentences and this card already carries the position
+    // gauges/pills above it, so an uncollapsed paragraph pushed everything below it (Lead Stories,
+    // Macro Mix, ...) further down the page than its own importance justified.
     var whatChangedExpanded by remember { mutableStateOf(false) }
 
     PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
@@ -911,36 +912,38 @@ fun MarketPositionSection(
                 // Read/Where Capital's Moving use (CardEyebrowLabel + the content below it) --
                 // rather than an inline "What Changed: ..." sentence tacked onto the footer.
                 whatChanged?.let {
-                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
-                    Row(
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { whatChangedExpanded = !whatChangedExpanded },
-                        verticalAlignment = Alignment.CenterVertically
+                            .clickable { whatChangedExpanded = !whatChangedExpanded }
                     ) {
-                        CardEyebrowLabel(
-                            text = stringResource(id = R.string.label_what_changed),
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.weight(1f)
-                        )
-                        Icon(
-                            painter = painterResource(id = if (whatChangedExpanded) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down),
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(dimensionResource(id = R.dimen.padding_large))
+                        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            CardEyebrowLabel(
+                                text = stringResource(id = R.string.label_what_changed),
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.weight(1f)
+                            )
+                            Icon(
+                                painter = painterResource(id = if (whatChangedExpanded) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(dimensionResource(id = R.dimen.padding_large))
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                        Text(
+                            text = it,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = if (whatChangedExpanded) Int.MAX_VALUE else 3,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.animateContentSize()
                         )
                     }
-                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
-                    Text(
-                        text = it,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = if (whatChangedExpanded) Int.MAX_VALUE else 2,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier
-                            .animateContentSize()
-                            .clickable { whatChangedExpanded = !whatChangedExpanded }
-                    )
                 }
             }
         }
@@ -1287,13 +1290,15 @@ fun LeadStoriesSection(stories: List<NewsItem>) {
 /**
  * spec-20260902-market-sentiment-android.md's Market Sentiment card -- AI-authored cohort-
  * positioning synthesis (headline + summary), styled SYNTHESIS like Signal/The Read (the two
- * other AI-narrative cards on this screen). Collapsed by default to just the headline (tapping the
- * card toggles [isExpanded], same up/down-arrow-beside-the-headline pattern Indicators' Today's
- * Read card uses) -- navigating to Posture moved off the whole-card tap onto its own ViewMoreRow
- * at the bottom, so the two interactions (expand-in-place vs. leave-the-screen) don't compete on
- * the same tap target. When there's no headline (rare -- the caller only omits this card entirely
- * when both headline and summary are blank), there's nothing meaningful to collapse *to*, so the
- * summary just always renders instead of hiding behind a headline-less collapsed state.
+ * other AI-narrative cards on this screen). Collapsed by default to a 3-line clamp of `summary`
+ * below the headline (tapping the card toggles [isExpanded], same up/down-arrow-beside-the-headline
+ * pattern Indicators' Today's Read card uses) -- the app-wide default for AI-synthesis body text,
+ * see `docs/theming-system/card-heading-conventions.md`'s Seventeenth step. Navigating to Posture
+ * moved off the whole-card tap onto its own ViewMoreRow at the bottom, so the two interactions
+ * (expand-in-place vs. leave-the-screen) don't compete on the same tap target. When there's no
+ * headline (rare -- the caller only omits this card entirely when both headline and summary are
+ * blank), there's nothing meaningful to collapse *to*, so the summary just always renders
+ * unclamped instead of hiding behind a headline-less collapsed state.
  *
  * @param sentiment The [MarketSentiment] to display. Caller (`MarketSummaryScreen`) already omits
  * this card entirely when both headline and summary are blank; either field alone still renders.
@@ -1341,14 +1346,14 @@ fun MarketSentimentCard(sentiment: MarketSentiment, onClick: () -> Unit) {
             }
 
             sentiment.summary?.let { summary ->
-                if (headline == null || isExpanded) {
-                    Spacer(modifier = Modifier.height(paddingMedium))
-                    Text(
-                        text = summary,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
+                Spacer(modifier = Modifier.height(paddingMedium))
+                Text(
+                    text = summary,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = if (headline == null || isExpanded) Int.MAX_VALUE else 3,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
 
             Spacer(modifier = Modifier.height(paddingMedium))
