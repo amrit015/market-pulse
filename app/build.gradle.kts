@@ -110,4 +110,5 @@ dependencies {
     implementation(libs.compose.markdown)
     // Added for the theme-migration spec: persists the selected MarketPulseTheme preset.
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.play.services.ads)
 }

@@ -69,7 +69,7 @@ this way — see the worked example below — but was migrated to strategy A onc
 ## Caching — Room
 
 Every domain except the ones intentionally left one-shot-only caches its data in a single shared
-Room database, `AppDatabase` (schema **version 25** as of 2026-09-07 — `di/DatabaseModule.kt` builds
+Room database, `AppDatabase` (schema **version 30** as of 2026-09-14 — `di/DatabaseModule.kt` builds
 it with `DatabaseMigrations.ALL_MIGRATIONS` applied, no destructive fallback; re-check this number
 before citing it, it moves often).
 
@@ -134,7 +134,7 @@ before citing it, it moves often).
 `core/sync/SyncManager` is a single `@Singleton` holding one Firestore `addSnapshotListener` on
 `system/sync_status` — a document the backend updates via a shared
 `updateSyncRegistry(db, flagName)` helper every time it finishes a job (e.g.
-`market_news_updated`, `stock_analysis_eod`, `weekly_playbook_actuals_updated`).
+`market_news_updated`, `stocks_updated`, `weekly_playbook_actuals_updated`).
 
 Every screen's ViewModel calls `syncManager.startListening()` in `onStart()` and
 `stopListening()` in `onStop()` — idempotent, so concurrent calls from multiple screens are safe.
@@ -152,13 +152,83 @@ if (newTime > localTime) {
 This is what makes the app reactive without polling — the backend flags exactly what changed,
 and only that domain's `refresh...()` fires.
 
-`stocks` is the one domain with **two** flags feeding the same repository
-(`stock_analysis_eod` / `stock_analysis_after_hours`), combined with `maxOf(...)` — same pattern
-`weeklyPlaybook` uses for Sunday-generation vs. mid-week-actuals.
+`weeklyPlaybook` is the one domain with **two** flags feeding the same repository
+(Sunday generation vs. mid-week actuals), combined with `maxOf(...)`. **`stocks` used to work the
+same way** (`stock_analysis_eod` / `stock_analysis_after_hours`) but was collapsed to a single
+`stocks_updated` flag once the backend started firing it from the stock-analysis hub's own
+completion check rather than per-worker — if you see the two old names anywhere, they're stale.
 
 Repositories also self-trigger `refresh...(force = false)` from their owning ViewModel's
 `onStart()` as a "don't wait for the next Firestore write" pre-warm — `SyncManager` handles
 *ongoing* freshness, the ViewModel's own `onStart()` handles *first paint*.
+
+### Per-item freshness — charts and per-metric history
+
+The 8-domain push model above only works because each of those domains is a *singleton* — one
+document, one meaningful "did it change" question. `market_charts` (one document per symbol) and
+the per-metric history collections behind Indicators'/Posture's/Positioning's detail-chart screens
+don't fit that shape: eagerly refreshing every cached row the moment a flag advances would mean
+refetching symbols nobody's currently looking at, and a single flag bumped by *any* symbol's write
+would fire far too often to mean anything.
+
+So `ChartsRepositoryImpl`, `MetricHistoryRepositoryImpl`, and `InsightsHistoryRepositoryImpl` use a
+**pull**, not push, variant, added 2026-09-14: `SyncManager` exposes the current value of 8
+additional `system/sync_status` flags via `chartSyncTimestamps: StateFlow<Map<String, Long>>`
+(reusing its one existing listener, not a second one), and each repository's `refresh...()` reads
+the flag relevant to *that specific item* on demand, comparing it against the item's own cached
+`lastSyncedTimestamp`:
+
+```kotlin
+val flagValue = syncManager.chartSyncTimestamps.value[flagKeyForThisItem] ?: return false // never fired yet -- not fresh
+return cached.lastSyncedTimestamp >= flagValue
+```
+
+A flag **absent** from the map (never fired since this client attached the listener) must be
+treated as "not fresh," never as timestamp `0` — `0` would look older than any real cached
+timestamp and wrongly suppress every refetch until the flag first fires.
+
+- **Charts** pick one of 5 flags via `ChartSyncGroup` (`core/charts/ChartSyncGroup.kt`), keyed by
+  which backend batch actually writes `market_charts` together — individually-tracked stocks and a
+  dashboard equity/sector tile can share `AssetType.EQUITY` but are written by two different jobs
+  on two different schedules, so `ChartSyncGroup` is a caller-supplied value (`STOCKS` explicit for
+  stock-tracking ViewModels; `fromAssetType()` for dashboard ones), not inferred from `AssetType`
+  alone.
+- **Indicators' metric history** uses one flag (`indicator_charts_updated`) for all 5 pillars —
+  resolved internally by `MetricHistoryRepositoryImpl`, no interface change needed.
+- **Posture/Positioning's metric history** picks between two flags via the existing
+  `InsightsHistoryPillar.forMetricId()` lookup (bare ids like `"dark_pool_index"`, no
+  `"posture."`/`"positioning."` prefix on the id itself) — also resolved internally.
+
+This replaced an earlier, since-reverted attempt to solve the same problem with a per-document
+`timestamp` field on the chart/history responses themselves — see
+`@docs/architecture/cross-repo-contracts.md` for why that didn't actually save anything.
+
+### Live polling — intraday (a third, different shape)
+
+`IntradayRepository` isn't sync-flag-driven at all — it's a continuous ~poll loop
+(`IntradayRepositoryImpl`, ref-counted per symbol), because intraday bars change *continuously*
+during market hours (every 5 min for stocks, every 1 min for dashboard assets), not once per day
+in one batch. A flag would have to fire on nearly every poll tick to be useful, which doesn't save
+anything over just polling on a timer. Two things it does do, both added 2026-09-14:
+
+- **Market-hours gating.** Each poll tick checks a per-`AssetType` schedule
+  (`isMarketOpenFor` — equities/sectors/indices Mon-Fri 9:30am-4pm ET, futures/commodities Sun
+  6pm-Fri 5pm ET, crypto/sentiment/unknown always-on) and skips the actual network call while
+  closed — **except** the very first fetch for a symbol this process lifetime (`containsKey`, not
+  `!= null`, on the in-memory series map), which always goes through regardless of market hours.
+  Skipping that bootstrap fetch would mean a cold app launch during closed hours never hydrates the
+  last completed session's bars at all, defeating the "keep showing the last real session until
+  the market reopens" behavior the sparkline/1D chart depends on.
+- **Per-cadence poll interval.** `trackSymbol`'s `pollIntervalMs` matches the *backend's* real
+  write cadence for whichever group the symbol belongs to — `IntradayRepository.STOCK_POLL_INTERVAL_MS`
+  (5 min, matching `intradayPoller.ts`) for individually-tracked stocks,
+  `DASHBOARD_POLL_INTERVAL_MS` (1 min, matching `dashboardEngine.ts`'s `refreshLiveDashboardPrices`)
+  for dashboard assets. Same reasoning as `ChartSyncGroup` for why this is caller-supplied rather
+  than derived from `AssetType` — an individually-tracked stock and a dashboard equity/sector tile
+  can share `AssetType.EQUITY` but are written on two different cadences.
+
+`IntradaySeries` is still deliberately **in-memory only**, never persisted to Room — none of this
+changed that; see `IntradayRepository`'s own doc comment for why.
 
 ## Dependency injection — Hilt
 
@@ -181,7 +251,8 @@ Useful as a complete tour of the pattern, and the domain with the most interesti
 
 1. Backend (`functions/src/scheduled/stocks/stockAnalysisEngine.ts`) computes technicals + an AI
    "deep study" per Magnificent-7 symbol, writes `market_stocks/{TICKER}`, flags
-   `stock_analysis_eod`/`stock_analysis_after_hours` on `system/sync_status`.
+   `stocks_updated` on `system/sync_status` (one flag now, fired by the stock-analysis hub's own
+   completion check — the old `stock_analysis_eod`/`stock_analysis_after_hours` pair is retired).
 2. Originally the Android app read `market_stocks` straight off the Firestore SDK (strategy B,
    mirroring `dashboard`). Once the backend exposed `GET /stocks/tracked` and `GET /stocks/:symbol`
    in `marketPulse.ts`, `RemoteStockDataSourceImpl` was migrated to Retrofit (strategy A) — the

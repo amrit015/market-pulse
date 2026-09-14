@@ -23,5 +23,8 @@ data class StockAnalysisUiState(
     val isLoading: Boolean = false,
     val isRefreshing: Boolean = false,
     val analyzedAsOf: String? = null,
+    /** Same `market_overview/market_state.is_equity_open` flag the Dashboard's hero card badge
+     *  uses -- gates each `StockPreviewCard`'s "LIVE" label to actual regular market hours. */
+    val isEquityOpen: Boolean = false,
     val error: UiError? = null
 )

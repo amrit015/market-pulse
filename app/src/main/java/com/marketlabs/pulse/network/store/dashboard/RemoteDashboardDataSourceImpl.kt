@@ -4,8 +4,10 @@ import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
 import com.marketlabs.pulse.network.model.dashboard.NetworkAssetOverview
 import com.marketlabs.pulse.network.model.dashboard.NetworkMarketState
+import com.marketlabs.pulse.network.model.dashboard.NetworkTechnicalSummary
 import com.marketlabs.pulse.storage.database.entity.AssetOverviewEntity
 import com.marketlabs.pulse.storage.database.entity.MarketStateEntity
+import com.marketlabs.pulse.storage.model.dashboard.mappers.mergeTechnicalSummary
 import com.marketlabs.pulse.storage.model.dashboard.mappers.toEntity
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -26,8 +28,7 @@ class RemoteDashboardDataSourceImpl @Inject constructor(
 
                 if (snapshot != null) {
                     var marketStateEntity: MarketStateEntity? = null
-                    var tempSummary: String? = null
-                    var tempSummaryTimestamp: Long? = null
+                    var tempTechnicalSummary: NetworkTechnicalSummary? = null
                     val assetsEntities = mutableListOf<AssetOverviewEntity>()
 
                     for (doc in snapshot.documents) {
@@ -37,8 +38,7 @@ class RemoteDashboardDataSourceImpl @Inject constructor(
                                 state?.let { marketStateEntity = it.toEntity() }
                             }
                             "technical_summary" -> {
-                                tempSummary = doc.getString("summary")
-                                tempSummaryTimestamp = doc.getLong("timestamp")
+                                tempTechnicalSummary = doc.toObject(NetworkTechnicalSummary::class.java)
                             }
                             "config" -> {
                                 // 💡 FIX: Explicitly ignore the config document!
@@ -51,11 +51,8 @@ class RemoteDashboardDataSourceImpl @Inject constructor(
                     }
 
                     if (marketStateEntity != null) {
-                        // 💡 NEW: Merge the summary fields into the MarketState header object
-                        val finalState = marketStateEntity!!.copy(
-                            technicalSummary = tempSummary,
-                            technicalSummaryTimestamp = tempSummaryTimestamp
-                        )
+                        // Merge the technical_summary doc into the MarketState header object
+                        val finalState = marketStateEntity!!.mergeTechnicalSummary(tempTechnicalSummary)
 
                         // Emit the fully combined data into the Flow
                         trySend(Pair(finalState, assetsEntities))

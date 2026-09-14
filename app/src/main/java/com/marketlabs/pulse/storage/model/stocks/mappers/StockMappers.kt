@@ -235,7 +235,7 @@ fun NetworkTechnicalIndicators.toDomain(): DomainTechnicalIndicators {
 }
 
 fun NetworkReturns.toDomain(): DomainReturns {
-    return DomainReturns(d1 = d1, w1 = w1, m1 = m1, m3 = m3, m6 = m6, y1 = y1)
+    return DomainReturns(w1 = w1, m1 = m1, m3 = m3, m6 = m6, ytd = ytd, y1 = y1)
 }
 
 fun NetworkLevels.toDomain(): DomainLevels {

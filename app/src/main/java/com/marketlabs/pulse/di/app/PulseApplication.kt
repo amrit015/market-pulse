@@ -8,7 +8,9 @@ import com.google.firebase.appcheck.FirebaseAppCheck
 import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory
 import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
 import com.marketlabs.pulse.BuildConfig
+import com.marketlabs.pulse.core.ads.AdManager
 import dagger.hilt.android.HiltAndroidApp
+import javax.inject.Inject
 
 /**
  * Base Application class for MarketLabs Pulse.
@@ -18,9 +20,13 @@ import dagger.hilt.android.HiltAndroidApp
 @HiltAndroidApp
 class PulseApplication : Application() {
 
+    @Inject
+    lateinit var adManager: AdManager
+
     override fun onCreate() {
         super.onCreate()
         initializeFirebaseAppCheck()
+        adManager.initialize(this)
     }
 
     private fun initializeFirebaseAppCheck() {

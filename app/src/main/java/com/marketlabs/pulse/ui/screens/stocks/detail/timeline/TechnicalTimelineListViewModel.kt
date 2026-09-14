@@ -56,6 +56,11 @@ class TechnicalTimelineListViewModel @Inject constructor(
         fetchDetail(force = false)
     }
 
+    /** Retry affordance for the persistent error state (a fetch failure with nothing cached). */
+    fun retry() {
+        fetchDetail(force = true)
+    }
+
     /** Clears any active error (e.g. after a Snackbar is dismissed). */
     fun clearError() {
         _error.value = null

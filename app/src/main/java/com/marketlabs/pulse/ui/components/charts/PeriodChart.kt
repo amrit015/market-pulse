@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.charts.ChartPoint
 import com.marketlabs.pulse.storage.model.intraday.IntradayPoint
+import com.marketlabs.pulse.ui.components.PulseLoadingIndicator
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 import com.marketlabs.pulse.ui.theme.PulseColors
@@ -158,7 +158,7 @@ fun PeriodChart(
                         onMarkerVisibilityChanged = onMarkerVisibilityChanged,
                         modifier = Modifier.fillMaxSize()
                     )
-                isLoading -> CircularProgressIndicator()
+                isLoading -> PulseLoadingIndicator()
                 else -> Text(
                     text = stringResource(id = R.string.stock_detail_chart_empty_state),
                     style = MaterialTheme.typography.bodyMedium,
@@ -481,7 +481,7 @@ fun IntradayPeriodChart(
                         onMarkerVisibilityChanged = onMarkerVisibilityChanged,
                         modifier = Modifier.fillMaxSize()
                     )
-                isLoading -> CircularProgressIndicator()
+                isLoading -> PulseLoadingIndicator()
                 else -> Text(
                     text = stringResource(id = R.string.stock_detail_chart_empty_state),
                     style = MaterialTheme.typography.bodyMedium,

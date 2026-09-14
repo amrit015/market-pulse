@@ -15,6 +15,9 @@ import com.marketlabs.pulse.core.summary.SummaryRepository
 import com.marketlabs.pulse.core.weeklyPlaybook.WeeklyPlaybookRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -34,6 +37,17 @@ class SyncManager @Inject constructor(
     private var listenerRegistration: ListenerRegistration? = null
     private val scope = CoroutineScope(Dispatchers.IO)
 
+    // 💡 Unlike the 8 domains below (each push-triggers its own repository's refresh the moment its
+    // flag advances), charts/history are per-symbol/per-metric and fetched on demand, not eagerly
+    // for everything cached -- so `ChartsRepositoryImpl`/`MetricHistoryRepositoryImpl`/
+    // `InsightsHistoryRepositoryImpl` instead pull the current value of the relevant flag here at
+    // the moment they're asked to refresh, and compare it against their own per-item
+    // `lastSyncedTimestamp`. A flag absent from the map (not yet fired since this client last
+    // attached the listener, e.g. right after this flag was first deployed) is treated as "unknown,
+    // not fresh" by every caller, never as timestamp 0 -- see the `mapNotNull` below.
+    private val _chartSyncTimestamps = MutableStateFlow<Map<String, Long>>(emptyMap())
+    val chartSyncTimestamps: StateFlow<Map<String, Long>> = _chartSyncTimestamps.asStateFlow()
+
     fun startListening() {
         if (listenerRegistration != null) return
 
@@ -45,6 +59,10 @@ class SyncManager @Inject constructor(
                 }
 
                 if (snapshot != null && snapshot.exists()) {
+                    _chartSyncTimestamps.value = CHART_SYNC_FLAG_KEYS.mapNotNull { key ->
+                        snapshot.getLong(key)?.let { key to it }
+                    }.toMap()
+
                     scope.launch {
                         // ==========================================
                         // 1. PLAYBOOK SYNC
@@ -165,5 +183,20 @@ class SyncManager @Inject constructor(
     fun stopListening() {
         listenerRegistration?.remove()
         listenerRegistration = null
+    }
+
+    private companion object {
+        /** The 8 chart/history flags added alongside the 8 domain flags above -- pulled on demand
+         *  by `ChartSyncGroup`-aware callers rather than push-triggering anything here. */
+        val CHART_SYNC_FLAG_KEYS = listOf(
+            "charts_stocks_updated",
+            "charts_equity_sector_updated",
+            "charts_sentiment_updated",
+            "charts_futures_commodities_updated",
+            "charts_crypto_updated",
+            "indicator_charts_updated",
+            "posture_charts_updated",
+            "positioning_charts_updated"
+        )
     }
 }

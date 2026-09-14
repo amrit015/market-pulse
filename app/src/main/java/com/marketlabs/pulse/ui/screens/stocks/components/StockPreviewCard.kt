@@ -55,7 +55,10 @@ import kotlin.math.abs
  * itself (icon sized to the symbol text's own font size) is unrelated to card style and unchanged.
  *
  * Field-to-element mapping follows the spec's table exactly: symbol/name left, price/change pill
- * right, `plain_read` prose body, a muted `technical_setup` + chip-delta line, the top-4 condition
+ * right (a small "LIVE" label above `price` while `isEquityOpen` -- same
+ * `market_overview/market_state.is_equity_open` flag the Dashboard's hero badge reads -- since
+ * `intradayPoller` only actually keeps `preview.price` live during regular market hours),
+ * `plain_read` prose body, a muted `technical_setup` + chip-delta line, the top-4 condition
  * chips, and (only when `hasDirectNews` is true) a small NEWS footer line. A live `SparklineChart`
  * sized to `stock_preview_sparkline_space` sits between the symbol/name block and the price/change
  * block, its own fixed-width column in that header row -- `intradayStream` is fed by
@@ -70,6 +73,7 @@ import kotlin.math.abs
 fun StockPreviewCard(
     preview: StockPreview,
     onClick: () -> Unit,
+    isEquityOpen: Boolean = false,
     modifier: Modifier = Modifier,
     intradayStream: Flow<IntradaySeries?> = emptyFlow()
 ) {
@@ -131,6 +135,13 @@ fun StockPreviewCard(
 
                 Column(horizontalAlignment = Alignment.End) {
                     preview.price?.let { price ->
+                        if (isEquityOpen) {
+                            Text(
+                                text = stringResource(id = R.string.stock_price_live_label),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = pulseColors.onSurfaceMuted
+                            )
+                        }
                         Text(
                             text = "$${String.format(Locale.US, "%.2f", price)}",
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
@@ -246,7 +257,7 @@ private val mockPreview = StockPreview(
 @Composable
 private fun PreviewStockPreviewCardLight() {
     MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
-        StockPreviewCard(preview = mockPreview, onClick = {})
+        StockPreviewCard(preview = mockPreview, onClick = {}, isEquityOpen = true)
     }
 }
 
@@ -254,6 +265,6 @@ private fun PreviewStockPreviewCardLight() {
 @Composable
 private fun PreviewStockPreviewCardDark() {
     MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
-        StockPreviewCard(preview = mockPreview, onClick = {})
+        StockPreviewCard(preview = mockPreview, onClick = {}, isEquityOpen = true)
     }
 }

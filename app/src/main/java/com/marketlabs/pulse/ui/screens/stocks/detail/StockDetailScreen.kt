@@ -329,7 +329,7 @@ private fun TechnicalsTabContent(
             }
         }
         if (detail?.technicalIndicators?.returns != null) {
-            item { Returns(returns = detail.technicalIndicators.returns) }
+            item { Returns(returns = detail.technicalIndicators.returns, changePercent = preview?.changePercent) }
         }
         if (hasKeyLevels) {
             item { KeyLevels(levels = detail?.levels, price = preview?.price) }

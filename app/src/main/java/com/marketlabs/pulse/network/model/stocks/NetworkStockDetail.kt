@@ -152,11 +152,11 @@ data class NetworkTechnicalIndicators(
 
 @JsonClass(generateAdapter = true)
 data class NetworkReturns(
-    val d1: Double? = null,
     val w1: Double? = null,
     val m1: Double? = null,
     val m3: Double? = null,
     val m6: Double? = null,
+    val ytd: Double? = null,
     val y1: Double? = null
 )
 

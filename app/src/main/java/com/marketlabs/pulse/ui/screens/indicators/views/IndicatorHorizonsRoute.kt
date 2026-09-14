@@ -3,7 +3,6 @@ package com.marketlabs.pulse.ui.screens.indicators.views
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -22,6 +21,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.ui.components.PulseErrorState
+import com.marketlabs.pulse.ui.components.PulseLoadingIndicator
 import com.marketlabs.pulse.ui.screens.indicators.IndicatorsViewModel
 
 /**
@@ -83,13 +84,20 @@ fun IndicatorHorizonsRoute(
                     .padding(innerPadding),
                 contentAlignment = Alignment.Center
             ) {
-                if (uiState.isLoading) {
-                    CircularProgressIndicator()
-                } else {
-                    Text(
-                        text = stringResource(id = R.string.indicators_horizons_unavailable),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                when {
+                    uiState.isLoading -> PulseLoadingIndicator()
+                    uiState.errorMessage != null -> {
+                        PulseErrorState(
+                            message = uiState.errorMessage!!,
+                            onRetry = { viewModel.refreshIndicators() }
+                        )
+                    }
+                    else -> {
+                        Text(
+                            text = stringResource(id = R.string.indicators_horizons_unavailable),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
         }

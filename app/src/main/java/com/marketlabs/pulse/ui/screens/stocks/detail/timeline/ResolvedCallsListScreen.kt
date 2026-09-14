@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -21,8 +20,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.stocks.DomainForwardCall
+import com.marketlabs.pulse.ui.common.UiError
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
+import com.marketlabs.pulse.ui.components.PulseErrorState
+import com.marketlabs.pulse.ui.components.PulseLoadingIndicator
+import com.marketlabs.pulse.ui.components.uiErrorMessage
 import com.marketlabs.pulse.ui.screens.stocks.detail.DataCardSectionHeader
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.ResolvedCallCard
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
@@ -38,9 +41,15 @@ fun ResolvedCallsListScreen(
     resolvedCalls: List<DomainForwardCall>,
     isLoading: Boolean,
     contentPadding: PaddingValues,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    error: UiError? = null,
+    onRetry: () -> Unit = {}
 ) {
     if (resolvedCalls.isEmpty()) {
+        if (error != null && !isLoading) {
+            PulseErrorState(message = uiErrorMessage(error), onRetry = onRetry, modifier = modifier)
+            return
+        }
         Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text(
                 text = if (isLoading) "" else stringResource(id = R.string.stock_detail_tab_nothing_yet),
@@ -48,7 +57,7 @@ fun ResolvedCallsListScreen(
                 color = LocalPulseColors.current.onSurfaceMuted
             )
             if (isLoading) {
-                CircularProgressIndicator()
+                PulseLoadingIndicator()
             }
         }
         return

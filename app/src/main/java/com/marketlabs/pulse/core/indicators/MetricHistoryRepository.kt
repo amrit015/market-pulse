@@ -4,9 +4,9 @@ import com.marketlabs.pulse.storage.model.indicators.MetricHistorySeries
 import kotlinx.coroutines.flow.Flow
 
 /**
- * On-demand, per-`metricId` -- not `SyncManager`-driven, matching `ChartsRepository`'s reasoning:
- * no sync flag exists for this domain, and refetching on the detail page's own focus is enough.
- * No range parameter (unlike `ChartsRepository`) -- see `MetricHistorySeries`'s doc comment on why.
+ * On-demand, per-`metricId` -- gated on `system/sync_status`'s `indicator_charts_updated` flag
+ * (see `MetricHistoryRepositoryImpl`), same principle as `ChartsRepository`. No range parameter
+ * (unlike `ChartsRepository`) -- see `MetricHistorySeries`'s doc comment on why.
  */
 interface MetricHistoryRepository {
 

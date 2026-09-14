@@ -24,7 +24,6 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -67,6 +66,8 @@ import com.marketlabs.pulse.storage.model.summary.WhatsNewItem
 import com.marketlabs.pulse.ui.components.AnalyzedAtHeader
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
+import com.marketlabs.pulse.ui.components.PulseErrorState
+import com.marketlabs.pulse.ui.components.PulseLoadingIndicator
 import com.marketlabs.pulse.ui.components.bottomSheet.DriversInfoBottomSheet
 import com.marketlabs.pulse.ui.components.bottomSheet.MarketGlossaryBottomSheet
 import com.marketlabs.pulse.ui.components.bottomSheet.MarketReadBottomSheet
@@ -119,7 +120,8 @@ fun MarketSummaryScreen(
     // spec-20260902-market-sentiment-android.md: the Market Sentiment card's whole-card tap
     // target -- Posture is a tab on the Insights screen, not its own destination, same shape as
     // onNavigateToIndicators above but landing on a specific Insights tab.
-    onNavigateToPosture: () -> Unit = {}
+    onNavigateToPosture: () -> Unit = {},
+    onRetryDate: (String) -> Unit = {}
 ) {
     val data = (contentByDateId[selectedDateId] as? DayContent.Available)?.data
 
@@ -130,7 +132,8 @@ fun MarketSummaryScreen(
     // yesterday's page throughout that window rather than disappearing the instant the calendar
     // rolls over, then jump to today the moment today's report actually lands. `calendarDayIds` is
     // oldest-first, so the last Available entry scanning from the end is the one we want.
-    val latestAvailableDateId = calendarDayIds.lastOrNull { contentByDateId[it] is DayContent.Available }
+    val latestAvailableDateId =
+        calendarDayIds.lastOrNull { contentByDateId[it] is DayContent.Available }
 
     // 💡 Which glossary sheet (if any) is open, and for which term -- regime/direction, setup,
     // and cycle zone each have their own tap target now (a chevron on that one chip) instead of
@@ -218,7 +221,8 @@ fun MarketSummaryScreen(
                     onSetupClick = { glossaryTarget = GlossaryTarget.SETUP },
                     onCycleZoneClick = { glossaryTarget = GlossaryTarget.CYCLE_ZONE },
                     onSignalLineClick = { showMarketRead = true },
-                    onDriversInfoClick = { showDriversInfo = true }
+                    onDriversInfoClick = { showDriversInfo = true },
+                    onRetryDate = onRetryDate
                 )
             }
         }
@@ -296,7 +300,8 @@ private fun SummaryDayPage(
     onSetupClick: () -> Unit,
     onCycleZoneClick: () -> Unit,
     onSignalLineClick: () -> Unit,
-    onDriversInfoClick: () -> Unit
+    onDriversInfoClick: () -> Unit,
+    onRetryDate: (String) -> Unit = {}
 ) {
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
 
@@ -315,21 +320,29 @@ private fun SummaryDayPage(
         // now scroll away with the rest of that page's own content instead, so a page's header
         // always matches what's actually on that page even mid-swipe, before it settles as
         // "selected".
+
         item {
-            Text(
-                text = dateId.toRelativeDayLabel(),
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
-        if (content is DayContent.Available) {
-            item { AnalyzedAtHeader(timestamp = content.data.lastUpdated) }
+            Column {
+                Text(
+                    text = dateId.toRelativeDayLabel(),
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+                Spacer( modifier = Modifier.height(dimensionResource(id = R.dimen.padding_micro)))
+                if (content is DayContent.Available) {
+                    AnalyzedAtHeader(timestamp = content.data.lastUpdated)
+                }
+            }
         }
 
         when (content) {
             is DayContent.NotAvailable -> {
                 item {
-                    Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
+                    Box(
+                        modifier = Modifier.fillParentMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
                         Text(
                             text = stringResource(id = R.string.summary_not_available_for_date),
                             style = MaterialTheme.typography.bodyMedium,
@@ -342,7 +355,10 @@ private fun SummaryDayPage(
 
             DayContent.TodayNotReady -> {
                 item {
-                    Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
+                    Box(
+                        modifier = Modifier.fillParentMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
                         Text(
                             text = stringResource(id = R.string.summary_today_not_ready),
                             style = MaterialTheme.typography.bodyMedium,
@@ -355,9 +371,22 @@ private fun SummaryDayPage(
 
             DayContent.Loading -> {
                 item {
-                    Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
+                    Box(
+                        modifier = Modifier.fillParentMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        PulseLoadingIndicator()
                     }
+                }
+            }
+
+            is DayContent.Error -> {
+                item {
+                    PulseErrorState(
+                        message = content.message,
+                        onRetry = { onRetryDate(content.dateId) },
+                        modifier = Modifier.fillParentMaxSize()
+                    )
                 }
             }
 
@@ -795,10 +824,11 @@ fun MarketPositionSection(
     onSetupClick: () -> Unit,
     onCycleZoneClick: () -> Unit
 ) {
-    // 💡 Collapsed to 2 lines by default, tap to read the rest -- What Changed can run several
-    // sentences and this card already carries the position gauges/pills above it, so an
-    // uncollapsed paragraph pushed everything below it (Lead Stories, Macro Mix, ...) further down
-    // the page than its own importance justified.
+    // 💡 Collapsed to 3 lines by default, tap to read the rest -- the app-wide default for
+    // AI-synthesis body text (docs/theming-system/card-heading-conventions.md's Seventeenth step).
+    // What Changed can run several sentences and this card already carries the position
+    // gauges/pills above it, so an uncollapsed paragraph pushed everything below it (Lead Stories,
+    // Macro Mix, ...) further down the page than its own importance justified.
     var whatChangedExpanded by remember { mutableStateOf(false) }
 
     PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
@@ -911,36 +941,38 @@ fun MarketPositionSection(
                 // Read/Where Capital's Moving use (CardEyebrowLabel + the content below it) --
                 // rather than an inline "What Changed: ..." sentence tacked onto the footer.
                 whatChanged?.let {
-                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
-                    Row(
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { whatChangedExpanded = !whatChangedExpanded },
-                        verticalAlignment = Alignment.CenterVertically
+                            .clickable { whatChangedExpanded = !whatChangedExpanded }
                     ) {
-                        CardEyebrowLabel(
-                            text = stringResource(id = R.string.label_what_changed),
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.weight(1f)
-                        )
-                        Icon(
-                            painter = painterResource(id = if (whatChangedExpanded) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down),
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(dimensionResource(id = R.dimen.padding_large))
+                        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            CardEyebrowLabel(
+                                text = stringResource(id = R.string.label_what_changed),
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.weight(1f)
+                            )
+                            Icon(
+                                painter = painterResource(id = if (whatChangedExpanded) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(dimensionResource(id = R.dimen.padding_large))
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                        Text(
+                            text = it,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = if (whatChangedExpanded) Int.MAX_VALUE else 3,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.animateContentSize()
                         )
                     }
-                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
-                    Text(
-                        text = it,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = if (whatChangedExpanded) Int.MAX_VALUE else 2,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier
-                            .animateContentSize()
-                            .clickable { whatChangedExpanded = !whatChangedExpanded }
-                    )
                 }
             }
         }
@@ -1287,13 +1319,15 @@ fun LeadStoriesSection(stories: List<NewsItem>) {
 /**
  * spec-20260902-market-sentiment-android.md's Market Sentiment card -- AI-authored cohort-
  * positioning synthesis (headline + summary), styled SYNTHESIS like Signal/The Read (the two
- * other AI-narrative cards on this screen). Collapsed by default to just the headline (tapping the
- * card toggles [isExpanded], same up/down-arrow-beside-the-headline pattern Indicators' Today's
- * Read card uses) -- navigating to Posture moved off the whole-card tap onto its own ViewMoreRow
- * at the bottom, so the two interactions (expand-in-place vs. leave-the-screen) don't compete on
- * the same tap target. When there's no headline (rare -- the caller only omits this card entirely
- * when both headline and summary are blank), there's nothing meaningful to collapse *to*, so the
- * summary just always renders instead of hiding behind a headline-less collapsed state.
+ * other AI-narrative cards on this screen). Collapsed by default to a 3-line clamp of `summary`
+ * below the headline (tapping the card toggles [isExpanded], same up/down-arrow-beside-the-headline
+ * pattern Indicators' Today's Read card uses) -- the app-wide default for AI-synthesis body text,
+ * see `docs/theming-system/card-heading-conventions.md`'s Seventeenth step. Navigating to Posture
+ * moved off the whole-card tap onto its own ViewMoreRow at the bottom, so the two interactions
+ * (expand-in-place vs. leave-the-screen) don't compete on the same tap target. When there's no
+ * headline (rare -- the caller only omits this card entirely when both headline and summary are
+ * blank), there's nothing meaningful to collapse *to*, so the summary just always renders
+ * unclamped instead of hiding behind a headline-less collapsed state.
  *
  * @param sentiment The [MarketSentiment] to display. Caller (`MarketSummaryScreen`) already omits
  * this card entirely when both headline and summary are blank; either field alone still renders.
@@ -1341,14 +1375,14 @@ fun MarketSentimentCard(sentiment: MarketSentiment, onClick: () -> Unit) {
             }
 
             sentiment.summary?.let { summary ->
-                if (headline == null || isExpanded) {
-                    Spacer(modifier = Modifier.height(paddingMedium))
-                    Text(
-                        text = summary,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
+                Spacer(modifier = Modifier.height(paddingMedium))
+                Text(
+                    text = summary,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = if (headline == null || isExpanded) Int.MAX_VALUE else 3,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
 
             Spacer(modifier = Modifier.height(paddingMedium))
