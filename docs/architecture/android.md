@@ -17,7 +17,22 @@ Every `@HiltViewModel` follows the same shape: constructor-inject the domain `Re
 
 `XUiState` is a flat `data class` (nullable/default fields) in every domain except `summary`,
 which uses a sealed `Loading/Success/Error` interface — the one deliberate outlier, since that
-screen genuinely renders different layouts per state rather than just toggling flags.
+screen genuinely renders different layouts per state rather than just toggling flags. Nested one
+level deeper, `Success` carries its own per-past-day `DayContent` sealed interface
+(`Available`/`NotAvailable`/`TodayNotReady`/`Loading`/`Error`) — one calendar-strip page can be
+mid-sync while another already has data, so this can't be a single screen-wide state the way every
+other domain's is.
+
+`errorMessage`/`error` isn't just Snackbar fodder — every screen's loading/data/error `when` needs
+a genuine third branch for "fetch failed and there's nothing cached to show instead," rendered with
+the shared `PulseLoadingIndicator`/`PulseErrorState` components (`@docs/guidelines/compose-conventions.md`).
+A screen whose `UiState` tracks an error but never branches on it in the Route is a bug, not a
+minor omission — this was the actual state of about half the screens in this app (Dashboard,
+DeepDive, the two "View More" timeline lists, Summary's per-day sync) until a 2026-09-13 pass added
+the missing branches; `AssetDetailUiState`/`MetricDetailUiState` are the one structural exception
+(`hasTimedOut: Boolean`, not an error field) since those two screens have no fetch of their own to
+fail — they only cross-reference an already-loading sibling tab's stream, so a fixed grace period
+stands in for "will never resolve" where there's no failure signal to check.
 
 ## Route / Screen split
 

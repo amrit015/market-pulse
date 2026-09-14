@@ -56,8 +56,14 @@ fun TechnicalTimelineListRoute(
 
     LaunchedEffect(uiState.error) {
         uiState.error?.message?.let { message ->
-            snackbarHostState.showSnackbar(message)
-            viewModel.clearError()
+            if (uiState.events.isNotEmpty()) {
+                // A list is already on screen -- a background refresh failure is a soft error,
+                // surfaced as a toast rather than replacing content that's still good to show.
+                snackbarHostState.showSnackbar(message)
+                viewModel.clearError()
+            }
+            // Nothing cached at all: leave the error set so the persistent error state stays up
+            // until the user retries (fetchDetail clears it itself on the next attempt).
         }
     }
 
@@ -81,6 +87,8 @@ fun TechnicalTimelineListRoute(
         TechnicalTimelineListScreen(
             events = uiState.events,
             isLoading = uiState.isLoading,
+            error = uiState.error,
+            onRetry = { viewModel.retry() },
             contentPadding = PaddingValues(
                 top = topBarPadding.calculateTopPadding() + dimensionResource(id = R.dimen.padding_large),
                 bottom = scaffoldPadding.calculateBottomPadding() + dimensionResource(id = R.dimen.padding_large),

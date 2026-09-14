@@ -18,6 +18,7 @@ fun MarketStateEntity.toDomain(): MarketState {
         synthesisHeadline = synthesisHeadline,
         synthesisDetail = synthesisDetail,
         synthesisState = synthesisState,
+        synthesisGeneratedAt = synthesisGeneratedAt,
         dailyDigestSections = dailyDigestSections,
         lastUpdated = lastUpdated
     )
@@ -31,6 +32,7 @@ fun MarketState.toEntity(): MarketStateEntity {
         synthesisHeadline = synthesisHeadline,
         synthesisDetail = synthesisDetail,
         synthesisState = synthesisState,
+        synthesisGeneratedAt = synthesisGeneratedAt,
         dailyDigestSections = dailyDigestSections,
         lastUpdated = lastUpdated
     )
@@ -55,6 +57,7 @@ fun MarketStateEntity.mergeTechnicalSummary(summary: NetworkTechnicalSummary?): 
         synthesisHeadline = summary?.synthesis?.headline,
         synthesisDetail = summary?.synthesis?.detail,
         synthesisState = summary?.state,
+        synthesisGeneratedAt = summary?.synthesis?.generatedAt,
         dailyDigestSections = summary?.dailyDigest?.sections?.map { it.toDomain() }
     )
 }
@@ -101,9 +104,10 @@ fun AssetOverview.toEntity(): AssetOverviewEntity {
 
 /**
  * Base entity from the `market_state` doc alone -- `synthesisHeadline`/`synthesisDetail`/
- * `synthesisState`/`dailyDigestSections` are merged in afterward from the `technical_summary` doc
- * in the same Firestore snapshot, same two-step shape `technicalSummary` used before this rewrite
- * (see `mergeTechnicalSummary` below and `RemoteDashboardDataSourceImpl.observeDashboardData()`).
+ * `synthesisState`/`synthesisGeneratedAt`/`dailyDigestSections` are merged in afterward from the
+ * `technical_summary` doc in the same Firestore snapshot, same two-step shape `technicalSummary`
+ * used before this rewrite (see `mergeTechnicalSummary` below and
+ * `RemoteDashboardDataSourceImpl.observeDashboardData()`).
  */
 fun NetworkMarketState.toEntity(): MarketStateEntity {
     return MarketStateEntity(
@@ -113,6 +117,7 @@ fun NetworkMarketState.toEntity(): MarketStateEntity {
         synthesisHeadline = null,
         synthesisDetail = null,
         synthesisState = null,
+        synthesisGeneratedAt = null,
         dailyDigestSections = null,
         lastUpdated = System.currentTimeMillis()
     )

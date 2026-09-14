@@ -5,13 +5,16 @@ package com.marketlabs.pulse.ui.screens.stocks
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.marketlabs.pulse.core.charts.ChartSyncGroup
 import com.marketlabs.pulse.core.charts.ChartsRepository
+import com.marketlabs.pulse.core.dashboard.DashboardRepository
 import com.marketlabs.pulse.core.intraday.IntradayRepository
 import com.marketlabs.pulse.core.stocks.StockAnalysisRepository
 import com.marketlabs.pulse.storage.model.charts.ChartRange
 import com.marketlabs.pulse.storage.model.charts.ChartSeries
 import com.marketlabs.pulse.storage.model.charts.isCoveredByHistory
 import com.marketlabs.pulse.storage.model.intraday.IntradaySeries
+import com.marketlabs.pulse.storage.model.stocks.StockDetail
 import com.marketlabs.pulse.storage.model.stocks.StockPreview
 import com.marketlabs.pulse.ui.common.UiError
 import com.marketlabs.pulse.ui.common.toUiError
@@ -62,6 +65,7 @@ class StockDetailViewModel @Inject constructor(
     private val repository: StockAnalysisRepository,
     private val chartsRepository: ChartsRepository,
     private val intradayRepository: IntradayRepository,
+    private val dashboardRepository: DashboardRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -85,6 +89,12 @@ class StockDetailViewModel @Inject constructor(
 
     private val matchingPreview: Flow<StockPreview?> = repository.getStockPreviewsStream()
         .map { previews -> previews.firstOrNull { it.symbol == symbol } }
+
+    /** Same `market_overview/market_state.is_equity_open` flag the Dashboard's own hero card badge
+     *  reads -- gates `DetailHeader`'s "LIVE" label, same source of truth, not a second client-side
+     *  market-hours calculation that could drift from it. */
+    private val isEquityOpenFlow: Flow<Boolean> = dashboardRepository.getMarketStateStream()
+        .map { it?.isEquityOpen == true }
 
     private val uiFlags: Flow<DetailUiFlags> = combine(
         _isLoading, _isRefreshing, _error, _expandedChipIds, _expandedNewsIds
@@ -127,28 +137,36 @@ class StockDetailViewModel @Inject constructor(
         )
     }
 
-    val uiState: StateFlow<StockDetailUiState> = combine(
+    private val coreFlow: Flow<DetailCoreSlice> = combine(
         repository.getStockDetailStream(symbol),
         matchingPreview,
         uiFlags,
         _selectedTabIndex,
         chartFlow
     ) { detail, preview, flags, selectedTabIndex, chart ->
+        DetailCoreSlice(detail, preview, flags, selectedTabIndex, chart)
+    }
+
+    val uiState: StateFlow<StockDetailUiState> = combine(
+        coreFlow,
+        isEquityOpenFlow
+    ) { core, isEquityOpen ->
         StockDetailUiState(
             symbol = symbol,
-            detail = detail,
-            preview = preview,
-            isLoading = flags.isLoading && detail == null,
-            isRefreshing = flags.isRefreshing,
-            expandedChipIds = flags.expandedChipIds,
-            expandedNewsIds = flags.expandedNewsIds,
-            selectedTabIndex = selectedTabIndex,
-            chartSeries = chart.series,
-            selectedChartRange = chart.range,
-            isChartLoading = chart.isLoading,
-            intradaySeries = chart.intradaySeries,
-            availableChartRanges = chart.availableChartRanges,
-            error = flags.error
+            detail = core.detail,
+            preview = core.preview,
+            isLoading = core.flags.isLoading && core.detail == null,
+            isRefreshing = core.flags.isRefreshing,
+            expandedChipIds = core.flags.expandedChipIds,
+            expandedNewsIds = core.flags.expandedNewsIds,
+            selectedTabIndex = core.selectedTabIndex,
+            chartSeries = core.chart.series,
+            selectedChartRange = core.chart.range,
+            isChartLoading = core.chart.isLoading,
+            intradaySeries = core.chart.intradaySeries,
+            availableChartRanges = core.chart.availableChartRanges,
+            isEquityOpen = isEquityOpen,
+            error = core.flags.error
         )
     }.stateIn(
         scope = viewModelScope,
@@ -213,7 +231,7 @@ class StockDetailViewModel @Inject constructor(
             // Deliberately silent on failure -- the chart is a supporting element on this screen,
             // not its main content, so a fetch failure just leaves the last-cached (or empty)
             // series showing rather than surfacing a Snackbar over the whole detail screen.
-            chartsRepository.refreshChart(symbol, range, force)
+            chartsRepository.refreshChart(symbol, range, force, ChartSyncGroup.STOCKS)
             _isChartLoading.value = false
         }
     }
@@ -228,7 +246,7 @@ class StockDetailViewModel @Inject constructor(
     private fun prefetchHistoryCoverage() {
         if (_selectedChartRange.value == ChartRange.ONE_YEAR) return
         viewModelScope.launch {
-            chartsRepository.refreshChart(symbol, ChartRange.ONE_YEAR, force = false)
+            chartsRepository.refreshChart(symbol, ChartRange.ONE_YEAR, force = false, ChartSyncGroup.STOCKS)
         }
     }
 
@@ -253,6 +271,14 @@ class StockDetailViewModel @Inject constructor(
         const val ARG_SYMBOL = "symbol"
     }
 }
+
+private data class DetailCoreSlice(
+    val detail: StockDetail?,
+    val preview: StockPreview?,
+    val flags: DetailUiFlags,
+    val selectedTabIndex: Int,
+    val chart: ChartUiSlice
+)
 
 private data class DetailUiFlags(
     val isLoading: Boolean,

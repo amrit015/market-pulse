@@ -13,6 +13,7 @@ data class MarketStateEntity(
     val synthesisHeadline: String?,
     val synthesisDetail: String?,
     val synthesisState: String?,
+    val synthesisGeneratedAt: Long?,
     // JSON-blob column reusing StocksConverters' existing List<DomainDigestSection> adapter.
     val dailyDigestSections: List<DomainDigestSection>?,
     val lastUpdated: Long?

@@ -16,6 +16,11 @@ import com.marketlabs.pulse.storage.model.indicators.MetricHistoryPoint
  * already sliced down to `selectedChartRange` by the ViewModel, not the raw fetched series.
  * `availableChartRanges` mirrors those same two UiStates' own field of the same name (which
  * buttons `ChartRangePicker` should show, given how far this metric's own history actually goes).
+ *
+ * `hasTimedOut` mirrors `AssetDetailUiState`'s own field of the same name and for the same reason
+ * -- `metric` has no fetch of its own to fail, so an id that will never resolve needs a fixed
+ * grace period before it's distinguishable from one still waiting on the Indicators tab's own
+ * initial load.
  */
 data class MetricDetailUiState(
     val metricId: String,
@@ -24,5 +29,6 @@ data class MetricDetailUiState(
     val historyPoints: List<MetricHistoryPoint> = emptyList(),
     val isHistoryLoading: Boolean = false,
     val selectedChartRange: ChartRange = ChartRange.FIVE_DAY,
-    val availableChartRanges: List<ChartRange> = ChartRange.entries - ChartRange.ONE_DAY
+    val availableChartRanges: List<ChartRange> = ChartRange.entries - ChartRange.ONE_DAY,
+    val hasTimedOut: Boolean = false
 )

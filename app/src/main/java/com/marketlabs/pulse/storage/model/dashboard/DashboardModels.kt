@@ -10,7 +10,11 @@ import com.marketlabs.pulse.utils.enums.AssetType
  * String (backend deleted `summary` outright, no transition window) -- same `{headline, detail}` +
  * `state: "unavailable"|"current"` shape Posture/Positioning already use for their own synthesis
  * field. `dailyDigestSections` is new market-wide AI content riding on the same `market_overview`
- * collection listener.
+ * collection listener. `synthesisGeneratedAt` is `synthesis.generated_at` from that same doc --
+ * when the AI pass actually ran, used for the Dashboard hero card's "Analyzed as of" line instead
+ * of `lastUpdated` (this domain object's own local-sync timestamp, which reflects whenever
+ * Firestore last pushed any part of the snapshot, not specifically when `technical_summary` was
+ * generated).
  */
 data class MarketState(
     val isEquityOpen: Boolean? = null,
@@ -18,6 +22,7 @@ data class MarketState(
     val synthesisHeadline: String? = null,
     val synthesisDetail: String? = null,
     val synthesisState: String? = null,
+    val synthesisGeneratedAt: Long? = null,
     val dailyDigestSections: List<DomainDigestSection>? = null,
     val lastUpdated: Long? = null
 )

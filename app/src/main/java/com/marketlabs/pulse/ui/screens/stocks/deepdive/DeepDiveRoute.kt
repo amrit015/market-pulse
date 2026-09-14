@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
@@ -40,6 +39,9 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.ui.components.PulseErrorState
+import com.marketlabs.pulse.ui.components.PulseLoadingIndicator
+import com.marketlabs.pulse.ui.components.uiErrorMessage
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 
 /**
@@ -72,8 +74,14 @@ fun DeepDiveRoute(
 
     LaunchedEffect(uiState.error) {
         uiState.error?.message?.let { message ->
-            snackbarHostState.showSnackbar(message)
-            viewModel.clearError()
+            if (uiState.deepDive != null) {
+                // A deep dive is already on screen -- a background refresh failure is a soft
+                // error, surfaced as a toast rather than replacing content that's still good.
+                snackbarHostState.showSnackbar(message)
+                viewModel.clearError()
+            }
+            // No deep dive cached at all: leave the error set so the persistent error state below
+            // stays up until the user retries (fetchDeepDive clears it itself on the next attempt).
         }
     }
 
@@ -147,8 +155,17 @@ fun DeepDiveRoute(
 
                 uiState.isLoading -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
+                        PulseLoadingIndicator()
                     }
+                }
+
+                uiState.error != null -> {
+                    // Fetch failed and nothing is cached -- distinct from the true cold-start case
+                    // below, which is a normal 404 (no deep dive has ever run for this symbol).
+                    PulseErrorState(
+                        message = uiErrorMessage(uiState.error!!),
+                        onRetry = { viewModel.refresh() }
+                    )
                 }
 
                 else -> {

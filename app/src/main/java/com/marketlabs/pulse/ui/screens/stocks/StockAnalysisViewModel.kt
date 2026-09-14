@@ -4,6 +4,7 @@ package com.marketlabs.pulse.ui.screens.stocks
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.marketlabs.pulse.core.dashboard.DashboardRepository
 import com.marketlabs.pulse.core.intraday.IntradayRepository
 import com.marketlabs.pulse.core.stocks.StockAnalysisRepository
 import com.marketlabs.pulse.core.sync.SyncManager
@@ -45,7 +46,8 @@ import javax.inject.Inject
 class StockAnalysisViewModel @Inject constructor(
     private val repository: StockAnalysisRepository,
     private val syncManager: SyncManager,
-    private val intradayRepository: IntradayRepository
+    private val intradayRepository: IntradayRepository,
+    private val dashboardRepository: DashboardRepository
 ) : ViewModel() {
 
     private val _isLoading = MutableStateFlow(false)
@@ -58,13 +60,18 @@ class StockAnalysisViewModel @Inject constructor(
         repository.getStockPreviewsStream(),
         _isLoading,
         _isRefreshing,
-        _error
-    ) { previews, loading, refreshing, error ->
+        _error,
+        // 💡 Same `market_overview/market_state.is_equity_open` flag the Dashboard's own hero card
+        // badge reads -- gates each card's "LIVE" label, same source of truth as everywhere else in
+        // the app that says "the market is open" rather than a second client-side computation.
+        dashboardRepository.getMarketStateStream().map { it?.isEquityOpen == true }
+    ) { previews, loading, refreshing, error, isEquityOpen ->
         StockAnalysisUiState(
             previews = previews,
             isLoading = loading && previews.isEmpty(),
             isRefreshing = refreshing,
             analyzedAsOf = previews.newestAnalyzedAsOf(),
+            isEquityOpen = isEquityOpen,
             error = error
         )
     }.stateIn(

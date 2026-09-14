@@ -9,12 +9,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -33,6 +30,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
+import com.marketlabs.pulse.ui.components.PulseLoadingIndicator
 import com.marketlabs.pulse.ui.screens.stocks.components.StockPreviewCard
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
@@ -47,6 +45,7 @@ import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 fun StockAnalysisScreen(
     previews: List<StockPreview>,
     analyzedAsOf: String?,
+    isEquityOpen: Boolean,
     onCardClick: (String) -> Unit,
     scaffoldPadding: PaddingValues,
     getIntradayStream: (String) -> Flow<IntradaySeries?> = { emptyFlow() },
@@ -77,6 +76,7 @@ fun StockAnalysisScreen(
             StockPreviewCard(
                 preview = preview,
                 onClick = { onCardClick(preview.symbol) },
+                isEquityOpen = isEquityOpen,
                 intradayStream = getIntradayStream(preview.symbol)
             )
         }
@@ -86,11 +86,6 @@ fun StockAnalysisScreen(
 @Composable
 private fun StockAnalysisHeader(trackedCount: Int, analyzedAsOf: String?) {
     Column {
-        Text(
-            text = stringResource(id = R.string.market_analysis_screen_title),
-            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colorScheme.onBackground
-        )
         if (analyzedAsOf != null) {
             Text(
                 text = stringResource(
@@ -101,72 +96,6 @@ private fun StockAnalysisHeader(trackedCount: Int, analyzedAsOf: String?) {
                 style = MaterialTheme.typography.labelSmall,
                 color = LocalPulseColors.current.onSurfaceMuted,
                 modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_micro))
-            )
-        }
-    }
-}
-
-/**
- * 3 static placeholder cards while the first page load is in flight. No shimmer animation -- this
- * app has no existing shimmer utility to build on, so this keeps to plain muted rectangles in the
- * same shape a real `StockPreviewCard` would occupy, same spacing as the loaded list.
- */
-@Composable
-fun StockAnalysisLoadingSkeleton(scaffoldPadding: PaddingValues, modifier: Modifier = Modifier) {
-    val paddingLarge = dimensionResource(id = R.dimen.padding_large)
-
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(
-                // Same `scaffoldPadding.calculateTopPadding()` reasoning as StockAnalysisScreen
-                // above -- keeps the skeleton's header at the same vertical position the real
-                // header lands at once data loads, so there's no jump on the loading -> loaded swap.
-                top = scaffoldPadding.calculateTopPadding() + paddingLarge,
-                bottom = scaffoldPadding.calculateBottomPadding() + paddingLarge,
-                start = paddingLarge,
-                end = paddingLarge
-            ),
-        verticalArrangement = Arrangement.spacedBy(paddingLarge)
-    ) {
-        Text(
-            text = stringResource(id = R.string.market_analysis_screen_title),
-            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colorScheme.onBackground
-        )
-        repeat(3) {
-            StockPreviewCardSkeleton()
-        }
-    }
-}
-
-@Composable
-private fun StockPreviewCardSkeleton(modifier: Modifier = Modifier) {
-    val barColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
-    val barShape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_small))
-
-    PulseCard(style = PulseCardStyle.SYNTHESIS, modifier = modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
-            Box(
-                modifier = Modifier
-                    .width(dimensionResource(id = R.dimen.stock_preview_skeleton_symbol_width))
-                    .height(dimensionResource(id = R.dimen.icon_size_medium))
-                    .background(barColor, barShape)
-            )
-            Box(
-                modifier = Modifier
-                    .padding(top = dimensionResource(id = R.dimen.padding_small))
-                    .width(dimensionResource(id = R.dimen.stock_preview_skeleton_name_width))
-                    .height(dimensionResource(id = R.dimen.icon_size_small))
-                    .background(barColor, barShape)
-            )
-            Box(
-                modifier = Modifier
-                    .padding(top = dimensionResource(id = R.dimen.padding_large))
-                    .fillMaxWidth()
-                    .height(dimensionResource(id = R.dimen.icon_size_large) * 2)
-                    .background(barColor, barShape)
             )
         }
     }
@@ -229,7 +158,7 @@ private val mockPreviews = listOf(
 @Composable
 private fun PreviewStockAnalysisScreenLight() {
     MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
-        StockAnalysisScreen(previews = mockPreviews, analyzedAsOf = "Aug 07, 6:15 PM", onCardClick = {}, scaffoldPadding = PaddingValues())
+        StockAnalysisScreen(previews = mockPreviews, analyzedAsOf = "Aug 07, 6:15 PM", isEquityOpen = true, onCardClick = {}, scaffoldPadding = PaddingValues())
     }
 }
 
@@ -237,7 +166,7 @@ private fun PreviewStockAnalysisScreenLight() {
 @Composable
 private fun PreviewStockAnalysisScreenDark() {
     MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
-        StockAnalysisScreen(previews = mockPreviews, analyzedAsOf = "Aug 07, 6:15 PM", onCardClick = {}, scaffoldPadding = PaddingValues())
+        StockAnalysisScreen(previews = mockPreviews, analyzedAsOf = "Aug 07, 6:15 PM", isEquityOpen = true, onCardClick = {}, scaffoldPadding = PaddingValues())
     }
 }
 
@@ -245,7 +174,7 @@ private fun PreviewStockAnalysisScreenDark() {
 @Composable
 private fun PreviewStockAnalysisLoadingLight() {
     MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
-        StockAnalysisLoadingSkeleton(scaffoldPadding = PaddingValues())
+        PulseLoadingIndicator()
     }
 }
 
@@ -253,7 +182,7 @@ private fun PreviewStockAnalysisLoadingLight() {
 @Composable
 private fun PreviewStockAnalysisLoadingDark() {
     MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
-        StockAnalysisLoadingSkeleton(scaffoldPadding = PaddingValues())
+        PulseLoadingIndicator()
     }
 }
 

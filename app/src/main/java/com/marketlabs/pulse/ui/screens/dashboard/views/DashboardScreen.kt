@@ -87,7 +87,6 @@ fun DashboardScreen(
 
     val paddingExtraLarge = dimensionResource(id = R.dimen.padding_extra_large)
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
-    val paddingMedium = dimensionResource(id = R.dimen.padding_medium)
 
     val isEquityOpen = marketState?.isEquityOpen == true
     val isFuturesOpen = marketState?.isFuturesOpen == true
@@ -146,134 +145,145 @@ fun DashboardScreen(
                 bottom = scaffoldPadding.calculateBottomPadding() + paddingExtraLarge,
                 start = paddingLarge,
                 end = paddingLarge
-            ),
-        verticalArrangement = Arrangement.spacedBy(paddingExtraLarge)
+            )
     ) {
 
-        marketState?.lastUpdated?.let { timestamp ->
+        // 💡 `paddingLarge`, not the sections' own `paddingExtraLarge` rhythm below -- matches the
+        // fixed gap `IndicatorsScreen.kt`/`SummaryScreen.kt` put between their own `AnalyzedAtHeader`
+        // and the content right after it. Kept as a manual Spacer outside the section Column's
+        // `Arrangement.spacedBy` (which would apply its own, larger gap here instead) for exactly
+        // that reason -- this one gap is intentionally smaller than the rest.
+        marketState?.synthesisGeneratedAt?.let { timestamp ->
             AnalyzedAtHeader(timestamp = timestamp)
+            Spacer(modifier = Modifier.height(paddingLarge))
         }
 
-        DailyDigestHeroCard(
-            headline = marketState?.synthesisHeadline,
-            detail = marketState?.synthesisDetail,
-            sections = marketState?.dailyDigestSections.orEmpty(),
-            isUnavailable = marketState?.synthesisState == "unavailable",
-            isEquityOpen = isEquityOpen
-        )
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(paddingExtraLarge)
+        ) {
 
-        if (sentimentAssets.isNotEmpty()) {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = stringResource(id = R.string.dashboard_section_sentiment),
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    color = LocalPulseColors.current.accentPrimary,
-                    modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.padding_medium))
-                )
+            DailyDigestHeroCard(
+                headline = marketState?.synthesisHeadline,
+                detail = marketState?.synthesisDetail,
+                sections = marketState?.dailyDigestSections.orEmpty(),
+                isUnavailable = marketState?.synthesisState == "unavailable",
+                isEquityOpen = isEquityOpen
+            )
 
-                val vixAsset = sentimentAssets.find { it?.symbol == "^VIX" }
-                if (vixAsset != null) {
-                    VixFullWidthCard(asset = vixAsset, onClick = { onAssetClick(vixAsset.symbol) })
-                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
-                }
+            if (sentimentAssets.isNotEmpty()) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = stringResource(id = R.string.dashboard_section_sentiment),
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                        color = LocalPulseColors.current.accentPrimary,
+                        modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.padding_medium))
+                    )
 
-                val greedAsset = sentimentAssets.find { it?.symbol == "FEAR_GREED" }
-                val putCallAsset = sentimentAssets.find { it?.symbol == "PUT_CALL" }
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(IntrinsicSize.Max),
-                    horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_medium))
-                ) {
-                    if (greedAsset != null) {
-                        AssetCard(
-                            asset = greedAsset,
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxHeight(),
-                            customVisual = {
-                                SpeedometerGauge(
-                                    score = greedAsset.price ?: 50.0,
-                                    previousScore = greedAsset.previousClose,
-                                    status = greedAsset.rsiStatus
-                                )
-                            },
-                            onClick = { onAssetClick(greedAsset.symbol) }
-                        )
+                    val vixAsset = sentimentAssets.find { it?.symbol == "^VIX" }
+                    if (vixAsset != null) {
+                        VixFullWidthCard(asset = vixAsset, onClick = { onAssetClick(vixAsset.symbol) })
+                        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
                     }
 
-                    if (putCallAsset != null) {
-                        AssetCard(
-                            asset = putCallAsset,
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxHeight(),
-                            customVisual = {
-                                PutCallHorizontalBar(
-                                    ratio = putCallAsset.price ?: 1.0,
-                                    change = putCallAsset.changePercent,
-                                    status = putCallAsset.rsiStatus
-                                )
-                            },
-                            onClick = { onAssetClick(putCallAsset.symbol) }
-                        )
-                    } else if (greedAsset != null) {
-                        Spacer(modifier = Modifier.weight(1f))
+                    val greedAsset = sentimentAssets.find { it?.symbol == "FEAR_GREED" }
+                    val putCallAsset = sentimentAssets.find { it?.symbol == "PUT_CALL" }
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(IntrinsicSize.Max),
+                        horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_medium))
+                    ) {
+                        if (greedAsset != null) {
+                            AssetCard(
+                                asset = greedAsset,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxHeight(),
+                                customVisual = {
+                                    SpeedometerGauge(
+                                        score = greedAsset.price ?: 50.0,
+                                        previousScore = greedAsset.previousClose,
+                                        status = greedAsset.rsiStatus
+                                    )
+                                },
+                                onClick = { onAssetClick(greedAsset.symbol) }
+                            )
+                        }
+
+                        if (putCallAsset != null) {
+                            AssetCard(
+                                asset = putCallAsset,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxHeight(),
+                                customVisual = {
+                                    PutCallHorizontalBar(
+                                        ratio = putCallAsset.price ?: 1.0,
+                                        change = putCallAsset.changePercent,
+                                        status = putCallAsset.rsiStatus
+                                    )
+                                },
+                                onClick = { onAssetClick(putCallAsset.symbol) }
+                            )
+                        } else if (greedAsset != null) {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
                     }
                 }
             }
-        }
 
-        // --- SECTION 2: Futures ---
-        if (!isEquityOpen && isFuturesOpen && futureAssets.isNotEmpty()) {
-            AssetSection(
-                title = stringResource(id = R.string.dashboard_section_futures),
-                items = futureAssets,
-                onAssetClick = { onAssetClick(it.symbol) },
-                getIntradayStream = getIntradayStream,
-                columnNum = 3
-            )
-        }
+            // --- SECTION 2: Futures ---
+            if (!isEquityOpen && isFuturesOpen && futureAssets.isNotEmpty()) {
+                AssetSection(
+                    title = stringResource(id = R.string.dashboard_section_futures),
+                    items = futureAssets,
+                    onAssetClick = { onAssetClick(it.symbol) },
+                    getIntradayStream = getIntradayStream,
+                    columnNum = 3
+                )
+            }
 
-        // --- SECTION 3: Equities ---
-        if (equityAssets.isNotEmpty()) {
-            AssetSection(
-                title = stringResource(id = R.string.dashboard_section_equities),
-                items = equityAssets,
-                onAssetClick = { onAssetClick(it.symbol) },
-                getIntradayStream = getIntradayStream,
-                columnNum = 3
-            )
-        }
+            // --- SECTION 3: Equities ---
+            if (equityAssets.isNotEmpty()) {
+                AssetSection(
+                    title = stringResource(id = R.string.dashboard_section_equities),
+                    items = equityAssets,
+                    onAssetClick = { onAssetClick(it.symbol) },
+                    getIntradayStream = getIntradayStream,
+                    columnNum = 3
+                )
+            }
 
-        // --- SECTION 3: Others - Crypto and Commodities ---
-        if (otherAssets.isNotEmpty()) {
-            AssetSection(
-                title = stringResource(id = R.string.dashboard_section_crypto),
-                items = otherAssets,
-                onAssetClick = { onAssetClick(it.symbol) },
-                getIntradayStream = getIntradayStream,
-                columnNum = 3
-            )
-        }
+            // --- SECTION 3: Others - Crypto and Commodities ---
+            if (otherAssets.isNotEmpty()) {
+                AssetSection(
+                    title = stringResource(id = R.string.dashboard_section_crypto),
+                    items = otherAssets,
+                    onAssetClick = { onAssetClick(it.symbol) },
+                    getIntradayStream = getIntradayStream,
+                    columnNum = 3
+                )
+            }
 
-        // --- SECTION 4: Sector Rotation Heatmap ---
-        if (sectorAssets.isNotEmpty()) {
-            SectorHeatmapSection(
-                title = "Sector Rotation", // Consider moving to strings.xml later!
-                items = sectorAssets,
-                onAssetClick = { onAssetClick(it.symbol) }
-            )
-        }
+            // --- SECTION 4: Sector Rotation Heatmap ---
+            if (sectorAssets.isNotEmpty()) {
+                SectorHeatmapSection(
+                    title = "Sector Rotation", // Consider moving to strings.xml later!
+                    items = sectorAssets,
+                    onAssetClick = { onAssetClick(it.symbol) }
+                )
+            }
 
-        // --- SECTION: Latest News preview (bottom of the Dashboard; chevron/card taps navigate to News) ---
-        if (newsArticles.isNotEmpty()) {
-            NewsPreviewSection(
-                articles = newsArticles,
-                onArticleClick = onNewsArticleClick,
-                onSeeAllClick = onNavigateToNews
-            )
+            // --- SECTION: Latest News preview (bottom of the Dashboard; chevron/card taps navigate to News) ---
+            if (newsArticles.isNotEmpty()) {
+                NewsPreviewSection(
+                    articles = newsArticles,
+                    onArticleClick = onNewsArticleClick,
+                    onSeeAllClick = onNavigateToNews
+                )
+            }
         }
     }
 

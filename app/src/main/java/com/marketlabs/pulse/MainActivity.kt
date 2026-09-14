@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
@@ -30,12 +31,14 @@ import androidx.navigation.compose.rememberNavController
 import com.marketlabs.pulse.data.theme.ThemeRepository
 import com.marketlabs.pulse.ui.components.AppTopBar
 import com.marketlabs.pulse.ui.components.FloatingBottomNav
+import com.marketlabs.pulse.ui.components.PulseSplashScreen
 import com.marketlabs.pulse.ui.navigation.PulseNavGraph
 import com.marketlabs.pulse.ui.navigation.PulseRoutes
 import com.marketlabs.pulse.ui.navigation.bottomNavItems
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 import com.marketlabs.pulse.utils.enums.ReportType
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
@@ -105,6 +108,16 @@ class MainActivity : ComponentActivity() {
             )
 
             MarketPulseTheme(theme = selectedTheme) {
+                // Fixed 3s brand splash, independent of how fast data loads -- the Android system
+                // splash that precedes it remains a static icon by platform design (no OS-level
+                // hook to animate it), so this Compose overlay is the earliest point the animated
+                // mark can show.
+                var isSplashActive by remember { mutableStateOf(true) }
+                LaunchedEffect(Unit) {
+                    delay(3_000)
+                    isSplashActive = false
+                }
+
                 val navController = rememberNavController()
                 val enterAlwaysScrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
                 val pinnedScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
@@ -221,6 +234,7 @@ class MainActivity : ComponentActivity() {
                 // topBarTitle falls back to the fixed "Summary" string below.
                 var summaryReportType by remember { mutableStateOf<ReportType?>(null) }
 
+                Box(modifier = Modifier.fillMaxSize()) {
                 Scaffold(
                     modifier = Modifier
                         .fillMaxSize()
@@ -293,6 +307,10 @@ class MainActivity : ComponentActivity() {
                         onInsightsBackHandled = { reachedInsightsFromMarketSentiment = false },
                         onSummaryReportTypeLoaded = { summaryReportType = it }
                     )
+                }
+                    if (isSplashActive) {
+                        PulseSplashScreen()
+                    }
                 }
             }
         }

@@ -30,21 +30,21 @@ val AppTypography = Typography(
     headlineLarge = TextStyle(
         fontFamily = Montserrat,
         fontWeight = FontWeight.ExtraBold,
-        fontSize = 32.sp,
-        lineHeight = 40.sp,
+        fontSize = 30.sp,
+        lineHeight = 38.sp,
         letterSpacing = (-0.5).sp
     ),
     headlineMedium = TextStyle(
         fontFamily = Montserrat,
         fontWeight = FontWeight.Bold,
-        fontSize = 28.sp,
-        lineHeight = 36.sp
+        fontSize = 26.sp,
+        lineHeight = 34.sp
     ),
     headlineSmall = TextStyle(
         fontFamily = Montserrat,
         fontWeight = FontWeight.Bold,
-        fontSize = 24.sp,
-        lineHeight = 32.sp
+        fontSize = 22.sp,
+        lineHeight = 30.sp
     ),
 
     // --- TITLES (Montserrat) ---
@@ -52,14 +52,14 @@ val AppTypography = Typography(
     titleLarge = TextStyle(
         fontFamily = Montserrat,
         fontWeight = FontWeight.Bold,
-        fontSize = 20.sp,
-        lineHeight = 28.sp,
+        fontSize = 18.sp,
+        lineHeight = 26.sp,
         letterSpacing = 0.sp
     ),
     titleMedium = TextStyle(
         fontFamily = Montserrat,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 17.sp,
+        fontSize = 16.sp,
         lineHeight = 24.sp,
         letterSpacing = 0.15.sp
     ),
@@ -76,14 +76,14 @@ val AppTypography = Typography(
     bodyLarge = TextStyle(
         fontFamily = Montserrat,
         fontWeight = FontWeight.Normal,
-        fontSize = 15.sp,
+        fontSize = 14.sp,
         lineHeight = 24.sp,
         letterSpacing = 0.5.sp
     ),
     bodyMedium = TextStyle(
         fontFamily = Montserrat,
         fontWeight = FontWeight.Normal,
-        fontSize = 14.sp,
+        fontSize = 13.sp,
         lineHeight = 20.sp,
         letterSpacing = 0.25.sp
     ),
@@ -100,7 +100,7 @@ val AppTypography = Typography(
     labelLarge = TextStyle(
         fontFamily = Inter,
         fontWeight = FontWeight.Bold,
-        fontSize = 14.sp,
+        fontSize = 1.sp,
         lineHeight = 20.sp,
         letterSpacing = 0.1.sp
     ),

@@ -57,7 +57,15 @@ data class NetworkSynthesis(
     @Json(name = "detail")
     @get:PropertyName("detail")
     @set:PropertyName("detail")
-    var detail: String? = null
+    var detail: String? = null,
+
+    // 💡 Backs the Dashboard hero card's "Analyzed as of" line -- when this AI pass actually ran,
+    // not `MarketState.lastUpdated` (the client's own local-sync time, which just reflects whenever
+    // Firestore last pushed a snapshot, regardless of whether `technical_summary` was part of it).
+    @Json(name = "generated_at")
+    @get:PropertyName("generated_at")
+    @set:PropertyName("generated_at")
+    var generatedAt: Long? = null
 )
 
 /** Model-chosen `{category, heading, body}` sections, max 4 -- `category` is a routing field, not a UI kicker. */

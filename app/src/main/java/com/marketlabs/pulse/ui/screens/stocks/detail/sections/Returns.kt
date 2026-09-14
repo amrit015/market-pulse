@@ -31,10 +31,14 @@ import com.marketlabs.pulse.ui.theme.PulseColors
 import java.util.Locale
 
 /**
- * `PulseCard(DATA)` from `technical_indicators.returns` -- 1D/1W/1M/3M/6M/1Y price returns,
+ * `PulseCard(DATA)` from `technical_indicators.returns` -- 1D/1W/1M/3M/6M/YTD/1Y price returns,
  * previously fetched and mapped but never rendered anywhere on the Detail screen. Every window
  * shares one glossary entry (`RETURN_WINDOW`) rather than 6 near-duplicate ones, since "return over
  * the stated window" is the same explanation regardless of which window a given stat is.
+ *
+ * `changePercent` (not `returns.d1`, which the backend dropped) backs the 1D stat -- it was always
+ * just that same top-level preview/detail field duplicated inside `returns`, so this reads it
+ * straight from the one place it actually lives now instead of a field that no longer exists.
  *
  * 💡 Its stat holder type is named `ReturnStat` (not the shorter `Stat` `Fundamentals.kt` uses) --
  * a `private` top-level class in Kotlin is only private to the *file* for functions/properties, but
@@ -42,7 +46,7 @@ import java.util.Locale
  * same package both naming one `Stat` collide at the JVM level despite the source-level `private`.
  */
 @Composable
-fun Returns(returns: DomainReturns?, modifier: Modifier = Modifier) {
+fun Returns(returns: DomainReturns?, changePercent: Double?, modifier: Modifier = Modifier) {
     if (returns == null) return
 
     var showGlossary by remember { mutableStateOf(false) }
@@ -50,11 +54,12 @@ fun Returns(returns: DomainReturns?, modifier: Modifier = Modifier) {
     val pulseColors = LocalPulseColors.current
 
     val stats = listOfNotNull(
-        returns.d1?.let { stat(R.string.stock_detail_metric_return_1d, it, pulseColors) },
+        changePercent?.let { stat(R.string.stock_detail_metric_return_1d, it, pulseColors) },
         returns.w1?.let { stat(R.string.stock_detail_metric_return_1w, it, pulseColors) },
         returns.m1?.let { stat(R.string.stock_detail_metric_return_1m, it, pulseColors) },
         returns.m3?.let { stat(R.string.stock_detail_metric_return_3m, it, pulseColors) },
         returns.m6?.let { stat(R.string.stock_detail_metric_return_6m, it, pulseColors) },
+        returns.ytd?.let { stat(R.string.stock_detail_metric_return_ytd, it, pulseColors) },
         returns.y1?.let { stat(R.string.stock_detail_metric_return_1y, it, pulseColors) }
     )
     if (stats.isEmpty()) return
@@ -96,11 +101,11 @@ private fun Spacer() {
 // ============================================================================
 
 private val mockReturns = DomainReturns(
-    d1 = 0.82,
     w1 = 1.07,
     m1 = 11.11,
     m3 = 1.22,
     m6 = 23.26,
+    ytd = 18.05,
     y1 = 23.47
 )
 
@@ -108,7 +113,7 @@ private val mockReturns = DomainReturns(
 @Composable
 private fun PreviewReturnsLight() {
     MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
-        Returns(returns = mockReturns)
+        Returns(returns = mockReturns, changePercent = 0.82)
     }
 }
 
@@ -116,6 +121,6 @@ private fun PreviewReturnsLight() {
 @Composable
 private fun PreviewReturnsDark() {
     MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
-        Returns(returns = mockReturns)
+        Returns(returns = mockReturns, changePercent = 0.82)
     }
 }

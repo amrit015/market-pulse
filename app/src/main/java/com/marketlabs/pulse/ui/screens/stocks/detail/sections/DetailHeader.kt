@@ -33,6 +33,7 @@ import com.marketlabs.pulse.ui.screens.stocks.detail.OutlinedBadge
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 import com.marketlabs.pulse.utils.extensions.toAnalyzedAsOfString
+import com.marketlabs.pulse.utils.extensions.toShortDateString
 import java.util.Locale
 import kotlin.math.abs
 
@@ -48,6 +49,19 @@ import kotlin.math.abs
  * a muted tone, while `regimeAtAnalysis` (the market-wide backdrop this analysis was run against)
  * is a filled accent pill -- neither is a `signal.*` color, since neither is a bullish/bearish
  * read on its own.
+ *
+ * `price`/`changePercent` come from the same `market_stocks/{symbol}` doc the analysis lives on --
+ * `intradayPoller` overwrites just those two fields on it every 5 minutes during regular market
+ * hours, so this is a live quote during the session, tagged with the small "LIVE" label above it
+ * (gated on `isEquityOpen`, the same `market_overview/market_state.is_equity_open` flag the
+ * Dashboard's own hero card badge reads, so it can't drift from what the app calls "open" anywhere
+ * else) -- not something frozen at the last analysis run. That means the big number up top and the analysis
+ * below it can legitimately be reasoning about two different prices -- `previousClose` is what
+ * closes that gap: it's written once per day at EOD from that same day's own last live tick
+ * (`timeline.ts`'s `previous_close: prevPreview.price`) and `intradayPoller` never touches it, so it
+ * stays pinned to the close the still-current analysis was actually generated against for the
+ * entire next session, even while `price` drifts away from it live. Spelled out below "Analyzed as
+ * of" with `analysisDate` so a mid-day viewer sees explicitly which price the write-up used.
  *
  * 2026-09-06: both badges are tap-to-explain, matching the same "tap a signal, see what it means"
  * bottom sheet Market Signal and other Summary cards use -- `onTechnicalSetupClick`/`onRegimeClick`
@@ -67,6 +81,9 @@ fun DetailHeader(
     name: String?,
     price: Double?,
     changePercent: Double?,
+    previousClose: Double?,
+    analysisDate: String?,
+    isEquityOpen: Boolean,
     technicalSetup: String?,
     regimeAtAnalysis: String?,
     analyzedAsOfTimestamp: Long?,
@@ -100,11 +117,10 @@ fun DetailHeader(
             )
         }
 
-        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
-
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
@@ -125,6 +141,13 @@ fun DetailHeader(
 
             Column(horizontalAlignment = Alignment.End) {
                 price?.let {
+                    if (isEquityOpen) {
+                        Text(
+                            text = stringResource(id = R.string.stock_price_live_label),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = pulseColors.onSurfaceMuted
+                        )
+                    }
                     Text(
                         text = "$${String.format(Locale.US, "%.2f", it)}",
                         style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
@@ -183,6 +206,19 @@ fun DetailHeader(
                 color = pulseColors.onSurfaceMuted
             )
         }
+
+        if (previousClose != null && analysisDate != null) {
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
+            Text(
+                text = stringResource(
+                    id = R.string.stock_analysis_close_caption,
+                    String.format(Locale.US, "%.2f", previousClose),
+                    analysisDate.toShortDateString()
+                ),
+                style = MaterialTheme.typography.labelSmall,
+                color = pulseColors.accentPrimary
+            )
+        }
     }
 }
 
@@ -199,6 +235,9 @@ private fun PreviewDetailHeaderLight() {
             name = "Amazon.com, Inc.",
             price = 274.48,
             changePercent = 0.82,
+            previousClose = 269.10,
+            analysisDate = "2026-09-11",
+            isEquityOpen = true,
             technicalSetup = "MEAN_REVERSION",
             regimeAtAnalysis = "risk_on",
             analyzedAsOfTimestamp = System.currentTimeMillis(),
@@ -216,6 +255,9 @@ private fun PreviewDetailHeaderDark() {
             name = "Amazon.com, Inc.",
             price = 274.48,
             changePercent = 0.82,
+            previousClose = 269.10,
+            analysisDate = "2026-09-11",
+            isEquityOpen = true,
             technicalSetup = "MEAN_REVERSION",
             regimeAtAnalysis = "risk_on",
             analyzedAsOfTimestamp = System.currentTimeMillis(),

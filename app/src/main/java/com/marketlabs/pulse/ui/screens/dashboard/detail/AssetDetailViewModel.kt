@@ -3,6 +3,7 @@ package com.marketlabs.pulse.ui.screens.dashboard.detail
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.marketlabs.pulse.core.charts.ChartSyncGroup
 import com.marketlabs.pulse.core.charts.ChartsRepository
 import com.marketlabs.pulse.core.dashboard.DashboardRepository
 import com.marketlabs.pulse.core.intraday.DashboardIntradayEligibility
@@ -13,13 +14,16 @@ import com.marketlabs.pulse.storage.model.charts.isCoveredByHistory
 import com.marketlabs.pulse.storage.model.dashboard.AssetOverview
 import com.marketlabs.pulse.storage.model.intraday.IntradaySeries
 import com.marketlabs.pulse.ui.screens.dashboard.detail.AssetDetailViewModel.Companion.ARG_SYMBOL
+import com.marketlabs.pulse.utils.enums.AssetType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -72,6 +76,13 @@ class AssetDetailViewModel @Inject constructor(
     private val matchingAsset: Flow<AssetOverview?> = dashboardRepository.getDashboardAssetsStream()
         .map { assets -> assets.filterNotNull().firstOrNull { it.symbol == symbol } }
 
+    // Flips true if `asset` is still unresolved after a fixed grace period -- see
+    // AssetDetailUiState's doc comment on `hasTimedOut` for why this is needed at all (no fetch of
+    // its own to signal failure). Never reset back to false: once true, `matchingAsset` resolving
+    // later is a no-op here anyway, since the Route's own branch order always prefers a non-null
+    // asset over this flag.
+    private val _hasTimedOut = MutableStateFlow(false)
+
     // Independent of whatever range is actually selected -- this is how `availableChartRanges`
     // learns the symbol's real history depth (see `prefetchHistoryCoverage()`, which does the
     // actual fetching), so a recently-added dashboard asset doesn't offer 6M/YTD/1Y buttons that'd
@@ -96,7 +107,7 @@ class AssetDetailViewModel @Inject constructor(
         )
     }
 
-    val uiState: StateFlow<AssetDetailUiState> = combine(matchingAsset, chartFlow) { asset, chart ->
+    val uiState: StateFlow<AssetDetailUiState> = combine(matchingAsset, chartFlow, _hasTimedOut) { asset, chart, hasTimedOut ->
         AssetDetailUiState(
             symbol = symbol,
             asset = asset,
@@ -104,13 +115,23 @@ class AssetDetailViewModel @Inject constructor(
             selectedChartRange = chart.range,
             isChartLoading = chart.isLoading,
             intradaySeries = chart.intradaySeries,
-            availableChartRanges = chart.availableChartRanges
+            availableChartRanges = chart.availableChartRanges,
+            hasTimedOut = hasTimedOut
         )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = AssetDetailUiState(symbol = symbol)
     )
+
+    init {
+        viewModelScope.launch {
+            delay(RESOLUTION_TIMEOUT_MS)
+            if (matchingAsset.first() == null) {
+                _hasTimedOut.value = true
+            }
+        }
+    }
 
     /** Called by the UI when the screen becomes visible. */
     fun onStart() {
@@ -124,7 +145,15 @@ class AssetDetailViewModel @Inject constructor(
         }
         prefetchHistoryCoverage()
         if (isIntradayEligible) {
-            intradayRepository.trackSymbol(symbol)
+            // `matchingAsset` is already a warm cross-reference into the Overview tab's own
+            // running stream (see this ViewModel's doc comment), so `.first()` resolves from
+            // cache immediately rather than waiting on a network fetch -- needed so the poll loop
+            // gates itself against the right per-asset-class market-hours schedule instead of
+            // defaulting to `trackSymbol`'s stock-shaped `EQUITY` default.
+            viewModelScope.launch {
+                val assetType = matchingAsset.first()?.type ?: AssetType.UNKNOWN
+                intradayRepository.trackSymbol(symbol, assetType, IntradayRepository.DASHBOARD_POLL_INTERVAL_MS)
+            }
         }
     }
 
@@ -150,7 +179,8 @@ class AssetDetailViewModel @Inject constructor(
             _isChartLoading.value = true
             // Deliberately silent on failure -- same reasoning as StockDetailViewModel's chart
             // fetch: this is a supporting element on the page, not its main content.
-            chartsRepository.refreshChart(symbol, range, force)
+            val chartSyncGroup = ChartSyncGroup.fromAssetType(matchingAsset.first()?.type ?: AssetType.UNKNOWN)
+            chartsRepository.refreshChart(symbol, range, force, chartSyncGroup)
             _isChartLoading.value = false
         }
     }
@@ -164,13 +194,17 @@ class AssetDetailViewModel @Inject constructor(
     private fun prefetchHistoryCoverage() {
         if (_selectedChartRange.value == ChartRange.ONE_YEAR) return
         viewModelScope.launch {
-            chartsRepository.refreshChart(symbol, ChartRange.ONE_YEAR, force = false)
+            val chartSyncGroup = ChartSyncGroup.fromAssetType(matchingAsset.first()?.type ?: AssetType.UNKNOWN)
+            chartsRepository.refreshChart(symbol, ChartRange.ONE_YEAR, force = false, chartSyncGroup)
         }
     }
 
     companion object {
         /** Must match the nav argument name in the `assetDetail/{symbol}` route. */
         const val ARG_SYMBOL = "symbol"
+
+        /** Grace period before an unresolved symbol is treated as "won't resolve" -- see `_hasTimedOut`. */
+        private const val RESOLUTION_TIMEOUT_MS = 8_000L
     }
 }
 

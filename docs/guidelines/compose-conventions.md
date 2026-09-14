@@ -56,6 +56,46 @@ for worked examples):
 no scrolling), a different layout shape for a different job (picking a chart's time range, not
 switching between sibling page sections).
 
+## Loading and error states
+
+**`ui/components/PulseLoadingIndicator.kt` is the one loading treatment for every screen** — never
+a bare `CircularProgressIndicator`. It's the animated launcher-mark rebuild (rings + chart bars),
+`184.dp`, self-centering — drop it into whatever `Box`/`contentAlignment = Alignment.Center`
+container the screen already uses for its loading branch. The same file's `PulseSplashScreen()` is
+the identical component shown full-screen for a fixed 3s after `MainActivity`'s `setContent` (the
+Android system splash before that stays a static icon by platform design — there's no OS hook to
+animate it, so this Compose overlay is the earliest point the real mark can show).
+
+**`ui/components/PulseErrorState.kt` is the one "fetch failed, nothing cached to fall back on"
+state** — a centered message (`colorScheme.error`) plus a retry `Button`. Reach for it any time a
+screen's `when`/`if` state machine is missing this branch, rather than hand-rolling another
+`Column`/`Text`/`Button` copy (`IndicatorsRoute`/`InsightsRoute`/`NewsRoute` still carry their own
+older hand-rolled copies of this same shape — pre-`PulseErrorState`, not a second pattern to
+match). Two call shapes:
+
+- **Plain string error** (`errorMessage: String?` on the UiState) — pass it straight through as
+  `message`.
+- **Typed `UiError`** (`ui/common/UiError.kt`'s `Network`/`Server`/`Unknown`) — resolve it first
+  with the same file's `uiErrorMessage(error: UiError): String` for localized copy, rather than
+  reading `error.message` directly (that's the raw exception text, not user-facing copy).
+
+`actionLabel` defaults to "Retry" but is overridable for the rare screen whose recovery action
+isn't a re-fetch — `AssetDetailRoute`/`MetricDetailRoute` have no fetch of their own to retry (they
+only cross-reference an already-loading list stream), so an unresolved id's action is "Go Back"
+instead, passed as `actionLabel = stringResource(id = R.string.action_go_back)`.
+
+**Gotcha: guard the Snackbar `LaunchedEffect` against your own persistent error branch.** The
+common shape —
+`LaunchedEffect(uiState.error) { uiState.error?.message?.let { snackbarHostState.showSnackbar(it); viewModel.clearError() } }`
+— clears the error a few seconds after showing the toast. If a screen *also* has a
+`PulseErrorState` branch gated on that same error being non-null (the "nothing cached" case), the
+unconditional version above yanks the error out from under it moments after it renders, collapsing
+back to a blank/loading state instead of staying up until the user retries. Guard the
+toast-and-clear on there still being cached content to fall back on (`uiState.data != null`, or
+whatever the screen's equivalent is) — only auto-dismiss the *soft* case (a background refresh
+failed but cached content is still showing); leave the *hard* case (nothing cached at all) alone so
+the persistent error state sticks until the retry button actually clears it.
+
 ## Glossary content
 
 **Every glossary lives in `core/glossary/` as a bundled `assets/*.json` file + a matching
@@ -72,16 +112,23 @@ Two shapes:
   per-metric detail page, which needs bands and a "gotchas" caveat, not just a one-line
   definition.
 
+Same flat-map machinery also backs one non-glossary case, worth knowing about here since it's the
+same `core/glossary/` files/loader, not a separate system: `asset_descriptions.json`/
+`AssetDescriptionProvider` (added 2026-09 when the backend removed `market_overview/{symbol}.description`
+entirely) is a `symbol -> description` map for the Dashboard asset-detail screen's per-asset blurb,
+not a term/definition glossary — reuses `loadFlatGlossaryJson` because the shape is identical, not
+because it's conceptually a glossary term.
+
 Provider access pattern differs by consumer, and this is deliberate, not inconsistent:
 `MetricGlossaryProvider` is a Hilt `@Singleton @Inject constructor(@ApplicationContext context: Context)`
-class because its only consumers are `@HiltViewModel`s. The other 4 providers are plain
-lazily-cached singleton `object`s taking `Context` as a parameter (call
-`.get(LocalContext.current)` / `.definitionFor(LocalContext.current, key)` directly from the
-composable) because their call sites are deeply nested, stateless leaf composables reached from a
-dozen+ screens with no ViewModel in between — threading Hilt through every intermediate screen's
-ViewModel/UiState would buy nothing over a process-cached in-memory map. Match whichever pattern
-fits a new glossary's actual call sites; don't force Hilt onto a leaf-composable-only glossary
-just for consistency with `MetricGlossaryProvider`.
+class because its only consumers are `@HiltViewModel`s. The other providers (including
+`AssetDescriptionProvider`) are plain lazily-cached singleton `object`s taking `Context` as a
+parameter (call `.get(LocalContext.current)` / `.definitionFor(LocalContext.current, key)` directly
+from the composable) because their call sites are deeply nested, stateless leaf composables reached
+from a dozen+ screens with no ViewModel in between — threading Hilt through every intermediate
+screen's ViewModel/UiState would buy nothing over a process-cached in-memory map. Match whichever
+pattern fits a new glossary's actual call sites; don't force Hilt onto a leaf-composable-only
+glossary just for consistency with `MetricGlossaryProvider`.
 
 **Don't assume two similarly-named fields share a glossary just because the words match.** Two
 confirmed traps in `market_glossary.json`/`MarketGlossaryData`, both caught by checking backend

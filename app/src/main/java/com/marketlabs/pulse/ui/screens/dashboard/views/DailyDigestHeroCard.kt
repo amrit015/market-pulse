@@ -4,6 +4,7 @@ package com.marketlabs.pulse.ui.screens.dashboard.views
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -89,92 +91,105 @@ fun DailyDigestHeroCard(
     PulseCard(
         style = PulseCardStyle.SYNTHESIS,
         modifier = modifier.fillMaxWidth(),
-        onClick = if (hasExpandableContent) { { isExpanded = !isExpanded } } else null
+        onClick = if (hasExpandableContent) {
+            { isExpanded = !isExpanded }
+        } else null
     ) {
-        Column(modifier = Modifier.padding(paddingLarge).animateContentSize()) {
-            CardEyebrowLabel(
-                text = stringResource(id = R.string.dashboard_daily_digest_header),
-                color = pulseColors.accentPrimary,
-                iconRes = R.drawable.ic_ai_sparkle_filled
-            )
-
-            if (isUnavailable || !hasContent) {
-                Spacer(modifier = Modifier.height(paddingMedium))
-                Text(
-                    text = stringResource(id = R.string.dashboard_daily_digest_unavailable),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+        Column(modifier = Modifier.animateContentSize()) {
+            Column (modifier = Modifier.padding(paddingLarge)) {
+                CardEyebrowLabel(
+                    text = stringResource(id = R.string.dashboard_daily_digest_header),
+                    color = pulseColors.accentPrimary,
+                    iconRes = R.drawable.ic_ai_sparkle_filled
                 )
-            } else {
-                if (!headline.isNullOrBlank()) {
+
+                if (isUnavailable || !hasContent) {
                     Spacer(modifier = Modifier.height(paddingMedium))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = stringResource(id = R.string.dashboard_daily_digest_unavailable),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else {
+                    if (!headline.isNullOrBlank()) {
+                        Spacer(modifier = Modifier.height(paddingMedium))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = headline.smartTitleCase(),
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.weight(1f)
+                            )
+                            if (hasExpandableContent) {
+                                Spacer(modifier = Modifier.width(paddingSmall))
+                                Icon(
+                                    painter = painterResource(id = if (isExpanded) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down),
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(paddingLarge)
+                                )
+                            }
+                        }
+                    }
+
+                    if (!detail.isNullOrBlank()) {
+                        Spacer(modifier = Modifier.height(paddingMedium))
                         Text(
-                            text = headline.smartTitleCase(),
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            text = detail,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.weight(1f)
+                            maxLines = if (isExpanded) Int.MAX_VALUE else 3,
+                            overflow = TextOverflow.Ellipsis
                         )
-                        if (hasExpandableContent) {
-                            Spacer(modifier = Modifier.width(paddingSmall))
-                            Icon(
-                                painter = painterResource(id = if (isExpanded) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down),
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(paddingLarge)
+                    }
+
+                    if (isExpanded) {
+                        sections.forEach { section ->
+                            Spacer(modifier = Modifier.height(paddingLarge))
+                            HorizontalDivider(
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                                thickness = dimensionResource(id = R.dimen.border_thin)
+                            )
+                            Spacer(modifier = Modifier.height(paddingLarge))
+                            Text(
+                                text = section.heading.orEmpty().uppercase(),
+                                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                                color = pulseColors.accentPrimary
+                            )
+                            Spacer(modifier = Modifier.height(paddingSmall))
+                            Text(
+                                text = section.body.orEmpty(),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         }
                     }
                 }
-
-                if (!detail.isNullOrBlank()) {
-                    Spacer(modifier = Modifier.height(paddingMedium))
-                    Text(
-                        text = detail,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = if (isExpanded) Int.MAX_VALUE else 3,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-
-                if (isExpanded) {
-                    sections.forEach { section ->
-                        Spacer(modifier = Modifier.height(paddingLarge))
-                        HorizontalDivider(
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                            thickness = dimensionResource(id = R.dimen.border_thin)
-                        )
-                        Spacer(modifier = Modifier.height(paddingLarge))
-                        Text(
-                            text = section.heading.orEmpty().uppercase(),
-                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                            color = pulseColors.accentPrimary
-                        )
-                        Spacer(modifier = Modifier.height(paddingSmall))
-                        Text(
-                            text = section.body.orEmpty(),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                }
             }
-
-            Spacer(modifier = Modifier.height(paddingLarge))
-            SignalPill(
-                text = if (isEquityOpen) stringResource(id = R.string.dashboard_market_open)
-                else stringResource(id = R.string.dashboard_market_closed),
-                pillColor = badgeBgColor,
-                contentColor = badgeTextColor,
-                leadingIcon = {
-                    Box(
-                        modifier = Modifier
-                            .size(dimensionResource(id = R.dimen.icon_size_small))
-                            .background(color = badgeTextColor, shape = CircleShape)
-                    )
-                }
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                thickness = dimensionResource(id = R.dimen.border_thin)
             )
+            Row(
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth().padding(paddingLarge)
+            ) {
+                Icon(
+                    painter = if (isEquityOpen) painterResource(id = R.drawable.ic_sun)
+                    else painterResource(id = R.drawable.ic_moon),
+                    modifier = Modifier.size(dimensionResource(id = R.dimen.icon_size_small)),
+                    contentDescription = null,
+                    tint = Color.Unspecified,
+                )
+                Spacer(modifier = Modifier.width(paddingSmall))
+                Text(
+                    text = if (isEquityOpen) stringResource(id = R.string.market_open)
+                    else stringResource(id = R.string.market_closed),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
         }
     }
 }

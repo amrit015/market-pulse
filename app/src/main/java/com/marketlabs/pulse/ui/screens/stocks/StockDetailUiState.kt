@@ -63,5 +63,9 @@ data class StockDetailUiState(
     val isChartLoading: Boolean = false,
     val intradaySeries: IntradaySeries? = null,
     val availableChartRanges: List<ChartRange> = ChartRange.entries,
+    /** Same `market_overview/market_state.is_equity_open` flag the Dashboard's hero card badge
+     *  uses -- gates `DetailHeader`'s "LIVE" label so it only shows while `price` is actually being
+     *  live-updated (regular market hours), not after `intradayPoller` has stopped for the day. */
+    val isEquityOpen: Boolean = false,
     val error: UiError? = null
 )

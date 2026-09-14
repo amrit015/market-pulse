@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -54,6 +55,13 @@ class SummaryViewModel @Inject constructor(
         pastDateIds.map { dateId -> repository.getMarketPulseForDate(dateId).map { dateId to it } }
     ) { pairs -> pairs.toMap() }
 
+    // dateId -> failure message, for a past date whose sync attempt (below) failed with nothing
+    // cached yet -- syncPastDate's Result used to be discarded entirely, so a failure here left
+    // that page stuck on DayContent.Loading forever with no way to tell "still loading" apart from
+    // "will never load." Cleared the moment that date's own entry is confirmed cached, so a
+    // successful retry (or a later successful background sync) doesn't leave a stale error behind.
+    private val _failedPastDates = MutableStateFlow<Map<String, String>>(emptyMap())
+
     init {
         // Confirmed decision: today has no report yet -> land on yesterday silently (no banner);
         // the "not generated yet" message only shows if the user actually swipes/taps onto the
@@ -76,25 +84,40 @@ class SummaryViewModel @Inject constructor(
         viewModelScope.launch {
             _selectedDateId.collect { dateId ->
                 if (dateId != todayDateId) {
-                    repository.syncPastDate(dateId)
+                    syncPastDate(dateId)
                 }
             }
         }
     }
 
+    private suspend fun syncPastDate(dateId: String) {
+        val result = repository.syncPastDate(dateId)
+        _failedPastDates.update { current ->
+            result.fold(
+                onSuccess = { current - dateId },
+                onFailure = { e -> current + (dateId to (e.message ?: "Connection failed")) }
+            )
+        }
+    }
+
+    /** Retry affordance for a past date stuck on [DayContent.Error]. */
+    fun retryPastDate(dateId: String) = viewModelScope.launch { syncPastDate(dateId) }
+
     val summaryUiState: StateFlow<SummaryUiState> = combine(
-        _selectedDateId, todayStream, pastEntriesByDateId
-    ) { selectedDateId, todayData, pastEntries ->
+        _selectedDateId, todayStream, pastEntriesByDateId, _failedPastDates
+    ) { selectedDateId, todayData, pastEntries, failedPastDates ->
         val contentByDateId = buildMap {
             put(todayDateId, if (todayData != null) DayContent.Available(todayData) else DayContent.TodayNotReady)
             pastDateIds.forEach { dateId ->
                 val entry = pastEntries[dateId]
+                val failureMessage = failedPastDates[dateId]
                 put(
                     dateId,
                     when {
-                        entry == null || !entry.cached -> DayContent.Loading
-                        entry.data != null -> DayContent.Available(entry.data)
-                        else -> DayContent.NotAvailable(dateId)
+                        entry != null && entry.cached && entry.data != null -> DayContent.Available(entry.data)
+                        entry != null && entry.cached -> DayContent.NotAvailable(dateId)
+                        failureMessage != null -> DayContent.Error(dateId, failureMessage)
+                        else -> DayContent.Loading
                     }
                 )
             }

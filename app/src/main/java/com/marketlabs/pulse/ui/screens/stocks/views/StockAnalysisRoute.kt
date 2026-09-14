@@ -27,13 +27,16 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.marketlabs.pulse.ui.components.PulseLoadingIndicator
 import com.marketlabs.pulse.ui.screens.stocks.StockAnalysisViewModel
 
 /**
  * Stateful entry point for the Analysis bottom-nav tab. Lifecycle wiring, pull-to-refresh, and the
  * loading/error/empty state machine all follow `IndicatorsRoute`/`NewsRoute`'s exact shape --
- * `StockAnalysisScreen` (and its sibling loading/error/empty composables) stay pure data-in,
- * lambdas-out, same as every other tab's Screen.
+ * `StockAnalysisScreen` (and its sibling error/empty composables) stay pure data-in, lambdas-out,
+ * same as every other tab's Screen. Loading itself is `PulseLoadingIndicator`, same as every other
+ * screen in the app -- this tab used to show a static card-shaped skeleton instead, replaced for
+ * one consistent loading treatment app-wide.
  *
  * No `Scaffold`/`TopAppBar` here -- per the spec, this tab uses the existing global collapsing top
  * bar with no override, so `scaffoldPadding` (passed down from `MainActivity`'s own `Scaffold`) is
@@ -97,6 +100,7 @@ fun StockAnalysisRoute(
                     StockAnalysisScreen(
                         previews = uiState.previews,
                         analyzedAsOf = uiState.analyzedAsOf,
+                        isEquityOpen = uiState.isEquityOpen,
                         onCardClick = onNavigateToDetail,
                         getIntradayStream = viewModel::getIntradayStream,
                         scaffoldPadding = scaffoldPadding
@@ -105,7 +109,9 @@ fun StockAnalysisRoute(
 
                 // Case B: first-ever load, nothing cached yet.
                 uiState.isLoading -> {
-                    StockAnalysisLoadingSkeleton(scaffoldPadding = scaffoldPadding)
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        PulseLoadingIndicator()
+                    }
                 }
 
                 // Case C: no cached previews AND the fetch failed.

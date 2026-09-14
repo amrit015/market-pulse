@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -49,6 +48,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.ui.components.PulseLoadingIndicator
 import com.marketlabs.pulse.ui.components.PulseTabRow
 import com.marketlabs.pulse.ui.components.bottomSheet.MarketGlossaryBottomSheet
 import com.marketlabs.pulse.ui.screens.stocks.StockDetailViewModel
@@ -187,6 +187,9 @@ fun StockDetailRoute(
             name = uiState.preview?.name,
             price = uiState.preview?.price,
             changePercent = uiState.preview?.changePercent,
+            previousClose = uiState.preview?.previousClose,
+            analysisDate = uiState.detail?.analysisDate,
+            isEquityOpen = uiState.isEquityOpen,
             technicalSetup = uiState.preview?.technicalSetup,
             regimeAtAnalysis = uiState.preview?.regimeAtAnalysis,
             analyzedAsOfTimestamp = uiState.detail?.timestamp,
@@ -333,7 +336,7 @@ fun StockDetailRoute(
 
                         uiState.isLoading -> {
                             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                CircularProgressIndicator()
+                                PulseLoadingIndicator()
                             }
                         }
 
@@ -346,7 +349,7 @@ fun StockDetailRoute(
                         // is always in flight by the time this composes).
                         else -> {
                             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                CircularProgressIndicator()
+                                PulseLoadingIndicator()
                             }
                         }
                     }

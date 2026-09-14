@@ -7,10 +7,11 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -21,12 +22,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.screens.dashboard.DashboardViewModel
+import com.marketlabs.pulse.ui.components.PulseErrorState
+import com.marketlabs.pulse.ui.components.PulseLoadingIndicator
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,7 +47,6 @@ fun DashboardRoute(
     val snackbarHostState = remember { SnackbarHostState() }
     val pullRefreshState = rememberPullToRefreshState()
     val lifecycleOwner = LocalLifecycleOwner.current
-
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_START) {
@@ -57,8 +61,14 @@ fun DashboardRoute(
 
     LaunchedEffect(uiState.errorMessage) {
         uiState.errorMessage?.let { message ->
-            snackbarHostState.showSnackbar(message)
-            viewModel.clearError()
+            if (uiState.assets.isNotEmpty()) {
+                // Cache already on screen -- a background refresh failure is a soft error, surfaced
+                // as a toast rather than replacing content that's still good to show.
+                snackbarHostState.showSnackbar(message)
+                viewModel.clearError()
+            }
+            // No cache at all: leave errorMessage set so the persistent error state below stays up
+            // until the user retries (fetchDashboard clears it itself on the next attempt).
         }
     }
 
@@ -76,8 +86,13 @@ fun DashboardRoute(
                     state = pullRefreshState
                 )
             }
-        ) {
+            ) {
             when {
+                uiState.isLoading -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        PulseLoadingIndicator()
+                    }
+                }
                 uiState.assets.isNotEmpty() -> {
                     DashboardScreen(
                         marketState = uiState.marketState,
@@ -90,9 +105,19 @@ fun DashboardRoute(
                         getIntradayStream = viewModel::getIntradayStream
                     )
                 }
-                uiState.isLoading -> {
+                uiState.errorMessage != null -> {
+                    PulseErrorState(
+                        message = uiState.errorMessage!!,
+                        onRetry = { viewModel.refreshDashboard() }
+                    )
+                }
+                else -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
+                        Text(
+                            text = stringResource(id = R.string.dashboard_empty_state),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             }

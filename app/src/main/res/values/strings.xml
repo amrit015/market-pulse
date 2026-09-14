@@ -82,6 +82,7 @@
 
     <string name="error_prefix">Error:</string>
     <string name="action_retry">Retry</string>
+    <string name="action_go_back">Go Back</string>
 
     <string name="radar_raw_value">Value: %1$s</string>
     <string name="radar_score_out_of_100">%1$d / 100</string>
@@ -206,6 +207,8 @@
     <string name="dashboard_technical_briefing">Technical Briefing</string>
     <string name="dashboard_daily_digest_header">Daily Digest</string>
     <string name="dashboard_daily_digest_unavailable">Digest unavailable for this run.</string>
+    <string name="dashboard_empty_state">No market data available. Pull to refresh.</string>
+    <string name="asset_detail_not_found">Couldn\'t find this asset. It may no longer be tracked.</string>
     <string name="released_date">Released %1$s</string>
     <string name="current">Current</string>
 
@@ -287,6 +290,7 @@
     <!-- Indicators tab, schema_version 2 revamp (2026-08-22): executive/pillar_scorecard/horizons. -->
     <string name="indicators_todays_read">Today\'s Read</string>
     <string name="indicators_horizons_title">Horizons</string>
+    <string name="metric_detail_not_found">Couldn\'t find this indicator. It may no longer be tracked.</string>
     <string name="indicators_horizons_subtitle">How this read plays out across short, medium and long term</string>
     <string name="indicators_key_drivers_title">Key Drivers</string>
     <string name="indicators_watch_for_title">Watch For</string>
@@ -332,6 +336,8 @@
 
     <!-- Stock detail screen (pushed from a StockPreviewCard tap): DetailHeader + sections/*. -->
     <string name="stock_detail_back_label">ANALYSIS</string>
+    <string name="stock_price_live_label">LIVE</string>
+    <string name="stock_analysis_close_caption">This analysis is based on closing price of $%1$s on %2$s.</string>
     <string name="stock_detail_regime_suffix">%1$s REGIME</string>
     <string name="stock_detail_why_setup">WHY %1$s</string>
     <string name="stock_detail_conf_label">CONF</string>
@@ -363,6 +369,7 @@
     <string name="stock_detail_metric_return_1m">1M</string>
     <string name="stock_detail_metric_return_3m">3M</string>
     <string name="stock_detail_metric_return_6m">6M</string>
+    <string name="stock_detail_metric_return_ytd">YTD</string>
     <string name="stock_detail_metric_return_1y">1Y</string>
     <string name="stock_detail_key_levels_title">KEY LEVELS</string>
     <string name="stock_detail_resistance_label">RESISTANCE</string>
@@ -697,4 +704,8 @@
     <string name="ad_ishares_body">Navigate macro market cycles with precision sector ETFs and fixed-income duration hedging instruments.</string>
     <string name="ad_ishares_cta">View Strategies</string>
     <string name="ad_ishares_tag">MACRO HEDGING &amp; DURATION</string>
+    <string name="market_open">US Markets are open</string>
+    <string name="market_open_indicator">☀︎</string>
+    <string name="market_closed">US Markets are closed</string>
+    <string name="market_closed_indicator">⏾</string>
 </resources>

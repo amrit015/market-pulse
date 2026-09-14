@@ -24,7 +24,6 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -67,6 +66,8 @@ import com.marketlabs.pulse.storage.model.summary.WhatsNewItem
 import com.marketlabs.pulse.ui.components.AnalyzedAtHeader
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
+import com.marketlabs.pulse.ui.components.PulseErrorState
+import com.marketlabs.pulse.ui.components.PulseLoadingIndicator
 import com.marketlabs.pulse.ui.components.bottomSheet.DriversInfoBottomSheet
 import com.marketlabs.pulse.ui.components.bottomSheet.MarketGlossaryBottomSheet
 import com.marketlabs.pulse.ui.components.bottomSheet.MarketReadBottomSheet
@@ -119,7 +120,8 @@ fun MarketSummaryScreen(
     // spec-20260902-market-sentiment-android.md: the Market Sentiment card's whole-card tap
     // target -- Posture is a tab on the Insights screen, not its own destination, same shape as
     // onNavigateToIndicators above but landing on a specific Insights tab.
-    onNavigateToPosture: () -> Unit = {}
+    onNavigateToPosture: () -> Unit = {},
+    onRetryDate: (String) -> Unit = {}
 ) {
     val data = (contentByDateId[selectedDateId] as? DayContent.Available)?.data
 
@@ -130,7 +132,8 @@ fun MarketSummaryScreen(
     // yesterday's page throughout that window rather than disappearing the instant the calendar
     // rolls over, then jump to today the moment today's report actually lands. `calendarDayIds` is
     // oldest-first, so the last Available entry scanning from the end is the one we want.
-    val latestAvailableDateId = calendarDayIds.lastOrNull { contentByDateId[it] is DayContent.Available }
+    val latestAvailableDateId =
+        calendarDayIds.lastOrNull { contentByDateId[it] is DayContent.Available }
 
     // 💡 Which glossary sheet (if any) is open, and for which term -- regime/direction, setup,
     // and cycle zone each have their own tap target now (a chevron on that one chip) instead of
@@ -218,7 +221,8 @@ fun MarketSummaryScreen(
                     onSetupClick = { glossaryTarget = GlossaryTarget.SETUP },
                     onCycleZoneClick = { glossaryTarget = GlossaryTarget.CYCLE_ZONE },
                     onSignalLineClick = { showMarketRead = true },
-                    onDriversInfoClick = { showDriversInfo = true }
+                    onDriversInfoClick = { showDriversInfo = true },
+                    onRetryDate = onRetryDate
                 )
             }
         }
@@ -296,7 +300,8 @@ private fun SummaryDayPage(
     onSetupClick: () -> Unit,
     onCycleZoneClick: () -> Unit,
     onSignalLineClick: () -> Unit,
-    onDriversInfoClick: () -> Unit
+    onDriversInfoClick: () -> Unit,
+    onRetryDate: (String) -> Unit = {}
 ) {
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
 
@@ -315,21 +320,29 @@ private fun SummaryDayPage(
         // now scroll away with the rest of that page's own content instead, so a page's header
         // always matches what's actually on that page even mid-swipe, before it settles as
         // "selected".
+
         item {
-            Text(
-                text = dateId.toRelativeDayLabel(),
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
-        if (content is DayContent.Available) {
-            item { AnalyzedAtHeader(timestamp = content.data.lastUpdated) }
+            Column {
+                Text(
+                    text = dateId.toRelativeDayLabel(),
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+                Spacer( modifier = Modifier.height(dimensionResource(id = R.dimen.padding_micro)))
+                if (content is DayContent.Available) {
+                    AnalyzedAtHeader(timestamp = content.data.lastUpdated)
+                }
+            }
         }
 
         when (content) {
             is DayContent.NotAvailable -> {
                 item {
-                    Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
+                    Box(
+                        modifier = Modifier.fillParentMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
                         Text(
                             text = stringResource(id = R.string.summary_not_available_for_date),
                             style = MaterialTheme.typography.bodyMedium,
@@ -342,7 +355,10 @@ private fun SummaryDayPage(
 
             DayContent.TodayNotReady -> {
                 item {
-                    Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
+                    Box(
+                        modifier = Modifier.fillParentMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
                         Text(
                             text = stringResource(id = R.string.summary_today_not_ready),
                             style = MaterialTheme.typography.bodyMedium,
@@ -355,9 +371,22 @@ private fun SummaryDayPage(
 
             DayContent.Loading -> {
                 item {
-                    Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
+                    Box(
+                        modifier = Modifier.fillParentMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        PulseLoadingIndicator()
                     }
+                }
+            }
+
+            is DayContent.Error -> {
+                item {
+                    PulseErrorState(
+                        message = content.message,
+                        onRetry = { onRetryDate(content.dateId) },
+                        modifier = Modifier.fillParentMaxSize()
+                    )
                 }
             }
 

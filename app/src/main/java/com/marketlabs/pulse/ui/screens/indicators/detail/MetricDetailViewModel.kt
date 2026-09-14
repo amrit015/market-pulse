@@ -14,11 +14,13 @@ import com.marketlabs.pulse.storage.model.indicators.DomainUnifiedMetric
 import com.marketlabs.pulse.storage.model.indicators.MarketIndicators
 import com.marketlabs.pulse.ui.screens.indicators.detail.MetricDetailViewModel.Companion.ARG_METRIC_ID
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -76,12 +78,17 @@ class MetricDetailViewModel @Inject constructor(
     private val matchingMetric: Flow<DomainUnifiedMetric?> = indicatorsRepository.getIndicatorsStream()
         .map { data -> data?.findMetric(metricId) }
 
+    // See MetricDetailUiState's doc comment on `hasTimedOut` -- same reasoning and shape as
+    // AssetDetailViewModel's own `_hasTimedOut`.
+    private val _hasTimedOut = MutableStateFlow(false)
+
     val uiState: StateFlow<MetricDetailUiState> = combine(
         matchingMetric,
         metricHistoryRepository.getHistoryStream(metricId),
         _isHistoryLoading,
-        _selectedChartRange
-    ) { metric, historySeries, isHistoryLoading, selectedChartRange ->
+        _selectedChartRange,
+        _hasTimedOut
+    ) { metric, historySeries, isHistoryLoading, selectedChartRange, hasTimedOut ->
         val allPoints = historySeries?.points.orEmpty()
         val availableChartRanges = allPoints.computeAvailableChartRanges(dateOf = { it.date })
         // A picker with 0 or 1 real options isn't a picker -- MetricDetailScreen hides it entirely
@@ -95,13 +102,23 @@ class MetricDetailViewModel @Inject constructor(
             historyPoints = if (effectiveRange != null) allPoints.filteredForRange(effectiveRange, dateOf = { it.date }) else allPoints,
             isHistoryLoading = isHistoryLoading,
             selectedChartRange = effectiveRange ?: selectedChartRange,
-            availableChartRanges = availableChartRanges
+            availableChartRanges = availableChartRanges,
+            hasTimedOut = hasTimedOut
         )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = MetricDetailUiState(metricId = metricId, selectedChartRange = _selectedChartRange.value)
     )
+
+    init {
+        viewModelScope.launch {
+            delay(RESOLUTION_TIMEOUT_MS)
+            if (matchingMetric.first() == null) {
+                _hasTimedOut.value = true
+            }
+        }
+    }
 
     /** Called by the UI when the screen becomes visible. */
     fun onStart() {
@@ -135,6 +152,9 @@ class MetricDetailViewModel @Inject constructor(
          * this Android-side range picker can't make on its own.
          */
         private const val HISTORY_LIMIT = 180
+
+        /** Grace period before an unresolved metric id is treated as "won't resolve" -- see `_hasTimedOut`. */
+        private const val RESOLUTION_TIMEOUT_MS = 8_000L
     }
 }
 

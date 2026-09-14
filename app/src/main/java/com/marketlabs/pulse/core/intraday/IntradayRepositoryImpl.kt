@@ -4,6 +4,8 @@ import android.util.Log
 import com.marketlabs.pulse.network.api.IntradayApi
 import com.marketlabs.pulse.storage.model.intraday.IntradaySeries
 import com.marketlabs.pulse.storage.model.intraday.mappers.toDomain
+import com.marketlabs.pulse.utils.enums.AssetType
+import com.marketlabs.pulse.utils.marketZone
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -16,6 +18,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
+import java.time.DayOfWeek
+import java.time.LocalTime
+import java.time.ZonedDateTime
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -33,15 +38,33 @@ class IntradayRepositoryImpl @Inject constructor(
     private val trackedRefCounts = mutableMapOf<String, Int>()
     private val _seriesMap = MutableStateFlow<Map<String, IntradaySeries?>>(emptyMap())
 
-    override fun trackSymbol(symbol: String) {
+    override fun trackSymbol(symbol: String, assetType: AssetType, pollIntervalMs: Long) {
         val refCount = (trackedRefCounts[symbol] ?: 0) + 1
         trackedRefCounts[symbol] = refCount
         if (refCount > 1) return // Already polling for another caller.
 
         pollJobs[symbol] = scope.launch {
             while (isActive) {
-                fetchOnce(symbol)
-                delay(POLL_INTERVAL_MS)
+                // Bars for this asset class only change while its own market is open -- polling a
+                // closed market every 30s is pure waste (same principle as `ChartsRepositoryImpl`'s
+                // market-hours-closed cache check). The loop itself keeps its normal cadence so a
+                // market that just opened is picked up within one tick, it just skips the network
+                // call while closed --
+                //
+                // EXCEPT when nothing has been fetched for this symbol yet this process lifetime
+                // (`containsKey`, not `[symbol] != null` -- a confirmed no-feed-ever 404 stores an
+                // explicit null value, which must still count as "already tried"). Skipping the very
+                // first fetch just because the market happens to be closed would mean a cold app
+                // launch during closed hours never hydrates the last completed session's bars at
+                // all -- the sparkline/1D chart would show nothing instead of that frozen last
+                // session until the next open, instead of the intended "keep showing the last real
+                // session until the market reopens" behavior `fetchOnce`'s own doc comment below
+                // describes. One unconditional fetch bootstraps that, then the gate takes over.
+                val hasFetchedBefore = _seriesMap.value.containsKey(symbol)
+                if (isMarketOpenFor(assetType) || !hasFetchedBefore) {
+                    fetchOnce(symbol)
+                }
+                delay(pollIntervalMs)
             }
         }
     }
@@ -92,7 +115,38 @@ class IntradayRepositoryImpl @Inject constructor(
         }
     }
 
-    private companion object {
-        const val POLL_INTERVAL_MS = 30_000L
+    /**
+     * Per-asset-class schedule, mirroring the real backend windows (`dashboardEngine.ts`'s
+     * `getMarketStatus()`): equities/sectors/indices Mon-Fri 9:30am-4:00pm ET; futures/commodities
+     * Sun 6pm ET through Fri 5pm ET (CME Globex) -- the short Mon-Thu 5-6pm ET daily maintenance
+     * halt is deliberately not modeled, same simplification as the chart cache's cutoff, too short
+     * to be worth the extra branch; crypto is always open, 24/7; sentiment/unknown default to
+     * "always poll" since neither has a well-defined closed window worth risking a missed update
+     * over. Not trading-calendar-aware (holidays) on purpose -- worst case this polls once when it
+     * didn't strictly need to, it never skips a poll that should have happened.
+     */
+    private fun isMarketOpenFor(assetType: AssetType): Boolean = when (assetType) {
+        AssetType.EQUITY, AssetType.SECTOR, AssetType.INDEX -> isRegularEquityHoursNow()
+        AssetType.FUTURE, AssetType.COMMODITY -> isFuturesHoursNow()
+        AssetType.CRYPTO, AssetType.SENTIMENT, AssetType.UNKNOWN -> true
     }
+
+    private fun isRegularEquityHoursNow(): Boolean {
+        val now = ZonedDateTime.now(marketZone)
+        if (now.dayOfWeek == DayOfWeek.SATURDAY || now.dayOfWeek == DayOfWeek.SUNDAY) return false
+        val open = now.toLocalTime() >= LocalTime.of(9, 30)
+        val beforeClose = now.toLocalTime() < LocalTime.of(16, 0)
+        return open && beforeClose
+    }
+
+    private fun isFuturesHoursNow(): Boolean {
+        val now = ZonedDateTime.now(marketZone)
+        return when (now.dayOfWeek) {
+            DayOfWeek.SATURDAY -> false
+            DayOfWeek.SUNDAY -> now.toLocalTime() >= LocalTime.of(18, 0)
+            DayOfWeek.FRIDAY -> now.toLocalTime() < LocalTime.of(17, 0)
+            else -> true
+        }
+    }
+
 }

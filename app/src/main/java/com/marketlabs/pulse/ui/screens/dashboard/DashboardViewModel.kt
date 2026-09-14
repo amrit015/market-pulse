@@ -71,12 +71,18 @@ class DashboardViewModel @Inject constructor(
         // `/intraday/:symbol`, so there's no point tracking it.
         intradayTrackingJob = viewModelScope.launch {
             repository.getDashboardAssetsStream()
-                .map { assets -> assets.filterNotNull().map { it.symbol } }
+                .map { assets ->
+                    assets.filterNotNull()
+                        .filter { DashboardIntradayEligibility.isEligible(it.symbol) }
+                        .associate { it.symbol to it.type }
+                }
                 .distinctUntilChanged()
-                .collect { symbols ->
-                    val newSymbols = symbols.filter { DashboardIntradayEligibility.isEligible(it) }.toSet()
+                .collect { symbolTypes ->
+                    val newSymbols = symbolTypes.keys
                     (trackedIntradaySymbols - newSymbols).forEach { intradayRepository.untrackSymbol(it) }
-                    (newSymbols - trackedIntradaySymbols).forEach { intradayRepository.trackSymbol(it) }
+                    (newSymbols - trackedIntradaySymbols).forEach {
+                        intradayRepository.trackSymbol(it, symbolTypes.getValue(it), IntradayRepository.DASHBOARD_POLL_INTERVAL_MS)
+                    }
                     trackedIntradaySymbols = newSymbols
                 }
         }

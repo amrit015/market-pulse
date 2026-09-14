@@ -19,10 +19,14 @@ sign-off.
   full coverage. The rest of the app is still the gap. The convention (`@docs/guidelines/compose-conventions.md`)
   stands for new code regardless.
 - **Broken (not just missing) previews in `MarketPostureView.kt`, `WeeklyPlaybookView.kt`,
-  `DashboardScreen.kt`, `NewsScreen.kt`, `UnifiedScoreHeaderCard.kt`.** All wrap preview content in
-  plain `MaterialTheme { ... }` instead of `MarketPulseTheme { ... }` — since the composable
-  inside reads `LocalPulseColors.current` (most do, directly or via `SignalColorExtensions`), the
-  preview crashes at composition time with "PulseColors not provided" instead of rendering.
+  `NewsScreen.kt`, `UnifiedScoreHeaderCard.kt`.** All wrap preview content in plain
+  `MaterialTheme { ... }` instead of `MarketPulseTheme { ... }` — since the composable inside reads
+  `LocalPulseColors.current` (most do, directly or via `SignalColorExtensions`), the preview
+  crashes at composition time with "PulseColors not provided" instead of rendering.
+  **`DashboardScreen.kt` no longer belongs on this list (2026-09):** its one offending preview
+  (`PreviewTechnicalSummaryCard`, plain `MaterialTheme { ... }`) was deleted along with
+  `TechnicalSummaryCard` itself during the Overview AI synthesis rewrite; the file's remaining
+  preview (`PreviewSectorHeatmapSection`) already used `MarketPulseTheme { ... }` correctly.
 - **Hardcoded strings/dims in `DashboardScreen.kt`.** A literal `"Sector Rotation"` string and raw
   `dp` literals bypass the resource system.
 - **`DatabaseModule` missing `@Singleton` on two DAO providers.** `provideMarketSummaryDao` and

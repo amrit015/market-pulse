@@ -61,7 +61,7 @@ import com.marketlabs.pulse.storage.database.entity.WeeklyPlaybookEntity
         MarketPositioningEntity::class,
         InsightsHistoryEntity::class
     ],
-    version = 29,
+    version = 30,
     exportSchema = true
 )
 @TypeConverters(

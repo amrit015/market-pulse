@@ -188,6 +188,34 @@ one-directional and only act when the two are out of sync, so neither ever chase
      list in `MainActivity.kt` as `MARKET_INDICATORS`/`MARKET_INSIGHTS`. Confirms this bug isn't
      specific to the full collapsing-chrome mechanism -- any screen with its OWN pinned zone above a
      `HorizontalPager`, collapsing or not, needs this treatment.
+5. **A drag that starts on an expandable card *inside* the collapsing chrome region (piece #2)
+   misfires as a tap and snaps the card straight back to collapsed.** Found 2026-09-10 on
+   Indicators' `AiExecutiveBriefingHero` ("Today's Read"): once expanded (tall enough that a reader
+   tries to scroll past it), dragging directly on the card collapsed it back to 3 lines instead of
+   scrolling. Root cause, confirmed against Compose Foundation's own tap-detection source: `PulseCard`'s
+   `onClick` is a plain `Modifier.clickable`, which only has its tap cancelled by touch-slop when
+   some **ancestor** `Scrollable` claims the drag first (consuming the pointer move) -- that's what
+   protects `SynthesisHeroCard`/`MarketSentimentCard` (both genuinely inside a `LazyColumn.item{}`).
+   The collapsing chrome region described in piece #2 above is **not** itself scrollable -- it's a
+   plain `Column` inside a `Box` sized by `chromeHeightPx`/`collapseOffsetPx`, and the
+   `NestedScrollConnection` from piece #3 is attached lower down, on the pager's `Box`, so it only
+   ever reacts to deltas the `LazyColumn` *inside* the pager dispatches -- never to a drag starting
+   directly on the chrome itself. A tap-and-drag on any clickable card living in the chrome region
+   therefore has nothing to claim it as a scroll, and Compose's plain `clickable` fires `onClick` on
+   release regardless of how far the finger moved. **Fix:** give the chrome region's own `Box` (the
+   one from piece #2) a real `Modifier.scrollable(state = rememberScrollableState { delta -> ... },
+   orientation = Orientation.Vertical)`, whose `onDelta` mirrors the exact same clamp math the
+   `NestedScrollConnection` already uses (`(collapseOffsetPx + delta).coerceIn(-chromeHeightPx, 0f)`,
+   returning the consumed amount). This gives touches starting in the chrome a real scrollable
+   ancestor of their own, so a drag exceeding touch slop is claimed and cancels the descendant
+   card's `clickable`, exactly like `LazyColumn` already does elsewhere -- while a plain tap (no
+   meaningful movement) still reaches the card and toggles its own expand state. Independent of, and
+   does not replace, the `NestedScrollConnection` from piece #3 -- the two cover different physical
+   regions (chrome vs. pager) updating the same `collapseOffsetPx` state, not a duplicate consumer of
+   the same drags. Any future screen putting a tappable/expandable card inside its own collapsing
+   chrome region needs this same `scrollable` on that region, not just the `NestedScrollConnection`
+   lower down -- piece #2's own recipe above should be read as incomplete without it whenever the
+   chrome holds anything clickable.
 
 ## Checklist for adding this to a new screen
 
@@ -207,3 +235,7 @@ one-directional and only act when the two are out of sync, so neither ever chase
    add its route to `MainActivity.kt`'s `hasStaticTopBar` check.
 8. `PulseTabRow`'s own bring-into-view fix is already in the shared component -- nothing to do
    here, just don't reintroduce a per-screen tab bar that lacks it.
+9. If the collapsing chrome region (piece #2) holds a tappable/expandable card (an "AI briefing"
+   card, anything with its own `PulseCard` `onClick`), give that region's `Box` its own
+   `Modifier.scrollable(...)` mirroring the `NestedScrollConnection`'s clamp math -- see bug #5.
+   Skippable only if the chrome is genuinely inert (no clickable content at all).

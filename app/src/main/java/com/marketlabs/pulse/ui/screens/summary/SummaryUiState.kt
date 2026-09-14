@@ -44,4 +44,7 @@ sealed interface DayContent {
 
     /** A past date whose first-ever sync is still in flight. */
     data object Loading : DayContent
+
+    /** A past date's first-ever sync failed and nothing is cached for it yet. */
+    data class Error(val dateId: String, val message: String) : DayContent
 }

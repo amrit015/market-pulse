@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -26,6 +25,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.ui.components.PulseErrorState
+import com.marketlabs.pulse.ui.components.PulseLoadingIndicator
 
 /**
  * Stateful entry point for the pushed `metricDetail/{metricId}` destination -- replaces
@@ -89,6 +90,13 @@ fun MetricDetailRoute(
                 ),
                 modifier = Modifier.fillMaxSize()
             )
+        } else if (uiState.hasTimedOut) {
+            PulseErrorState(
+                message = stringResource(id = R.string.metric_detail_not_found),
+                onRetry = onNavigateUp,
+                actionLabel = stringResource(id = R.string.action_go_back),
+                modifier = Modifier.padding(top = topBarPadding.calculateTopPadding())
+            )
         } else {
             Box(
                 modifier = Modifier
@@ -96,7 +104,7 @@ fun MetricDetailRoute(
                     .padding(top = topBarPadding.calculateTopPadding()),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator()
+                PulseLoadingIndicator()
             }
         }
     }

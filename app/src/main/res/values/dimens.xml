@@ -69,8 +69,6 @@
 
     <!-- Loading-skeleton placeholder bars on StockAnalysisLoadingSkeleton, roughly matching a real
          StockPreviewCard's symbol/name line lengths so the swap-in on load doesn't visibly jump. -->
-    <dimen name="stock_preview_skeleton_symbol_width">96dp</dimen>
-    <dimen name="stock_preview_skeleton_name_width">160dp</dimen>
 
     <!-- Detail screen: fixed width for the CONFIRMS/CONFLICTS label column in SetupReasoning so
          the descriptions that follow line up regardless of which label is longer. -->

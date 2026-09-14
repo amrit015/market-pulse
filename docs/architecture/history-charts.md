@@ -80,3 +80,12 @@ new domain changes something here, don't let it drift.
   fetched a `/charts/:symbol` chart for whatever range was current — harmless before since the old
   FIVE_DAY default never hit that branch on first load, but `ChartRange.ONE_DAY` has no such fetch
   to make (only `selectChartRange` guarded against it).
+- **2026-09-14: both `MetricHistoryRepositoryImpl.refreshHistory` and
+  `InsightsHistoryRepositoryImpl.refreshHistory` went from unconditional-every-`onStart()` to a
+  `system/sync_status`-flag gate** (`indicator_charts_updated`; `posture_charts_updated`/
+  `positioning_charts_updated` via the existing `InsightsHistoryPillar.forMetricId()` lookup) —
+  see `@docs/architecture/data-flow.md`'s "Per-item freshness" section for the mechanism. Neither
+  `MetricDetailViewModel` nor `GlossaryDetailViewModel` needed any change themselves; the gate lives
+  entirely inside the repository. Before this, these two were the only chart-adjacent repositories
+  in the app with *no* staleness check at all — worth knowing if a future domain copies this
+  screen's shape and inherits the old always-fetch pattern by copy-paste instead of the current one.
