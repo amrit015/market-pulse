@@ -72,6 +72,12 @@ fun StockAnalysisGlossaryBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
+        // 💡 See MarketGlossaryBottomSheet's identical comment (MarketBottomSheet.kt) -- the
+        // default whole-surface swipe-to-dismiss competed with this sheet's own scrollable
+        // content, reading as jumpy. Closing still works via the drag handle's tap, the scrim, or
+        // back.
+        sheetGesturesEnabled = false,
+        dragHandle = { BottomSheetDragHandle(onDismiss = onDismiss) },
         // 💡 colorScheme.surface, not surfaceContainerHighest -- this sheet now nests
         // `PulseCard(DATA)` per entry (see the doc comment above), and this app's simplified
         // surface ramp resolves `surfaceContainerHighest`/`surfaceVariant` to the literal same

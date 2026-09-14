@@ -27,6 +27,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
@@ -38,10 +39,13 @@ import androidx.compose.ui.unit.dp
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.core.glossary.MetricGlossaryBand
 import com.marketlabs.pulse.core.glossary.MetricGlossaryEntry
+import com.marketlabs.pulse.core.indicators.MetricHistoryPillar
+import com.marketlabs.pulse.storage.model.charts.ChartRange
 import com.marketlabs.pulse.storage.model.indicators.DomainUnifiedMetric
 import com.marketlabs.pulse.storage.model.indicators.MetricHistoryPoint
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
+import com.marketlabs.pulse.ui.components.charts.ChartRangePicker
 import com.marketlabs.pulse.ui.components.charts.IndicatorHistoryChart
 import com.marketlabs.pulse.ui.components.widgets.SignalPill
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
@@ -67,6 +71,9 @@ fun MetricDetailScreen(
     glossaryEntry: MetricGlossaryEntry?,
     historyPoints: List<MetricHistoryPoint>,
     isHistoryLoading: Boolean,
+    selectedChartRange: ChartRange,
+    availableChartRanges: List<ChartRange>,
+    onRangeSelected: (ChartRange) -> Unit,
     scaffoldPadding: PaddingValues,
     modifier: Modifier = Modifier
 ) {
@@ -131,13 +138,30 @@ fun MetricDetailScreen(
         }
 
         // History chart -- the one section that's genuinely new here, not preserved from
-        // IndicatorDetailSheet. No range picker (see IndicatorHistoryChart's own doc comment).
+        // IndicatorDetailSheet. Range picker below it mirrors AssetDetailScreen's own
+        // chart-then-picker ordering; unlike that screen's picker, selecting a range here doesn't
+        // trigger a new fetch -- MetricDetailViewModel already holds the widest series it'll ever
+        // need and just re-slices it locally (see that ViewModel's own doc comment).
         Spacer(modifier = Modifier.height(paddingExtraLarge))
+        val isStepLine = remember(metric.id) { MetricHistoryPillar.isMacroCadence(metric.id) }
         IndicatorHistoryChart(
             points = historyPoints,
+            isStepLine = isStepLine,
             isLoading = isHistoryLoading,
             modifier = Modifier.fillMaxWidth()
         )
+        // Only when there's a real choice -- MetricDetailViewModel.computeAvailableChartRanges
+        // already drops any range that wouldn't show a different, non-degenerate slice of this
+        // specific metric's data, so 0 or 1 surviving entries means every range renders the same
+        // (or empty) chart and a picker would have nothing meaningful to switch between.
+        if (availableChartRanges.size > 1) {
+            Spacer(modifier = Modifier.height(paddingMedium))
+            ChartRangePicker(
+                selectedRange = selectedChartRange,
+                onRangeSelected = onRangeSelected,
+                availableRanges = availableChartRanges
+            )
+        }
 
         if (glossaryEntry != null) {
             Spacer(modifier = Modifier.height(paddingExtraLarge))
@@ -319,6 +343,9 @@ private fun PreviewMetricDetailScreenLight() {
             glossaryEntry = previewGlossaryEntry,
             historyPoints = previewHistoryPoints,
             isHistoryLoading = false,
+            selectedChartRange = ChartRange.FIVE_DAY,
+            availableChartRanges = ChartRange.entries - ChartRange.ONE_DAY,
+            onRangeSelected = {},
             scaffoldPadding = PaddingValues()
         )
     }
@@ -333,6 +360,9 @@ private fun PreviewMetricDetailScreenDark() {
             glossaryEntry = previewGlossaryEntry,
             historyPoints = previewHistoryPoints,
             isHistoryLoading = false,
+            selectedChartRange = ChartRange.FIVE_DAY,
+            availableChartRanges = ChartRange.entries - ChartRange.ONE_DAY,
+            onRangeSelected = {},
             scaffoldPadding = PaddingValues()
         )
     }

@@ -156,7 +156,6 @@ fun MarketSummaryRoute(
                         contentByDateId = state.contentByDateId,
                         calendarDayIds = state.calendarDayIds,
                         selectedDateId = state.selectedDateId,
-                        todayDateId = state.todayDateId,
                         onDateSelected = viewModel::selectDate,
                         scaffoldPadding = scaffoldPadding,
                         onNavigateToIndicators = onNavigateToIndicators,

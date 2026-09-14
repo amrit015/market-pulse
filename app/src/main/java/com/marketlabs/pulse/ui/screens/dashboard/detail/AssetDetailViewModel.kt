@@ -60,7 +60,13 @@ class AssetDetailViewModel @Inject constructor(
     // offered for them at all (see `availableChartRanges` below), and this page never tracks them.
     private val isIntradayEligible = DashboardIntradayEligibility.isEligible(symbol)
 
-    private val _selectedChartRange = MutableStateFlow(ChartRange.FIVE_DAY)
+    // Product decision: Equities/Crypto/Commodities/Sector Rotation (the live-feed set
+    // `isIntradayEligible` already identifies) open on the 1D chart; VIX/Fear & Greed/Put-Call
+    // (Overview's "Sentiment and Fear" group -- no live feed, same set `AssetDetailScreen`'s
+    // `showTechnicals`/`useAccentColorForChart` already single out) open on 1M instead, since a 1D
+    // chart isn't even offered for them. Reusing `isIntradayEligible` rather than a second
+    // hardcoded symbol list -- it already draws exactly this line for exactly this reason.
+    private val _selectedChartRange = MutableStateFlow(if (isIntradayEligible) ChartRange.ONE_DAY else ChartRange.ONE_MONTH)
     private val _isChartLoading = MutableStateFlow(false)
 
     private val matchingAsset: Flow<AssetOverview?> = dashboardRepository.getDashboardAssetsStream()
@@ -108,7 +114,14 @@ class AssetDetailViewModel @Inject constructor(
 
     /** Called by the UI when the screen becomes visible. */
     fun onStart() {
-        fetchChart(_selectedChartRange.value, force = false)
+        // ONE_DAY has no `/charts/:symbol` fetch to do -- same guard `selectChartRange` already
+        // applies, needed here too now that ONE_DAY can be the *initial* range (see
+        // `_selectedChartRange`'s own doc comment) and not just something tapped into later.
+        // Skipping it unconditionally used to be safe by accident, since the old FIVE_DAY default
+        // never hit this branch on first load.
+        if (_selectedChartRange.value != ChartRange.ONE_DAY) {
+            fetchChart(_selectedChartRange.value, force = false)
+        }
         prefetchHistoryCoverage()
         if (isIntradayEligible) {
             intradayRepository.trackSymbol(symbol)

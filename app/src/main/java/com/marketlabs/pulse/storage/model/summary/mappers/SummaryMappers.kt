@@ -263,6 +263,7 @@ fun NetworkWhatsNewEntry.toDomain(): WhatsNewItem {
         category = IndicatorCategory.fromString(this.category),
         valueDisplay = this.valueDisplay,
         changeDisplay = this.changeDisplay,
+        previousValueDisplay = this.previousValueDisplay,
         signalText = this.signalText,
         signalColor = this.signalColor?.let { SignalColor.fromString(it) },
         releaseDate = this.releaseDate

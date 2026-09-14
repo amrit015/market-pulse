@@ -5,6 +5,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.marketlabs.pulse.storage.database.converters.ChartsConverters
 import com.marketlabs.pulse.storage.database.converters.IndicatorsConverters
+import com.marketlabs.pulse.storage.database.converters.InsightsHistoryConverters
 import com.marketlabs.pulse.storage.database.converters.MetricHistoryConverters
 import com.marketlabs.pulse.storage.database.converters.NewsConverters
 import com.marketlabs.pulse.storage.database.converters.PositioningConverters
@@ -15,6 +16,7 @@ import com.marketlabs.pulse.storage.database.converters.WeeklyPlaybookConverters
 import com.marketlabs.pulse.storage.database.dao.ChartsDao
 import com.marketlabs.pulse.storage.database.dao.DashboardDao
 import com.marketlabs.pulse.storage.database.dao.IndicatorsDao
+import com.marketlabs.pulse.storage.database.dao.InsightsHistoryDao
 import com.marketlabs.pulse.storage.database.dao.MarketPositioningDao
 import com.marketlabs.pulse.storage.database.dao.MarketPostureDao
 import com.marketlabs.pulse.storage.database.dao.MarketRiskDao
@@ -26,6 +28,7 @@ import com.marketlabs.pulse.storage.database.dao.WeeklyPlaybookDao
 import com.marketlabs.pulse.storage.database.entity.AssetOverviewEntity
 import com.marketlabs.pulse.storage.database.entity.ChartEntity
 import com.marketlabs.pulse.storage.database.entity.IndicatorsEntity
+import com.marketlabs.pulse.storage.database.entity.InsightsHistoryEntity
 import com.marketlabs.pulse.storage.database.entity.MarketPositioningEntity
 import com.marketlabs.pulse.storage.database.entity.MarketPostureEntity
 import com.marketlabs.pulse.storage.database.entity.MarketPulseEntity
@@ -55,9 +58,10 @@ import com.marketlabs.pulse.storage.database.entity.WeeklyPlaybookEntity
         StockDeepDiveEntity::class,
         ChartEntity::class,
         MetricHistoryEntity::class,
-        MarketPositioningEntity::class
+        MarketPositioningEntity::class,
+        InsightsHistoryEntity::class
     ],
-    version = 25,
+    version = 26,
     exportSchema = true
 )
 @TypeConverters(
@@ -69,7 +73,8 @@ import com.marketlabs.pulse.storage.database.entity.WeeklyPlaybookEntity
     StocksConverters::class,
     ChartsConverters::class,
     MetricHistoryConverters::class,
-    PositioningConverters::class
+    PositioningConverters::class,
+    InsightsHistoryConverters::class
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun marketSummaryDao(): SummaryDao
@@ -91,4 +96,7 @@ abstract class AppDatabase : RoomDatabase() {
 
     /** DAO for the `metric_history` table backing the indicator detail page's history chart. */
     abstract fun metricHistoryDao(): MetricHistoryDao
+
+    /** DAO for the `insights_history` table backing Posture/Positioning's glossary-detail history chart. */
+    abstract fun insightsHistoryDao(): InsightsHistoryDao
 }

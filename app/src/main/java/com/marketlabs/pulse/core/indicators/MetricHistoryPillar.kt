@@ -34,5 +34,15 @@ enum class MetricHistoryPillar {
             in macroVitalsIds -> MACRO_VITALS
             else -> null
         }
+
+        /**
+         * The 8 Macro Vitals metrics that release monthly/quarterly rather than daily -- everything
+         * in [macroVitalsIds] except `yield_10y`, which the backend spec itself calls out as a
+         * daily-moving exception within that pillar. History points for these are only written when
+         * a new release actually lands (a handful a year, not one per trading day), so a chart for
+         * one of these ids should render a step-after line rather than a smoothed curve -- a curve
+         * between two points a month apart implies a trend that isn't real data.
+         */
+        fun isMacroCadence(metricId: String): Boolean = metricId in macroVitalsIds && metricId != "yield_10y"
     }
 }

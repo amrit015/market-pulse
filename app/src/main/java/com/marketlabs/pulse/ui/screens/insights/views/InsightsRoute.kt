@@ -39,7 +39,7 @@ import com.marketlabs.pulse.ui.screens.insights.InsightsViewModel
 @Composable
 fun InsightsRoute(
     scaffoldPadding: PaddingValues,
-    onNavigateToGlossaryDetail: (metricIds: List<String>, title: String, description: String?, status: String?) -> Unit,
+    onNavigateToGlossaryDetail: (metricIds: List<String>, chartMetricId: String, title: String, description: String?, status: String?) -> Unit,
     // spec-20260902-market-sentiment-android.md: Market Sentiment's two footer links need to land
     // on a specific tab. Same one-shot hoisted-state shape PulseNavGraph already uses for
     // `highlightedNewsArticleUrl` (News' scroll-to-article signal) -- not a nav argument, so

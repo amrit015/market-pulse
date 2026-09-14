@@ -1,6 +1,8 @@
 package com.marketlabs.pulse.ui.screens.insights.glossary
 
 import com.marketlabs.pulse.core.glossary.MetricGlossaryBand
+import com.marketlabs.pulse.storage.model.charts.ChartRange
+import com.marketlabs.pulse.storage.model.insights.InsightsHistoryPoint
 
 /**
  * Drives the pushed glossary-detail page for a whole Positioning/Posture CARD (2026-08-27
@@ -17,13 +19,25 @@ import com.marketlabs.pulse.core.glossary.MetricGlossaryBand
  * entries each carry only part of that vocabulary -- same "highlight the band matching the live
  * status" idea `MetricDetailScreen` uses for Indicators, just resolved once across every section
  * instead of one entry's own bands.
+ *
+ * `chartMetricId` is always exactly one of the 14 Posture/Positioning chart metric ids (the tapped
+ * card/row's own instrument, e.g. `institutional_positioning_es` for the ES row inside a COT card
+ * that covers 2 glossary sections) -- distinct from `sections`' glossary ids, which are
+ * display-copy identifiers with finer granularity than one chart is drawn per. `historyPoints` is
+ * already sliced to `selectedChartRange` by the ViewModel, same convention `MetricDetailUiState`
+ * uses for Indicators.
  */
 data class GlossaryDetailUiState(
     val title: String,
     val description: String?,
     val sections: List<GlossarySection>,
     val mergedBands: List<MetricGlossaryBand>,
-    val currentBandIndex: Int?
+    val currentBandIndex: Int?,
+    val chartMetricId: String,
+    val historyPoints: List<InsightsHistoryPoint> = emptyList(),
+    val isHistoryLoading: Boolean = false,
+    val selectedChartRange: ChartRange = ChartRange.ONE_MONTH,
+    val availableChartRanges: List<ChartRange> = emptyList()
 )
 
 /** One glossary entry within a merged card, paired with the display label for the value it explains. */

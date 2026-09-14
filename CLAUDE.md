@@ -39,6 +39,10 @@ are run manually, not gated by anything automated yet.
 - The collapsing-chrome + sticky-tab-row + swipeable-pager pattern (Stock Detail, Indicators; plus
   Summary's simpler pinned-zone-only variant) — LIVING doc, real bugs hit and fixed, read before
   reusing on a new screen → `@docs/architecture/collapsing-header-tabs.md`.
+- Per-metric history charts (Indicators' `MetricDetailScreen`, Posture/Positioning's
+  `GlossaryDetailScreen`) — shared chart component + range-picker engine, per-domain id/cadence
+  tables, client-side value formatting — LIVING doc, read before adding a third domain →
+  `@docs/architecture/history-charts.md`.
 - Hilt DI conventions, null handling, naming → `@docs/guidelines/kotlin-style.md`
 - `PulseTabRow` (including the swipeable-pager + tab-sync pattern), the glossary system, resource
   conventions → `@docs/guidelines/compose-conventions.md`

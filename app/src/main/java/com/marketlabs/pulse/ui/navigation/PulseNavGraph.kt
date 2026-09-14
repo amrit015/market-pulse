@@ -321,24 +321,25 @@ fun PulseNavGraph(
                 scaffoldPadding = scaffoldPadding,
                 initialTab = initialInsightsTab,
                 onInitialTabConsumed = { initialInsightsTab = null },
-                onNavigateToGlossaryDetail = { metricIds, title, description, status ->
+                onNavigateToGlossaryDetail = { metricIds, chartMetricId, title, description, status ->
                     // 💡 Uri.encode(), not URLEncoder.encode() -- see GlossaryDetailViewModel's
                     // doc comment for why the form-encoding pairing (spaces -> "+") crashed
                     // against Navigation's own automatic percent-decode of path segments.
                     // Uri.encode()'s escaping is exactly what that automatic decode reverses.
-                    // `metricIds` itself is NOT encoded -- every core/glossary/ id is plain
-                    // lowercase/dot/underscore, safe as a raw comma-joined path segment.
+                    // `metricIds`/`chartMetricId` themselves are NOT encoded -- every
+                    // core/glossary/ id and every Posture/Positioning chart metric id is plain
+                    // lowercase/dot/underscore, safe as a raw path segment.
                     val encodedTitle = android.net.Uri.encode(title)
                     val encodedDescription = android.net.Uri.encode(description ?: "")
                     val encodedStatus = android.net.Uri.encode(status ?: "")
                     navController.navigate(
-                        "${PulseRoutes.GLOSSARY_DETAIL}/$encodedTitle/${metricIds.joinToString(",")}/$encodedDescription/$encodedStatus"
+                        "${PulseRoutes.GLOSSARY_DETAIL}/$encodedTitle/${metricIds.joinToString(",")}/$chartMetricId/$encodedDescription/$encodedStatus"
                     )
                 }
             )
         }
         // Pushed from a whole-card tap on Positioning/Posture -- see PulseRoutes.GLOSSARY_DETAIL.
-        composable("${PulseRoutes.GLOSSARY_DETAIL}/{title}/{metricIds}/{description}/{status}") {
+        composable("${PulseRoutes.GLOSSARY_DETAIL}/{title}/{metricIds}/{chartMetricId}/{description}/{status}") {
             GlossaryDetailRoute(
                 scaffoldPadding = scaffoldPadding,
                 onNavigateUp = { navController.popBackStack() }

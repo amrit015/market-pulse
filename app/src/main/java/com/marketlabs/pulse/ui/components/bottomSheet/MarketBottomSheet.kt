@@ -58,6 +58,13 @@ fun MarketGlossaryBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
+        // 💡 The default whole-surface swipe-to-dismiss competed with this sheet's own scrollable
+        // content for the same vertical drag, reading as jumpy/stuttery when scrolling. Disabling
+        // it here removes that gesture-arbitration ambiguity entirely -- the content now scrolls
+        // with nothing else claiming the same gesture. Closing still works via the drag handle's
+        // own tap-to-dismiss (unaffected by this flag), tapping the scrim, or back.
+        sheetGesturesEnabled = false,
+        dragHandle = { BottomSheetDragHandle(onDismiss = onDismiss) },
         // 💡 2026-09-07, second pass: colorScheme.surface -- neither of the two tokens tried before
         // this works, because this app's simplified surface ramp only has 3 genuinely distinct
         // values (see PulseTokens.Color.kt's `SurfaceRamp`: `background`, `surface`,

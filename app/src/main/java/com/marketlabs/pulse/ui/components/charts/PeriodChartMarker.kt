@@ -35,7 +35,10 @@ import kotlin.math.roundToInt
  * length and [labelForIndex] resolves a touched index back to its full display text, since each
  * caller's x-values are plain indices into its own point list (see each chart's
  * `x = points.indices...` series) but disagrees on what that index actually represents and how to
- * format it. Every caller builds a 2-line label (`"date/time  value\npercent change"`) -- the
+ * format it. Every caller builds the same 2-line shape -- line 1 is a date (the full calendar date
+ * with year for [PeriodChart]/[IndicatorHistoryChart], date + local time for [IntradayPeriodChart],
+ * since a touched point there needs to disambiguate which day "today" was in the viewer's own time
+ * zone), line 2 is the value and its percent change together (`"$220.00  +5.23%"`) -- the
  * underlying `TextComponent` renders `\n` as a real line break, so this needs no special handling
  * here beyond passing the string through.
  */
