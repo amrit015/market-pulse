@@ -43,6 +43,10 @@ are run manually, not gated by anything automated yet.
   `GlossaryDetailScreen`) — shared chart component + range-picker engine, per-domain id/cadence
   tables, client-side value formatting — LIVING doc, read before adding a third domain →
   `@docs/architecture/history-charts.md`.
+- Price charts + sparklines (`ChartsRepository`/`IntradayRepository`) — `ChartRange`→API mapping,
+  the sync-flag freshness mechanism (`ChartSyncGroup`), intraday market-hours gating + per-cadence
+  polling — LIVING doc, several dead ends already tried and reverted, read before touching this
+  system again → `@docs/architecture/price-charts.md`.
 - Hilt DI conventions, null handling, naming → `@docs/guidelines/kotlin-style.md`
 - `PulseTabRow` (including the swipeable-pager + tab-sync pattern), the glossary system, resource
   conventions → `@docs/guidelines/compose-conventions.md`
