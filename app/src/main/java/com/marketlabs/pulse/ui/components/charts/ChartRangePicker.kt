@@ -1,5 +1,7 @@
 package com.marketlabs.pulse.ui.components.charts
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -11,6 +13,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.font.FontWeight
@@ -30,6 +33,8 @@ import com.marketlabs.pulse.ui.theme.MarketPulseTheme
  * (dashboard tiles outside `DashboardIntradayEligibility`'s set -- VIX, futures, sentiment) pass a
  * list with [ChartRange.ONE_DAY] filtered out, since there'd be nothing for it to show.
  */
+private const val RangeSelectionAnimationMs = 200
+
 @Composable
 fun ChartRangePicker(
     selectedRange: ChartRange,
@@ -45,9 +50,24 @@ fun ChartRangePicker(
     ) {
         availableRanges.forEach { range ->
             val isSelected = range == selectedRange
+            val fillColor by animateColorAsState(
+                targetValue = if (isSelected) pulseColors.accentPrimary else MaterialTheme.colorScheme.background,
+                animationSpec = tween(RangeSelectionAnimationMs),
+                label = "range_fill"
+            )
+            val borderColor by animateColorAsState(
+                targetValue = if (isSelected) pulseColors.accentPrimary else pulseColors.accentSurfaceBorder,
+                animationSpec = tween(RangeSelectionAnimationMs),
+                label = "range_border"
+            )
+            val textColor by animateColorAsState(
+                targetValue = if (isSelected) pulseColors.accentOn else pulseColors.onSurfaceMuted,
+                animationSpec = tween(RangeSelectionAnimationMs),
+                label = "range_text"
+            )
             Surface(
-                color = if (isSelected) pulseColors.accentPrimary else MaterialTheme.colorScheme.background,
-                border = if (isSelected) null else BorderStroke(dimensionResource(id = R.dimen.border_thin), pulseColors.accentSurfaceBorder),
+                color = fillColor,
+                border = BorderStroke(dimensionResource(id = R.dimen.border_thin), borderColor),
                 shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_small)),
                 modifier = Modifier
                     .weight(1f)
@@ -56,7 +76,7 @@ fun ChartRangePicker(
                 Text(
                     text = range.rangeKey,
                     style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                    color = if (isSelected) pulseColors.accentOn else pulseColors.onSurfaceMuted,
+                    color = textColor,
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                     modifier = Modifier
                         .fillMaxWidth()

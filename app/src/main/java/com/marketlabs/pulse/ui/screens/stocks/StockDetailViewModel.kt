@@ -10,6 +10,7 @@ import com.marketlabs.pulse.core.charts.ChartsRepository
 import com.marketlabs.pulse.core.dashboard.DashboardRepository
 import com.marketlabs.pulse.core.intraday.IntradayRepository
 import com.marketlabs.pulse.core.stocks.StockAnalysisRepository
+import com.marketlabs.pulse.data.favorites.FavoriteStocksRepository
 import com.marketlabs.pulse.storage.model.charts.ChartRange
 import com.marketlabs.pulse.storage.model.charts.ChartSeries
 import com.marketlabs.pulse.storage.model.charts.isCoveredByHistory
@@ -66,6 +67,7 @@ class StockDetailViewModel @Inject constructor(
     private val chartsRepository: ChartsRepository,
     private val intradayRepository: IntradayRepository,
     private val dashboardRepository: DashboardRepository,
+    private val favoriteStocksRepository: FavoriteStocksRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -78,10 +80,9 @@ class StockDetailViewModel @Inject constructor(
     private val _error = MutableStateFlow<UiError?>(null)
     private val _expandedChipIds = MutableStateFlow<Set<String>>(emptySet())
     private val _expandedNewsIds = MutableStateFlow<Set<String>>(emptySet())
-    // 💡 DIGEST is first in DetailTab's declared order (per the per-symbol-intelligence spec), but
-    // the default landing tab stays Technicals -- the spec asked for tab *position*, not a change
-    // to which tab opens by default.
-    private val _selectedTabIndex = MutableStateFlow(DetailTab.TECHNICALS.ordinal)
+    // 💡 Opens on DIGEST now (was Technicals) -- DIGEST is also first in DetailTab's declared
+    // order, so tab position and default landing tab now agree, unlike before.
+    private val _selectedTabIndex = MutableStateFlow(DetailTab.DIGEST.ordinal)
     // Product decision: every symbol on Market Analysis (Analysis tab) opens on the 1M chart, not
     // the 5D every other detail page used to default to.
     private val _selectedChartRange = MutableStateFlow(ChartRange.ONE_MONTH)
@@ -95,6 +96,10 @@ class StockDetailViewModel @Inject constructor(
      *  market-hours calculation that could drift from it. */
     private val isEquityOpenFlow: Flow<Boolean> = dashboardRepository.getMarketStateStream()
         .map { it?.isEquityOpen == true }
+
+    /** Local-only, per-device -- same `FavoriteStocksRepository` the Analysis tab's star reads. */
+    private val isFavoriteFlow: Flow<Boolean> = favoriteStocksRepository.favoriteSymbols
+        .map { symbol in it }
 
     private val uiFlags: Flow<DetailUiFlags> = combine(
         _isLoading, _isRefreshing, _error, _expandedChipIds, _expandedNewsIds
@@ -149,8 +154,9 @@ class StockDetailViewModel @Inject constructor(
 
     val uiState: StateFlow<StockDetailUiState> = combine(
         coreFlow,
-        isEquityOpenFlow
-    ) { core, isEquityOpen ->
+        isEquityOpenFlow,
+        isFavoriteFlow
+    ) { core, isEquityOpen, isFavorite ->
         StockDetailUiState(
             symbol = symbol,
             detail = core.detail,
@@ -166,6 +172,7 @@ class StockDetailViewModel @Inject constructor(
             intradaySeries = core.chart.intradaySeries,
             availableChartRanges = core.chart.availableChartRanges,
             isEquityOpen = isEquityOpen,
+            isFavorite = isFavorite,
             error = core.flags.error
         )
     }.stateIn(
@@ -213,6 +220,11 @@ class StockDetailViewModel @Inject constructor(
     /** Called when the user taps a tab in the pinned `PrimaryTabRow`. Index into `DetailTab.entries`. */
     fun onTabSelected(index: Int) {
         _selectedTabIndex.value = index
+    }
+
+    /** Called when the reader taps the header's favorite star -- persists immediately, local-only. */
+    fun toggleFavorite() {
+        viewModelScope.launch { favoriteStocksRepository.toggleFavorite(symbol) }
     }
 
     /** Called when the user taps a range button on the period chart's `ChartRangePicker`. */

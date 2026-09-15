@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
@@ -140,7 +139,8 @@ fun NewsScreen(
                     NewsArticleCard(
                         article = article,
                         onClick = { url -> onArticleClick(url) },
-                        isHighlighted = article.url != null && article.url == highlightedArticleUrl
+                        isHighlighted = article.url != null && article.url == highlightedArticleUrl,
+                        modifier = Modifier.animateItem()
                     )
                 }
 
@@ -149,6 +149,7 @@ fun NewsScreen(
                     item(key = "news_ad_vanguard_banner_$index") {
                         PulseNativeAdCard(
                             nativeAd = nativeAd,
+                            modifier = Modifier.animateItem(),
                             showPlaceholderIfNull = showAdPlaceholder,
                             showCreativeImageInPlaceholder = true,
                             placeholderTag = stringResource(id = R.string.ad_vanguard_tag)
@@ -161,6 +162,7 @@ fun NewsScreen(
                     item(key = "news_ad_ibkr_compact_$index") {
                         PulseNativeAdCard(
                             nativeAd = nativeAd,
+                            modifier = Modifier.animateItem(),
                             showPlaceholderIfNull = showAdPlaceholder,
                             showCreativeImageInPlaceholder = false,
                             placeholderAdvertiser = stringResource(id = R.string.ad_ibkr_advertiser),
@@ -180,7 +182,8 @@ fun NewsScreen(
                         NewsArticleCard(
                             article = article,
                             onClick = { url -> onArticleClick(url) },
-                            isHighlighted = article.url != null && article.url == highlightedArticleUrl
+                            isHighlighted = article.url != null && article.url == highlightedArticleUrl,
+                            modifier = Modifier.animateItem()
                         )
                     }
 
@@ -189,6 +192,7 @@ fun NewsScreen(
                         item(key = "news_ad_schwab_compact_$index") {
                             PulseNativeAdCard(
                                 nativeAd = nativeAd,
+                                modifier = Modifier.animateItem(),
                                 showPlaceholderIfNull = showAdPlaceholder,
                                 showCreativeImageInPlaceholder = false,
                                 placeholderAdvertiser = stringResource(id = R.string.ad_schwab_advertiser),
@@ -204,6 +208,7 @@ fun NewsScreen(
                         item(key = "news_ad_ishares_banner_$index") {
                             PulseNativeAdCard(
                                 nativeAd = nativeAd,
+                                modifier = Modifier.animateItem(),
                                 showPlaceholderIfNull = showAdPlaceholder,
                                 showCreativeImageInPlaceholder = true,
                                 placeholderAdvertiser = stringResource(id = R.string.ad_ishares_advertiser),
@@ -276,7 +281,8 @@ fun LastTwoDaysBanner() {
 fun NewsArticleCard(
     article: NewsArticle,
     onClick: (String) -> Unit,
-    isHighlighted: Boolean = false // Added with Claude Code assistance.
+    isHighlighted: Boolean = false, // Added with Claude Code assistance.
+    modifier: Modifier = Modifier
 ) {
     val headline = article.headline ?: "Market Update"
     val source = article.source ?: "News"
@@ -298,7 +304,7 @@ fun NewsArticleCard(
     PulseCard(
         style = PulseCardStyle.DATA,
         shape = cardShape,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .let {
                 if (isHighlighted) {

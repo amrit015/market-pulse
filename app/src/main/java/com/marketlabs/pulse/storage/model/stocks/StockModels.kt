@@ -31,6 +31,8 @@ data class StockPreview(
     val lastSyncedTimestamp: Long,
 
     val name: String? = null,
+    /** One of STOCK | ETF | INDEX | CRYPTO | OTHER. Defaults to "STOCK" server-side if ever missing. */
+    val assetType: String? = null,
     val schemaVersion: Int? = null,
     val analysisDate: String? = null,
     val price: Double? = null,
@@ -94,6 +96,8 @@ data class StockDetail(
     val symbol: String,
     val lastSyncedTimestamp: Long,
 
+    /** One of STOCK | ETF | INDEX | CRYPTO | OTHER. Defaults to "STOCK" server-side if ever missing. */
+    val assetType: String? = null,
     val detailVersion: Long? = null,
     val analysisDate: String? = null,
     val technicalIndicators: DomainTechnicalIndicators? = null,

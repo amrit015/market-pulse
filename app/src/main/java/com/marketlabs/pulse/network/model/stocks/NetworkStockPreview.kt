@@ -25,6 +25,10 @@ data class NetworkStockPreview(
     val symbol: String? = null,
     val name: String? = null,
 
+    /** One of STOCK | ETF | INDEX | CRYPTO | OTHER. Defaults to "STOCK" server-side if ever missing. */
+    @Json(name = "asset_type")
+    val assetType: String? = null,
+
     @Json(name = "schema_version")
     val schemaVersion: Int? = null,
 

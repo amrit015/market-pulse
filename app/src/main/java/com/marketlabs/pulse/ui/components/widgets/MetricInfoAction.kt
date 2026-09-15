@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -20,7 +21,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
+import com.marketlabs.pulse.ui.theme.PulseColors
 
 /**
  * Small "what is this metric" affordance for the Posture/Positioning cards -- each gauge already
@@ -39,6 +42,7 @@ import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 fun MetricInfoAction(title: String, description: String?, modifier: Modifier = Modifier) {
     if (description.isNullOrBlank()) return
     var showDialog by remember { mutableStateOf(false) }
+    val pulseColors = LocalPulseColors.current
 
     Icon(
         painter = painterResource(id = R.drawable.ic_info),
@@ -51,26 +55,87 @@ fun MetricInfoAction(title: String, description: String?, modifier: Modifier = M
     )
 
     if (showDialog) {
-        AlertDialog(
-            onDismissRequest = { showDialog = false },
-            title = { Text(text = title) },
-            text = { Text(text = description) },
-            confirmButton = {
-                TextButton(onClick = { showDialog = false }) {
-                    Text(text = stringResource(id = R.string.insights_metric_info_dismiss))
-                }
-            }
+        MetricInfoDialog(
+            title = title,
+            description = description,
+            pulseColors = pulseColors,
+            onDismiss = { showDialog = false }
         )
     }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFF121212)
+/**
+ * Split out from [MetricInfoAction] purely so the dialog's own appearance -- not just the closed
+ * icon -- can be previewed below; [MetricInfoAction]'s `showDialog` starts false and only flips on
+ * a real click, which a static `@Preview` can never trigger.
+ */
 @Composable
-private fun PreviewMetricInfoAction() {
+private fun MetricInfoDialog(
+    title: String,
+    description: String,
+    pulseColors: PulseColors,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
+        title = { Text(text = title) },
+        text = { Text(text = description) },
+        confirmButton = {
+            TextButton(
+                onClick = onDismiss,
+                colors = ButtonDefaults.textButtonColors(contentColor = pulseColors.accentPrimary)
+            ) {
+                Text(text = stringResource(id = R.string.insights_metric_info_dismiss))
+            }
+        }
+    )
+}
+
+@Preview(name = "Icon - Light", showBackground = true)
+@Composable
+private fun PreviewMetricInfoActionLight() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
+        MetricInfoAction(
+            title = "NAAIM Exposure",
+            description = "Tracks the average equity exposure of active money managers."
+        )
+    }
+}
+
+@Preview(name = "Icon - Dark", showBackground = true, backgroundColor = 0xFF121212)
+@Composable
+private fun PreviewMetricInfoActionDark() {
     MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
         MetricInfoAction(
             title = "NAAIM Exposure",
             description = "Tracks the average equity exposure of active money managers."
+        )
+    }
+}
+
+@Preview(name = "Dialog - Light", showBackground = true)
+@Composable
+private fun PreviewMetricInfoDialogLight() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
+        MetricInfoDialog(
+            title = "NAAIM Exposure",
+            description = "Tracks the average equity exposure of active money managers.",
+            pulseColors = LocalPulseColors.current,
+            onDismiss = {}
+        )
+    }
+}
+
+@Preview(name = "Dialog - Dark", showBackground = true, backgroundColor = 0xFF121212)
+@Composable
+private fun PreviewMetricInfoDialogDark() {
+    MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
+        MetricInfoDialog(
+            title = "NAAIM Exposure",
+            description = "Tracks the average equity exposure of active money managers.",
+            pulseColors = LocalPulseColors.current,
+            onDismiss = {}
         )
     }
 }

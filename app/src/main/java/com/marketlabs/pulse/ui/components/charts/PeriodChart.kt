@@ -17,6 +17,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -26,7 +27,6 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.charts.ChartPoint
 import com.marketlabs.pulse.storage.model.intraday.IntradayPoint
@@ -351,9 +351,17 @@ internal fun VicoLinePlot(
 
     // Headroom above/below the series' own range, not Vico's default 0-anchored range -- see
     // PeriodChart's doc comment for why the default would flatten every chart.
-    val rangeProvider = remember(prices) {
-        val minPrice = prices.min()
-        val maxPrice = prices.max()
+    //
+    // 💡 `referenceLineValue` folded into min/max here -- Vico's own `HorizontalLine` decoration
+    // (below) computes its Y position by linear extrapolation against exactly this range, with no
+    // clamping of its own, so a `previousClose` that falls outside `[minPrice, maxPrice]` (a large
+    // overnight gap, most often) used to extrapolate to a Y position outside the chart's own
+    // bounds entirely -- rendering the line below the chart, over the axis labels or whatever sits
+    // underneath it on the page. Including it here guarantees the line's own value is always
+    // inside the range Vico draws against.
+    val rangeProvider = remember(prices, referenceLineValue) {
+        val minPrice = minOf(prices.min(), referenceLineValue ?: prices.min())
+        val maxPrice = maxOf(prices.max(), referenceLineValue ?: prices.max())
         val padding = (maxPrice - minPrice).let { if (it > 0.0) it * 0.1 else maxPrice * 0.05 }
         CartesianLayerRangeProvider.fixed(minY = minPrice - padding, maxY = maxPrice + padding)
     }
@@ -420,7 +428,11 @@ internal fun VicoLinePlot(
             modelProducer = modelProducer,
             scrollState = rememberVicoScrollState(scrollEnabled = true),
             zoomState = rememberVicoZoomState(zoomEnabled = false, initialZoom = Zoom.Content),
-            modifier = modifier
+            // 💡 Belt-and-suspenders alongside the rangeProvider fix above -- clips anything Vico
+            // draws (the reference line included) to the chart's own bounds, so this class of bug
+            // can't repaint outside its box even if some future value/decoration falls outside the
+            // computed range again.
+            modifier = modifier.clipToBounds()
         )
     }
 }

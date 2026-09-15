@@ -1,5 +1,7 @@
 package com.marketlabs.pulse.ui.components.widgets
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +13,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -25,6 +32,16 @@ import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 @Composable
 fun DonutScoreCard(score: Int, statusText: String, statusColor: Color) {
+    var scoreFractionTarget by remember { mutableFloatStateOf(0f) }
+    val scoreFraction by animateFloatAsState(
+        targetValue = scoreFractionTarget,
+        animationSpec = tween(durationMillis = 1500),
+        label = "donut_score_fraction"
+    )
+    LaunchedEffect(score) {
+        scoreFractionTarget = score / 100f
+    }
+
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
             modifier = Modifier
@@ -34,7 +51,7 @@ fun DonutScoreCard(score: Int, statusText: String, statusColor: Color) {
         ) {
             Canvas(modifier = Modifier.fillMaxSize()) {
                 val strokeWidth = 22f // 💡 Slightly thinner stroke for smaller size
-                val sweepAngle = (score / 100f) * 360f
+                val sweepAngle = scoreFraction * 360f
 
                 drawArc(
                     color = statusColor.copy(alpha = 0.15f),

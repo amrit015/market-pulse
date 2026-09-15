@@ -1,5 +1,7 @@
 package com.marketlabs.pulse.ui.screens.summary.views
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,6 +11,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -48,10 +55,25 @@ fun PositioningGauge(
     signalColor: SignalColor?,
     modifier: Modifier = Modifier
 ) {
+    // 💡 Hooks called unconditionally, before the `rangePosition == null` early return below --
+    // Compose requires the same hook sequence on every recomposition of this call site, and
+    // `rangePosition` can plausibly flip between a value and null across a refresh, so the
+    // animation state can't be set up only on the non-null path.
+    var fractionTarget by remember { mutableFloatStateOf(0f) }
+    val fraction by animateFloatAsState(
+        targetValue = fractionTarget,
+        animationSpec = tween(durationMillis = 1500),
+        label = "positioning_gauge_fraction"
+    )
+    LaunchedEffect(rangePosition) {
+        if (rangePosition != null) {
+            fractionTarget = (rangePosition / 100.0).coerceIn(0.0, 1.0).toFloat()
+        }
+    }
+
     if (rangePosition == null) return
 
     val pulseColors = LocalPulseColors.current
-    val fraction = (rangePosition / 100.0).coerceIn(0.0, 1.0).toFloat()
     // 💡 .textColor, not .pillColor -- same lesson already applied to the conviction meter, the
     // gauge's own signalText caption, and the driver pills elsewhere in this file: this app's
     // `signalXPill` tokens are deliberately soft/pastel, meant to be a *background* another color

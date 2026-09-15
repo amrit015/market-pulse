@@ -8,6 +8,7 @@ import com.marketlabs.pulse.core.dashboard.DashboardRepository
 import com.marketlabs.pulse.core.intraday.IntradayRepository
 import com.marketlabs.pulse.core.stocks.StockAnalysisRepository
 import com.marketlabs.pulse.core.sync.SyncManager
+import com.marketlabs.pulse.data.favorites.FavoriteStocksRepository
 import com.marketlabs.pulse.storage.model.intraday.IntradaySeries
 import com.marketlabs.pulse.storage.model.stocks.StockPreview
 import com.marketlabs.pulse.ui.common.UiError
@@ -21,6 +22,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -47,15 +49,44 @@ class StockAnalysisViewModel @Inject constructor(
     private val repository: StockAnalysisRepository,
     private val syncManager: SyncManager,
     private val intradayRepository: IntradayRepository,
-    private val dashboardRepository: DashboardRepository
+    private val dashboardRepository: DashboardRepository,
+    private val favoriteStocksRepository: FavoriteStocksRepository
 ) : ViewModel() {
 
     private val _isLoading = MutableStateFlow(false)
     private val _isRefreshing = MutableStateFlow(false)
     private val _error = MutableStateFlow<UiError?>(null)
+
+    // 💡 Starts on index 1, not 0 -- `StockAnalysisTab`'s display order is Favorites/Stocks/
+    // Indices-ETF (index 0/1/2), but the tab a reader lands on by default is Stocks, not the
+    // first-listed Favorites, unless they already have a favorite (see `init {}` below). Kept a
+    // plain Int (not `StockAnalysisTab.STOCKS.ordinal`) rather than importing that view-layer enum
+    // here -- same decoupling `InsightsViewModel`'s own `_selectedTabIndex` already keeps from
+    // `InsightsTab`.
+    private val _selectedTabIndex = MutableStateFlow(1)
     private var intradayTrackingJob: Job? = null
     private var trackedSymbols: Set<String> = emptySet()
 
+    // 💡 Landing tab depends on whether the reader has favorited anything yet -- Favorites first if
+    // so, Stocks otherwise (empty Favorites tab isn't a useful place to land). This can only be
+    // decided once `favoriteSymbols`' first real value arrives from DataStore, which is
+    // asynchronous, so it can't just be the constructor-time default above. Guarded on
+    // `_selectedTabIndex.value` still sitting at its untouched default (`1`) at the moment this
+    // resolves -- without that check, a reader who taps a different tab before this (rare, but
+    // DataStore reads aren't instant) would get silently yanked to Favorites out from under their
+    // own tap.
+    init {
+        viewModelScope.launch {
+            val initialFavorites = favoriteStocksRepository.favoriteSymbols.first()
+            if (initialFavorites.isNotEmpty() && _selectedTabIndex.value == 1) {
+                _selectedTabIndex.value = 0
+            }
+        }
+    }
+
+    // 💡 Array<Any?>-based combine() overload -- 7 streams, past the max arity (5) of Kotlin's
+    // named-parameter combine() overload. Each value is cast back to its real type by index
+    // rather than by name, same shape `InsightsViewModel` already uses for the same reason.
     val uiState: StateFlow<StockAnalysisUiState> = combine(
         repository.getStockPreviewsStream(),
         _isLoading,
@@ -64,20 +95,30 @@ class StockAnalysisViewModel @Inject constructor(
         // 💡 Same `market_overview/market_state.is_equity_open` flag the Dashboard's own hero card
         // badge reads -- gates each card's "LIVE" label, same source of truth as everywhere else in
         // the app that says "the market is open" rather than a second client-side computation.
-        dashboardRepository.getMarketStateStream().map { it?.isEquityOpen == true }
-    ) { previews, loading, refreshing, error, isEquityOpen ->
+        dashboardRepository.getMarketStateStream().map { it?.isEquityOpen == true },
+        favoriteStocksRepository.favoriteSymbols,
+        _selectedTabIndex
+    ) { values ->
+        val previews = values[0] as List<StockPreview>
+        val loading = values[1] as Boolean
         StockAnalysisUiState(
             previews = previews,
             isLoading = loading && previews.isEmpty(),
-            isRefreshing = refreshing,
+            isRefreshing = values[2] as Boolean,
             analyzedAsOf = previews.newestAnalyzedAsOf(),
-            isEquityOpen = isEquityOpen,
-            error = error
+            isEquityOpen = values[4] as Boolean,
+            selectedTabIndex = values[6] as Int,
+            favoriteSymbols = values[5] as Set<String>,
+            error = values[3] as UiError?
         )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = StockAnalysisUiState(isLoading = true)
+        // 💡 `selectedTabIndex = 1` matches `_selectedTabIndex`'s own starting value above -- without
+        // it, the very first composition (before the combine() flow's first real emission lands)
+        // would briefly report index 0 (Favorites) and the pager/tab row would flash there before
+        // correcting to Stocks.
+        initialValue = StockAnalysisUiState(isLoading = true, selectedTabIndex = 1)
     )
 
     /** Called by the UI when the screen becomes visible. */
@@ -122,6 +163,16 @@ class StockAnalysisViewModel @Inject constructor(
     /** Clears any active error (e.g. after a Snackbar is dismissed). */
     fun clearError() {
         _error.value = null
+    }
+
+    /** Called when the reader taps a tab in the pinned `PulseTabRow`. Index into `StockAnalysisTab.entries`. */
+    fun onTabSelected(index: Int) {
+        _selectedTabIndex.value = index
+    }
+
+    /** Called when the reader taps a `StockPreviewCard`'s star -- persists immediately, local-only. */
+    fun toggleFavorite(symbol: String) {
+        viewModelScope.launch { favoriteStocksRepository.toggleFavorite(symbol) }
     }
 
     private fun fetchPreviews(force: Boolean) {

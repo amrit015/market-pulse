@@ -17,6 +17,11 @@ import com.marketlabs.pulse.ui.common.UiError
  *
  * `error` is typed (`UiError`) rather than a plain string so the Screen can render distinct retry
  * copy for "no connection" vs. "server rejected it" vs. an unclassified failure.
+ *
+ * `selectedTabIndex` drives the pinned `PulseTabRow` (Favorites/Stocks/Indices-ETF) the same way
+ * `InsightsUiState`/`StockDetailUiState` already do for their own tabs. `favoriteSymbols` is a
+ * local-only, per-device preference (`FavoriteStocksRepository`) with no backend counterpart --
+ * a tracked symbol can be favorited without changing anything about how it's tracked/analyzed.
  */
 data class StockAnalysisUiState(
     val previews: List<StockPreview> = emptyList(),
@@ -26,5 +31,7 @@ data class StockAnalysisUiState(
     /** Same `market_overview/market_state.is_equity_open` flag the Dashboard's hero card badge
      *  uses -- gates each `StockPreviewCard`'s "LIVE" label to actual regular market hours. */
     val isEquityOpen: Boolean = false,
+    val selectedTabIndex: Int = 0,
+    val favoriteSymbols: Set<String> = emptySet(),
     val error: UiError? = null
 )

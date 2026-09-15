@@ -1,6 +1,5 @@
 package com.marketlabs.pulse.ui.screens.dashboard.views
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -49,8 +48,8 @@ import com.marketlabs.pulse.R
 import com.marketlabs.pulse.core.intraday.DashboardIntradayEligibility
 import com.marketlabs.pulse.storage.model.dashboard.AssetOverview
 import com.marketlabs.pulse.storage.model.dashboard.MarketState
-import com.marketlabs.pulse.storage.model.news.NewsArticle
 import com.marketlabs.pulse.storage.model.intraday.IntradaySeries
+import com.marketlabs.pulse.storage.model.news.NewsArticle
 import com.marketlabs.pulse.ui.components.AnalyzedAtHeader
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
@@ -61,6 +60,7 @@ import com.marketlabs.pulse.ui.components.widgets.PutCallHorizontalBar
 import com.marketlabs.pulse.ui.components.widgets.SparklineChart
 import com.marketlabs.pulse.ui.components.widgets.SpeedometerGauge
 import com.marketlabs.pulse.ui.components.widgets.VixFullWidthCard
+import com.marketlabs.pulse.ui.components.widgets.animateFlashColor
 import com.marketlabs.pulse.ui.screens.news.views.NewsPreviewSection
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
@@ -241,6 +241,7 @@ fun DashboardScreen(
                     items = futureAssets,
                     onAssetClick = { onAssetClick(it.symbol) },
                     getIntradayStream = getIntradayStream,
+                    isEquityOpen = isEquityOpen,
                     columnNum = 3
                 )
             }
@@ -252,6 +253,7 @@ fun DashboardScreen(
                     items = equityAssets,
                     onAssetClick = { onAssetClick(it.symbol) },
                     getIntradayStream = getIntradayStream,
+                    isEquityOpen = isEquityOpen,
                     columnNum = 3
                 )
             }
@@ -263,6 +265,7 @@ fun DashboardScreen(
                     items = otherAssets,
                     onAssetClick = { onAssetClick(it.symbol) },
                     getIntradayStream = getIntradayStream,
+                    isEquityOpen = isEquityOpen,
                     columnNum = 3
                 )
             }
@@ -430,7 +433,8 @@ fun AssetSection(
     items: List<AssetOverview?>,
     onAssetClick: (AssetOverview) -> Unit,
     columnNum: Int = 2,
-    getIntradayStream: (String) -> Flow<IntradaySeries?> = { emptyFlow() }
+    getIntradayStream: (String) -> Flow<IntradaySeries?> = { emptyFlow() },
+    isEquityOpen: Boolean = false
 ) {
     val paddingMedium = dimensionResource(id = R.dimen.padding_medium)
 
@@ -457,6 +461,7 @@ fun AssetSection(
                                 .weight(1f)
                                 .fillMaxHeight(),
                             intradayStream = getIntradayStream(it.symbol),
+                            isEquityOpen = isEquityOpen,
                             onClick = { onAssetClick(it) }
                         )
                     }
@@ -484,9 +489,9 @@ fun AssetCard(
     modifier: Modifier = Modifier,
     customVisual: @Composable (() -> Unit)? = null,
     intradayStream: Flow<IntradaySeries?> = emptyFlow(),
+    isEquityOpen: Boolean = false,
     onClick: () -> Unit
 ) {
-    val isSentimentAsset = asset.symbol == "FEAR_GREED" || asset.symbol == "PUT_CALL"
     val pulseColors = LocalPulseColors.current
 
     val baseColor: Color
@@ -499,25 +504,15 @@ fun AssetCard(
     // white/elevated surface) instead of the DATA style every other price card uses, on the theory
     // that a computed reading shouldn't look like raw data -- retired once that distinction stopped
     // being wanted; every price/reading card shares the same DATA style now.
-
-    // 💡 NEW: Contrarian Logic for Sentiment Indicators
-    if (isSentimentAsset && asset.rsiStatus != null) {
-        when (asset.rsiStatus.uppercase()) {
-            "EXTREME FEAR", "FEAR", "OVERSOLD" -> {
-                baseColor = pulseColors.signalBullishText
-                pillColor = pulseColors.signalBullishPill
-            }
-            "EXTREME GREED", "GREED", "OVERBOUGHT" -> {
-                baseColor = pulseColors.signalBearishText
-                pillColor = pulseColors.signalBearishPill
-            }
-            else -> {
-                baseColor = MaterialTheme.colorScheme.onSurfaceVariant
-                pillColor = MaterialTheme.colorScheme.surfaceVariant
-            }
-        }
-    } else {
-        // 💡 Standard Logic for Equities, Futures, and Crypto
+    //
+    // 💡 A "Contrarian Logic for Sentiment Indicators" branch used to live here, keyed on
+    // `isSentimentAsset`/`rsiStatus`, but it was dead: Fear & Greed and Put/Call both always
+    // supply `customVisual` below, so this function's own price/pill rendering (the only place
+    // that reads `baseColor`/`pillColor`) never runs for them -- whatever this branch computed was
+    // silently discarded. Each sentiment widget's own contrarian coloring now lives directly
+    // inside itself (`SpeedometerGauge`/`PutCallHorizontalBar`), confirmed correct there instead of
+    // duplicated (and drifted) here. Every asset now goes through the one path below.
+    run {
         val change = asset.changePercent ?: 0.0
         val isMathematicallyPositive = change >= 0
         val isGoodEvent =
@@ -557,11 +552,14 @@ fun AssetCard(
     // `DATA`'s new flat white/greyish-dark card + shadow look like every other DATA card in the app.
     val hasSparkline = customVisual == null && DashboardIntradayEligibility.isEligible(asset.symbol)
     val cardStyle = if (hasSparkline) PulseCardStyle.DATA_SPARKLINE else PulseCardStyle.DATA
+    // 💡 No pulse once the market's closed -- would otherwise read as "live" against a stale price.
+    val glowColor = if (hasSparkline && isEquityOpen) baseColor else null
 
     PulseCard(
         style = cardStyle,
         modifier = modifier,
-        onClick = onClick
+        onClick = onClick,
+        glowColor = glowColor
     ) {
         // 💡 Horizontal padding moved off this Column and onto each child individually (instead
         // of the usual single `.padding(padding_large)` every side) so the sparkline below can
@@ -632,7 +630,11 @@ fun AssetCard(
                 Text(
                     text = String.format("%.2f", asset.price),
                     style = livePriceTextSize.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = animateFlashColor(
+                        value = asset.price,
+                        flashColor = baseColor,
+                        restingColor = MaterialTheme.colorScheme.onSurface
+                    ),
                     modifier = Modifier.padding(horizontal = horizontalContentPadding)
                 )
 

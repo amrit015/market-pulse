@@ -12,11 +12,11 @@ import com.marketlabs.pulse.network.model.stocks.NetworkDeepDiveHeadlineStat
 import com.marketlabs.pulse.network.model.stocks.NetworkDeepDiveHighlight
 import com.marketlabs.pulse.network.model.stocks.NetworkDeepDiveSection
 import com.marketlabs.pulse.network.model.stocks.NetworkDigestSection
-import com.marketlabs.pulse.network.model.stocks.NetworkFundamentalsDelta
 import com.marketlabs.pulse.network.model.stocks.NetworkEventLogItem
 import com.marketlabs.pulse.network.model.stocks.NetworkExecutiveThesis
 import com.marketlabs.pulse.network.model.stocks.NetworkForwardCall
 import com.marketlabs.pulse.network.model.stocks.NetworkFundamentals
+import com.marketlabs.pulse.network.model.stocks.NetworkFundamentalsDelta
 import com.marketlabs.pulse.network.model.stocks.NetworkHeadlineMetrics
 import com.marketlabs.pulse.network.model.stocks.NetworkLevels
 import com.marketlabs.pulse.network.model.stocks.NetworkMacro
@@ -76,6 +76,7 @@ fun NetworkStockPreview.toDomain(lastSyncedTimestamp: Long): StockPreview? {
         symbol = resolvedSymbol,
         lastSyncedTimestamp = lastSyncedTimestamp,
         name = name,
+        assetType = assetType,
         schemaVersion = schemaVersion,
         analysisDate = analysisDate,
         price = price,
@@ -139,6 +140,7 @@ fun NetworkStockDetail.toDomain(symbol: String, lastSyncedTimestamp: Long): Stoc
     return StockDetail(
         symbol = symbol,
         lastSyncedTimestamp = lastSyncedTimestamp,
+        assetType = assetType,
         detailVersion = detailVersion,
         analysisDate = analysisDate,
         technicalIndicators = technicalIndicators?.toDomain(),
@@ -429,6 +431,7 @@ fun StockPreview.toEntity(): StockPreviewEntity {
         symbol = symbol,
         lastSyncedTimestamp = lastSyncedTimestamp,
         name = name,
+        assetType = assetType,
         schemaVersion = schemaVersion,
         analysisDate = analysisDate,
         price = price,
@@ -463,6 +466,7 @@ fun StockDetail.toEntity(): StockDetailEntity {
     return StockDetailEntity(
         symbol = symbol,
         lastSyncedTimestamp = lastSyncedTimestamp,
+        assetType = assetType,
         detailVersion = detailVersion,
         analysisDate = analysisDate,
         technicalIndicators = technicalIndicators,
@@ -510,6 +514,7 @@ fun StockPreviewEntity.toDomain(): StockPreview {
         symbol = symbol,
         lastSyncedTimestamp = lastSyncedTimestamp,
         name = name,
+        assetType = assetType,
         schemaVersion = schemaVersion,
         analysisDate = analysisDate,
         price = price,
@@ -544,6 +549,7 @@ fun StockDetailEntity.toDomain(): StockDetail {
     return StockDetail(
         symbol = symbol,
         lastSyncedTimestamp = lastSyncedTimestamp,
+        assetType = assetType,
         detailVersion = detailVersion,
         analysisDate = analysisDate,
         technicalIndicators = technicalIndicators,

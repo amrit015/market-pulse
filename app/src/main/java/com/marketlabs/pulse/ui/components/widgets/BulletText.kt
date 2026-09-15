@@ -7,7 +7,6 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.isSpecified
 
 /**
  * Joins 2+ text parts with this app's shared bullet separator (`R.string.bullet_separator`),
@@ -24,14 +23,13 @@ import androidx.compose.ui.unit.isSpecified
  */
 fun buildBulletJoinedText(parts: List<String?>, bullet: String, baseFontSize: TextUnit): AnnotatedString {
     val nonBlankParts = parts.filterNot { it.isNullOrBlank() }
-    val bulletFontSize = if (baseFontSize.isSpecified) baseFontSize * 1.4f else baseFontSize
 
     return buildAnnotatedString {
         nonBlankParts.forEachIndexed { index, part ->
             append(part)
             if (index != nonBlankParts.lastIndex) {
                 append(" ")
-                withStyle(SpanStyle(fontSize = bulletFontSize)) {
+                withStyle(SpanStyle(fontSize = baseFontSize)) {
                     append(bullet)
                 }
                 append(" ")

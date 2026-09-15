@@ -1,10 +1,17 @@
 package com.marketlabs.pulse.ui.components.widgets
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -23,6 +30,16 @@ import com.marketlabs.pulse.ui.theme.MarketPulseTheme
  */
 @Composable
 fun PercentileBar(percentile: Int, markerColor: Color, modifier: Modifier = Modifier) {
+    var fractionTarget by remember { mutableFloatStateOf(0f) }
+    val fraction by animateFloatAsState(
+        targetValue = fractionTarget,
+        animationSpec = tween(durationMillis = 1500),
+        label = "percentile_bar_fraction"
+    )
+    LaunchedEffect(percentile) {
+        fractionTarget = (percentile / 100f).coerceIn(0f, 1f)
+    }
+
     val trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f)
     val trackHeight = dimensionResource(id = R.dimen.percentile_bar_track_height)
     val markerRadius = dimensionResource(id = R.dimen.percentile_bar_marker_radius)
@@ -45,7 +62,6 @@ fun PercentileBar(percentile: Int, markerColor: Color, modifier: Modifier = Modi
             cap = StrokeCap.Round
         )
 
-        val fraction = (percentile / 100f).coerceIn(0f, 1f)
         drawCircle(
             color = markerColor,
             radius = markerRadiusPx,

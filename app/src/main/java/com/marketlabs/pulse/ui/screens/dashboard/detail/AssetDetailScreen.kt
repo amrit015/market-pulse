@@ -9,22 +9,24 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.core.glossary.AssetDescriptionProvider
 import com.marketlabs.pulse.core.glossary.DashboardGlossaryProvider
@@ -33,22 +35,35 @@ import com.marketlabs.pulse.storage.model.charts.ChartRange
 import com.marketlabs.pulse.storage.model.charts.ChartSeries
 import com.marketlabs.pulse.storage.model.dashboard.AssetOverview
 import com.marketlabs.pulse.storage.model.intraday.IntradaySeries
+import com.marketlabs.pulse.ui.components.PulseCard
+import com.marketlabs.pulse.ui.components.PulseCardStyle
+import com.marketlabs.pulse.ui.components.bottomSheet.GlossaryEntry
+import com.marketlabs.pulse.ui.components.bottomSheet.StockAnalysisGlossaryBottomSheet
 import com.marketlabs.pulse.ui.components.charts.ChartRangePicker
 import com.marketlabs.pulse.ui.components.charts.IntradayPeriodChart
 import com.marketlabs.pulse.ui.components.charts.PeriodChart
+import com.marketlabs.pulse.ui.components.widgets.ChangeDirection
+import com.marketlabs.pulse.ui.components.widgets.DirectionalChangePill
+import com.marketlabs.pulse.ui.components.widgets.animateFlashColor
+import com.marketlabs.pulse.ui.screens.stocks.detail.DataCardTitleWithInfo
+import com.marketlabs.pulse.ui.screens.stocks.detail.StatGrid
+import com.marketlabs.pulse.ui.screens.stocks.detail.StatItem
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
+import com.marketlabs.pulse.ui.theme.PulseColors
 import com.marketlabs.pulse.utils.enums.AssetType
 import com.marketlabs.pulse.utils.verticalScrollbar
+import kotlin.math.abs
 
 /**
  * Stateless content for the pushed asset-detail page -- moved out of the old
- * `AssetDetailBottomSheet` body verbatim (header, price row, period chart, technical breakdown,
- * SMA, glossary), only the `ModalBottomSheet` wrapper is gone. `showTechnicals` still hides the
- * technical/SMA/glossary sections for sentiment readings (Fear & Greed, Put/Call), which have no
- * such figures. The chart itself is hidden separately for futures (`asset.type == AssetType.FUTURE`)
- * -- see the chart block's own comment -- while still showing technicals/SMA for them, since those
- * figures are real for a futures contract.
+ * `AssetDetailBottomSheet` body verbatim originally, then restyled 2026-09 onto the same
+ * `PulseCard`/`StatGrid`/`DataCardTitleWithInfo` shapes Stock Detail's equivalent sections
+ * (`HeadlineMetricsStrip`) already use, rather than the loose `Text`/`Row` blocks the bottom-sheet
+ * move had left untouched. `showTechnicals` still hides the technical/SMA sections for sentiment
+ * readings (Fear & Greed, Put/Call), which have no such figures. The chart itself is hidden
+ * separately for futures (`asset.type == AssetType.FUTURE`) -- see the chart block's own comment --
+ * while still showing technicals/SMA for them, since those figures are real for a futures contract.
  */
 @Composable
 fun AssetDetailScreen(
@@ -66,15 +81,42 @@ fun AssetDetailScreen(
     val paddingMedium = dimensionResource(id = R.dimen.padding_medium)
     val scrollState = rememberScrollState()
     val context = LocalContext.current
+    val pulseColors = LocalPulseColors.current
 
     val showTechnicals = asset.symbol !in listOf("^VIX", "FEAR_GREED", "PUT_CALL")
     // VIX/Fear & Greed/Put-Call run on their own up/down logic that doesn't map to bullish-green/
     // bearish-red the way a price does (e.g. a rising VIX is conventionally bearish) -- their
     // charts use a fixed accent color instead of the usual direction-based read. Same set
-    // showTechnicals already singles out for the same underlying reason.
+    // showTechnicals already singles out for the same underlying reason, so their price row stays
+    // undirected too (plain text, no pill) rather than guessing a wrong-reading color/arrow.
     val useAccentColorForChart = !showTechnicals
     val currentPrice = String.format("%.2f", asset.price ?: 0.0)
     val previousClosePrice = String.format("%.2f", asset.previousClose ?: 0.0)
+
+    val changePercent = asset.changePercent
+    val direction = if (showTechnicals && changePercent != null) {
+        when {
+            changePercent > 0 -> ChangeDirection.UP
+            changePercent < 0 -> ChangeDirection.DOWN
+            else -> ChangeDirection.FLAT
+        }
+    } else {
+        null
+    }
+    val priceTextColor = when (direction) {
+        ChangeDirection.UP -> pulseColors.signalBullishText
+        ChangeDirection.DOWN -> pulseColors.signalBearishText
+        ChangeDirection.FLAT -> pulseColors.signalNeutralText
+        null -> MaterialTheme.colorScheme.onSurface
+    }
+    val pillColor = when (direction) {
+        ChangeDirection.UP -> pulseColors.signalBullishPill
+        ChangeDirection.DOWN -> pulseColors.signalBearishPill
+        else -> pulseColors.signalNeutralPill
+    }
+
+    var showTechnicalGlossary by remember { mutableStateOf(false) }
+    var showSmaGlossary by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
@@ -114,7 +156,7 @@ fun AssetDetailScreen(
             Text(
                 text = description,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
             )
         }
 
@@ -131,11 +173,26 @@ fun AssetDetailScreen(
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Text(
-                    text = if (showTechnicals) "$$currentPrice" else currentPrice,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = if (showTechnicals) "$$currentPrice" else currentPrice,
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = animateFlashColor(
+                            value = asset.price,
+                            flashColor = priceTextColor,
+                            restingColor = MaterialTheme.colorScheme.onSurface
+                        )
+                    )
+                    if (direction != null && changePercent != null) {
+                        Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+                        DirectionalChangePill(
+                            changeText = "${String.format("%.2f", abs(changePercent))}%",
+                            direction = direction,
+                            pillColor = pillColor,
+                            contentColor = priceTextColor
+                        )
+                    }
+                }
             }
 
             Column(horizontalAlignment = Alignment.End) {
@@ -191,133 +248,119 @@ fun AssetDetailScreen(
         if (showTechnicals) {
             Spacer(modifier = Modifier.height(paddingLarge))
 
-            Text(
-                text = stringResource(id = R.string.dashboard_technical_breakdown),
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(bottom = paddingMedium)
+            // 💡 Whichever SMA sits closest to the current price is highlighted in the theme's
+            // primary color -- the one moving-average price is actually hugging right now, at a
+            // glance, rather than making the reader compare three numbers themselves.
+            val smaDistances = listOfNotNull(
+                asset.sma20?.let { SmaPeriod.TWENTY to abs((asset.price ?: 0.0) - it) },
+                asset.sma50?.let { SmaPeriod.FIFTY to abs((asset.price ?: 0.0) - it) },
+                asset.sma200?.let { SmaPeriod.TWO_HUNDRED to abs((asset.price ?: 0.0) - it) }
             )
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                ColoredMetricItem(
-                    label = stringResource(id = R.string.dashboard_rsi),
-                    value = "${asset.rsi ?: "--"} (${asset.rsiStatus ?: "N/A"})",
-                    statusForColor = asset.rsiStatus ?: "",
-                    paddingRight = paddingMedium
-                )
-                ColoredMetricItem(
-                    label = stringResource(id = R.string.dashboard_macd),
-                    value = asset.macdSignal ?: "N/A",
-                    paddingRight = paddingMedium
-                )
-                ColoredMetricItem(
-                    label = stringResource(id = R.string.dashboard_trend),
-                    value = asset.technicalStatus ?: "N/A",
-                    paddingRight = paddingMedium
-                )
+            val nearestSma = if (asset.price != null) smaDistances.minByOrNull { it.second }?.first else null
+
+            PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(paddingLarge)) {
+                    DataCardTitleWithInfo(
+                        title = stringResource(id = R.string.dashboard_sma_title),
+                        onInfoClick = { showSmaGlossary = true }
+                    )
+                    Spacer(modifier = Modifier.height(paddingLarge))
+                    StatGrid(
+                        stats = listOf(
+                            StatItem(
+                                value = "$${asset.sma20 ?: "--"}",
+                                label = stringResource(id = R.string.dashboard_sma_20),
+                                valueColor = if (nearestSma == SmaPeriod.TWENTY) MaterialTheme.colorScheme.primary else null
+                            ),
+                            StatItem(
+                                value = "$${asset.sma50 ?: "--"}",
+                                label = stringResource(id = R.string.dashboard_sma_50),
+                                valueColor = if (nearestSma == SmaPeriod.FIFTY) MaterialTheme.colorScheme.primary else null
+                            ),
+                            StatItem(
+                                value = "$${asset.sma200 ?: "--"}",
+                                label = stringResource(id = R.string.dashboard_sma_200),
+                                valueColor = if (nearestSma == SmaPeriod.TWO_HUNDRED) MaterialTheme.colorScheme.primary else null
+                            )
+                        )
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(paddingLarge))
 
-            Text(
-                text = stringResource(id = R.string.dashboard_sma_title),
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(bottom = paddingMedium)
-            )
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                MetricItem(
-                    label = stringResource(id = R.string.dashboard_sma_20),
-                    value = "$${asset.sma20 ?: "--"}",
-                    paddingRight = paddingMedium
-                )
-                MetricItem(
-                    label = stringResource(id = R.string.dashboard_sma_50),
-                    value = "$${asset.sma50 ?: "--"}",
-                    paddingRight = paddingMedium
-                )
-                MetricItem(
-                    label = stringResource(id = R.string.dashboard_sma_200),
-                    value = "$${asset.sma200 ?: "--"}",
-                    paddingRight = paddingMedium
-                )
-            }
-
-            Spacer(modifier = Modifier.height(paddingLarge))
-
-            Text(
-                text = stringResource(id = R.string.dashboard_technical_glossary_title),
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(bottom = paddingMedium)
-            )
-            Column {
-                DashboardGlossaryProvider.definitionFor(context, "RSI")?.let { GlossaryItem("RSI", it) }
-                DashboardGlossaryProvider.definitionFor(context, "MACD")?.let { GlossaryItem("MACD", it) }
-                DashboardGlossaryProvider.definitionFor(context, "Trend")?.let { GlossaryItem("Trend", it) }
-                DashboardGlossaryProvider.definitionFor(context, "SMA")?.let { GlossaryItem("SMA", it) }
+            PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(paddingLarge)) {
+                    DataCardTitleWithInfo(
+                        title = stringResource(id = R.string.dashboard_technical_breakdown),
+                        onInfoClick = { showTechnicalGlossary = true }
+                    )
+                    Spacer(modifier = Modifier.height(paddingLarge))
+                    StatGrid(
+                        stats = listOfNotNull(
+                            StatItem(
+                                value = "${asset.rsi ?: "--"} (${asset.rsiStatus ?: "N/A"})",
+                                label = stringResource(id = R.string.dashboard_rsi),
+                                valueColor = signalColorFor(pulseColors, asset.rsiStatus ?: "")
+                            ),
+                            StatItem(
+                                value = asset.macdSignal ?: "N/A",
+                                label = stringResource(id = R.string.dashboard_macd),
+                                valueColor = signalColorFor(pulseColors, asset.macdSignal ?: "")
+                            ),
+                            // 💡 Hidden entirely, not shown as "N/A" -- unlike RSI/MACD (which the
+                            // backend basically always populates), Trend genuinely has no reading
+                            // for some symbols, and an always-empty "Trend: N/A" cell read as
+                            // broken data rather than "this doesn't apply here."
+                            asset.technicalStatus?.let {
+                                StatItem(
+                                    value = it,
+                                    label = stringResource(id = R.string.dashboard_trend),
+                                    valueColor = signalColorFor(pulseColors, it)
+                                )
+                            }
+                        )
+                    )
+                }
             }
         }
     }
-}
 
-@Composable
-fun MetricItem(label: String, value: String, paddingRight: Dp) {
-    Column(modifier = Modifier.padding(end = paddingRight)) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colorScheme.onSurface
-        )
-    }
-}
-
-@Composable
-fun ColoredMetricItem(
-    label: String,
-    value: String,
-    paddingRight: Dp,
-    statusForColor: String = value
-) {
-    val pulseColors = LocalPulseColors.current
-    val color = when (statusForColor.uppercase()) {
-        "BULLISH", "EXTREME GREED", "GREED", "OVERSOLD" -> pulseColors.signalBullishText
-        "BEARISH", "EXTREME FEAR", "FEAR", "OVERBOUGHT" -> pulseColors.signalBearishText
-        else -> pulseColors.signalNeutralText
-    }
-
-    Column(modifier = Modifier.padding(end = paddingRight)) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-            color = color
-        )
-    }
-}
-
-@Composable
-fun GlossaryItem(term: String, definition: String) {
-    Text(
-        text = buildAnnotatedString {
-            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)) {
-                append("$term: ")
+    if (showTechnicalGlossary) {
+        val title = stringResource(id = R.string.dashboard_technical_breakdown)
+        val rsiLabel = stringResource(id = R.string.dashboard_rsi)
+        val macdLabel = stringResource(id = R.string.dashboard_macd)
+        val trendLabel = stringResource(id = R.string.dashboard_trend)
+        val entries = listOfNotNull(
+            DashboardGlossaryProvider.definitionFor(context, "RSI")?.let { GlossaryEntry(label = rsiLabel, term = "RSI", definitionOverride = it) },
+            DashboardGlossaryProvider.definitionFor(context, "MACD")?.let { GlossaryEntry(label = macdLabel, term = "MACD", definitionOverride = it) },
+            // 💡 Only when the Trend stat itself is actually showing -- see that StatItem's own
+            // comment on why a symbol with no technicalStatus hides the cell entirely.
+            if (asset.technicalStatus != null) {
+                DashboardGlossaryProvider.definitionFor(context, "Trend")?.let { GlossaryEntry(label = trendLabel, term = "Trend", definitionOverride = it) }
+            } else {
+                null
             }
-            withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.onSurfaceVariant)) {
-                append(definition)
-            }
-        },
-        style = MaterialTheme.typography.bodySmall,
-        modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.padding_small))
-    )
+        )
+        StockAnalysisGlossaryBottomSheet(title = title, entries = entries, onDismiss = { showTechnicalGlossary = false })
+    }
+
+    if (showSmaGlossary) {
+        val title = stringResource(id = R.string.dashboard_sma_title)
+        val entries = listOfNotNull(
+            DashboardGlossaryProvider.definitionFor(context, "SMA")?.let { GlossaryEntry(label = title, term = "SMA", definitionOverride = it) }
+        )
+        StockAnalysisGlossaryBottomSheet(title = title, entries = entries, onDismiss = { showSmaGlossary = false })
+    }
+}
+
+/** RSI/MACD/Trend's shared bullish/bearish/neutral read -- same classification `SpeedometerGauge`/`VixFullWidthCard` use for their own status strings. */
+private enum class SmaPeriod { TWENTY, FIFTY, TWO_HUNDRED }
+
+private fun signalColorFor(pulseColors: PulseColors, status: String): Color = when (status.uppercase()) {
+    "BULLISH", "EXTREME GREED", "GREED", "OVERSOLD" -> pulseColors.signalBullishText
+    "BEARISH", "EXTREME FEAR", "FEAR", "OVERBOUGHT" -> pulseColors.signalBearishText
+    else -> pulseColors.signalNeutralText
 }
 
 // ============================================================================

@@ -1,5 +1,7 @@
 package com.marketlabs.pulse.ui.components.widgets
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,6 +14,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
@@ -56,6 +63,16 @@ fun VixFullWidthCard(asset: AssetOverview, onClick: () -> Unit) {
     val needleOverhangDimen = dimensionResource(id = R.dimen.gauge_needle_overhang)
     val cornerRadiusDimen = dimensionResource(id = R.dimen.vix_corner_radius)
 
+    var needlePercentageTarget by remember { mutableFloatStateOf(0f) }
+    val needlePercentage by animateFloatAsState(
+        targetValue = needlePercentageTarget,
+        animationSpec = tween(durationMillis = 1500),
+        label = "vix_needle_percentage"
+    )
+    LaunchedEffect(price) {
+        needlePercentageTarget = ((price.toFloat() - 10f) / 30f).coerceIn(0f, 1f)
+    }
+
     // 💡 This card previously flipped its own background between a bullish and bearish tint based
     // on a "contrarian" read of the VIX status (high VIX -> bullish-tinted card, since a volatility
     // spike is often a buying opportunity; low VIX -> bearish-tinted card, since complacency often
@@ -82,11 +99,16 @@ fun VixFullWidthCard(asset: AssetOverview, onClick: () -> Unit) {
                         color = MaterialTheme.colorScheme.onSurface
                     )
 
-                    // 💡 Null-safe Status with Dynamic Red/Green Coloring!
+                    // 💡 Direct read, not contrarian -- confirmed against Fear & Greed/Put-Call,
+                    // which DO get a contrarian read (extremes there are treated as a buy/sell
+                    // signal on the market itself). VIX's own status stays direct: "GREED"/
+                    // "BULLISH" (low VIX, a calm market) reads as bullish-green, "FEAR"/"BEARISH"
+                    // (high VIX, a panicky market) reads as bearish-red -- calm is colored good,
+                    // panic is colored bad, same as the status word's own plain-English sense.
                     if (!asset.rsiStatus.isNullOrEmpty()) {
                         val statusColor = when (asset.rsiStatus.uppercase()) {
-                            "EXTREME GREED", "GREED", "BULLISH" -> textBullish  // VIX is low (Bad for market/Sell warning)
-                            "EXTREME FEAR", "FEAR", "BEARISH" -> textBearish // VIX is high (Good for market/Buy opp)
+                            "EXTREME GREED", "GREED", "BULLISH" -> textBullish
+                            "EXTREME FEAR", "FEAR", "BEARISH" -> textBearish
                             else -> colorNeutral
                         }
 
@@ -106,12 +128,14 @@ fun VixFullWidthCard(asset: AssetOverview, onClick: () -> Unit) {
                     )
 
                     // 💡 Null-safe Change % -- shown as a directional pill now instead of plain
-                    // text. The triangle still follows the raw numeric sign (up = VIX rose), but the
-                    // pill's color keeps the VIX contrarian read (rising VIX = bearish for
-                    // equities, falling VIX = bullish) -- those two things are allowed to disagree.
-                    // The triangle already states the sign, so the text is unsigned (magnitude
-                    // only); an exact 0% reading gets the neutral tone and a flat bar instead of a
-                    // (necessarily arbitrary) bullish/bearish read, since VIX did not actually move.
+                    // text. The triangle follows the raw numeric sign (up = VIX rose); the pill's
+                    // color is the same direct read the status text above uses (rising VIX =
+                    // bearish for equities, falling VIX = bullish), not a contrarian one -- see
+                    // that Text's own comment for why VIX stays direct while Fear & Greed/Put-Call
+                    // don't. The text itself is unsigned (magnitude only) since the triangle
+                    // already states the sign; an exact 0% reading gets the neutral tone and a flat
+                    // bar instead of a (necessarily arbitrary) bullish/bearish read, since VIX did
+                    // not actually move.
                     if (change != null) {
                         // 💡 Gap from the price value bumped from `padding_small` to `padding_medium`
                         // -- the pill sitting almost flush against the price read cramped once it grew.
@@ -154,8 +178,7 @@ fun VixFullWidthCard(asset: AssetOverview, onClick: () -> Unit) {
                 val needleOverhang = needleOverhangDimen.toPx()
                 val cornerRadius = cornerRadiusDimen.toPx()
 
-                val percentage = ((price.toFloat() - 10f) / 30f).coerceIn(0f, 1f)
-                val thumbX = size.width * percentage
+                val thumbX = size.width * needlePercentage
 
                 drawRoundRect(
                     brush = Brush.horizontalGradient(

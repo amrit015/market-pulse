@@ -18,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -27,6 +28,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.components.PulseErrorState
 import com.marketlabs.pulse.ui.components.PulseLoadingIndicator
+import com.marketlabs.pulse.ui.components.widgets.FavoriteStarToggle
 
 /**
  * Stateful entry point for the pushed `metricDetail/{metricId}` destination -- replaces
@@ -69,6 +71,18 @@ fun MetricDetailRoute(
                             contentDescription = stringResource(id = R.string.nav_back_content_description)
                         )
                     }
+                },
+                actions = {
+                    FavoriteStarToggle(
+                        isFavorite = uiState.isFavorite,
+                        onClick = viewModel::toggleFavorite,
+                        contentDescription = stringResource(
+                            id = if (uiState.isFavorite) R.string.stock_analysis_remove_favorite_content_description
+                            else R.string.stock_analysis_add_favorite_content_description,
+                            uiState.metric?.name ?: uiState.metricId
+                        ),
+                        modifier = Modifier.padding(end = dimensionResource(id = R.dimen.padding_large))
+                    )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )

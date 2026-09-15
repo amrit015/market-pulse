@@ -65,10 +65,12 @@ fun DigestCard(headline: String?, sections: List<DomainDigestSection>, modifier:
                         Column {
                             // 💡 accentPrimary, matching the card's own "DAILY DIGEST" eyebrow above
                             // -- was onSurfaceMuted, which read as a different, disconnected label
-                            // family from the header it sits under.
-                            Text(
-                                text = section.heading.orEmpty().uppercase(),
-                                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                            // family from the header it sits under. `CardEyebrowLabel`, not a
+                            // one-off `Text` -- same component the eyebrow above already uses, so
+                            // this can't drift back out of sync with it (was `labelMedium`, one
+                            // scale up from the `labelSmall` every other eyebrow in the app uses).
+                            CardEyebrowLabel(
+                                text = section.heading.orEmpty(),
                                 color = pulseColors.accentPrimary
                             )
                             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))

@@ -1,6 +1,5 @@
 package com.marketlabs.pulse.ui.screens.indicators.views
 
-import android.R.attr.textStyle
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.Orientation
@@ -22,6 +21,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.HorizontalDivider
@@ -98,6 +98,12 @@ enum class IndicatorsTab(val labelRes: Int) {
     // strings `PillarUIConfig.title` uses for each tab's own inner section heading -- "Momentum"
     // on the tab bar, "Tactical Momentum" once you're on that tab, same idea as a nav label vs. a
     // page title.
+    //
+    // 💡 FAVORITES is first in display order (same as `StockAnalysisTab`'s own Favorites-first
+    // layout), but the default landing tab stays `TACTICAL_MOMENTUM` -- `IndicatorsViewModel`
+    // initializes `_selectedTabIndex` to `TACTICAL_MOMENTUM.ordinal`, not `0`, for exactly this
+    // reason (display order and default tab are deliberately independent).
+    FAVORITES(R.string.indicators_tab_favorites),
     TACTICAL_MOMENTUM(R.string.indicators_tab_momentum),
     SYSTEMIC_RISK(R.string.indicators_tab_systemic_risk),
     VALUATION(R.string.indicators_tab_valuation),
@@ -113,28 +119,36 @@ fun IndicatorsScreen(
     scaffoldPadding: PaddingValues,
     selectedTabIndex: Int,
     onTabSelected: (Int) -> Unit,
+    favoriteMetricIds: Set<String>,
+    onToggleFavoriteMetric: (String) -> Unit,
     onNavigateToHorizons: () -> Unit,
     onNavigateToMetricDetail: (String) -> Unit
 ) {
-    // 💡 metric_id -> display name, resolved once per composition from the already-loaded pillar
-    // lists. `executive.shifts[]` only ever carries a metric_id string -- the backend spec
-    // deliberately keeps that cross-reference a UI-layer concern (validated server-side, but never
-    // resolved to a display name server-side) so this app can render whatever name it's already
-    // showing on that metric's own card. (`horizons.*.key_drivers[]` used to need this same
-    // resolution but was removed from the backend schema entirely 2026-08-22 -- see
-    // IndicatorHorizonsScreen.kt.)
-    val metricNames = remember(data) {
+    // 💡 Every metric across all 4 pillars, flattened once per composition -- backs both
+    // `metricNames` (the shift-row id -> display-name lookup below) and the Favorites tab, which
+    // needs the full `DomainUnifiedMetric` (not just a name) for whichever ids are favorited,
+    // regardless of which pillar they came from.
+    val allMetrics = remember(data) {
         listOfNotNull(data.tacticalMomentum, data.systemicRisk, data.valuation, data.macroVitals)
             .flatMap { it.metrics }
-            .associate { it.id to it.name }
     }
+    // 💡 metric_id -> display name. `executive.shifts[]` only ever carries a metric_id string --
+    // the backend spec deliberately keeps that cross-reference a UI-layer concern (validated
+    // server-side, but never resolved to a display name server-side) so this app can render
+    // whatever name it's already showing on that metric's own card. (`horizons.*.key_drivers[]`
+    // used to need this same resolution but was removed from the backend schema entirely
+    // 2026-08-22 -- see IndicatorHorizonsScreen.kt.)
+    val metricNames = remember(allMetrics) { allMetrics.associate { it.id to it.name } }
 
     IndicatorsMainFeed(
         data = data,
+        allMetrics = allMetrics,
         metricNames = metricNames,
         scaffoldPadding = scaffoldPadding,
         selectedTabIndex = selectedTabIndex,
         onTabSelected = onTabSelected,
+        favoriteMetricIds = favoriteMetricIds,
+        onToggleFavoriteMetric = onToggleFavoriteMetric,
         onShowHorizons = onNavigateToHorizons,
         onNavigateToMetricDetail = onNavigateToMetricDetail
     )
@@ -146,10 +160,13 @@ fun IndicatorsScreen(
 @Composable
 private fun IndicatorsMainFeed(
     data: MarketIndicators,
+    allMetrics: List<DomainUnifiedMetric>,
     metricNames: Map<String, String>,
     scaffoldPadding: PaddingValues,
     selectedTabIndex: Int,
     onTabSelected: (Int) -> Unit,
+    favoriteMetricIds: Set<String>,
+    onToggleFavoriteMetric: (String) -> Unit,
     onShowHorizons: () -> Unit,
     onNavigateToMetricDetail: (String) -> Unit
 ) {
@@ -157,6 +174,13 @@ private fun IndicatorsMainFeed(
     val density = LocalDensity.current
 
     val pagerState = rememberPagerState(initialPage = selectedTabIndex) { IndicatorsTab.entries.size }
+    // 💡 Was missing -- every other `PulseTabRow` + `HorizontalPager` screen in this app
+    // (`StockAnalysisScreen`, `StockDetailScreen`, `InsightsScreen`) hoists one `LazyListState` per
+    // tab above the pager so scroll position survives swiping/tapping away and back; this screen's
+    // `LazyColumn` below used to fall back to a fresh `rememberLazyListState()` scoped to its own
+    // per-page composition instead, which `HorizontalPager` (a lazy layout) can dispose once a page
+    // scrolls far enough off-screen -- so switching tabs and back silently reset scroll to the top.
+    val lazyListStates = remember { List(IndicatorsTab.entries.size) { LazyListState() } }
 
     LaunchedEffect(selectedTabIndex) {
         if (pagerState.currentPage != selectedTabIndex) {
@@ -222,17 +246,38 @@ private fun IndicatorsMainFeed(
 
     val pillarConfigByTab = mapOf(
         IndicatorsTab.TACTICAL_MOMENTUM to data.tacticalMomentum?.let {
-            PillarUIConfig(stringResource(id = R.string.pillar_tactical_momentum), IndicatorCategory.TACTICAL_MOMENTUM, it)
+            PillarUIConfig(
+                stringResource(id = R.string.pillar_tactical_momentum),
+                IndicatorCategory.TACTICAL_MOMENTUM,
+                it,
+                description = stringResource(id = R.string.pillar_tactical_momentum_description)
+            )
         },
         IndicatorsTab.SYSTEMIC_RISK to data.systemicRisk?.let {
-            PillarUIConfig(stringResource(id = R.string.pillar_systemic_risk), IndicatorCategory.SYSTEMIC_RISK, it)
+            PillarUIConfig(
+                stringResource(id = R.string.pillar_systemic_risk),
+                IndicatorCategory.SYSTEMIC_RISK,
+                it,
+                description = stringResource(id = R.string.pillar_systemic_risk_description)
+            )
         },
         IndicatorsTab.VALUATION to data.valuation?.let {
-            PillarUIConfig(stringResource(id = R.string.pillar_valuation), IndicatorCategory.VALUATION, it)
+            PillarUIConfig(
+                stringResource(id = R.string.pillar_valuation),
+                IndicatorCategory.VALUATION,
+                it,
+                description = stringResource(id = R.string.pillar_valuation_description)
+            )
         },
         IndicatorsTab.MACRO_VITALS to data.macroVitals?.let {
             // 💡 FLAGGED AS MACRO: This allows us to conditionally render the release dates
-            PillarUIConfig(stringResource(id = R.string.pillar_macro_vitals), IndicatorCategory.MACRO_ECONOMY, it, isMacro = true)
+            PillarUIConfig(
+                stringResource(id = R.string.pillar_macro_vitals),
+                IndicatorCategory.MACRO_ECONOMY,
+                it,
+                isMacro = true,
+                description = stringResource(id = R.string.pillar_macro_vitals_description)
+            )
         }
     )
 
@@ -305,7 +350,8 @@ private fun IndicatorsMainFeed(
         PulseTabRow(
             tabs = IndicatorsTab.entries.map { stringResource(id = it.labelRes) },
             selectedTabIndex = selectedTabIndex,
-            onTabSelected = onTabSelected
+            onTabSelected = onTabSelected,
+            highlightedTabIndex = IndicatorsTab.FAVORITES.ordinal
         )
 
         // 💡 `weight(1f)`, not just `fillMaxSize()` -- without it, if the collapsing chrome above
@@ -327,9 +373,11 @@ private fun IndicatorsMainFeed(
                 state = pagerState,
                 modifier = Modifier.fillMaxSize()
             ) { page ->
-                val config = pillarConfigByTab[IndicatorsTab.entries[page]]
+                val tab = IndicatorsTab.entries[page]
+                val config = pillarConfigByTab[tab]
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
+                    state = lazyListStates[tab.ordinal],
                     contentPadding = PaddingValues(
                         start = paddingLarge,
                         end = paddingLarge,
@@ -337,11 +385,27 @@ private fun IndicatorsMainFeed(
                         bottom = scaffoldPadding.calculateBottomPadding() + paddingLarge
                     )
                 ) {
-                    if (config != null) {
+                    if (tab == IndicatorsTab.FAVORITES) {
+                        val favoritedMetrics = allMetrics.filter { it.id in favoriteMetricIds }
+                        if (favoritedMetrics.isEmpty()) {
+                            item { IndicatorsFavoritesEmptyState() }
+                        } else {
+                            item {
+                                FavoritesSection(
+                                    metrics = favoritedMetrics,
+                                    favoriteMetricIds = favoriteMetricIds,
+                                    onToggleFavorite = onToggleFavoriteMetric,
+                                    onIndicatorClick = { metric -> onNavigateToMetricDetail(metric.id) }
+                                )
+                            }
+                        }
+                    } else if (config != null) {
                         item {
                             PillarSection(
                                 config = config,
                                 scorecardEntry = scorecardByPillar[config.pillarCategory],
+                                favoriteMetricIds = favoriteMetricIds,
+                                onToggleFavorite = onToggleFavoriteMetric,
                                 onIndicatorClick = { metric -> onNavigateToMetricDetail(metric.id) }
                             )
                         }
@@ -366,6 +430,99 @@ private fun LazyItemScope.IndicatorsTabEmptyState() {
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+    }
+}
+
+/** Same shape as [IndicatorsTabEmptyState], distinct copy -- "nothing tracked" vs. "nothing starred". */
+@Composable
+private fun LazyItemScope.IndicatorsFavoritesEmptyState() {
+    Box(
+        modifier = Modifier.fillParentMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = stringResource(id = R.string.indicators_favorites_empty_message),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))
+        )
+    }
+}
+
+/**
+ * The Favorites tab's content -- a flat 2-per-row grid of whichever metrics are favorited,
+ * regardless of which pillar they came from (no subcategory grouping, unlike [PillarSection] --
+ * a cross-pillar list doesn't have one pillar's subcategory taxonomy to group by). Cards look
+ * identical to their own pillar tab's version -- the Favorites tab's visual distinction lives one
+ * level up, on the `PulseTabRow` chip itself (`highlightedTabIndex`), not on the cards inside it.
+ */
+@Composable
+private fun FavoritesSection(
+    metrics: List<DomainUnifiedMetric>,
+    favoriteMetricIds: Set<String>,
+    onToggleFavorite: (String) -> Unit,
+    onIndicatorClick: (DomainUnifiedMetric) -> Unit
+) {
+    val paddingMedium = dimensionResource(id = R.dimen.padding_medium)
+    val paddingLarge = dimensionResource(id = R.dimen.padding_large)
+    val textStyle = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+    val iconSize = with(LocalDensity.current) { textStyle.fontSize.toDp() }
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(bottom = paddingLarge),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_star_filled),
+                contentDescription = null,
+                tint = LocalPulseColors.current.accentPrimary,
+                modifier = Modifier.size(iconSize)
+            )
+            Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+            Text(
+                text = stringResource(id = R.string.indicators_tab_favorites),
+                style = textStyle,
+                color = LocalPulseColors.current.accentPrimary
+            )
+        }
+
+        metrics.chunked(2).forEach { rowMetrics ->
+            Row(
+                modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max),
+                horizontalArrangement = Arrangement.spacedBy(paddingMedium)
+            ) {
+                rowMetrics.forEach { metric ->
+                    val formattedChange = metric.changeDisplay?.let { changeStr ->
+                        if (metric.changeRaw == 0.0 && !changeStr.startsWith("+") && !changeStr.startsWith("-")) {
+                            "+$changeStr"
+                        } else {
+                            changeStr
+                        }
+                    }
+                    UniversalMetricCard(
+                        title = metric.name,
+                        value = metric.valueDisplay,
+                        changeString = formattedChange,
+                        signalText = metric.signalText,
+                        signalColor = metric.signalColor,
+                        // 💡 Same macro-only gating `PillarSection` applies via `config.isMacro` --
+                        // release dates are a Macro Vitals concept, stripped from every other
+                        // pillar's cards there, so a favorited non-macro metric shouldn't grow one
+                        // back just because it's cross-pillar here.
+                        dateString = if (IndicatorCategory.fromString(metric.category) == IndicatorCategory.MACRO_ECONOMY) metric.releaseDate else null,
+                        isFavorite = metric.id in favoriteMetricIds,
+                        onFavoriteClick = { onToggleFavorite(metric.id) },
+                        modifier = Modifier.weight(1f).fillMaxHeight(),
+                        onClick = { onIndicatorClick(metric) }
+                    )
+                }
+                if (rowMetrics.size == 1) {
+                    Spacer(modifier = Modifier.weight(1f).fillMaxHeight())
+                }
+            }
+            Spacer(modifier = Modifier.height(paddingMedium))
+        }
     }
 }
 
@@ -603,13 +760,16 @@ data class PillarUIConfig(
     val title: String,
     val pillarCategory: IndicatorCategory,
     val pillarData: DomainIndicatorPillar,
-    val isMacro: Boolean = false
+    val isMacro: Boolean = false,
+    val description: String = ""
 )
 
 @Composable
 private fun PillarSection(
     config: PillarUIConfig,
     scorecardEntry: DomainPillarScorecardEntry?,
+    favoriteMetricIds: Set<String> = emptySet(),
+    onToggleFavorite: ((String) -> Unit)? = null,
     onIndicatorClick: (DomainUnifiedMetric) -> Unit
 ) {
     val paddingMedium = dimensionResource(id = R.dimen.padding_medium)
@@ -633,10 +793,9 @@ private fun PillarSection(
                 color = MaterialTheme.colorScheme.primary
             )
             Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
-            // todo: add for each pillar
             MetricInfoAction(
-                title = stringResource(id = R.string.positioning_section_title),
-                description = stringResource(id = R.string.positioning_explainer_text)
+                title = config.title,
+                description = config.description
             )
         }
 
@@ -691,6 +850,8 @@ private fun PillarSection(
                             signalColor = metric.signalColor,
                             // 💡 HIDDEN: Evaluates macro flag to strip dates from pure technicals
                             dateString = if (config.isMacro) metric.releaseDate else null,
+                            isFavorite = metric.id in favoriteMetricIds,
+                            onFavoriteClick = onToggleFavorite?.let { toggle -> { toggle(metric.id) } },
                             modifier = Modifier
                                 .weight(1f)
                                 .fillMaxHeight(),
@@ -843,8 +1004,10 @@ private fun PreviewIndicatorsScreen() {
         IndicatorsScreen(
             data = previewMarketIndicators,
             scaffoldPadding = PaddingValues(0.dp),
-            selectedTabIndex = 0,
+            selectedTabIndex = IndicatorsTab.VALUATION.ordinal,
             onTabSelected = {},
+            favoriteMetricIds = setOf("pe_ratio"),
+            onToggleFavoriteMetric = {},
             onNavigateToHorizons = {},
             onNavigateToMetricDetail = {}
         )

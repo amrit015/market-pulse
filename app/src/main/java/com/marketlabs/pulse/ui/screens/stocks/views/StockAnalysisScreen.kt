@@ -8,77 +8,128 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyItemScope
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.intraday.IntradaySeries
 import com.marketlabs.pulse.storage.model.stocks.StockPreview
 import com.marketlabs.pulse.ui.common.UiError
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emptyFlow
-import com.marketlabs.pulse.ui.components.PulseCard
-import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.PulseLoadingIndicator
 import com.marketlabs.pulse.ui.screens.stocks.components.StockPreviewCard
+import com.marketlabs.pulse.ui.screens.stocks.isIndexOrEtf
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 
 /**
- * The Analysis tab's loaded-data content -- header ("Analysis" + "N TRACKED · ANALYZED AS OF ...")
- * followed by one `StockPreviewCard` per tracked symbol. Mirrors `NewsScreen`'s role exactly: the
- * Route owns the loading/error/empty state machine (same split `IndicatorsRoute`/`NewsRoute`
- * already use), this composable only ever renders the successful, data-present case.
+ * The Analysis tab's own page tabs -- Favorites (locally starred symbols), Stocks, Indices/ETF, in
+ * that display order. Favoriting a symbol doesn't remove it from Stocks/Indices-ETF; Favorites is
+ * a cross-cutting view over the same tracked list, not a separate bucket a symbol moves into.
+ * Mirrors `InsightsTab`'s shape exactly (`labelRes` enum, `PulseTabRow` + swipeable
+ * `HorizontalPager`, one `LazyColumn` + `LazyListState` per tab so scroll position survives
+ * switching tabs and back). `STOCKS` -- not the first-listed `FAVORITES` -- is the default landed
+ * on; `StockAnalysisViewModel` initializes `_selectedTabIndex` to `STOCKS.ordinal` rather than a
+ * bare `0` for exactly this reason (display order and default tab are deliberately independent).
+ */
+enum class StockAnalysisTab(val labelRes: Int) {
+    FAVORITES(R.string.stock_analysis_tab_favorites),
+    STOCKS(R.string.stock_analysis_tab_stocks),
+    INDICES_ETF(R.string.stock_analysis_tab_indices_etf)
+}
+
+/**
+ * The Analysis tab's loaded-data content -- one page per `StockAnalysisTab`, each with its own
+ * header ("N TRACKED · ANALYZED AS OF ...", `N` scoped to that tab's own filtered list, not the
+ * overall tracked count) followed by one `StockPreviewCard` per symbol in it. Mirrors `NewsScreen`'s
+ * role exactly: the Route owns the loading/error/empty state machine (same split
+ * `IndicatorsRoute`/`NewsRoute` already use), this composable only ever renders the successful,
+ * data-present case.
  */
 @Composable
 fun StockAnalysisScreen(
     previews: List<StockPreview>,
     analyzedAsOf: String?,
     isEquityOpen: Boolean,
+    pagerState: PagerState,
+    favoriteSymbols: Set<String>,
     onCardClick: (String) -> Unit,
+    onToggleFavorite: (String) -> Unit,
     scaffoldPadding: PaddingValues,
     getIntradayStream: (String) -> Flow<IntradaySeries?> = { emptyFlow() },
     modifier: Modifier = Modifier
 ) {
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
 
-    // 💡 Top padding uses `scaffoldPadding`'s top component (the Scaffold's own measurement of
-    // the global collapsing top bar's real rendered height), same as DashboardScreen/
-    // IndicatorsScreen -- the raw status bar inset alone doesn't account for the app's own top
-    // bar sitting below it, so content used to start underneath the top bar instead of below it.
-    LazyColumn(
+    // 💡 `top` is just breathing room under the pinned PulseTabRow now, not `scaffoldPadding`'s top
+    // component -- the global top bar's own inset is already consumed once by that pinned tab row
+    // (rendered above this screen in `StockAnalysisRoute`), so adding it again here would double
+    // the gap between the top bar and the tab row's own content. Same fix `InsightsScreen` already
+    // applies for the identical reason.
+    val contentPadding = PaddingValues(
+        top = paddingLarge,
+        bottom = scaffoldPadding.calculateBottomPadding() + paddingLarge,
+        start = paddingLarge,
+        end = paddingLarge
+    )
+    val lazyListStates = remember { List(StockAnalysisTab.entries.size) { LazyListState() } }
+
+    Box(
         modifier = modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
-        contentPadding = PaddingValues(
-            top = scaffoldPadding.calculateTopPadding(),
-            bottom = scaffoldPadding.calculateBottomPadding() + paddingLarge,
-            start = paddingLarge,
-            end = paddingLarge
-        ),
-        verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_large))
+            .background(MaterialTheme.colorScheme.background)
     ) {
-        item {
-            StockAnalysisHeader(trackedCount = previews.size, analyzedAsOf = analyzedAsOf)
-        }
-        items(previews, key = { it.symbol }) { preview ->
-            StockPreviewCard(
-                preview = preview,
-                onClick = { onCardClick(preview.symbol) },
-                isEquityOpen = isEquityOpen,
-                intradayStream = getIntradayStream(preview.symbol)
-            )
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxSize()
+        ) { page ->
+            val tab = StockAnalysisTab.entries[page]
+            val tabPreviews = when (tab) {
+                StockAnalysisTab.FAVORITES -> previews.filter { it.symbol in favoriteSymbols }
+                StockAnalysisTab.STOCKS -> previews.filterNot { it.isIndexOrEtf() }
+                StockAnalysisTab.INDICES_ETF -> previews.filter { it.isIndexOrEtf() }
+            }
+
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                state = lazyListStates[tab.ordinal],
+                contentPadding = contentPadding,
+                verticalArrangement = Arrangement.spacedBy(paddingLarge)
+            ) {
+                item {
+                    StockAnalysisHeader(trackedCount = tabPreviews.size, analyzedAsOf = analyzedAsOf)
+                }
+                if (tabPreviews.isEmpty()) {
+                    item { StockAnalysisTabEmptyState(tab) }
+                }
+                items(tabPreviews, key = { it.symbol }) { preview ->
+                    StockPreviewCard(
+                        preview = preview,
+                        onClick = { onCardClick(preview.symbol) },
+                        isEquityOpen = isEquityOpen,
+                        isFavorite = preview.symbol in favoriteSymbols,
+                        onFavoriteClick = { onToggleFavorite(preview.symbol) },
+                        intradayStream = getIntradayStream(preview.symbol),
+                        modifier = Modifier.animateItem()
+                    )
+                }
+            }
         }
     }
 }
@@ -98,6 +149,31 @@ private fun StockAnalysisHeader(trackedCount: Int, analyzedAsOf: String?) {
                 modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_micro))
             )
         }
+    }
+}
+
+/**
+ * Same "nothing here" treatment `InsightsTabEmptyState` uses for its own per-tab empty case --
+ * centered, muted, `LazyItemScope` receiver so `fillParentMaxSize()` sizes to the LazyColumn's own
+ * viewport instead of shrink-wrapping to this one item.
+ */
+@Composable
+private fun LazyItemScope.StockAnalysisTabEmptyState(tab: StockAnalysisTab) {
+    val messageRes = when (tab) {
+        StockAnalysisTab.FAVORITES -> R.string.stock_analysis_favorites_empty_message
+        StockAnalysisTab.STOCKS -> R.string.stock_analysis_empty_message
+        StockAnalysisTab.INDICES_ETF -> R.string.stock_analysis_indices_etf_empty_message
+    }
+    Box(
+        modifier = Modifier.fillParentMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = stringResource(id = messageRes),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))
+        )
     }
 }
 
@@ -158,7 +234,16 @@ private val mockPreviews = listOf(
 @Composable
 private fun PreviewStockAnalysisScreenLight() {
     MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
-        StockAnalysisScreen(previews = mockPreviews, analyzedAsOf = "Aug 07, 6:15 PM", isEquityOpen = true, onCardClick = {}, scaffoldPadding = PaddingValues())
+        StockAnalysisScreen(
+            previews = mockPreviews,
+            analyzedAsOf = "Aug 07, 6:15 PM",
+            isEquityOpen = true,
+            pagerState = rememberPagerState { StockAnalysisTab.entries.size },
+            favoriteSymbols = setOf("NVDA"),
+            onCardClick = {},
+            onToggleFavorite = {},
+            scaffoldPadding = PaddingValues()
+        )
     }
 }
 
@@ -166,7 +251,16 @@ private fun PreviewStockAnalysisScreenLight() {
 @Composable
 private fun PreviewStockAnalysisScreenDark() {
     MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
-        StockAnalysisScreen(previews = mockPreviews, analyzedAsOf = "Aug 07, 6:15 PM", isEquityOpen = true, onCardClick = {}, scaffoldPadding = PaddingValues())
+        StockAnalysisScreen(
+            previews = mockPreviews,
+            analyzedAsOf = "Aug 07, 6:15 PM",
+            isEquityOpen = true,
+            pagerState = rememberPagerState { StockAnalysisTab.entries.size },
+            favoriteSymbols = setOf("NVDA"),
+            onCardClick = {},
+            onToggleFavorite = {},
+            scaffoldPadding = PaddingValues()
+        )
     }
 }
 

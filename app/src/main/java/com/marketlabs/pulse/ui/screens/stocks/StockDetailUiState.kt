@@ -57,7 +57,7 @@ data class StockDetailUiState(
     val isRefreshing: Boolean = false,
     val expandedChipIds: Set<String> = emptySet(),
     val expandedNewsIds: Set<String> = emptySet(),
-    val selectedTabIndex: Int = DetailTab.TECHNICALS.ordinal,
+    val selectedTabIndex: Int = DetailTab.DIGEST.ordinal,
     val chartSeries: ChartSeries? = null,
     val selectedChartRange: ChartRange = ChartRange.FIVE_DAY,
     val isChartLoading: Boolean = false,
@@ -67,5 +67,7 @@ data class StockDetailUiState(
      *  uses -- gates `DetailHeader`'s "LIVE" label so it only shows while `price` is actually being
      *  live-updated (regular market hours), not after `intradayPoller` has stopped for the day. */
     val isEquityOpen: Boolean = false,
+    /** Local-only, per-device -- same `FavoriteStocksRepository` the Analysis tab's star reads. */
+    val isFavorite: Boolean = false,
     val error: UiError? = null
 )

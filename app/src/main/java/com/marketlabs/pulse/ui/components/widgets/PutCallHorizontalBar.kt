@@ -1,5 +1,7 @@
 package com.marketlabs.pulse.ui.components.widgets
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,6 +15,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
@@ -30,7 +37,16 @@ import kotlin.math.abs
 @Composable
 fun PutCallHorizontalBar(ratio: Double, change: Double?, status: String?) {
     val totalOptions = ratio + 1.0
-    val putPercentage = (ratio / totalOptions).toFloat()
+
+    var putPercentageTarget by remember { mutableFloatStateOf(0f) }
+    val putPercentage by animateFloatAsState(
+        targetValue = putPercentageTarget,
+        animationSpec = tween(durationMillis = 1500),
+        label = "put_call_split"
+    )
+    LaunchedEffect(ratio) {
+        putPercentageTarget = (ratio / totalOptions).toFloat()
+    }
 
     val drawLineColor = MaterialTheme.colorScheme.onSurface
     val pulseColors = LocalPulseColors.current
@@ -71,12 +87,16 @@ fun PutCallHorizontalBar(ratio: Double, change: Double?, status: String?) {
                         color = MaterialTheme.colorScheme.onSurface
                     )
 
-                    // 💡 Only show Change % if it's not null -- shown as a directional pill now,
-                    // matching VixFullWidthCard's treatment (same contrarian coloring: a rising
-                    // ratio is bad, so it gets the bearish tone even though the triangle points
-                    // up). Text is unsigned (magnitude only) since the triangle already states the
-                    // sign; an exact 0% reading gets the neutral tone and a flat bar instead of a
-                    // triangle, since the ratio did not actually move.
+                    // 💡 Only show Change % if it's not null -- shown as a directional pill now.
+                    // Contrarian coloring, matching Fear & Greed: a rising ratio means more puts
+                    // relative to calls (more hedging/fear), read here as a bullish signal on the
+                    // market itself (capitulation/extreme fear, a potential bottom) -- so it gets
+                    // the bullish tone even though the triangle points up (the triangle still
+                    // follows the raw numeric sign; the pill color is the market-direction read,
+                    // those two are allowed to disagree, same as VIX's own pill). Text is unsigned
+                    // (magnitude only) since the triangle already states the sign; an exact 0%
+                    // reading gets the neutral tone and a flat bar instead of a triangle, since the
+                    // ratio did not actually move.
                     if (change != null) {
                         // 💡 Gap from the ratio value bumped from `padding_small` to `padding_medium`
                         // -- the pill sitting almost flush against the value read cramped once it grew.
@@ -94,13 +114,13 @@ fun PutCallHorizontalBar(ratio: Double, change: Double?, status: String?) {
                             direction = changeDirection,
                             pillColor = when {
                                 isFlat -> pulseColors.signalNeutralPill
-                                isRatioRising -> pulseColors.signalBearishPill
-                                else -> pulseColors.signalBullishPill
+                                isRatioRising -> pulseColors.signalBullishPill
+                                else -> pulseColors.signalBearishPill
                             },
                             contentColor = when {
                                 isFlat -> textNeutral
-                                isRatioRising -> textBearish
-                                else -> textBullish
+                                isRatioRising -> textBullish
+                                else -> textBearish
                             }
                         )
                     }
@@ -108,17 +128,19 @@ fun PutCallHorizontalBar(ratio: Double, change: Double?, status: String?) {
 
                 Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
 
-                // MIDDLE: Red / Green Split Bar
+                // MIDDLE: Green / Red Split Bar -- green on the puts (fear) side, red on the
+                // calls (greed) side, matching the same contrarian convention as the change pill
+                // and status text below (more puts = more fear = read as bullish, not bearish).
                 Canvas(
                     modifier = Modifier
                         .fillMaxWidth(0.85f)
                         .height(dimensionResource(id = R.dimen.padding_large))
                 ) {
                     val splitBrush = Brush.horizontalGradient(
-                        0.0f to colorRed,
-                        putPercentage to colorRed,
+                        0.0f to colorGreen,
                         putPercentage to colorGreen,
-                        1.0f to colorGreen
+                        putPercentage to colorRed,
+                        1.0f to colorRed
                     )
 
                     drawRoundRect(
@@ -141,13 +163,14 @@ fun PutCallHorizontalBar(ratio: Double, change: Double?, status: String?) {
             }
         }
 
-        // BOTTOM: Optional Status ("FEAR" / "GREED")
+        // BOTTOM: Optional Status ("FEAR" / "GREED") -- contrarian, matching the pill/bar above:
+        // Fear (more puts) reads bullish, Greed (more calls) reads bearish.
         if (!status.isNullOrEmpty()) {
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
 
             val statusColor = when (status.uppercase()) {
-                "EXTREME GREED", "GREED", "BULLISH" -> textBullish
-                "EXTREME FEAR", "FEAR", "BEARISH" -> textBearish
+                "EXTREME GREED", "GREED", "BULLISH" -> textBearish
+                "EXTREME FEAR", "FEAR", "BEARISH" -> textBullish
                 else -> textNeutral
             }
             Text(

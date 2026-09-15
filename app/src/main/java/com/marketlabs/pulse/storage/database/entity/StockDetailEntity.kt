@@ -35,6 +35,7 @@ data class StockDetailEntity(
     @PrimaryKey val symbol: String,
     val lastSyncedTimestamp: Long,
 
+    val assetType: String? = null,
     val detailVersion: Long? = null,
     val analysisDate: String? = null,
     val technicalIndicators: DomainTechnicalIndicators? = null,
