@@ -683,8 +683,93 @@
     <string name="privacy_section_9_title">9. Contact</string>
     <string name="privacy_section_9_body">[TODO: contact email]</string>
 
-    <!-- Tutorials hub (Settings → Tutorials) — route/entry point wired in Phase 1; content (spec §6) lands in Phase 2. -->
+    <!-- Tutorials hub (Settings → Tutorials) — spec §6. -->
     <string name="tutorials_hub_screen_title">Tutorials</string>
+    <string name="tutorials_item_how_it_works">How Market Pulse Works</string>
+    <string name="tutorials_item_gauges">Understanding the Gauges</string>
+    <string name="tutorials_item_market_concepts">Market Concepts</string>
+    <string name="tutorials_item_ai_content">About AI-Generated Content</string>
+    <string name="tutorials_item_data_limitations">Data Limitations</string>
+
+    <!-- §6.1 How Market Pulse works -->
+    <string name="tutorials_how_it_works_paragraph_1">Market Pulse pulls market data, macro indicators, and company fundamentals from a mix of public and licensed data sources, then runs it through a set of deterministic calculations before any AI touches it — trend direction, valuation gaps, and technical setups are computed in code, not guessed by a model.</string>
+    <string name="tutorials_how_it_works_paragraph_2">Some of what you see is pure computed data (prices, ratios, historical values). Some is AI-generated narrative built on top of that data (daily digests, plain-language summaries, interpretive text). The App doesn\'t hide which is which inside this section — see \"About AI-Generated Content\" for how to tell them apart on any given screen.</string>
+    <string name="tutorials_how_it_works_paragraph_3">Data refreshes on a schedule, not continuously — most indicators update once or a few times a day; a small set of live prices update every minute during market hours.</string>
+
+    <!-- §6.2 Understanding the gauges — structure only per spec; definitions are pulled at runtime
+         from MetricGlossaryProvider (metric_glossary.json), the same source GlossaryDetailScreen/
+         MetricDetailScreen already use, not duplicated here. Category grouping mirrors the
+         Indicators tab's own pillar taxonomy (Tactical Momentum/Systemic Risk/Valuation/Macro
+         Vitals) plus Positioning/Posture. -->
+    <string name="tutorials_gauges_intro">Every gauge and indicator across Market Pulse follows the same idea: a raw value gets bucketed into a plain-language read (e.g. \"Extreme Fear,\" \"Overbought,\" \"Neutral\") using thresholds defined elsewhere, not judged case by case. The definitions below come from the same glossary data the rest of the app uses — tap any gauge in the app itself for the fuller breakdown, including its current band and any gotchas specific to that metric.</string>
+    <string name="tutorials_gauges_category_tactical_momentum">Tactical Momentum</string>
+    <string name="tutorials_gauges_category_systemic_risk">Systemic Risk</string>
+    <string name="tutorials_gauges_category_valuation">Valuation</string>
+    <string name="tutorials_gauges_category_macro_vitals">Macro Vitals</string>
+    <string name="tutorials_gauges_category_positioning">Positioning</string>
+    <string name="tutorials_gauges_category_posture">Posture</string>
+    <string name="tutorials_gauge_title_fear_and_greed">Fear &amp; Greed Index</string>
+    <string name="tutorials_gauge_title_put_call_ratio">Put/Call Ratio</string>
+    <string name="tutorials_gauge_title_spy_rsi">SPY RSI (14-Day)</string>
+    <string name="tutorials_gauge_title_sma_extension">SMA Extension (200-Day)</string>
+    <string name="tutorials_gauge_title_vix">VIX</string>
+    <string name="tutorials_gauge_title_yield_curve">Yield Curve (10Y–02Y)</string>
+    <string name="tutorials_gauge_title_credit_spreads">Credit Spreads</string>
+    <string name="tutorials_gauge_title_move_index">MOVE Index</string>
+    <string name="tutorials_gauge_title_copper_gold">Copper/Gold Ratio</string>
+    <string name="tutorials_gauge_title_consumer_rotation">Consumer Rotation (XLY/XLP)</string>
+    <string name="tutorials_gauge_title_market_breadth">Market Breadth (RSP/SPY)</string>
+    <string name="tutorials_gauge_title_dxy">U.S. Dollar Index (DXY)</string>
+    <string name="tutorials_gauge_title_oil">Oil Price</string>
+    <string name="tutorials_gauge_title_pe_ratio">P/E Ratio</string>
+    <string name="tutorials_gauge_title_pb_ratio">P/B Ratio</string>
+    <string name="tutorials_gauge_title_erp">Equity Risk Premium</string>
+    <string name="tutorials_gauge_title_div_yield">Dividend Yield</string>
+    <string name="tutorials_gauge_title_cpi_yoy">CPI (Year-over-Year)</string>
+    <string name="tutorials_gauge_title_core_pce_yoy">Core PCE (Year-over-Year)</string>
+    <string name="tutorials_gauge_title_core_pce_mom">Core PCE (Month-over-Month)</string>
+    <string name="tutorials_gauge_title_unemployment">Unemployment Rate</string>
+    <string name="tutorials_gauge_title_nfp">Nonfarm Payrolls</string>
+    <string name="tutorials_gauge_title_real_gdp">Real GDP</string>
+    <string name="tutorials_gauge_title_retail_sales">Retail Sales</string>
+    <string name="tutorials_gauge_title_fed_funds">Fed Funds Rate</string>
+    <string name="tutorials_gauge_title_yield_10y">10-Year Treasury Yield</string>
+    <string name="tutorials_gauge_title_positioning_aaii_bull_bear_spread">AAII Bull-Bear Spread</string>
+    <string name="tutorials_gauge_title_positioning_cot_nc_net_pct_oi">CFTC COT Net % of Open Interest</string>
+    <string name="tutorials_gauge_title_positioning_cot_percentile">CFTC COT Percentile</string>
+    <string name="tutorials_gauge_title_positioning_short_interest_days_to_cover">Short Interest — Days to Cover</string>
+    <string name="tutorials_gauge_title_positioning_short_interest_shares">Short Interest — Shares</string>
+    <string name="tutorials_gauge_title_positioning_short_interest_mom_change">Short Interest — Month-over-Month Change</string>
+    <string name="tutorials_gauge_title_posture_naaim_exposure">NAAIM Exposure Index</string>
+    <string name="tutorials_gauge_title_posture_dark_pool_index">Dark Pool Index (DIX)</string>
+    <string name="tutorials_gauge_title_posture_net_liquidity">Net Liquidity</string>
+
+    <!-- §6.3 Market concepts — highest-risk static content in the spec: descriptive of what market
+         participants generally do/believe, never prescriptive of what the reader should do. Needs
+         review before shipping, and a standing check whenever a named gauge's inputs change
+         (NAAIM/DIX/net liquidity for Posture; AAII/COT/short interest for Positioning; FRED series
+         for Macro Vitals). -->
+    <string name="tutorials_market_concepts_sentiment_title">Sentiment &amp; Positioning</string>
+    <string name="tutorials_market_concepts_sentiment_body">Markets move on more than fundamentals — how investors feel about risk shifts prices too, sometimes faster than the underlying data changes. A handful of indicators try to measure that feeling directly, mostly by looking at what investors are actually doing with their money rather than what they say.\n\nFear &amp; Greed and the Put/Call ratio (CNN) gauge short-term market mood — extreme fear has historically coincided with periods where selling pressure was overdone, and extreme greed with periods of elevated risk-taking. Neither is a timing signal on its own; both can stay at an extreme for a long time before anything changes.\n\nThe NAAIM Exposure Index tracks how invested active fund managers actually are, week to week — a direct measure of professional positioning rather than a survey response.\n\nThe AAII Sentiment Survey measures individual investor sentiment (bullish/neutral/bearish) — a widely watched but famously unreliable contrarian indicator: extreme readings in either direction are sometimes read as a sign that a consensus view has gotten crowded, not as confirmation the consensus is right.\n\nThe CFTC Commitment of Traders (COT) report and FINRA short interest data show what large futures traders and short sellers are positioned for — institutional-level positioning that moves on a different timescale than retail sentiment.\n\nIn Market Pulse: this whole family appears as the Posture and Positioning gauges. Posture combines NAAIM, SqueezeMetrics\' Dark Index (DIX), and net liquidity signals; Positioning combines AAII, COT futures data, and FINRA short interest. Each is one input among several — none is used alone anywhere in the app.</string>
+    <string name="tutorials_market_concepts_macro_title">Macro &amp; Interest Rates</string>
+    <string name="tutorials_market_concepts_macro_body">Interest rates set the \"cost of money\" for the entire economy, so changes to them ripple into nearly everything else. When the Federal Reserve raises rates, borrowing gets more expensive for companies and consumers alike — which can slow spending and earnings growth, and tends to make already-established cash flows (like bonds, or stocks priced heavily on future growth) relatively more attractive than they were before. Rate cuts generally work in the opposite direction. Neither effect is instant or guaranteed — markets often move on the expectation of a rate change well before the change itself happens.\n\nThe 10-year and 2-year Treasury yields, and the spread between them, are widely watched because an inverted yield curve (short-term yields above long-term) has historically preceded economic slowdowns — though the timing and reliability of that relationship varies a lot across cycles.\n\nInflation data (CPI, core PCE) matters because it\'s a primary input into what the Fed does next — hotter-than-expected inflation readings tend to raise the odds of tighter policy, and vice versa.\n\nIn Market Pulse: this appears in the Macro Vitals gauge, built from FRED data — the 10-year and 2-year Treasury yields, core inflation (CPI and core PCE), unemployment, and the Fed funds rate, updated from the same source the Fed itself publishes.</string>
+    <string name="tutorials_market_concepts_technical_title">Technical Concepts</string>
+    <string name="tutorials_market_concepts_technical_body">Technical analysis looks at price and volume patterns themselves, on the theory that price action reflects everything the market currently knows or believes, even before that shows up elsewhere.\n\nMoving averages smooth out day-to-day noise to show the underlying trend — the 50-day and 200-day are the most widely watched. When a stock\'s price is above its 200-day moving average, that\'s commonly read as a sign the longer-term trend is up; below it, the opposite. A \"golden cross\" (50-day crossing above the 200-day) and \"death cross\" (the reverse) are watched as longer-term trend-change signals, though both can lag the actual turn by weeks.\n\nSupport and resistance describe price levels where a stock has repeatedly stopped falling or stopped rising in the past — the idea being that enough market participants remember those levels that they influence behavior again next time price approaches them. Neither is a hard floor or ceiling; both get broken regularly.\n\nIn Market Pulse: this is the SMA card and the momentum/trend classification on each stock\'s detail screen — computed directly from price history, not from an AI\'s read of a chart. The forward calls feature tracks how a classified setup (e.g. a momentum or mean-reversion read) actually played out over the following trading sessions — a historical record of the app\'s own calls, not a prediction of what comes next.</string>
+    <string name="tutorials_market_concepts_valuation_title">Valuation Basics</string>
+    <string name="tutorials_market_concepts_valuation_body">Valuation asks a different question than sentiment or technicals: is the price being paid reasonable relative to what the company actually earns? The P/E ratio (price divided by earnings per share) is the most common starting point — a \"high\" P/E means the market is paying more per dollar of current earnings, often because it expects faster future growth; a \"low\" P/E can mean the opposite, or can mean the market has real concerns the price hasn\'t priced out.\n\nComparing a stock\'s P/E to its own sector, rather than to the market as a whole, controls for the fact that some industries structurally trade at higher multiples than others (growth software vs. utilities, for example) — a stock that looks \"cheap\" against the whole market can be expensive against its actual peers, and vice versa.\n\nA low valuation is not, by itself, a signal that a stock is underpriced — it\'s frequently a sign the market has already priced in a real risk. Valuation is one lens among several, not a standalone verdict.\n\nIn Market Pulse: this is the sector-relative P/E metric on each stock\'s fundamentals — the stock\'s own P/E measured against its sector\'s median, computed from the same underlying data as the headline P/E figure, not a separate estimate.</string>
+
+    <!-- §6.4 About AI-generated content -->
+    <string name="tutorials_ai_content_intro">Parts of Market Pulse — daily digests, plain-language summaries, deep-dive write-ups, and the short explainer text near some charts — are written by an AI model, not a human analyst.</string>
+    <string name="tutorials_ai_content_limitations_title">Limitations Worth Knowing</string>
+    <string name="tutorials_ai_content_limitations_body">AI models are good at summarizing patterns in data quickly, but they have real limitations worth knowing about:\n• They can misread or misweight a data point, especially when signals conflict.\n• They can state something with more confidence than the underlying data actually supports.\n• They don\'t know anything about your personal financial situation, goals, or risk tolerance — their output isn\'t written for you specifically.\n• Their training has a cutoff; very recent events may not be reflected in how they frame a story, even when the numbers on screen are current.</string>
+    <string name="tutorials_ai_content_mitigations_title">What Market Pulse Does to Reduce This</string>
+    <string name="tutorials_ai_content_mitigations_body">• Every number you see (prices, ratios, chart values) is computed in code first — AI never invents a figure, it only writes about figures that were already calculated.\n• AI-generated text is automatically screened for advice-sounding language (\"you should buy,\" \"good entry point,\" etc.) before it\'s shown — if flagged content is caught, it\'s removed rather than shown anyway.</string>
+    <string name="tutorials_ai_content_what_you_should_do_title">What You Should Do</string>
+    <string name="tutorials_ai_content_what_you_should_do_body">• Treat AI-written summaries as a starting point for your own research, not a conclusion.\n• Cross-check anything that would influence a real decision against the underlying data or an independent source.\n• Remember: none of this is personalized to you, and none of it is financial advice.</string>
+
+    <!-- §6.5 Data limitations -->
+    <string name="tutorials_data_limitations_title">A Few Things Worth Knowing About the Data Itself</string>
+    <string name="tutorials_data_limitations_body">• Market holidays and half-days: some indicators may show a stale \"last close\" value rather than a fresh one.\n• After-hours vs. regular-hours pricing: a price shown outside market hours may reflect after-hours trading, which is typically lower-volume and more volatile than regular-hours pricing.\n• Halted or delisted symbols: data for a halted or delisted symbol may be missing or frozen at its last known value.\n• Delayed data: most market data is not real-time; treat displayed prices as approximate, not tradeable quotes.</string>
     <string name="settings_preset_selected_content_description">Selected</string>
     <string name="settings_preset_mode_light">Light</string>
     <string name="settings_preset_mode_dark">Dark</string>

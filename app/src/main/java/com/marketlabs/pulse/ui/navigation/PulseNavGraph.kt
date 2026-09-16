@@ -39,6 +39,12 @@ import com.marketlabs.pulse.ui.screens.stocks.detail.timeline.ResolvedCallsListR
 import com.marketlabs.pulse.ui.screens.stocks.detail.timeline.TechnicalTimelineListRoute
 import com.marketlabs.pulse.ui.screens.stocks.views.StockAnalysisRoute
 import com.marketlabs.pulse.ui.screens.summary.views.MarketSummaryRoute
+import com.marketlabs.pulse.ui.screens.tutorials.TutorialsAiContentScreen
+import com.marketlabs.pulse.ui.screens.tutorials.TutorialsDataLimitationsScreen
+import com.marketlabs.pulse.ui.screens.tutorials.TutorialsGaugesRoute
+import com.marketlabs.pulse.ui.screens.tutorials.TutorialsHowItWorksScreen
+import com.marketlabs.pulse.ui.screens.tutorials.TutorialsHubScreen
+import com.marketlabs.pulse.ui.screens.tutorials.TutorialsMarketConceptsScreen
 import com.marketlabs.pulse.ui.settings.SettingsRoute
 import com.marketlabs.pulse.utils.enums.ReportType
 import java.net.URLDecoder
@@ -122,9 +128,13 @@ object PulseRoutes {
     const val TERMS_CONDITIONS = "terms_conditions"
     const val PRIVACY_POLICY = "privacy_policy"
 
-    // Reached from Settings -> Tutorials. Phase 1: route + placeholder body only, real content
-    // (spec §6) lands in Phase 2.
+    // Reached from Settings -> Tutorials (spec §6, Phase 2).
     const val TUTORIALS_HUB = "tutorials_hub"
+    const val TUTORIALS_HOW_IT_WORKS = "tutorials_how_it_works"
+    const val TUTORIALS_GAUGES = "tutorials_gauges"
+    const val TUTORIALS_MARKET_CONCEPTS = "tutorials_market_concepts"
+    const val TUTORIALS_AI_CONTENT = "tutorials_ai_content"
+    const val TUTORIALS_DATA_LIMITATIONS = "tutorials_data_limitations"
 
     // Reached from Settings' three formerly-Toast-stub rows -- now real (if content-empty)
     // destinations per spec-20260915-compliance-disclaimers.md's Settings-rows decision.
@@ -543,13 +553,30 @@ fun PulseNavGraph(
                 onNavigateUp = { navController.popBackStack() }
             )
         }
-        // Phase 1: route + placeholder body only -- real content (spec §6) lands in Phase 2, which
-        // replaces this block's PlaceholderScreen with a real TutorialsHubScreen.
         composable(PulseRoutes.TUTORIALS_HUB) {
-            PlaceholderScreen(
-                title = stringResource(id = R.string.tutorials_hub_screen_title),
-                onNavigateUp = { navController.popBackStack() }
+            TutorialsHubScreen(
+                onNavigateUp = { navController.popBackStack() },
+                onNavigateToHowItWorks = { navController.navigate(PulseRoutes.TUTORIALS_HOW_IT_WORKS) },
+                onNavigateToGauges = { navController.navigate(PulseRoutes.TUTORIALS_GAUGES) },
+                onNavigateToMarketConcepts = { navController.navigate(PulseRoutes.TUTORIALS_MARKET_CONCEPTS) },
+                onNavigateToAiContent = { navController.navigate(PulseRoutes.TUTORIALS_AI_CONTENT) },
+                onNavigateToDataLimitations = { navController.navigate(PulseRoutes.TUTORIALS_DATA_LIMITATIONS) }
             )
+        }
+        composable(PulseRoutes.TUTORIALS_HOW_IT_WORKS) {
+            TutorialsHowItWorksScreen(onNavigateUp = { navController.popBackStack() })
+        }
+        composable(PulseRoutes.TUTORIALS_GAUGES) {
+            TutorialsGaugesRoute(onNavigateUp = { navController.popBackStack() })
+        }
+        composable(PulseRoutes.TUTORIALS_MARKET_CONCEPTS) {
+            TutorialsMarketConceptsScreen(onNavigateUp = { navController.popBackStack() })
+        }
+        composable(PulseRoutes.TUTORIALS_AI_CONTENT) {
+            TutorialsAiContentScreen(onNavigateUp = { navController.popBackStack() })
+        }
+        composable(PulseRoutes.TUTORIALS_DATA_LIMITATIONS) {
+            TutorialsDataLimitationsScreen(onNavigateUp = { navController.popBackStack() })
         }
     }
 }

@@ -31,6 +31,11 @@ class MetricGlossaryProvider @Inject constructor(
 
     fun get(metricId: String): MetricGlossaryEntry? = glossary[metricId]
 
+    /** spec-20260915-compliance-disclaimers.md §6.2: the Tutorials hub's "Understanding the
+     * Gauges" section browses every entry rather than looking up one -- same in-memory bundle,
+     * order-preserving (insertion order of `metric_glossary.json`'s own keys). */
+    fun getAll(): Map<String, MetricGlossaryEntry> = glossary
+
     private fun loadGlossary(): Map<String, MetricGlossaryEntry> {
         return try {
             val json = context.assets.open("metric_glossary.json").bufferedReader().use { it.readText() }
