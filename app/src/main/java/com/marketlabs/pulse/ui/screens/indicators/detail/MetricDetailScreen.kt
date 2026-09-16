@@ -43,6 +43,7 @@ import com.marketlabs.pulse.core.indicators.MetricHistoryPillar
 import com.marketlabs.pulse.storage.model.charts.ChartRange
 import com.marketlabs.pulse.storage.model.indicators.DomainUnifiedMetric
 import com.marketlabs.pulse.storage.model.indicators.MetricHistoryPoint
+import com.marketlabs.pulse.ui.components.DisclaimerFooter
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.charts.ChartRangePicker
@@ -210,6 +211,7 @@ fun MetricDetailScreen(
         }
 
         Spacer(modifier = Modifier.height(paddingExtraLarge))
+        DisclaimerFooter()
     }
 }
 

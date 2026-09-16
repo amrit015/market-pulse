@@ -66,6 +66,7 @@ import com.marketlabs.pulse.storage.model.summary.Valuation
 import com.marketlabs.pulse.storage.model.summary.WatchItem
 import com.marketlabs.pulse.storage.model.summary.WhatsNewItem
 import com.marketlabs.pulse.ui.components.AnalyzedAtHeader
+import com.marketlabs.pulse.ui.components.DisclaimerFooter
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.PulseErrorState
@@ -494,6 +495,8 @@ private fun SummaryDayPage(
                 validData.verdict?.let { verdict ->
                     item { TheReadSection(verdict) }
                 }
+
+                item { DisclaimerFooter() }
             }
         }
     }

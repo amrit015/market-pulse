@@ -67,21 +67,16 @@ fun FloatingBottomNav(
 ) {
     val cornerRadius = dimensionResource(id = R.dimen.corner_radius_pill)
     val elevation = dimensionResource(id = R.dimen.nav_elevation)
-    // 💡 Both started at `padding_standard` (12dp) -- horizontal margin bumped to `padding_large`
-    // (16dp) for more breathing room from the screen edges, kept as its own value so it can change
-    // independently of the bottom margin. Bottom margin (the gap above the system nav bar) went the
-    // other way, down to `padding_small` (4dp) -- 12dp read as an oversized gap once seen against
-    // the rest of the app's tighter spacing.
+    // 💡 Started at `padding_standard` (12dp), bumped to `padding_large` (16dp) for more breathing
+    // room from the screen edges.
     val horizontalMargin = dimensionResource(id = R.dimen.padding_medium)
-    val bottomMargin = 0.dp
     val borderWidth = dimensionResource(id = R.dimen.border_thin)
 
     Surface(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = horizontalMargin)
-            .windowInsetsPadding(WindowInsets.navigationBars)
-            .padding(bottom = bottomMargin),
+            .windowInsetsPadding(WindowInsets.navigationBars),
         shape = RoundedCornerShape(cornerRadius),
         color = MaterialTheme.colorScheme.surfaceContainerHighest,
         border = BorderStroke(borderWidth, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)),

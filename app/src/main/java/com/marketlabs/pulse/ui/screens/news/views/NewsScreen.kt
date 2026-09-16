@@ -38,6 +38,7 @@ import com.google.android.gms.ads.nativead.NativeAd
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.news.MarketNews
 import com.marketlabs.pulse.storage.model.news.NewsArticle
+import com.marketlabs.pulse.ui.components.DisclaimerFooter
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.ads.PulseNativeAdCard
@@ -221,6 +222,8 @@ fun NewsScreen(
                     }
                 }
             }
+
+            item { DisclaimerFooter() }
         }
     }
 }

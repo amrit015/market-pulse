@@ -601,7 +601,90 @@
     <string name="settings_item_notifications">Notifications</string>
     <string name="settings_item_data_sync">Data &amp; Sync</string>
     <string name="settings_item_about">About Market Pulse</string>
+    <string name="settings_item_tutorials">Tutorials</string>
     <string name="settings_coming_soon_toast">Coming soon</string>
+    <string name="placeholder_coming_soon">Coming soon.</string>
+
+    <!-- spec-20260915-compliance-disclaimers.md: universal footer, every screen except Settings/Legal. -->
+    <string name="footer_disclaimer">For informational purposes only, not financial advice.</string>
+
+    <!-- Onboarding carousel (spec §7) — precedes the legal acceptance gate. -->
+    <string name="onboarding_slide1_title">Institutional-grade market intelligence, without the noise.</string>
+    <string name="onboarding_slide1_body">Market Pulse tracks US equities, macro indicators, and market sentiment in one place — built for investors who want the real data, not just headlines.</string>
+    <string name="onboarding_slide2_title">Two kinds of content, always labeled.</string>
+    <string name="onboarding_slide2_body">Numbers, charts, and prices are computed directly from market data — no AI involved.\n\nSummaries and narrative reads are written by AI based on that data. Look for the ⓘ icon on any AI-written card to see exactly how it was generated.</string>
+    <string name="onboarding_slide3_title">One important thing first.</string>
+    <string name="onboarding_slide3_body">Market Pulse is a research tool, not financial advice. The next screen covers what that means — it\'ll take a minute to read, and it matters.</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_continue">Continue</string>
+
+    <!-- Legal acceptance gate (spec §2) — one-time, gates entry. -->
+    <string name="legal_acceptance_screen_title">Before You Continue</string>
+    <string name="legal_acceptance_paragraph_1">Market Pulse provides market data and AI-generated analysis for informational purposes only. It is not financial advice, and Market Pulse is not a licensed financial advisor.</string>
+    <string name="legal_acceptance_paragraph_2">Some content — including summaries, interpretive text, and daily digests — is generated using AI models. AI can misread data, produce incomplete analysis, or state something with more confidence than the underlying data supports. Treat all of it as a starting point for your own research, not a conclusion.</string>
+    <string name="legal_acceptance_paragraph_3">Market data is sourced from third parties and may be delayed, incomplete, or occasionally wrong. Past patterns do not predict future results.</string>
+    <string name="legal_acceptance_paragraph_4">You are solely responsible for your own investment decisions.</string>
+    <string name="legal_acceptance_checkbox_label">I have read and agree to the Terms &amp; Conditions and Privacy Policy</string>
+    <string name="legal_acceptance_view_terms_link">Terms &amp; Conditions</string>
+    <string name="legal_acceptance_view_privacy_link">Privacy Policy</string>
+    <string name="legal_acceptance_accept_button">Accept</string>
+
+    <string name="legal_last_updated_todo">Last updated: [TODO: fill in ship date]</string>
+
+    <!-- Terms &amp; Conditions (spec §3). NOT LEGAL ADVICE — needs real legal review before shipping;
+         [TODO: ...] markers stand in for entity/jurisdiction/contact details not yet supplied. -->
+    <string name="terms_conditions_screen_title">Terms &amp; Conditions</string>
+    <string name="terms_section_1_title">1. Acceptance of Terms</string>
+    <string name="terms_section_1_body">By downloading, installing, or using Market Pulse (\"the App\"), you agree to be bound by these Terms &amp; Conditions. If you do not agree, do not use the App.</string>
+    <string name="terms_section_2_title">2. Description of Service</string>
+    <string name="terms_section_2_body">Market Pulse aggregates publicly available market data — equity prices, macroeconomic indicators, and related statistics — and presents it alongside computed metrics and AI-generated interpretive content. The App is a research and information tool.</string>
+    <string name="terms_section_3_title">3. Not Financial Advice</string>
+    <string name="terms_section_3_body">Nothing in the App constitutes financial, investment, trading, tax, or legal advice. The App does not know your financial situation, goals, or risk tolerance, and nothing it presents is a recommendation to buy, sell, or hold any security or asset. Market Pulse and its developer are not a registered investment adviser, broker-dealer, or financial planner. Consult a licensed, qualified professional before making financial decisions.</string>
+    <string name="terms_section_4_title">4. AI-Generated Content</string>
+    <string name="terms_section_4_body">Portions of the App\'s content — including but not limited to narrative summaries, daily digests, and interpretive text accompanying charts and indicators — are generated using artificial intelligence / machine learning models. This content:\n• has not been individually reviewed or verified by a human before being shown to you;\n• may be incomplete, inaccurate, outdated, or misleading;\n• may occasionally state something incorrectly with apparent confidence.\nAlways cross-check AI-generated content against the underlying data and independent sources before relying on it in any way.</string>
+    <string name="terms_section_5_title">5. Third-Party Data</string>
+    <string name="terms_section_5_body">Market data displayed in the App is sourced from third-party data providers. Market Pulse does not independently verify the accuracy, completeness, or timeliness of this data and disclaims all warranties regarding it. Data may be delayed relative to real-time market conditions and may be unavailable during outages, market holidays, or provider disruptions.</string>
+    <string name="terms_section_6_title">6. No Warranty</string>
+    <string name="terms_section_6_body">The App is provided \"as is\" and \"as available,\" without warranties of any kind, express or implied, including but not limited to warranties of accuracy, merchantability, fitness for a particular purpose, or non-infringement.</string>
+    <string name="terms_section_7_title">7. Limitation of Liability</string>
+    <string name="terms_section_7_body">To the maximum extent permitted by law, Market Pulse and its developer shall not be liable for any direct, indirect, incidental, consequential, or special damages — including financial losses — arising from your use of, or reliance on, the App or its content.</string>
+    <string name="terms_section_8_title">8. User Responsibilities</string>
+    <string name="terms_section_8_body">You are solely responsible for your own investment and financial decisions. You agree not to rely on the App as your sole source of information for any financial decision.</string>
+    <string name="terms_section_9_title">9. Intellectual Property</string>
+    <string name="terms_section_9_body">The App\'s design, code, and original content are the property of [TODO: developer/company name]. Market data remains the property of its respective third-party providers.</string>
+    <string name="terms_section_10_title">10. Changes to These Terms</string>
+    <string name="terms_section_10_body">These Terms may be updated from time to time. Material changes will require re-acceptance before continued use of the App.</string>
+    <string name="terms_section_11_title">11. Termination</string>
+    <string name="terms_section_11_body">[TODO: developer/company name] may suspend or discontinue the App, or your access to it, at any time.</string>
+    <string name="terms_section_12_title">12. Governing Law</string>
+    <string name="terms_section_12_body">[TODO: governing jurisdiction — confirm before finalizing]</string>
+    <string name="terms_section_13_title">13. Contact</string>
+    <string name="terms_section_13_body">[TODO: contact email]</string>
+
+    <!-- Privacy Policy (spec §4). NOT LEGAL ADVICE — needs real legal review before shipping.
+         Crashlytics bullet omitted: confirmed not a dependency in this app as of this writing. -->
+    <string name="privacy_policy_screen_title">Privacy Policy</string>
+    <string name="privacy_section_1_title">1. Overview</string>
+    <string name="privacy_section_1_body">Market Pulse does not require account creation or sign-in. This policy explains what limited data the App collects and how it\'s used.</string>
+    <string name="privacy_section_2_title">2. Information We Collect</string>
+    <string name="privacy_section_2_body">• App preferences (e.g. selected theme, favorited stocks/metrics, legal-acceptance status) — stored locally on your device only, never transmitted to us.\n• Usage analytics (via Firebase Analytics) — anonymized app-usage data such as screens viewed and general engagement, tied to an app-instance identifier, not to you personally.</string>
+    <string name="privacy_section_3_title">3. Information We Do Not Collect</string>
+    <string name="privacy_section_3_body">• No account information, email, or phone number (no sign-in exists in the App).\n• No financial account, brokerage, or payment information.\n• No precise location data.</string>
+    <string name="privacy_section_4_title">4. Third-Party Services</string>
+    <string name="privacy_section_4_body">• Firebase (Google) — analytics, content delivery, and app security (App Check). Governed by Google\'s own privacy policy.\n• Market data providers — accessed entirely server-side by Market Pulse\'s backend; these providers never receive information about you or your device.</string>
+    <string name="privacy_section_5_title">5. Data Retention</string>
+    <string name="privacy_section_5_body">Locally stored preferences remain on your device until you clear app data or uninstall. Analytics data retention follows Firebase\'s standard retention settings.</string>
+    <string name="privacy_section_6_title">6. Your Rights</string>
+    <string name="privacy_section_6_body">Because no account or personal profile exists, most data-subject requests (access, deletion, portability) are satisfied by clearing the App\'s local storage or uninstalling the App. For analytics-level requests, contact us at [TODO: contact email].</string>
+    <string name="privacy_section_7_title">7. Children\'s Privacy</string>
+    <string name="privacy_section_7_body">Market Pulse is not directed at children under 13 (or the relevant age threshold in your jurisdiction) and does not knowingly collect data from them.</string>
+    <string name="privacy_section_8_title">8. Changes to This Policy</string>
+    <string name="privacy_section_8_body">This policy may be updated from time to time; material changes follow the same re-acceptance mechanism as the Terms &amp; Conditions.</string>
+    <string name="privacy_section_9_title">9. Contact</string>
+    <string name="privacy_section_9_body">[TODO: contact email]</string>
+
+    <!-- Tutorials hub (Settings → Tutorials) — route/entry point wired in Phase 1; content (spec §6) lands in Phase 2. -->
+    <string name="tutorials_hub_screen_title">Tutorials</string>
     <string name="settings_preset_selected_content_description">Selected</string>
     <string name="settings_preset_mode_light">Light</string>
     <string name="settings_preset_mode_dark">Dark</string>

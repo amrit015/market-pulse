@@ -34,6 +34,7 @@ import com.marketlabs.pulse.core.insights.InsightsHistoryPillar
 import com.marketlabs.pulse.storage.model.charts.ChartRange
 import com.marketlabs.pulse.storage.model.indicators.MetricHistoryPoint
 import com.marketlabs.pulse.storage.model.insights.InsightsHistoryPoint
+import com.marketlabs.pulse.ui.components.DisclaimerFooter
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.charts.ChartRangePicker
@@ -202,6 +203,7 @@ fun GlossaryDetailScreen(
         }
 
         Spacer(modifier = Modifier.height(paddingExtraLarge))
+        DisclaimerFooter()
     }
 }
 

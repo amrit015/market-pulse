@@ -51,6 +51,7 @@ import com.marketlabs.pulse.storage.model.dashboard.MarketState
 import com.marketlabs.pulse.storage.model.intraday.IntradaySeries
 import com.marketlabs.pulse.storage.model.news.NewsArticle
 import com.marketlabs.pulse.ui.components.AnalyzedAtHeader
+import com.marketlabs.pulse.ui.components.DisclaimerFooter
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.bottomSheet.MarketGlossaryBottomSheet
@@ -287,6 +288,8 @@ fun DashboardScreen(
                     onSeeAllClick = onNavigateToNews
                 )
             }
+
+            DisclaimerFooter()
         }
     }
 

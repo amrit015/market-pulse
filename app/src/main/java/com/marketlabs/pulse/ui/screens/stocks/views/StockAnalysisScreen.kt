@@ -30,6 +30,7 @@ import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.intraday.IntradaySeries
 import com.marketlabs.pulse.storage.model.stocks.StockPreview
 import com.marketlabs.pulse.ui.common.UiError
+import com.marketlabs.pulse.ui.components.DisclaimerFooter
 import com.marketlabs.pulse.ui.components.PulseLoadingIndicator
 import com.marketlabs.pulse.ui.screens.stocks.components.StockPreviewCard
 import com.marketlabs.pulse.ui.screens.stocks.isIndexOrEtf
@@ -129,6 +130,7 @@ fun StockAnalysisScreen(
                         modifier = Modifier.animateItem()
                     )
                 }
+                item { DisclaimerFooter() }
             }
         }
     }

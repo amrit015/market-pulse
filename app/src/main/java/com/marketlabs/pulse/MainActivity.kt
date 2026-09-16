@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
@@ -28,6 +29,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.marketlabs.pulse.data.legal.LegalRepository
 import com.marketlabs.pulse.data.theme.ThemeRepository
 import com.marketlabs.pulse.ui.components.AppTopBar
 import com.marketlabs.pulse.ui.components.FloatingBottomNav
@@ -81,6 +83,9 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var themeRepository: ThemeRepository
 
+    @Inject
+    lateinit var legalRepository: LegalRepository
+
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
@@ -101,6 +106,17 @@ class MainActivity : ComponentActivity() {
         // first read this process makes, not an unbounded or network-backed read, and `onCreate` is
         // already blocking the main thread on layout inflation at this point regardless.
         val initialTheme = runBlocking { themeRepository.selectedTheme.first() }
+
+        // spec-20260915-compliance-disclaimers.md §2: same reasoning as initialTheme above -- a
+        // single small Preferences value, read synchronously once before the first frame so the
+        // graph's startDestination is correct from the start rather than needing a reactive branch
+        // NavHost doesn't support after construction anyway.
+        val initialAcceptedVersion = runBlocking { legalRepository.acceptedVersion.first() }
+        val startDestination = if (initialAcceptedVersion >= LegalRepository.CURRENT_LEGAL_VERSION) {
+            PulseRoutes.MARKET_OVERVIEW
+        } else {
+            PulseRoutes.ONBOARDING_CAROUSEL
+        }
 
         setContent {
             val selectedTheme by themeRepository.selectedTheme.collectAsStateWithLifecycle(
@@ -152,6 +168,10 @@ class MainActivity : ComponentActivity() {
                 // layout for that slot -- symbol/price/badges all in one pinned block), but the
                 // same exclusion applies per the stock-analysis-ui spec's explicit "suppress the
                 // collapsing top bar for this route" instruction.
+                // spec-20260915-compliance-disclaimers.md: onboarding/acceptance/legal-doc/settings-
+                // sub-page/tutorials-hub routes added to this same exclusion list -- each owns its
+                // own Scaffold/TopAppBar (or, for onboarding/acceptance, no top-of-screen chrome at
+                // all) the same way every other pushed destination already does.
                 val isPushedDestination = currentRoute == PulseRoutes.MARKET_NEWS ||
                     currentRoute == PulseRoutes.SETTINGS ||
                     currentRoute == PulseRoutes.INDICATOR_HORIZONS ||
@@ -162,7 +182,15 @@ class MainActivity : ComponentActivity() {
                     currentRoute?.startsWith("${PulseRoutes.TECHNICAL_TIMELINE_LIST}/") == true ||
                     currentRoute?.startsWith("${PulseRoutes.ASSET_DETAIL}/") == true ||
                     currentRoute?.startsWith("${PulseRoutes.METRIC_DETAIL}/") == true ||
-                    currentRoute?.startsWith("${PulseRoutes.GLOSSARY_DETAIL}/") == true
+                    currentRoute?.startsWith("${PulseRoutes.GLOSSARY_DETAIL}/") == true ||
+                    currentRoute == PulseRoutes.ONBOARDING_CAROUSEL ||
+                    currentRoute == PulseRoutes.LEGAL_ACCEPTANCE ||
+                    currentRoute == PulseRoutes.TERMS_CONDITIONS ||
+                    currentRoute == PulseRoutes.PRIVACY_POLICY ||
+                    currentRoute == PulseRoutes.TUTORIALS_HUB ||
+                    currentRoute == PulseRoutes.SETTINGS_NOTIFICATIONS ||
+                    currentRoute == PulseRoutes.SETTINGS_DATA_SYNC ||
+                    currentRoute == PulseRoutes.SETTINGS_ABOUT
 
                 // 💡 enterAlwaysScrollBehavior.state.heightOffset is one shared value driving the
                 // top bar's collapse amount across every tab that actually uses that behavior (see
@@ -249,9 +277,11 @@ class MainActivity : ComponentActivity() {
                         }
                     },
                     bottomBar = {
-                        // 💡 Reuses `isPushedDestination` rather than its own route list -- see the
-                        // comment above it. One shared boolean means these two chrome decisions
-                        // can't drift apart as new pushed routes are added later.
+                        // spec-20260915-compliance-disclaimers.md (revised): the disclaimer footer
+                        // moved OUT of this shared chrome -- it's appended to the bottom of each
+                        // screen's own scrollable content instead (see DisclaimerFooter's own doc
+                        // comment), so it can cover pushed destinations too without needing Scaffold
+                        // wiring here. This slot is back to owning just the floating nav.
                         if (!isPushedDestination) {
                             FloatingBottomNav(
                                 items = bottomNavItems,
@@ -299,6 +329,7 @@ class MainActivity : ComponentActivity() {
                     PulseNavGraph(
                         navController = navController,
                         scaffoldPadding = dynamicScaffoldPadding,
+                        startDestination = startDestination,
                         onDriversNavigatedToIndicators = { reachedIndicatorsFromDrivers = true },
                         reachedIndicatorsFromDrivers = reachedIndicatorsFromDrivers,
                         onIndicatorsBackHandled = { reachedIndicatorsFromDrivers = false },

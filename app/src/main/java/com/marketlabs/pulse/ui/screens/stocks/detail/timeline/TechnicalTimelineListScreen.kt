@@ -22,6 +22,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.stocks.DomainEventLogItem
 import com.marketlabs.pulse.ui.common.UiError
+import com.marketlabs.pulse.ui.components.DisclaimerFooter
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.PulseErrorState
@@ -90,6 +91,7 @@ fun TechnicalTimelineListScreen(
                 }
             }
         }
+        item { DisclaimerFooter() }
     }
 }
 

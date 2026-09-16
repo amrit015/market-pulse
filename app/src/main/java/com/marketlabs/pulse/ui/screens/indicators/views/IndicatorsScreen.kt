@@ -62,6 +62,7 @@ import com.marketlabs.pulse.storage.model.indicators.DomainShift
 import com.marketlabs.pulse.storage.model.indicators.DomainUnifiedMetric
 import com.marketlabs.pulse.storage.model.indicators.MarketIndicators
 import com.marketlabs.pulse.ui.components.AnalyzedAtHeader
+import com.marketlabs.pulse.ui.components.DisclaimerFooter
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.PulseTabRow
@@ -412,6 +413,8 @@ private fun IndicatorsMainFeed(
                     } else {
                         item { IndicatorsTabEmptyState() }
                     }
+
+                    item { DisclaimerFooter() }
                 }
             }
         }

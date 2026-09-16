@@ -107,12 +107,33 @@ fun SettingsScreen(
                 onClick = { onMoreItemClick(SettingsMoreItem.ABOUT) }
             )
             HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+            SettingsMoreRow(
+                label = stringResource(id = R.string.terms_conditions_screen_title),
+                onClick = { onMoreItemClick(SettingsMoreItem.TERMS_CONDITIONS) }
+            )
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+            SettingsMoreRow(
+                label = stringResource(id = R.string.privacy_policy_screen_title),
+                onClick = { onMoreItemClick(SettingsMoreItem.PRIVACY_POLICY) }
+            )
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+            SettingsMoreRow(
+                label = stringResource(id = R.string.settings_item_tutorials),
+                onClick = { onMoreItemClick(SettingsMoreItem.TUTORIALS) }
+            )
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
         }
     }
 }
 
-/** The three "More" placeholder destinations. Per the spec: stubs only, tapping shows a Toast — do not build these sub-screens. */
-enum class SettingsMoreItem { NOTIFICATIONS, DATA_SYNC, ABOUT }
+/**
+ * spec-20260915-compliance-disclaimers.md: all six "More" rows are now real, navigable
+ * destinations — Notifications/Data & Sync/About are placeholder screens (content/design to follow
+ * separately). Terms & Conditions and Privacy Policy are their own top-level rows (no intermediate
+ * "Legal" hub screen) linking to the same two documents shown once during onboarding; Tutorials is
+ * net-new for this spec.
+ */
+enum class SettingsMoreItem { NOTIFICATIONS, DATA_SYNC, ABOUT, TERMS_CONDITIONS, PRIVACY_POLICY, TUTORIALS }
 
 @Composable
 private fun SettingsSectionHeader(text: String) {

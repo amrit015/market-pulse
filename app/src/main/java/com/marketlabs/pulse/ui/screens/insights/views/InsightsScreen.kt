@@ -20,6 +20,7 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.ui.components.DisclaimerFooter
 import com.marketlabs.pulse.ui.screens.insights.InsightsUiState
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
@@ -90,6 +91,7 @@ fun InsightsScreen(
                             InsightsTabEmptyState()
                         }
                     }
+                    item { DisclaimerFooter() }
                 }
 
                 InsightsTab.RISKS -> LazyColumn(
@@ -105,6 +107,7 @@ fun InsightsScreen(
                             InsightsTabEmptyState()
                         }
                     }
+                    item { DisclaimerFooter() }
                 }
 
                 InsightsTab.POSTURE -> LazyColumn(
@@ -125,6 +128,7 @@ fun InsightsScreen(
                             InsightsTabEmptyState()
                         }
                     }
+                    item { DisclaimerFooter() }
                 }
 
                 InsightsTab.POSITIONING -> LazyColumn(
@@ -145,6 +149,7 @@ fun InsightsScreen(
                             InsightsTabEmptyState()
                         }
                     }
+                    item { DisclaimerFooter() }
                 }
             }
         }

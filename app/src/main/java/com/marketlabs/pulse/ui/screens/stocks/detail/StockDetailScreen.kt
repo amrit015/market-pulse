@@ -36,6 +36,7 @@ import com.marketlabs.pulse.storage.model.charts.ChartSeries
 import com.marketlabs.pulse.storage.model.intraday.IntradaySeries
 import com.marketlabs.pulse.storage.model.stocks.StockDetail
 import com.marketlabs.pulse.storage.model.stocks.StockPreview
+import com.marketlabs.pulse.ui.components.DisclaimerFooter
 import com.marketlabs.pulse.ui.components.charts.ChartRangePicker
 import com.marketlabs.pulse.ui.components.charts.IntradayPeriodChart
 import com.marketlabs.pulse.ui.components.charts.PeriodChart
@@ -252,6 +253,7 @@ private fun DigestTabContent(
         item {
             DigestCard(headline = headline, sections = sections)
         }
+        item { DisclaimerFooter() }
     }
 }
 
@@ -505,6 +507,7 @@ private fun DetailTabContent(
         verticalArrangement = Arrangement.spacedBy(sectionSpacing)
     ) {
         content()
+        item { DisclaimerFooter() }
     }
 }
 
