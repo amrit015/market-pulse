@@ -5,6 +5,7 @@ package com.marketlabs.pulse.ui.components
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -37,6 +38,10 @@ import com.marketlabs.pulse.ui.theme.LocalPulseColors
  * A section with a blank heading renders body-only (no heading row) — used for flowing-paragraph
  * content (e.g. §6.1) that doesn't have a natural per-paragraph heading, so callers don't need a
  * second shape just for that case.
+ *
+ * Each section is its own `PulseCard(DATA)` — this app's card system, matching the "one card per
+ * list entry" shape `StockAnalysisGlossaryBottomSheet`/`MetricDetailScreen`'s `BandRow` already use,
+ * rather than bare `Text` blocks directly on the screen background.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -82,18 +87,22 @@ fun DocumentSectionsScreen(
             }
 
             sections.forEach { (heading, body) ->
-                if (heading.isNotBlank()) {
-                    Text(
-                        text = heading,
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                    )
-                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
+                PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
+                        if (heading.isNotBlank()) {
+                            Text(
+                                text = heading,
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                            )
+                            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
+                        }
+                        Text(
+                            text = body,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
                 }
-                Text(
-                    text = body,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_xlarge)))
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
             }
 
             if (showFooter) {

@@ -4,6 +4,7 @@ package com.marketlabs.pulse.ui.screens.stocks.deepdive
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -42,6 +43,7 @@ import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.components.PulseErrorState
 import com.marketlabs.pulse.ui.components.PulseLoadingIndicator
 import com.marketlabs.pulse.ui.components.uiErrorMessage
+import com.marketlabs.pulse.ui.components.widgets.AiGeneratedLabel
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 
 /**
@@ -116,11 +118,21 @@ fun DeepDiveRoute(
                 )
             }
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
-            Text(
-                text = stringResource(id = R.string.deep_dive_title),
-                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onSurface
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(id = R.string.deep_dive_title),
+                    style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                // 💡 One label for the whole page, not per DeepDiveSectionCard -- this screen
+                // renders 9 section cards from one AI-authored Deep Dive; repeating the disclosure
+                // on each would be noisy for something that applies to the page as a whole.
+                AiGeneratedLabel()
+            }
             uiState.previewName?.let { name ->
                 Text(
                     text = "$name · ${uiState.symbol}",

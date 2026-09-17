@@ -1,6 +1,7 @@
 package com.marketlabs.pulse.ui.components
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -26,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.ui.components.widgets.AiGeneratedLabel
 import com.marketlabs.pulse.ui.components.widgets.CardEyebrowLabel
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
@@ -86,11 +88,18 @@ fun SynthesisHeroCard(
             // headline instead (and explicitly sized), matching Market Sentiment's
             // chevron-on-the-headline pattern (SummaryScreen.kt) -- the eyebrow row is now just
             // the label, same as Market Signal/Sentiment.
-            CardEyebrowLabel(
-                text = stringResource(id = R.string.insights_synthesis_label),
-                color = pulseColors.accentPrimary,
-                iconRes = R.drawable.ic_ai_sparkle_filled
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                CardEyebrowLabel(
+                    text = stringResource(id = R.string.insights_synthesis_label),
+                    color = pulseColors.accentPrimary,
+                    iconRes = R.drawable.ic_ai_sparkle_filled
+                )
+                AiGeneratedLabel()
+            }
 
             Spacer(modifier = Modifier.height(paddingMedium))
 
@@ -154,6 +163,10 @@ private fun PreviewSynthesisHeroCardLight() {
 @Composable
 private fun PreviewSynthesisHeroCardUnavailable() {
     MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
-        SynthesisHeroCard(headline = null, detail = null, isUnavailable = true)
+        SynthesisHeroCard(
+            headline = null,
+            detail = null,
+            isUnavailable = true
+        )
     }
 }

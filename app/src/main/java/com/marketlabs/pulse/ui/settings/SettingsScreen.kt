@@ -31,6 +31,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.ui.components.PulseCard
+import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.settings.components.ThemePickerGrid
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
@@ -91,37 +93,43 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_xxlarge)))
 
             SettingsSectionHeader(text = stringResource(id = R.string.settings_section_more))
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
-            SettingsMoreRow(
-                label = stringResource(id = R.string.settings_item_notifications),
-                onClick = { onMoreItemClick(SettingsMoreItem.NOTIFICATIONS) }
-            )
-            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
-            SettingsMoreRow(
-                label = stringResource(id = R.string.settings_item_data_sync),
-                onClick = { onMoreItemClick(SettingsMoreItem.DATA_SYNC) }
-            )
-            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
-            SettingsMoreRow(
-                label = stringResource(id = R.string.settings_item_about),
-                onClick = { onMoreItemClick(SettingsMoreItem.ABOUT) }
-            )
-            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
-            SettingsMoreRow(
-                label = stringResource(id = R.string.terms_conditions_screen_title),
-                onClick = { onMoreItemClick(SettingsMoreItem.TERMS_CONDITIONS) }
-            )
-            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
-            SettingsMoreRow(
-                label = stringResource(id = R.string.privacy_policy_screen_title),
-                onClick = { onMoreItemClick(SettingsMoreItem.PRIVACY_POLICY) }
-            )
-            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
-            SettingsMoreRow(
-                label = stringResource(id = R.string.settings_item_tutorials),
-                onClick = { onMoreItemClick(SettingsMoreItem.TUTORIALS) }
-            )
-            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+            // 💡 One PulseCard(DATA) holding every row, internal dividers between them -- this
+            // app's established "list of rows inside one card" shape (ResolvedCallsListScreen,
+            // TechnicalTimelineListScreen), not a bare Column of rows directly on the background.
+            PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.padding_large))) {
+                    SettingsMoreRow(
+                        label = stringResource(id = R.string.settings_item_notifications),
+                        onClick = { onMoreItemClick(SettingsMoreItem.NOTIFICATIONS) }
+                    )
+                    HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+                    SettingsMoreRow(
+                        label = stringResource(id = R.string.settings_item_data_sync),
+                        onClick = { onMoreItemClick(SettingsMoreItem.DATA_SYNC) }
+                    )
+                    HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+                    SettingsMoreRow(
+                        label = stringResource(id = R.string.settings_item_about),
+                        onClick = { onMoreItemClick(SettingsMoreItem.ABOUT) }
+                    )
+                    HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+                    SettingsMoreRow(
+                        label = stringResource(id = R.string.terms_conditions_screen_title),
+                        onClick = { onMoreItemClick(SettingsMoreItem.TERMS_CONDITIONS) }
+                    )
+                    HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+                    SettingsMoreRow(
+                        label = stringResource(id = R.string.privacy_policy_screen_title),
+                        onClick = { onMoreItemClick(SettingsMoreItem.PRIVACY_POLICY) }
+                    )
+                    HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+                    SettingsMoreRow(
+                        label = stringResource(id = R.string.settings_item_tutorials),
+                        onClick = { onMoreItemClick(SettingsMoreItem.TUTORIALS) }
+                    )
+                }
+            }
         }
     }
 }

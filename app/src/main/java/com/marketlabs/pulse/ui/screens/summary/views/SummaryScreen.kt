@@ -74,6 +74,7 @@ import com.marketlabs.pulse.ui.components.PulseLoadingIndicator
 import com.marketlabs.pulse.ui.components.bottomSheet.DriversInfoBottomSheet
 import com.marketlabs.pulse.ui.components.bottomSheet.MarketGlossaryBottomSheet
 import com.marketlabs.pulse.ui.components.bottomSheet.MarketReadBottomSheet
+import com.marketlabs.pulse.ui.components.widgets.AiGeneratedLabel
 import com.marketlabs.pulse.ui.components.widgets.CardEyebrowLabel
 import com.marketlabs.pulse.ui.components.widgets.SignalPill
 import com.marketlabs.pulse.ui.screens.stocks.detail.ViewMoreRow
@@ -1371,10 +1372,17 @@ fun MarketSentimentCard(sentiment: MarketSentiment, onClick: () -> Unit) {
         ) {
             // 💡 Header lives inside the card, same as SignalSection's "Market Signal" -- not
             // a separate SectionTitle list item.
-            CardEyebrowLabel(
-                text = stringResource(id = R.string.section_market_sentiment),
-                color = MaterialTheme.colorScheme.primary
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                CardEyebrowLabel(
+                    text = stringResource(id = R.string.section_market_sentiment),
+                    color = MaterialTheme.colorScheme.primary
+                )
+                AiGeneratedLabel()
+            }
 
             if (headline != null) {
                 Spacer(modifier = Modifier.height(paddingMedium))

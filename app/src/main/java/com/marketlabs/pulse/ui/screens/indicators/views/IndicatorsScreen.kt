@@ -67,6 +67,7 @@ import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.PulseTabRow
 import com.marketlabs.pulse.ui.components.UniversalMetricCard
+import com.marketlabs.pulse.ui.components.widgets.AiGeneratedLabel
 import com.marketlabs.pulse.ui.components.widgets.CardEyebrowLabel
 import com.marketlabs.pulse.ui.components.widgets.MetricInfoAction
 import com.marketlabs.pulse.ui.components.widgets.SignalPill
@@ -579,12 +580,19 @@ private fun AiExecutiveBriefingHero(
             // instead (and explicitly sized), matching Market Sentiment's chevron-on-the-headline
             // pattern (SummaryScreen.kt) -- the eyebrow row is now just the label, same as Market
             // Signal/Sentiment.
-            CardEyebrowLabel(
-                text = stringResource(id = R.string.indicators_todays_read),
-                color = LocalPulseColors.current.accentPrimary,
-                iconRes = R.drawable.ic_ai_sparkle_filled,
-                iconContentDescription = "Analysis Engine"
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                CardEyebrowLabel(
+                    text = stringResource(id = R.string.indicators_todays_read),
+                    color = LocalPulseColors.current.accentPrimary,
+                    iconRes = R.drawable.ic_ai_sparkle_filled,
+                    iconContentDescription = "Analysis Engine"
+                )
+                AiGeneratedLabel()
+            }
 
             // 💡 Card order: alignment_with_macro pill, then headline, then alignment_note --
             // the code-computed read of whether the pillars agree with the macro regime frames
@@ -803,7 +811,10 @@ private fun PillarSection(
         }
 
         scorecardEntry?.let { entry ->
-            PillarScorecardCard(entry = entry, modifier = Modifier.padding(bottom = paddingMedium))
+            PillarScorecardCard(
+                entry = entry,
+                modifier = Modifier.padding(bottom = paddingMedium)
+            )
         }
 
         val groupedMetrics = config.pillarData.metrics.groupBy { it.subcategory }
@@ -879,7 +890,10 @@ private fun PillarSection(
  * string with no structured agreement/stance to show.
  */
 @Composable
-private fun PillarScorecardCard(entry: DomainPillarScorecardEntry, modifier: Modifier = Modifier) {
+private fun PillarScorecardCard(
+    entry: DomainPillarScorecardEntry,
+    modifier: Modifier = Modifier
+) {
     val paddingMedium = dimensionResource(id = R.dimen.padding_medium)
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
     val paddingSmall = dimensionResource(id = R.dimen.padding_small)
@@ -891,6 +905,13 @@ private fun PillarScorecardCard(entry: DomainPillarScorecardEntry, modifier: Mod
         modifier = modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(paddingLarge)) {
+            // 💡 Own row, not squeezed into the agreement/stance row below -- that row already
+            // fills its width via SpaceBetween (agreement pill left, stance label+pill right), so
+            // a third element would need to compete with both for space.
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                AiGeneratedLabel()
+            }
+            Spacer(modifier = Modifier.height(paddingSmall))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,

@@ -26,6 +26,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.ui.components.PulseCard
+import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 /**
@@ -53,13 +55,19 @@ fun LegalAcceptanceScreen(
                 style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
             )
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_xlarge)))
-            Text(text = stringResource(id = R.string.legal_acceptance_paragraph_1), style = MaterialTheme.typography.bodyLarge)
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
-            Text(text = stringResource(id = R.string.legal_acceptance_paragraph_2), style = MaterialTheme.typography.bodyLarge)
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
-            Text(text = stringResource(id = R.string.legal_acceptance_paragraph_3), style = MaterialTheme.typography.bodyLarge)
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
-            Text(text = stringResource(id = R.string.legal_acceptance_paragraph_4), style = MaterialTheme.typography.bodyLarge)
+            // 💡 PulseCard(DATA) -- this app's card system, not bare Text blocks directly on the
+            // screen background.
+            PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
+                    Text(text = stringResource(id = R.string.legal_acceptance_paragraph_1), style = MaterialTheme.typography.bodyLarge)
+                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
+                    Text(text = stringResource(id = R.string.legal_acceptance_paragraph_2), style = MaterialTheme.typography.bodyLarge)
+                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
+                    Text(text = stringResource(id = R.string.legal_acceptance_paragraph_3), style = MaterialTheme.typography.bodyLarge)
+                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
+                    Text(text = stringResource(id = R.string.legal_acceptance_paragraph_4), style = MaterialTheme.typography.bodyLarge)
+                }
+            }
 
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_xxlarge)))
 

@@ -5,6 +5,7 @@ package com.marketlabs.pulse.ui.screens.tutorials
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -26,6 +27,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.components.DisclaimerFooter
+import com.marketlabs.pulse.ui.components.PulseCard
+import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
@@ -67,10 +70,15 @@ fun TutorialsGaugesScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(dimensionResource(id = R.dimen.padding_large))
         ) {
-            Text(
-                text = stringResource(id = R.string.tutorials_gauges_intro),
-                style = MaterialTheme.typography.bodyMedium
-            )
+            // 💡 PulseCard(DATA) -- this app's card system, matching the "one card per list entry"
+            // shape every other glossary/reference list in the app uses.
+            PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = stringResource(id = R.string.tutorials_gauges_intro),
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))
+                )
+            }
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_xlarge)))
 
             uiState.categories.forEach { category ->
@@ -82,17 +90,21 @@ fun TutorialsGaugesScreen(
                 Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
 
                 category.gauges.forEach { gauge ->
-                    Text(
-                        text = stringResource(id = gauge.titleRes),
-                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
-                    )
-                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_tiny)))
-                    Text(
-                        text = gauge.whatItIs,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = LocalPulseColors.current.onSurfaceMuted
-                    )
-                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
+                    PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
+                            Text(
+                                text = stringResource(id = gauge.titleRes),
+                                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
+                            )
+                            Text(
+                                text = gauge.whatItIs,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = LocalPulseColors.current.onSurfaceMuted,
+                                modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_tiny))
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
                 }
 
                 Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))

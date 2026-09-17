@@ -34,6 +34,7 @@ import com.marketlabs.pulse.data.theme.ThemeRepository
 import com.marketlabs.pulse.ui.components.AppTopBar
 import com.marketlabs.pulse.ui.components.FloatingBottomNav
 import com.marketlabs.pulse.ui.components.PulseSplashScreen
+import com.marketlabs.pulse.ui.components.widgets.ScreenGuideContent
 import com.marketlabs.pulse.ui.navigation.PulseNavGraph
 import com.marketlabs.pulse.ui.navigation.PulseRoutes
 import com.marketlabs.pulse.ui.navigation.bottomNavItems
@@ -277,7 +278,8 @@ class MainActivity : ComponentActivity() {
                             AppTopBar(
                                 title = topBarTitle(currentRoute, summaryReportType),
                                 scrollBehavior = scrollBehavior,
-                                onSettingsClick = { navController.navigate(PulseRoutes.SETTINGS) }
+                                onSettingsClick = { navController.navigate(PulseRoutes.SETTINGS) },
+                                guideContent = screenGuideContentFor(currentRoute)
                             )
                         }
                     },
@@ -371,4 +373,39 @@ private fun topBarTitle(route: String?, summaryReportType: ReportType?): String 
     PulseRoutes.MARKET_SUMMARY -> summaryReportType?.label ?: stringResource(id = R.string.summary_screen_title)
     PulseRoutes.MARKET_ANALYSIS -> stringResource(id = R.string.market_analysis_screen_title)
     else -> stringResource(id = R.string.app_name)
+}
+
+/**
+ * The per-screen "?" guide (see `ScreenGuideAction`) -- null on any route without guide copy yet,
+ * which is every route except the 5 main tabs for this first pass (pushed/detail destinations like
+ * Stock Detail, Deep Dive, Settings aren't covered). Content is a starting point, expected to grow.
+ */
+@Composable
+private fun screenGuideContentFor(route: String?): ScreenGuideContent? = when (route) {
+    PulseRoutes.MARKET_OVERVIEW -> ScreenGuideContent(
+        screenTitle = stringResource(id = R.string.app_name),
+        overview = stringResource(id = R.string.screen_guide_overview_overview),
+        howToInterpret = stringResource(id = R.string.screen_guide_overview_how_to_interpret)
+    )
+    PulseRoutes.MARKET_INDICATORS -> ScreenGuideContent(
+        screenTitle = stringResource(id = R.string.indicators_screen_title),
+        overview = stringResource(id = R.string.screen_guide_indicators_overview),
+        howToInterpret = stringResource(id = R.string.screen_guide_indicators_how_to_interpret)
+    )
+    PulseRoutes.MARKET_SUMMARY -> ScreenGuideContent(
+        screenTitle = stringResource(id = R.string.summary_screen_title),
+        overview = stringResource(id = R.string.screen_guide_summary_overview),
+        howToInterpret = stringResource(id = R.string.screen_guide_summary_how_to_interpret)
+    )
+    PulseRoutes.MARKET_INSIGHTS -> ScreenGuideContent(
+        screenTitle = stringResource(id = R.string.insights_screen_title),
+        overview = stringResource(id = R.string.screen_guide_insights_overview),
+        howToInterpret = stringResource(id = R.string.screen_guide_insights_how_to_interpret)
+    )
+    PulseRoutes.MARKET_ANALYSIS -> ScreenGuideContent(
+        screenTitle = stringResource(id = R.string.market_analysis_screen_title),
+        overview = stringResource(id = R.string.screen_guide_analysis_overview),
+        howToInterpret = stringResource(id = R.string.screen_guide_analysis_how_to_interpret)
+    )
+    else -> null
 }

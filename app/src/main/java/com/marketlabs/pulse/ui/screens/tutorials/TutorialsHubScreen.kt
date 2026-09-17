@@ -26,6 +26,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.ui.components.PulseCard
+import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
@@ -68,31 +70,36 @@ fun TutorialsHubScreen(
                 .padding(innerPadding)
                 .padding(dimensionResource(id = R.dimen.padding_large))
         ) {
-            TutorialsHubRow(
-                label = stringResource(id = R.string.tutorials_item_how_it_works),
-                onClick = onNavigateToHowItWorks
-            )
-            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
-            TutorialsHubRow(
-                label = stringResource(id = R.string.tutorials_item_gauges),
-                onClick = onNavigateToGauges
-            )
-            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
-            TutorialsHubRow(
-                label = stringResource(id = R.string.tutorials_item_market_concepts),
-                onClick = onNavigateToMarketConcepts
-            )
-            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
-            TutorialsHubRow(
-                label = stringResource(id = R.string.tutorials_item_ai_content),
-                onClick = onNavigateToAiContent
-            )
-            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
-            TutorialsHubRow(
-                label = stringResource(id = R.string.tutorials_item_data_limitations),
-                onClick = onNavigateToDataLimitations
-            )
-            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+            // 💡 One PulseCard(DATA) holding every row -- same "list of rows inside one card"
+            // shape SettingsScreen's own "More" section uses, not a bare Column of rows.
+            PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.padding_large))) {
+                    TutorialsHubRow(
+                        label = stringResource(id = R.string.tutorials_item_how_it_works),
+                        onClick = onNavigateToHowItWorks
+                    )
+                    HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+                    TutorialsHubRow(
+                        label = stringResource(id = R.string.tutorials_item_gauges),
+                        onClick = onNavigateToGauges
+                    )
+                    HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+                    TutorialsHubRow(
+                        label = stringResource(id = R.string.tutorials_item_market_concepts),
+                        onClick = onNavigateToMarketConcepts
+                    )
+                    HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+                    TutorialsHubRow(
+                        label = stringResource(id = R.string.tutorials_item_ai_content),
+                        onClick = onNavigateToAiContent
+                    )
+                    HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+                    TutorialsHubRow(
+                        label = stringResource(id = R.string.tutorials_item_data_limitations),
+                        onClick = onNavigateToDataLimitations
+                    )
+                }
+            }
         }
     }
 }
