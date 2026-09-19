@@ -43,6 +43,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.intraday.IntradayPoint
+import com.marketlabs.pulse.ui.components.ads.PulseNativeAdPlaceholder
 import com.marketlabs.pulse.ui.components.widgets.CardEyebrowLabel
 import com.marketlabs.pulse.ui.components.widgets.ChangeDirection
 import com.marketlabs.pulse.ui.components.widgets.DirectionalChangePill
@@ -50,11 +51,11 @@ import com.marketlabs.pulse.ui.components.widgets.GlossaryTapChevron
 import com.marketlabs.pulse.ui.components.widgets.SignalPill
 import com.marketlabs.pulse.ui.components.widgets.SparklineChart
 import com.marketlabs.pulse.ui.screens.stocks.detail.DataCardTitleWithInfo
-import com.marketlabs.pulse.ui.screens.stocks.detail.OutlinedBadge
 import com.marketlabs.pulse.ui.screens.stocks.detail.StatGrid
 import com.marketlabs.pulse.ui.screens.stocks.detail.StatItem
 import com.marketlabs.pulse.ui.screens.stocks.detail.SubClusterLabel
 import com.marketlabs.pulse.ui.screens.stocks.detail.SynthesisCardHeader
+import com.marketlabs.pulse.ui.screens.stocks.detail.ViewMoreRow
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
@@ -70,13 +71,34 @@ import com.marketlabs.pulse.ui.theme.MarketPulseTheme
  * so a change agreed on here can be traced back to what actually needs editing.
  *
  * Organized in the same DATA / SYNTHESIS / DATA_SPARKLINE grouping `PulseCardStyle` itself uses,
- * plus two closing sections for patterns that sit *outside* `PulseCard` on purpose (see
- * `docs/theming-system/theming-spec.md`'s documented exceptions) and the "tinted inset row"
- * sub-pattern nested inside an already-`PulseCard`'d parent. [CardStyleGallery] stacks all of them
- * in one scrollable-height column for a side-by-side look; each pattern also gets its own smaller
- * preview for isolated iteration. Individual previews are Light-only to keep this file's preview
- * count manageable -- copy any preview's `MarketPulseTheme.LILAC`/`backgroundColor` pairing from
- * [CardStyleGallery]'s dark preview if a specific pattern needs its own dark check too.
+ * plus closing sections for patterns that sit *outside* `PulseCard` on purpose (see
+ * `docs/theming-system/theming-spec.md`'s documented exceptions). [CardStyleGallery] stacks all of
+ * them in one scrollable-height column for a side-by-side look; each pattern also gets its own
+ * smaller preview for isolated iteration. Individual previews are Light-only to keep this file's
+ * preview count manageable -- copy any preview's `MarketPulseTheme.LILAC`/`backgroundColor` pairing
+ * from [CardStyleGallery]'s dark preview if a specific pattern needs its own dark check too.
+ *
+ * **2026-09 re-sync (repo-wide re-audit against current code):**
+ * - #16 ("tinted inset row nested in a card") REMOVED -- confirmed dead, all three of its original
+ *   citations (`ForwardCalls.kt`, `Scenarios.kt`, `IndicatorsScreen.kt`'s `ShiftRow`) have dropped
+ *   the nested-`Surface` treatment in favor of a plain `SignalPill`; no live instance of this
+ *   pattern remains anywhere in the app.
+ * - #11 and #20 updated -- both used to make a content row directly clickable with an inline
+ *   trailing chevron; that affordance moved app-wide onto a standalone `ViewMoreRow` footer link
+ *   (now cataloged as its own pattern, #21).
+ * - Added #21 (`ViewMoreRow`, a real recurring pattern with 7+ call sites) and #22 (native ad
+ *   card, `PulseNativeAdPlaceholder` -- a genuinely distinct layout: CTA button, optional creative
+ *   image, sponsored-content border treatment).
+ * - Known remaining minor drift, not yet re-synced (flagged here rather than silently left wrong):
+ *   #4/#5 (real cards gained a status-pill row, a footer date line, and per-row gauges/captions
+ *   since these samples were written -- gauge visuals are intentionally out of this file's scope,
+ *   see [GaugeStyleShowcase]), #6 (real rows have a bold "CONFIRMS"/"CONFLICTS" label column and a
+ *   tap-to-expand caption this sample omits), #8 (`StockPreviewCard` moved to plain `DATA` style
+ *   despite still showing a sparkline -- `DATA_SPARKLINE` is now Overview-only, see `PulseCard.kt`'s
+ *   own doc comment), #10 (`AiExecutiveBriefingHero` gained an extra alignment `SignalPill` row this
+ *   sample doesn't show), #18 (all three original citations evolved into #10-shaped or #13-shaped
+ *   cards -- kept as the foundational plain eyebrow+headline+body shape those build from, but no
+ *   exact current 1:1 example exists).
  */
 
 // ============================================================================
@@ -621,15 +643,16 @@ private fun PreviewSynthesisExpandableHero() {
 }
 
 // ============================================================================
-// SYNTHESIS — 11. Eyebrow, outlined + filled pill pair, tappable headline, divider, meter
-// Modeled on: summary/views/SummaryScreen.kt:292-450 (SignalSection) -- 2026-09-06: regime (an
-// outlined, neutral classification pill) and direction (a filled, signal-colored pill) render side
-// by side, each its own tap target opening a glossary sheet scoped to just that term; they used to
-// share one chip (regime's text tinted by direction's color) with no separate text for direction at
-// all. The headline itself is now also tappable (trailing chevron), opening a bottom sheet with the
-// fuller analysis + posture read. 2026-09-07: dropped the ▲/▼/▪ leading glyph the direction pill
-// briefly had -- redundant once the pill already says "RISK ON"/"RISK OFF"/"MIXED" in text, and the
-// MIXED glyph in particular read as a stray dot rather than a meaningful mark.
+// SYNTHESIS — 11. Eyebrow, outlined + filled pill pair, plain headline, divider, meter + caption,
+// separate ViewMoreRow (#21) as its own tap target below
+// Modeled on: summary/views/SummaryScreen.kt:529-647 (SignalSection), re-synced 2026-09 audit --
+// regime (an outlined, neutral classification pill) and direction (a filled, signal-colored pill)
+// render side by side, each its own tap target opening a glossary sheet scoped to just that term.
+// The headline itself is NO LONGER directly tappable (was, with a trailing chevron, until this
+// re-sync) -- navigation moved off the headline entirely onto a standalone `ViewMoreRow` link below
+// the meter (see #21), the same affordance the app now uses everywhere a card's own content stopped
+// doubling as a nav target. The meter also gained a "CONVICTION · reason" caption line underneath it
+// that this sample previously omitted.
 // ============================================================================
 
 @Composable
@@ -655,21 +678,13 @@ private fun SynthesisHeadlineMeterSample() {
                 )
             }
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    "Momentum Broadens Across Sectors",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.weight(1f)
-                )
-                Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_chevron_forward),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(dimensionResource(id = R.dimen.padding_large))
-                )
-            }
+            // 💡 Plain text now, no trailing chevron -- this headline stopped being its own tap
+            // target (see the section comment above).
+            Text(
+                "Momentum Broadens Across Sectors",
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurface
+            )
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
             HorizontalDivider(
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f),
@@ -704,6 +719,15 @@ private fun SynthesisHeadlineMeterSample() {
                         )
                 )
             }
+            // 💡 New since the original sample: a short "why" caption directly under the meter.
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
+            Text(
+                "CONVICTION · Broad participation across sectors, not just mega-caps",
+                style = MaterialTheme.typography.labelSmall,
+                color = pulseColors.onSurfaceMuted
+            )
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
+            ViewMoreRow(text = "Full Analysis", onClick = {})
         }
     }
 }
@@ -959,44 +983,6 @@ private fun PreviewSignalOwnedBackgroundException() {
 }
 
 // ============================================================================
-// 16. "Tinted inset row" — a plain Surface nested INSIDE an already-PulseCard'd parent
-// Modeled on: stocks/detail/sections/ForwardCalls.kt:146-234, stocks/detail/sections/Scenarios.kt:76-125, indicators/views/IndicatorsScreen.kt:315-343 (ShiftRow)
-// ============================================================================
-
-@Composable
-private fun TintedInsetRowSample() {
-    val pulseColors = LocalPulseColors.current
-    PulseCard(style = PulseCardStyle.SYNTHESIS, modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
-            SynthesisCardHeader(title = "SCENARIOS")
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
-            OutlinedBadge(text = "BULL CASE")
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
-            // 💡 The nested `Surface` -- not another `PulseCard` -- is the point of this sample:
-            // a tinted sub-block inside an already-PulseCard'd parent, with no shadow/border of
-            // its own, distinct from a second full card-in-card.
-            Surface(
-                color = pulseColors.surfaceTinted,
-                shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_small))
-            ) {
-                Text(
-                    "If AWS reaccelerates and margins hold above 35%, the stock could re-rate toward its 5-year average multiple.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_medium))
-                )
-            }
-        }
-    }
-}
-
-@Preview(name = "16. Tinted inset row nested in a card", showBackground = true)
-@Composable
-private fun PreviewTintedInsetRow() {
-    MarketPulseTheme(theme = MarketPulseTheme.NAVY) { TintedInsetRowSample() }
-}
-
-// ============================================================================
 // 17. Section-title header + full-bleed divider (Summary screen convention, 2026-09-05)
 // See: docs/theming-system/card-heading-conventions.md
 // Modeled on: summary/views/SummaryScreen.kt's LeadStoriesSection/MacroMixSection/WatchSection/
@@ -1177,15 +1163,16 @@ private fun PreviewMergedCardTagBelowHeading() {
 }
 
 // ============================================================================
-// 20. Two independent tap targets on one card (header vs. content)
+// 20. Two independent tap targets on one card (header icon vs. a ViewMoreRow footer)
 // See: docs/theming-system/card-heading-conventions.md
-// Modeled on: summary/views/SummaryScreen.kt's DriversSection -- the one card on Summary where
-// the header and the content below it lead to DIFFERENT actions, so the whole card can't be one
-// `PulseCard(onClick = ...)`. The header row (title + info icon) navigates nowhere on its own;
-// only the info icon itself (its own nested `Modifier.clickable`) does anything. Only the content
-// row BELOW the divider carries `Modifier.clickable(onClick = ...)` directly -- never
-// `PulseCard`'s own `onClick`, which would make the whole card (header included) one tap target
-// and swallow the info icon's nested click.
+// Modeled on: summary/views/SummaryScreen.kt:770-826 (DriversSection), re-synced 2026-09 audit --
+// still the one card on Summary where the header and something below it lead to DIFFERENT actions,
+// so the whole card can't be one `PulseCard(onClick = ...)`. The header row (title + info icon)
+// navigates nowhere on its own; only the info icon itself (its own nested `Modifier.clickable`)
+// does anything. What changed: the content row (the pill `FlowRow`) is NO LONGER itself a tap
+// target -- it was `Modifier.clickable` with a trailing chevron until this re-sync; that
+// affordance moved to a standalone `ViewMoreRow` (#21) below it instead, the same app-wide pattern
+// #11 also now uses.
 // ============================================================================
 
 @Composable
@@ -1218,26 +1205,14 @@ private fun TwoTapTargetsSample() {
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
                 thickness = dimensionResource(id = R.dimen.border_thin)
             )
-            Row(
-                modifier = Modifier
-                    .clickable(onClick = {})
-                    .padding(dimensionResource(id = R.dimen.padding_large)),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                FlowRow(
-                    modifier = Modifier.weight(1f),
-                    horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_small))
-                ) {
+            Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
+                // 💡 No longer `Modifier.clickable` -- plain, non-tappable content now.
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_small))) {
                     SignalPill(text = "Retail Sales", pillColor = pulseColors.signalBearishPill, contentColor = pulseColors.signalBearishText)
                     SignalPill(text = "Crude Oil", pillColor = pulseColors.signalBullishPill, contentColor = pulseColors.signalBullishText)
                 }
-                Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_chevron_forward),
-                    contentDescription = null,
-                    tint = pulseColors.accentPrimary,
-                    modifier = Modifier.size(dimensionResource(id = R.dimen.padding_large))
-                )
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                ViewMoreRow(text = "View More", onClick = {})
             }
         }
     }
@@ -1247,6 +1222,65 @@ private fun TwoTapTargetsSample() {
 @Composable
 private fun PreviewTwoTapTargets() {
     MarketPulseTheme(theme = MarketPulseTheme.NAVY) { TwoTapTargetsSample() }
+}
+
+// ============================================================================
+// 21. NEW (2026-09 audit) — ViewMoreRow, the standardized "second tap target"/footer-link row
+// Real component: screens/stocks/detail/DetailSectionLabels.kt:107-128 -- accent-colored label text
+// + trailing chevron, its own `Modifier.clickable`. The direct replacement for "make the whole
+// content row clickable with an inline chevron" (what #11 and #20 used to do) -- now the standard
+// way a card says "there's more, tap here" once its own content stopped doubling as the nav target.
+// Recurring, 7+ call sites: DeepDiveCard.kt, ForwardCalls.kt, EventLog.kt, and 4 places in
+// SummaryScreen.kt (SignalSection, DriversSection, MarketPositionSection, MarketSentimentCard).
+// ============================================================================
+
+@Composable
+private fun ViewMoreRowSample() {
+    PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
+            Text(
+                "Short recap text sits above the link, same as DriversSection/SignalSection.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+            ViewMoreRow(text = "View More", onClick = {})
+        }
+    }
+}
+
+@Preview(name = "21. ViewMoreRow (footer link)", showBackground = true)
+@Composable
+private fun PreviewViewMoreRowSample() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) { ViewMoreRowSample() }
+}
+
+// ============================================================================
+// 22. NEW (2026-09 audit) — Native ad card: sponsored badge, optional creative-image banner, CTA
+// button, distinct border
+// Real component: ui/components/ads/PulseNativeAdCard.kt (`PulseNativeAdPlaceholder`) -- called
+// directly below with its own built-in mock defaults (advertiser/headline/body/CTA), not
+// recreated, since it's already a self-contained, presentational composable. `PulseCard(DATA)`
+// plus an extra contrast stroke border (white on dark mode, darkish-grey on light) to visually
+// separate sponsored content from organic cards -- the one card style in the app with a CTA button
+// and an optional full-width creative image.
+// Call site: screens/news/views/NewsScreen.kt
+// ============================================================================
+
+@Preview(name = "22a. Native ad — compact", showBackground = true)
+@Composable
+private fun PreviewNativeAdCompact() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
+        PulseNativeAdPlaceholder()
+    }
+}
+
+@Preview(name = "22b. Native ad — with creative image", showBackground = true)
+@Composable
+private fun PreviewNativeAdRichMedia() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
+        PulseNativeAdPlaceholder(showCreativeImage = true, creativeTag = "Sponsored")
+    }
 }
 
 // ============================================================================
@@ -1274,11 +1308,15 @@ private fun CardStyleGallery() {
         GallerySection("13. SYNTHESIS — Multi-section digest, dividers") { SynthesisMultiSectionDigestSample() }
         GallerySection("14. Emphasis border overlay (current selection)") { EmphasisBorderOverlaySample() }
         GallerySection("15. NOT PulseCard — signal-owned background") { SignalOwnedBackgroundExceptionSample() }
-        GallerySection("16. Tinted inset row nested in a card") { TintedInsetRowSample() }
         GallerySection("17. Section-title header + full-bleed divider") { SectionTitleHeaderSample() }
         GallerySection("18. Eyebrow header (CardEyebrowLabel)") { EyebrowHeaderSample() }
         GallerySection("19. Merged card, tag below heading") { MergedCardTagBelowHeadingSample() }
         GallerySection("20. Two independent tap targets") { TwoTapTargetsSample() }
+        GallerySection("21. ViewMoreRow (footer link)") { ViewMoreRowSample() }
+        GallerySection("22a. Native ad — compact") { PulseNativeAdPlaceholder() }
+        GallerySection("22b. Native ad — with creative image") {
+            PulseNativeAdPlaceholder(showCreativeImage = true, creativeTag = "Sponsored")
+        }
     }
 }
 

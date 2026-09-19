@@ -4,20 +4,19 @@ package com.marketlabs.pulse.ui.screens.tutorials
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
@@ -37,39 +36,35 @@ import com.marketlabs.pulse.ui.theme.MarketPulseTheme
  * `uiState` from `MetricGlossaryProvider` via the ViewModel. Definitions render exactly as bundled
  * (`what_it_is` only, not the fuller what-it-is/how-to-read/bands/gotchas shape the real per-metric
  * detail pages show) -- this is a browse/reference list, not a replacement for tapping into a gauge's
- * own detail page for the full breakdown.
+ * own detail page for the full breakdown. 2026-09: no more `Scaffold`/`TopAppBar` -- same chrome
+ * removal as every other screen reached from Settings (see `DocumentSectionsScreen`'s doc comment).
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TutorialsGaugesScreen(
     uiState: TutorialsGaugesUiState,
     onNavigateUp: () -> Unit
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(text = stringResource(id = R.string.tutorials_item_gauges)) },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateUp) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_back),
-                            contentDescription = stringResource(id = R.string.nav_back_content_description)
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .windowInsetsPadding(WindowInsets.statusBars)
+            .verticalScroll(rememberScrollState())
+    ) {
+        IconButton(onClick = onNavigateUp) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_back),
+                contentDescription = stringResource(id = R.string.nav_back_content_description),
+                tint = LocalPulseColors.current.onSurfaceMuted
             )
         }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
-                .padding(dimensionResource(id = R.dimen.padding_large))
-        ) {
+        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
+            Text(
+                text = stringResource(id = R.string.tutorials_item_gauges),
+                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_xlarge)))
+
             // 💡 PulseCard(DATA) -- this app's card system, matching the "one card per list entry"
             // shape every other glossary/reference list in the app uses.
             PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {

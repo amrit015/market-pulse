@@ -72,6 +72,7 @@ fun StockAnalysisScreen(
     favoriteSymbols: Set<String>,
     onCardClick: (String) -> Unit,
     onToggleFavorite: (String) -> Unit,
+    onTechnicalSetupClick: (String) -> Unit = {},
     scaffoldPadding: PaddingValues,
     getIntradayStream: (String) -> Flow<IntradaySeries?> = { emptyFlow() },
     modifier: Modifier = Modifier
@@ -126,11 +127,12 @@ fun StockAnalysisScreen(
                         isEquityOpen = isEquityOpen,
                         isFavorite = preview.symbol in favoriteSymbols,
                         onFavoriteClick = { onToggleFavorite(preview.symbol) },
+                        onTechnicalSetupClick = { preview.technicalSetup?.let(onTechnicalSetupClick) },
                         intradayStream = getIntradayStream(preview.symbol),
                         modifier = Modifier.animateItem()
                     )
                 }
-                item { DisclaimerFooter() }
+                item { DisclaimerFooter(showAiDisclosure = true) }
             }
         }
     }

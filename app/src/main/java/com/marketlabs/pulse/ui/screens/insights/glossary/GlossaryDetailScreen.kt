@@ -157,6 +157,18 @@ fun GlossaryDetailScreen(
                 modifier = Modifier.padding(top = paddingSmall, bottom = paddingMedium)
             )
 
+            // 💡 spec-20260917-content-refinement.md Pass 2: same quiet teachable-vs-proprietary
+            // attribution MetricDetailScreen shows under its own "What it is" -- one line, no
+            // section header, per underlying value.
+            if (!section.provenance.isNullOrBlank()) {
+                Text(
+                    text = section.provenance,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = paddingMedium)
+                )
+            }
+
             if (!showSectionLabels) {
                 Text(
                     text = stringResource(id = R.string.indicators_detail_how_to_read).uppercase(),
@@ -176,6 +188,31 @@ fun GlossaryDetailScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = paddingMedium)
                 )
+            }
+
+            // 💡 Pass 2's "form-your-own-read" hook, same section treatment MetricDetailScreen
+            // gives it -- shown per underlying value here since each has its own thing to watch.
+            if (!section.watch.isNullOrBlank()) {
+                if (!showSectionLabels) {
+                    Text(
+                        text = stringResource(id = R.string.indicators_detail_watch).uppercase(),
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = section.watch,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.padding(top = paddingSmall, bottom = paddingMedium)
+                    )
+                } else {
+                    Text(
+                        text = section.watch,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = paddingMedium)
+                    )
+                }
             }
 
             if (!section.gotchas.isNullOrBlank()) {
@@ -321,12 +358,16 @@ private val previewSections = listOf(
         label = "Days to Cover",
         whatItIs = "If every short seller tried to buy back their shares using only a typical day's trading volume, this is roughly how many days it would take.",
         howToRead = "Higher days-to-cover means less room for short sellers to exit quickly.",
+        watch = "Watch this as squeeze potential, not squeeze likelihood.",
+        provenance = "Teachable -- derived from FINRA's public short-interest and volume data.",
         gotchas = "This measures potential, not likelihood."
     ),
     GlossarySection(
         label = "Month-over-Month Change",
         whatItIs = "How much short interest changed since the prior FINRA settlement date.",
         howToRead = "The trend is often more informative than the absolute level.",
+        watch = "Watch whether shorts are building or covering.",
+        provenance = "Teachable -- same public FINRA settlement data, roughly 8 business days old by publication.",
         gotchas = "Settlement data is roughly 8 business days old by the time it's published."
     )
 )

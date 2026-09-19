@@ -99,16 +99,17 @@ fun VixFullWidthCard(asset: AssetOverview, onClick: () -> Unit) {
                         color = MaterialTheme.colorScheme.onSurface
                     )
 
-                    // 💡 Direct read, not contrarian -- confirmed against Fear & Greed/Put-Call,
-                    // which DO get a contrarian read (extremes there are treated as a buy/sell
-                    // signal on the market itself). VIX's own status stays direct: "GREED"/
-                    // "BULLISH" (low VIX, a calm market) reads as bullish-green, "FEAR"/"BEARISH"
-                    // (high VIX, a panicky market) reads as bearish-red -- calm is colored good,
-                    // panic is colored bad, same as the status word's own plain-English sense.
+                    // 💡 Aligned (2026-09) to the same contrarian read Fear & Greed/Put-Call
+                    // already use: "GREED"/"BULLISH" (low VIX, a calm market) reads as
+                    // bearish-red, "FEAR"/"BEARISH" (high VIX, a panicky market) reads as
+                    // bullish-green -- extreme fear is treated as a potential buying opportunity,
+                    // same framing as the other two Sentiment & Fear cards. Was direct before
+                    // (calm=green, panic=red); flipped so all three cards agree on what a color
+                    // means instead of each picking its own convention.
                     if (!asset.rsiStatus.isNullOrEmpty()) {
                         val statusColor = when (asset.rsiStatus.uppercase()) {
-                            "EXTREME GREED", "GREED", "BULLISH" -> textBullish
-                            "EXTREME FEAR", "FEAR", "BEARISH" -> textBearish
+                            "EXTREME GREED", "GREED", "BULLISH" -> textBearish
+                            "EXTREME FEAR", "FEAR", "BEARISH" -> textBullish
                             else -> colorNeutral
                         }
 
@@ -127,15 +128,14 @@ fun VixFullWidthCard(asset: AssetOverview, onClick: () -> Unit) {
                         color = MaterialTheme.colorScheme.onSurface
                     )
 
-                    // 💡 Null-safe Change % -- shown as a directional pill now instead of plain
-                    // text. The triangle follows the raw numeric sign (up = VIX rose); the pill's
-                    // color is the same direct read the status text above uses (rising VIX =
-                    // bearish for equities, falling VIX = bullish), not a contrarian one -- see
-                    // that Text's own comment for why VIX stays direct while Fear & Greed/Put-Call
-                    // don't. The text itself is unsigned (magnitude only) since the triangle
-                    // already states the sign; an exact 0% reading gets the neutral tone and a flat
-                    // bar instead of a (necessarily arbitrary) bullish/bearish read, since VIX did
-                    // not actually move.
+                    // 💡 Null-safe Change % -- shown as a directional pill. The triangle follows
+                    // the raw numeric sign (up = VIX rose); the pill's color now matches the same
+                    // contrarian read the status text above uses (2026-09): rising VIX moves
+                    // toward the Fear zone, so it reads bullish-green; falling VIX moves toward
+                    // the Greed zone, so it reads bearish-red. The text itself is unsigned
+                    // (magnitude only) since the triangle already states the sign; an exact 0%
+                    // reading gets the neutral tone and a flat bar instead of a (necessarily
+                    // arbitrary) bullish/bearish read, since VIX did not actually move.
                     if (change != null) {
                         // 💡 Gap from the price value bumped from `padding_small` to `padding_medium`
                         // -- the pill sitting almost flush against the price read cramped once it grew.
@@ -152,13 +152,13 @@ fun VixFullWidthCard(asset: AssetOverview, onClick: () -> Unit) {
                             direction = changeDirection,
                             pillColor = when {
                                 isFlat -> pulseColors.signalNeutralPill
-                                isVixRising -> pulseColors.signalBearishPill
-                                else -> pulseColors.signalBullishPill
+                                isVixRising -> pulseColors.signalBullishPill
+                                else -> pulseColors.signalBearishPill
                             },
                             contentColor = when {
                                 isFlat -> colorNeutral
-                                isVixRising -> textBearish
-                                else -> textBullish
+                                isVixRising -> textBullish
+                                else -> textBearish
                             },
                             modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.padding_tiny))
                         )
@@ -180,9 +180,12 @@ fun VixFullWidthCard(asset: AssetOverview, onClick: () -> Unit) {
 
                 val thumbX = size.width * needlePercentage
 
+                // 💡 Left (low VIX/calm/Greed) -> red, right (high VIX/panic/Fear) -> green,
+                // matching the flipped Greed=red/Fear=green convention above -- was
+                // green-to-red before the 2026-09 alignment pass.
                 drawRoundRect(
                     brush = Brush.horizontalGradient(
-                        listOf(colorGreen, colorNeutral, colorRed)
+                        listOf(colorRed, colorNeutral, colorGreen)
                     ),
                     size = size,
                     cornerRadius = CornerRadius(cornerRadius, cornerRadius)

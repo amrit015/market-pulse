@@ -7,6 +7,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.components.DocumentSectionsScreen
+import com.marketlabs.pulse.ui.components.tutorials.SentimentGaugesLivePreview
+import com.marketlabs.pulse.ui.components.tutorials.SmaExtensionDiagram
+import com.marketlabs.pulse.ui.components.tutorials.YieldCurveDiagram
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 /**
@@ -35,11 +38,20 @@ fun TutorialsMarketConceptsScreen(onNavigateUp: () -> Unit) {
             stringResource(id = R.string.tutorials_market_concepts_valuation_body)
     )
 
+    // spec-20260917-content-refinement.md Pass 4, updated 2026-09: the real Fear & Greed/Put-Call/
+    // COT/AAII widgets sit after Sentiment (index 0, replacing the hand-drawn SentimentGaugesDiagram
+    // -- see SentimentGaugesLivePreview's own doc comment for why), D1 after Macro (index 1), D2
+    // after Technical (index 2) -- matches the `sections` order right above.
     DocumentSectionsScreen(
         title = stringResource(id = R.string.tutorials_item_market_concepts),
         sections = sections,
         onNavigateUp = onNavigateUp,
-        showFooter = true
+        showFooter = true,
+        diagrams = mapOf(
+            0 to { SentimentGaugesLivePreview() },
+            1 to { YieldCurveDiagram() },
+            2 to { SmaExtensionDiagram() }
+        )
     )
 }
 

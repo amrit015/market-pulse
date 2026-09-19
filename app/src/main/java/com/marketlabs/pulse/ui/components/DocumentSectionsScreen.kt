@@ -4,20 +4,20 @@ package com.marketlabs.pulse.ui.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
@@ -42,41 +42,48 @@ import com.marketlabs.pulse.ui.theme.LocalPulseColors
  * Each section is its own `PulseCard(DATA)` — this app's card system, matching the "one card per
  * list entry" shape `StockAnalysisGlossaryBottomSheet`/`MetricDetailScreen`'s `BandRow` already use,
  * rather than bare `Text` blocks directly on the screen background.
+ *
+ * 2026-09: no more `Scaffold`/`TopAppBar` -- that filled, elevated bar chrome is gone app-wide for
+ * Tutorials and every other screen reached from Settings (see `MainActivity`'s `isPushedDestination`
+ * list, unchanged: the shared bottom nav was already suppressed for all of these). [title] now
+ * renders as a plain large headline directly in the scrollable content, below a bare (unstyled, no
+ * background/elevation) back button -- navigability is preserved, just without the Material AppBar
+ * surface.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DocumentSectionsScreen(
     title: String,
     sections: List<Pair<String, String>>,
     onNavigateUp: () -> Unit,
     lastUpdatedLabel: String? = null,
-    showFooter: Boolean = false
+    showFooter: Boolean = false,
+    // spec-20260917-content-refinement.md Pass 4: lets a caller drop one of the inline
+    // TutorialDiagrams composables right after a specific section's card, keyed by that section's
+    // index in `sections` -- optional and empty by default so every existing call site (Terms &
+    // Conditions, Privacy Policy, the other 4 Tutorials articles) keeps compiling unchanged.
+    diagrams: Map<Int, @Composable () -> Unit> = emptyMap()
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(text = title) },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateUp) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_back),
-                            contentDescription = stringResource(id = R.string.nav_back_content_description)
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .windowInsetsPadding(WindowInsets.statusBars)
+            .verticalScroll(rememberScrollState())
+    ) {
+        IconButton(onClick = onNavigateUp) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_back),
+                contentDescription = stringResource(id = R.string.nav_back_content_description),
+                tint = LocalPulseColors.current.onSurfaceMuted
             )
         }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
-                .padding(dimensionResource(id = R.dimen.padding_large))
-        ) {
+        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_xlarge)))
+
             if (lastUpdatedLabel != null) {
                 Text(
                     text = lastUpdatedLabel,
@@ -86,7 +93,7 @@ fun DocumentSectionsScreen(
                 Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_xlarge)))
             }
 
-            sections.forEach { (heading, body) ->
+            sections.forEachIndexed { index, (heading, body) ->
                 PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
                         if (heading.isNotBlank()) {
@@ -96,13 +103,22 @@ fun DocumentSectionsScreen(
                             )
                             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
                         }
-                        Text(
+                        FormattedBodyText(
                             text = body,
-                            style = MaterialTheme.typography.bodyMedium
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
                 Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                diagrams[index]?.let { diagram ->
+                    PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
+                            diagram()
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                }
             }
 
             if (showFooter) {

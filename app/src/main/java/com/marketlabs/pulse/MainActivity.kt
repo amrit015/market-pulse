@@ -191,12 +191,14 @@ class MainActivity : ComponentActivity() {
                     currentRoute == PulseRoutes.TUTORIALS_HUB ||
                     currentRoute == PulseRoutes.TUTORIALS_HOW_IT_WORKS ||
                     currentRoute == PulseRoutes.TUTORIALS_GAUGES ||
+                    currentRoute == PulseRoutes.TUTORIALS_GAUGE_ANATOMY ||
                     currentRoute == PulseRoutes.TUTORIALS_MARKET_CONCEPTS ||
                     currentRoute == PulseRoutes.TUTORIALS_AI_CONTENT ||
                     currentRoute == PulseRoutes.TUTORIALS_DATA_LIMITATIONS ||
                     currentRoute == PulseRoutes.SETTINGS_NOTIFICATIONS ||
                     currentRoute == PulseRoutes.SETTINGS_DATA_SYNC ||
-                    currentRoute == PulseRoutes.SETTINGS_ABOUT
+                    currentRoute == PulseRoutes.SETTINGS_ABOUT ||
+                    currentRoute == PulseRoutes.SETTINGS_THEME_PICKER
 
                 // 💡 enterAlwaysScrollBehavior.state.heightOffset is one shared value driving the
                 // top bar's collapse amount across every tab that actually uses that behavior (see

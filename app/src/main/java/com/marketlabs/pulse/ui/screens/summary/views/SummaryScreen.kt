@@ -74,7 +74,6 @@ import com.marketlabs.pulse.ui.components.PulseLoadingIndicator
 import com.marketlabs.pulse.ui.components.bottomSheet.DriversInfoBottomSheet
 import com.marketlabs.pulse.ui.components.bottomSheet.MarketGlossaryBottomSheet
 import com.marketlabs.pulse.ui.components.bottomSheet.MarketReadBottomSheet
-import com.marketlabs.pulse.ui.components.widgets.AiGeneratedLabel
 import com.marketlabs.pulse.ui.components.widgets.CardEyebrowLabel
 import com.marketlabs.pulse.ui.components.widgets.SignalPill
 import com.marketlabs.pulse.ui.screens.stocks.detail.ViewMoreRow
@@ -497,7 +496,7 @@ private fun SummaryDayPage(
                     item { TheReadSection(verdict) }
                 }
 
-                item { DisclaimerFooter() }
+                item { DisclaimerFooter(showAiDisclosure = true) }
             }
         }
     }
@@ -1371,18 +1370,14 @@ fun MarketSentimentCard(sentiment: MarketSentiment, onClick: () -> Unit) {
                 .animateContentSize()
         ) {
             // 💡 Header lives inside the card, same as SignalSection's "Market Signal" -- not
-            // a separate SectionTitle list item.
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                CardEyebrowLabel(
-                    text = stringResource(id = R.string.section_market_sentiment),
-                    color = MaterialTheme.colorScheme.primary
-                )
-                AiGeneratedLabel()
-            }
+            // a separate SectionTitle list item. No per-card `AiGeneratedLabel` on Summary --
+            // nearly every card on this screen is AI-authored, so the disclosure lives once in
+            // this screen's own footer instead of repeating on each card (see `DisclaimerFooter`
+            // usage in this file).
+            CardEyebrowLabel(
+                text = stringResource(id = R.string.section_market_sentiment),
+                color = MaterialTheme.colorScheme.primary
+            )
 
             if (headline != null) {
                 Spacer(modifier = Modifier.height(paddingMedium))

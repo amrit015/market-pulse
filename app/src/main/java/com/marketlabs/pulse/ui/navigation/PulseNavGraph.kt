@@ -41,11 +41,13 @@ import com.marketlabs.pulse.ui.screens.stocks.views.StockAnalysisRoute
 import com.marketlabs.pulse.ui.screens.summary.views.MarketSummaryRoute
 import com.marketlabs.pulse.ui.screens.tutorials.TutorialsAiContentScreen
 import com.marketlabs.pulse.ui.screens.tutorials.TutorialsDataLimitationsScreen
+import com.marketlabs.pulse.ui.screens.tutorials.TutorialsGaugeAnatomyScreen
 import com.marketlabs.pulse.ui.screens.tutorials.TutorialsGaugesRoute
 import com.marketlabs.pulse.ui.screens.tutorials.TutorialsHowItWorksScreen
 import com.marketlabs.pulse.ui.screens.tutorials.TutorialsHubScreen
 import com.marketlabs.pulse.ui.screens.tutorials.TutorialsMarketConceptsScreen
 import com.marketlabs.pulse.ui.settings.SettingsRoute
+import com.marketlabs.pulse.ui.settings.ThemePickerRoute
 import com.marketlabs.pulse.utils.enums.ReportType
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -135,12 +137,14 @@ object PulseRoutes {
     const val TUTORIALS_MARKET_CONCEPTS = "tutorials_market_concepts"
     const val TUTORIALS_AI_CONTENT = "tutorials_ai_content"
     const val TUTORIALS_DATA_LIMITATIONS = "tutorials_data_limitations"
+    const val TUTORIALS_GAUGE_ANATOMY = "tutorials_gauge_anatomy"
 
     // Reached from Settings' three formerly-Toast-stub rows -- now real (if content-empty)
     // destinations per spec-20260915-compliance-disclaimers.md's Settings-rows decision.
     const val SETTINGS_NOTIFICATIONS = "settings_notifications"
     const val SETTINGS_DATA_SYNC = "settings_data_sync"
     const val SETTINGS_ABOUT = "settings_about"
+    const val SETTINGS_THEME_PICKER = "settings_theme_picker"
 }
 
 /** * 💡 UPDATED: Added a second icon resource for the 'selected' filled state
@@ -524,6 +528,7 @@ fun PulseNavGraph(
         composable(PulseRoutes.SETTINGS) {
             SettingsRoute(
                 onNavigateUp = { navController.popBackStack() },
+                onNavigateToThemePicker = { navController.navigate(PulseRoutes.SETTINGS_THEME_PICKER) },
                 onNavigateToNotifications = { navController.navigate(PulseRoutes.SETTINGS_NOTIFICATIONS) },
                 onNavigateToDataSync = { navController.navigate(PulseRoutes.SETTINGS_DATA_SYNC) },
                 onNavigateToAbout = { navController.navigate(PulseRoutes.SETTINGS_ABOUT) },
@@ -553,6 +558,9 @@ fun PulseNavGraph(
                 onNavigateUp = { navController.popBackStack() }
             )
         }
+        composable(PulseRoutes.SETTINGS_THEME_PICKER) {
+            ThemePickerRoute(onNavigateUp = { navController.popBackStack() })
+        }
         composable(PulseRoutes.TUTORIALS_HUB) {
             TutorialsHubScreen(
                 onNavigateUp = { navController.popBackStack() },
@@ -560,7 +568,8 @@ fun PulseNavGraph(
                 onNavigateToGauges = { navController.navigate(PulseRoutes.TUTORIALS_GAUGES) },
                 onNavigateToMarketConcepts = { navController.navigate(PulseRoutes.TUTORIALS_MARKET_CONCEPTS) },
                 onNavigateToAiContent = { navController.navigate(PulseRoutes.TUTORIALS_AI_CONTENT) },
-                onNavigateToDataLimitations = { navController.navigate(PulseRoutes.TUTORIALS_DATA_LIMITATIONS) }
+                onNavigateToDataLimitations = { navController.navigate(PulseRoutes.TUTORIALS_DATA_LIMITATIONS) },
+                onNavigateToGaugeAnatomy = { navController.navigate(PulseRoutes.TUTORIALS_GAUGE_ANATOMY) }
             )
         }
         composable(PulseRoutes.TUTORIALS_HOW_IT_WORKS) {
@@ -574,6 +583,9 @@ fun PulseNavGraph(
         }
         composable(PulseRoutes.TUTORIALS_AI_CONTENT) {
             TutorialsAiContentScreen(onNavigateUp = { navController.popBackStack() })
+        }
+        composable(PulseRoutes.TUTORIALS_GAUGE_ANATOMY) {
+            TutorialsGaugeAnatomyScreen(onNavigateUp = { navController.popBackStack() })
         }
         composable(PulseRoutes.TUTORIALS_DATA_LIMITATIONS) {
             TutorialsDataLimitationsScreen(onNavigateUp = { navController.popBackStack() })

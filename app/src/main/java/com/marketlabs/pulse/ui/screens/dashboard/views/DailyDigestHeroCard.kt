@@ -95,18 +95,11 @@ fun DailyDigestHeroCard(
     ) {
         Column(modifier = Modifier.animateContentSize()) {
             Column (modifier = Modifier.padding(paddingLarge)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    CardEyebrowLabel(
-                        text = stringResource(id = R.string.dashboard_daily_digest_header),
-                        color = pulseColors.accentPrimary,
-                        iconRes = R.drawable.ic_ai_sparkle_filled
-                    )
-                    AiGeneratedLabel()
-                }
+                CardEyebrowLabel(
+                    text = stringResource(id = R.string.dashboard_daily_digest_header),
+                    color = pulseColors.accentPrimary,
+                    iconRes = R.drawable.ic_ai_sparkle_filled
+                )
 
                 if (isUnavailable || !hasContent) {
                     Spacer(modifier = Modifier.height(paddingMedium))
@@ -146,6 +139,12 @@ fun DailyDigestHeroCard(
                             maxLines = if (isExpanded) Int.MAX_VALUE else 3,
                             overflow = TextOverflow.Ellipsis
                         )
+                        // 💡 Sits directly below the body text now (was above it) -- and collapses
+                        // along with it: only shown once the card is actually expanded.
+                        if (isExpanded) {
+                            Spacer(modifier = Modifier.height(paddingSmall))
+                            AiGeneratedLabel()
+                        }
                     }
 
                     if (isExpanded) {

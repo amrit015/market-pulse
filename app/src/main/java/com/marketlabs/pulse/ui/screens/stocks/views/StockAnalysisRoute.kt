@@ -18,7 +18,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -27,9 +29,12 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.components.PulseLoadingIndicator
 import com.marketlabs.pulse.ui.components.PulseTabRow
+import com.marketlabs.pulse.ui.components.bottomSheet.MarketGlossaryBottomSheet
 import com.marketlabs.pulse.ui.screens.stocks.StockAnalysisViewModel
+import java.util.Locale
 
 /**
  * Stateful entry point for the Analysis bottom-nav tab. Lifecycle wiring, pull-to-refresh, and the
@@ -55,6 +60,12 @@ fun StockAnalysisRoute(
     val snackbarHostState = remember { SnackbarHostState() }
     val pullRefreshState = rememberPullToRefreshState()
     val lifecycleOwner = LocalLifecycleOwner.current
+
+    // spec-20260917-content-refinement.md P2: the list's own technical-setup pill had no tap path
+    // to its `stock_setups` glossary definition (only reachable from Stock Detail) -- same
+    // "raw setup value opens MarketGlossaryBottomSheet" pattern StockDetailRoute already uses,
+    // just hoisted here since this Route renders one shared list of many cards, not one header.
+    var glossaryStockSetup by remember { mutableStateOf<String?>(null) }
 
     // 💡 Same two one-directional effects `InsightsRoute` uses to keep `pagerState` and the
     // ViewModel's `selectedTabIndex` in sync without fighting each other -- see that Route's own
@@ -134,6 +145,7 @@ fun StockAnalysisRoute(
                             favoriteSymbols = uiState.favoriteSymbols,
                             onCardClick = onNavigateToDetail,
                             onToggleFavorite = viewModel::toggleFavorite,
+                            onTechnicalSetupClick = { setup -> glossaryStockSetup = setup },
                             getIntradayStream = viewModel::getIntradayStream,
                             scaffoldPadding = PaddingValues(bottom = scaffoldPadding.calculateBottomPadding())
                         )
@@ -169,5 +181,13 @@ fun StockAnalysisRoute(
                     .padding(bottom = scaffoldPadding.calculateBottomPadding())
             )
         }
+    }
+
+    glossaryStockSetup?.let { setup ->
+        MarketGlossaryBottomSheet(
+            currentStockSetup = setup.replace('_', ' ').uppercase(Locale.US),
+            title = stringResource(id = R.string.stock_signal_glossary_title),
+            onDismiss = { glossaryStockSetup = null }
+        )
     }
 }

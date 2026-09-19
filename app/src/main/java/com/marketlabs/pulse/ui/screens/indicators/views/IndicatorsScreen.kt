@@ -580,19 +580,12 @@ private fun AiExecutiveBriefingHero(
             // instead (and explicitly sized), matching Market Sentiment's chevron-on-the-headline
             // pattern (SummaryScreen.kt) -- the eyebrow row is now just the label, same as Market
             // Signal/Sentiment.
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                CardEyebrowLabel(
-                    text = stringResource(id = R.string.indicators_todays_read),
-                    color = LocalPulseColors.current.accentPrimary,
-                    iconRes = R.drawable.ic_ai_sparkle_filled,
-                    iconContentDescription = "Analysis Engine"
-                )
-                AiGeneratedLabel()
-            }
+            CardEyebrowLabel(
+                text = stringResource(id = R.string.indicators_todays_read),
+                color = LocalPulseColors.current.accentPrimary,
+                iconRes = R.drawable.ic_ai_sparkle_filled,
+                iconContentDescription = "Analysis Engine"
+            )
 
             // 💡 Card order: alignment_with_macro pill, then headline, then alignment_note --
             // the code-computed read of whether the pillars agree with the macro regime frames
@@ -637,6 +630,12 @@ private fun AiExecutiveBriefingHero(
                     maxLines = if (isExpanded) Int.MAX_VALUE else 3,
                     overflow = TextOverflow.Ellipsis
                 )
+                // 💡 Sits directly below the body text now (was in the header row) -- and
+                // collapses along with it: only shown once actually expanded.
+                if (isExpanded) {
+                    Spacer(modifier = Modifier.height(paddingSmall))
+                    AiGeneratedLabel()
+                }
             }
 
             // 💡 what_changed and shifts[] are both "since yesterday" detail -- collapsed by
@@ -905,13 +904,6 @@ private fun PillarScorecardCard(
         modifier = modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(paddingLarge)) {
-            // 💡 Own row, not squeezed into the agreement/stance row below -- that row already
-            // fills its width via SpaceBetween (agreement pill left, stance label+pill right), so
-            // a third element would need to compete with both for space.
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                AiGeneratedLabel()
-            }
-            Spacer(modifier = Modifier.height(paddingSmall))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -962,6 +954,11 @@ private fun PillarScorecardCard(
                     lineHeight = MaterialTheme.typography.bodyMedium.lineHeight
                 )
             }
+            // 💡 This card has no expand/collapse state -- `oneLiner` is always shown in full, so
+            // the label just sits directly below it, always visible (was its own row above the
+            // agreement/stance pills).
+            Spacer(modifier = Modifier.height(paddingSmall))
+            AiGeneratedLabel()
         }
     }
 }

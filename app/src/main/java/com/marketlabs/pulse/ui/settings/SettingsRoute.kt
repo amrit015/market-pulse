@@ -18,6 +18,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 @Composable
 fun SettingsRoute(
     onNavigateUp: () -> Unit,
+    onNavigateToThemePicker: () -> Unit,
     onNavigateToNotifications: () -> Unit,
     onNavigateToDataSync: () -> Unit,
     onNavigateToAbout: () -> Unit,
@@ -30,7 +31,7 @@ fun SettingsRoute(
 
     SettingsScreen(
         uiState = uiState,
-        onThemeSelected = viewModel::selectTheme,
+        onNavigateToThemePicker = onNavigateToThemePicker,
         onNavigateUp = onNavigateUp,
         onMoreItemClick = { item ->
             when (item) {

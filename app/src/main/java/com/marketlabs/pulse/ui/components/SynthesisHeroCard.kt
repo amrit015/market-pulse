@@ -1,7 +1,6 @@
 package com.marketlabs.pulse.ui.components
 
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -88,18 +87,11 @@ fun SynthesisHeroCard(
             // headline instead (and explicitly sized), matching Market Sentiment's
             // chevron-on-the-headline pattern (SummaryScreen.kt) -- the eyebrow row is now just
             // the label, same as Market Signal/Sentiment.
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                CardEyebrowLabel(
-                    text = stringResource(id = R.string.insights_synthesis_label),
-                    color = pulseColors.accentPrimary,
-                    iconRes = R.drawable.ic_ai_sparkle_filled
-                )
-                AiGeneratedLabel()
-            }
+            CardEyebrowLabel(
+                text = stringResource(id = R.string.insights_synthesis_label),
+                color = pulseColors.accentPrimary,
+                iconRes = R.drawable.ic_ai_sparkle_filled
+            )
 
             Spacer(modifier = Modifier.height(paddingMedium))
 
@@ -137,6 +129,13 @@ fun SynthesisHeroCard(
                         maxLines = if (isExpanded) Int.MAX_VALUE else 3,
                         overflow = TextOverflow.Ellipsis,
                     )
+                    // 💡 Sits directly below the body text now (was above it) -- and collapses
+                    // along with it: only shown once the card is actually expanded, not visible on
+                    // the default collapsed 3-line state.
+                    if (isExpanded) {
+                        Spacer(modifier = Modifier.height(paddingSmall))
+                        AiGeneratedLabel()
+                    }
                 }
             }
         }

@@ -176,8 +176,20 @@ fun MetricDetailScreen(
                 text = glossaryEntry.whatItIs,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.padding(top = paddingSmall, bottom = paddingLarge)
+                modifier = Modifier.padding(top = paddingSmall, bottom = if (glossaryEntry.provenance != null) paddingSmall else paddingLarge)
             )
+
+            // 💡 spec-20260917-content-refinement.md Pass 2: teachable-vs-proprietary framing --
+            // a quiet attribution line, not its own section header, since it's context on "What it
+            // is" rather than a new fact about the metric.
+            glossaryEntry.provenance?.let { provenance ->
+                Text(
+                    text = provenance,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = paddingLarge)
+                )
+            }
 
             Text(
                 text = stringResource(id = R.string.indicators_detail_how_to_read).uppercase(),
@@ -190,6 +202,23 @@ fun MetricDetailScreen(
                 color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.padding(top = paddingSmall, bottom = paddingLarge)
             )
+
+            // 💡 Pass 2's "form-your-own-read" hook -- same section treatment as What it is/How to
+            // read above, sitting between How to read and Bands since it's about tracking the
+            // metric over time, a bridge between the static explanation and the live band list.
+            glossaryEntry.watch?.let { watch ->
+                Text(
+                    text = stringResource(id = R.string.indicators_detail_watch).uppercase(),
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = watch,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.padding(top = paddingSmall, bottom = paddingLarge)
+                )
+            }
 
             if (glossaryEntry.bands.isNotEmpty()) {
                 Text(
@@ -320,6 +349,8 @@ private val previewMetric = DomainUnifiedMetric(
 private val previewGlossaryEntry = MetricGlossaryEntry(
     whatItIs = "Trailing twelve-month price divided by trailing earnings for the S&P 500.",
     howToRead = "Higher readings mean investors are paying more per dollar of past earnings -- a stretched multiple leaves less room for disappointment.",
+    watch = "Watch it alongside P/B and dividend yield rather than alone -- agreement across all three (plus ERP) on \"richly priced\" is a stronger read than any single ratio.",
+    provenance = "The P/E concept is fully teachable and standard; the 16x/22x band cutoffs are this app's own reasonable round numbers, not a historical percentile.",
     bands = listOf(
         MetricGlossaryBand(label = "Cheap", meaning = "16x or below -- earnings priced for pessimism."),
         MetricGlossaryBand(label = "Fair Value", meaning = "16x-22x -- in line with typical historical norms."),
