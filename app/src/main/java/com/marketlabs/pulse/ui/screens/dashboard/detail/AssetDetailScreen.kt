@@ -326,6 +326,10 @@ fun AssetDetailScreen(
             }
         }
 
+        // 💡 Same padding_extra_large gap GlossaryDetailScreen/MetricDetailScreen/Dashboard's own
+        // footer already use before this text -- this screen had none, reading as visibly tighter
+        // against the content above than every other screen's footer.
+        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_extra_large)))
         DisclaimerFooter()
     }
 

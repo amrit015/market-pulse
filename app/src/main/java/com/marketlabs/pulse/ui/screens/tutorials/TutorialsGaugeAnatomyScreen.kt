@@ -38,7 +38,6 @@ fun TutorialsGaugeAnatomyScreen(onNavigateUp: () -> Unit) {
         title = stringResource(id = R.string.tutorials_item_gauge_anatomy),
         sections = sections,
         onNavigateUp = onNavigateUp,
-        showFooter = true,
         diagrams = mapOf(0 to { GaugeAnatomyDiagram() })
     )
 }

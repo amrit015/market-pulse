@@ -76,7 +76,7 @@ fun IndicatorHorizonsScreen(
         items(horizonBlocks) { horizon ->
             HorizonCard(horizon = horizon)
         }
-        item { DisclaimerFooter() }
+        item { DisclaimerFooter(showAiDisclosure = true) }
     }
 }
 

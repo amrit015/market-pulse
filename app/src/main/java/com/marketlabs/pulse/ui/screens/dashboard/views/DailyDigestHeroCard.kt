@@ -139,14 +139,13 @@ fun DailyDigestHeroCard(
                             maxLines = if (isExpanded) Int.MAX_VALUE else 3,
                             overflow = TextOverflow.Ellipsis
                         )
-                        // 💡 Sits directly below the body text now (was above it) -- and collapses
-                        // along with it: only shown once the card is actually expanded.
-                        if (isExpanded) {
-                            Spacer(modifier = Modifier.height(paddingSmall))
-                            AiGeneratedLabel()
-                        }
                     }
 
+                    // 💡 `sections` are "extra metadata" -- collapsed hides them entirely (nothing
+                    // renders between detail and the AI label below), expanded shows them here,
+                    // BETWEEN detail and the label. Card order either way: headline, detail, [extra
+                    // metadata if expanded], this label (always visible), then the market-status
+                    // footer below (priority metadata, unaffected by expand state).
                     if (isExpanded) {
                         sections.forEach { section ->
                             Spacer(modifier = Modifier.height(paddingLarge))
@@ -166,6 +165,11 @@ fun DailyDigestHeroCard(
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                         }
+                    }
+
+                    if (!detail.isNullOrBlank()) {
+                        Spacer(modifier = Modifier.height(paddingMedium))
+                        AiGeneratedLabel()
                     }
                 }
             }

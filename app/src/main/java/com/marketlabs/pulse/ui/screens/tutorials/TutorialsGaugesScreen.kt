@@ -25,7 +25,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
-import com.marketlabs.pulse.ui.components.DisclaimerFooter
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
@@ -104,8 +103,6 @@ fun TutorialsGaugesScreen(
 
                 Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
             }
-
-            DisclaimerFooter()
         }
     }
 }

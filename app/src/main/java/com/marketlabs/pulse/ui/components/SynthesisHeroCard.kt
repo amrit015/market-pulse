@@ -129,13 +129,10 @@ fun SynthesisHeroCard(
                         maxLines = if (isExpanded) Int.MAX_VALUE else 3,
                         overflow = TextOverflow.Ellipsis,
                     )
-                    // 💡 Sits directly below the body text now (was above it) -- and collapses
-                    // along with it: only shown once the card is actually expanded, not visible on
-                    // the default collapsed 3-line state.
-                    if (isExpanded) {
-                        Spacer(modifier = Modifier.height(paddingSmall))
-                        AiGeneratedLabel()
-                    }
+                    // 💡 Card order: headline, then detail (collapsed/expanded), then this label --
+                    // always visible regardless of expand state, not gated behind expanding detail.
+                    Spacer(modifier = Modifier.height(paddingSmall))
+                    AiGeneratedLabel()
                 }
             }
         }

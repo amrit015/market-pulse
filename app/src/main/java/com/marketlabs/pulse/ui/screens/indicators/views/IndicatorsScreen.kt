@@ -385,7 +385,11 @@ private fun IndicatorsMainFeed(
                         end = paddingLarge,
                         top = paddingLarge,
                         bottom = scaffoldPadding.calculateBottomPadding() + paddingLarge
-                    )
+                    ),
+                    // 💡 padding_extra_large gap before the footer -- same value every other
+                    // screen's DisclaimerFooter sits below; this LazyColumn only ever has the one
+                    // content item plus the footer, so spacedBy here affects just that one gap.
+                    verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_extra_large))
                 ) {
                     if (tab == IndicatorsTab.FAVORITES) {
                         val favoritedMetrics = allMetrics.filter { it.id in favoriteMetricIds }
@@ -630,15 +634,12 @@ private fun AiExecutiveBriefingHero(
                     maxLines = if (isExpanded) Int.MAX_VALUE else 3,
                     overflow = TextOverflow.Ellipsis
                 )
-                // 💡 Sits directly below the body text now (was in the header row) -- and
-                // collapses along with it: only shown once actually expanded.
-                if (isExpanded) {
-                    Spacer(modifier = Modifier.height(paddingSmall))
-                    AiGeneratedLabel()
-                }
             }
 
-            // 💡 what_changed and shifts[] are both "since yesterday" detail -- collapsed by
+            // 💡 what_changed and shifts[] are "extra metadata" -- collapsed hides them entirely
+            // (nothing renders between alignment_note and the AI label below), expanded shows them
+            // here, BETWEEN alignment_note and the label. Card order either way: alignment pill,
+            // headline, alignment_note, [extra metadata if expanded], this label (always visible).
             // default along with the rest of the card's supporting detail, not shown until the
             // reader taps to expand. No internal scroll/height cap here -- the whole card (and
             // this whole screen's collapsing chrome, which it's part of) grows to show it in full;
@@ -687,6 +688,11 @@ private fun AiExecutiveBriefingHero(
                         }
                     }
                 }
+            }
+
+            if (executive.alignmentNote.isNotBlank()) {
+                Spacer(modifier = Modifier.height(paddingMedium))
+                AiGeneratedLabel()
             }
         }
     }

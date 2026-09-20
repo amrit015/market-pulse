@@ -253,7 +253,7 @@ private fun DigestTabContent(
         item {
             DigestCard(headline = headline, sections = sections)
         }
-        item { DisclaimerFooter() }
+        item { DisclaimerFooter(showAiDisclosure = true) }
     }
 }
 
@@ -391,7 +391,7 @@ private fun ThesisTabContent(
     val hasNotCovered = detail?.notCovered != null
     val hasTabContent = hasDeepStudy || hasScenario || hasConsider || hasSignalConditions || hasNotCovered
 
-    DetailTabContent(hasTabContent, lazyListState, contentPadding, sectionSpacing) {
+    DetailTabContent(hasTabContent, lazyListState, contentPadding, sectionSpacing, showAiDisclosure = true) {
         if (hasDeepStudy) {
             item { DeepStudy(thesis = thesis) }
         }
@@ -487,6 +487,12 @@ private fun DetailTabContent(
     lazyListState: LazyListState,
     contentPadding: PaddingValues,
     sectionSpacing: Dp,
+    // 💡 Default false -- most tabs sharing this shell (Technicals, Fundamentals, Timeline, News)
+    // are predominantly computed data/charts/history, not AI narrative, so the plain single-line
+    // footer is accurate there. Only ThesisTabContent (DeepStudy/Scenarios/Consider -- majority
+    // AI-authored) opts into the 2-line "AI-generated · Not advice" + informational-purposes
+    // footer, same as DigestTabContent's own (100% AI) footer below.
+    showAiDisclosure: Boolean = false,
     content: LazyListScope.() -> Unit
 ) {
     if (!hasTabContent) {
@@ -507,7 +513,7 @@ private fun DetailTabContent(
         verticalArrangement = Arrangement.spacedBy(sectionSpacing)
     ) {
         content()
-        item { DisclaimerFooter() }
+        item { DisclaimerFooter(showAiDisclosure = showAiDisclosure) }
     }
 }
 

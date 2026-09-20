@@ -25,8 +25,7 @@ fun TutorialsAiContentScreen(onNavigateUp: () -> Unit) {
     DocumentSectionsScreen(
         title = stringResource(id = R.string.tutorials_item_ai_content),
         sections = sections,
-        onNavigateUp = onNavigateUp,
-        showFooter = true
+        onNavigateUp = onNavigateUp
     )
 }
 

@@ -46,7 +46,6 @@ fun TutorialsMarketConceptsScreen(onNavigateUp: () -> Unit) {
         title = stringResource(id = R.string.tutorials_item_market_concepts),
         sections = sections,
         onNavigateUp = onNavigateUp,
-        showFooter = true,
         diagrams = mapOf(
             0 to { SentimentGaugesLivePreview() },
             1 to { YieldCurveDiagram() },

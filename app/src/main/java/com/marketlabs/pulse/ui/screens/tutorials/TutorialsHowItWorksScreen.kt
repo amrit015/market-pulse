@@ -22,8 +22,7 @@ fun TutorialsHowItWorksScreen(onNavigateUp: () -> Unit) {
     DocumentSectionsScreen(
         title = stringResource(id = R.string.tutorials_item_how_it_works),
         sections = sections,
-        onNavigateUp = onNavigateUp,
-        showFooter = true
+        onNavigateUp = onNavigateUp
     )
 }
 

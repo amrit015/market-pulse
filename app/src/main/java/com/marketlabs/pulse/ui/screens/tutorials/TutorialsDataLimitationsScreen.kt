@@ -20,8 +20,7 @@ fun TutorialsDataLimitationsScreen(onNavigateUp: () -> Unit) {
     DocumentSectionsScreen(
         title = stringResource(id = R.string.tutorials_item_data_limitations),
         sections = sections,
-        onNavigateUp = onNavigateUp,
-        showFooter = true
+        onNavigateUp = onNavigateUp
     )
 }
 

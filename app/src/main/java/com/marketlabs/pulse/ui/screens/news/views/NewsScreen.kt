@@ -136,7 +136,12 @@ fun NewsScreen(
         } else {
             // Render Articles safely
             todayStories.forEachIndexed { index, article ->
-                item(key = article.url ?: "today_$index") {
+                // 💡 `?:` alone only catches a null url -- the backend can also send an empty
+                // string for articles without a source link (see the isNotBlank() checks below
+                // and in NewsArticleCard's own onClick gating), and every blank-url article would
+                // then collide on the same "" key. LazyColumn only surfaces that duplicate-key
+                // crash once the second such item is composed, i.e. partway through a scroll.
+                item(key = article.url?.takeIf { it.isNotBlank() } ?: "today_$index") {
                     NewsArticleCard(
                         article = article,
                         onClick = { url -> onArticleClick(url) },
@@ -179,7 +184,8 @@ fun NewsScreen(
                 item { LastTwoDaysBanner() }
 
                 earlierStories.forEachIndexed { index, article ->
-                    item(key = article.url ?: "earlier_$index") {
+                    // See the matching comment on the today-stories loop above.
+                    item(key = article.url?.takeIf { it.isNotBlank() } ?: "earlier_$index") {
                         NewsArticleCard(
                             article = article,
                             onClick = { url -> onArticleClick(url) },
