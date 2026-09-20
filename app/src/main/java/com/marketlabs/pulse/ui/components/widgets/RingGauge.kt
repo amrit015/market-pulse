@@ -1,11 +1,18 @@
 package com.marketlabs.pulse.ui.components.widgets
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -39,7 +46,15 @@ fun RingGauge(
     modifier: Modifier = Modifier,
     size: androidx.compose.ui.unit.Dp = dimensionResource(id = R.dimen.gauge_size_small)
 ) {
-    val progress = (value / maxValue).toFloat().coerceIn(0f, 1f)
+    var progressTarget by remember { mutableFloatStateOf(0f) }
+    val progress by animateFloatAsState(
+        targetValue = progressTarget,
+        animationSpec = tween(durationMillis = 1500),
+        label = "ring_gauge_progress"
+    )
+    LaunchedEffect(value, maxValue) {
+        progressTarget = (value / maxValue).toFloat().coerceIn(0f, 1f)
+    }
     val trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
     val strokeWidthDp = dimensionResource(id = R.dimen.gauge_stroke_width_small)
     val density = LocalDensity.current

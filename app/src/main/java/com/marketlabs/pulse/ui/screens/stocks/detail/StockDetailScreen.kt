@@ -17,9 +17,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -33,7 +31,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import com.marketlabs.pulse.R
-import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 import com.marketlabs.pulse.storage.model.charts.ChartRange
 import com.marketlabs.pulse.storage.model.charts.ChartSeries
 import com.marketlabs.pulse.storage.model.intraday.IntradaySeries
@@ -44,6 +41,7 @@ import com.marketlabs.pulse.ui.components.charts.IntradayPeriodChart
 import com.marketlabs.pulse.ui.components.charts.PeriodChart
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.Consider
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.DeepStudy
+import com.marketlabs.pulse.ui.screens.stocks.detail.sections.DigestCard
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.DirectNews
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.EventLog
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.ForwardCalls
@@ -54,12 +52,13 @@ import com.marketlabs.pulse.ui.screens.stocks.detail.sections.Macro
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.MomentumAndTrend
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.NotCoveredFooter
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.Returns
-import com.marketlabs.pulse.ui.screens.stocks.detail.sections.DigestCard
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.Scenarios
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.SetupReasoning
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.SignalConditions
+import com.marketlabs.pulse.ui.screens.stocks.detail.sections.SmaCard
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.WatchList
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
+import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 /**
  * The 6 tabs the Detail screen's sections are grouped into. `DetailHeader`, the Deep Dive banner,
@@ -67,9 +66,9 @@ import com.marketlabs.pulse.ui.theme.LocalPulseColors
  * by `StockDetailRoute` above every tab -- none of them are per-tab content. `DirectNews` used to
  * live in `TIMELINE` alongside `ForwardCalls`/`EventLog`; it's its own tab now, sorted newest-first.
  *
- * `DIGEST` is first in tab order (per the per-symbol-intelligence spec) but deliberately does NOT
- * change `StockDetailViewModel`'s default `_selectedTabIndex` -- opening a stock still lands on
- * Technicals, same as before; only the tab bar's order changed. Unlike the other 5 tabs, Digest
+ * `DIGEST` is first in tab order and is also the default landing tab (`StockDetailViewModel`'s
+ * `_selectedTabIndex` starts at `DetailTab.DIGEST.ordinal`) -- opening a stock now lands on the
+ * Daily Digest narrative first, not Technicals. Unlike the other 5 tabs, Digest
  * renders standalone (see [DigestTabContent]) rather than through [DetailTabContent]'s shared
  * shell -- it's a distinct AI narrative surface with its own "Daily Digest" header, and its tab
  * content specifically shouldn't mix in unrelated technical section content the way the other 5
@@ -275,6 +274,7 @@ private fun TechnicalsTabContent(
     val setupConflicting = detail?.setupConflicting.orEmpty()
     val hasSetupReasoning = setupConfirming.isNotEmpty() || setupConflicting.isNotEmpty()
     val hasHeadlineMetrics = detail?.technicalIndicators != null
+    val hasSma = detail?.technicalIndicators?.let { it.sma20 != null || it.sma50 != null || it.sma200 != null } == true
     val hasKeyLevels = detail?.levels != null
     val hasWatchList = !detail?.watchList.isNullOrEmpty()
     val hasTabContent = hasSetupReasoning || hasHeadlineMetrics || hasKeyLevels || hasWatchList
@@ -327,6 +327,11 @@ private fun TechnicalsTabContent(
                     availableRanges = availableChartRanges
                 )
             }
+        }
+        // Chart -> SMA -> other stat cards, matching Dashboard's own asset-detail ordering
+        // (`AssetDetailScreen`'s chart -> SMA card -> Technical Breakdown card).
+        if (hasSma) {
+            item { SmaCard(indicators = detail?.technicalIndicators, currentPrice = preview?.price) }
         }
         if (detail?.technicalIndicators?.returns != null) {
             item { Returns(returns = detail.technicalIndicators.returns, changePercent = preview?.changePercent) }

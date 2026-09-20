@@ -151,6 +151,8 @@
     <string name="dashboard_vix_title">Volatility Index (VIX)</string>
     <string name="fear_greed_title">Fear &amp; Greed</string>
     <string name="put_call_index_title">Put/Call Ratio</string>
+    <string name="speedometer_gauge_fear_label">Fear</string>
+    <string name="speedometer_gauge_greed_label">Greed</string>
 
     <string name="dashboard_technical_glossary_title">Technical Glossary</string>
     <!-- 2026-08-27: the 4 dashboard_glossary_*_def strings that used to live here moved to
@@ -304,14 +306,25 @@
     <string name="pillar_systemic_risk">Systemic Risk</string>
     <string name="pillar_valuation">Valuation</string>
     <string name="pillar_macro_vitals">Macro Economy</string>
+
+    <!-- Per-pillar explainers, shown via the info icon next to each pillar's own title
+         (PillarSection in IndicatorsScreen.kt), same MetricInfoAction/AlertDialog pattern
+         positioning_explainer_text already uses. -->
+    <string name="pillar_tactical_momentum_description">Short-term sentiment and momentum readings — the Fear &amp; Greed Index, Put/Call ratio, VIX, RSI, and how far price has stretched from its own moving average — the kind of signals that can shift meaningfully day to day. Extremes in either direction have historically preceded a reversal, but they describe current conditions, not a prediction of what happens next.</string>
+    <string name="pillar_systemic_risk_description">Broader measures of financial-system stress and risk appetite — the yield curve, credit spreads, market volatility (the MOVE index), the dollar, oil, and cross-asset signals like the copper/gold ratio and market breadth. These tend to move more slowly than Tactical Momentum\'s readings, and widening stress here has historically been an early warning rather than a same-day signal.</string>
+    <string name="pillar_valuation_description">How expensive or cheap the market looks relative to earnings, book value, and its own history — the P/E and P/B ratios, the equity risk premium, and dividend yield. A stretched valuation says the market is pricing in a lot of optimism, not that a decline is imminent — valuations can stay expensive (or cheap) for a long time.</string>
+    <string name="pillar_macro_vitals_description">The broader economic backdrop — inflation (CPI, core PCE), employment, and GDP growth — that shapes the Fed\'s policy path and the market\'s medium-term direction. These update on a monthly or quarterly cadence, so they move slower than the other three pillars.</string>
+
     <string name="indicators_tab_empty_state">No data available yet. Pull to refresh.</string>
 
     <!-- Short pillar tab labels, deliberately distinct from pillar_* above (the inner section
          title shown inside each tab's own content, which stays the longer full name). -->
+    <string name="indicators_tab_favorites">Favorites</string>
     <string name="indicators_tab_momentum">Momentum</string>
     <string name="indicators_tab_systemic_risk">Systemic Risk</string>
     <string name="indicators_tab_valuation">Valuation</string>
     <string name="indicators_tab_macro">Macro</string>
+    <string name="indicators_favorites_empty_message">No favorites yet — tap the star on a metric to add it here.</string>
     <string name="score_label_generic">Score</string>
 
     <string name="subcategory_inflation">Inflation</string>
@@ -333,6 +346,13 @@
     <string name="stock_analysis_error_network">Can\'t reach the network. Check your connection and try again.</string>
     <string name="stock_analysis_error_server">Something went wrong on our end. Please try again.</string>
     <string name="stock_analysis_error_unknown">Something went wrong. Please try again.</string>
+    <string name="stock_analysis_tab_favorites">Favorites</string>
+    <string name="stock_analysis_tab_stocks">Stocks</string>
+    <string name="stock_analysis_tab_indices_etf">Indices/ETF</string>
+    <string name="stock_analysis_favorites_empty_message">No favorites yet — tap the star on a stock to add it here.</string>
+    <string name="stock_analysis_indices_etf_empty_message">No indices or ETFs tracked yet.</string>
+    <string name="stock_analysis_add_favorite_content_description">Add %1$s to favorites</string>
+    <string name="stock_analysis_remove_favorite_content_description">Remove %1$s from favorites</string>
 
     <!-- Stock detail screen (pushed from a StockPreviewCard tap): DetailHeader + sections/*. -->
     <string name="stock_detail_back_label">ANALYSIS</string>
@@ -363,6 +383,10 @@
     <string name="stock_detail_metric_52w_low">52W LOW</string>
     <string name="stock_detail_metric_up_down_volume">UP/DOWN VOL</string>
     <string name="stock_detail_metric_vol_percentile">VOL PERCENTILE</string>
+    <string name="stock_detail_sma_title">Simple Moving Averages</string>
+    <string name="stock_detail_sma_20">20-Day</string>
+    <string name="stock_detail_sma_50">50-Day</string>
+    <string name="stock_detail_sma_200">200-Day</string>
     <string name="stock_detail_returns_title">RETURNS</string>
     <string name="stock_detail_metric_return_1d">1D</string>
     <string name="stock_detail_metric_return_1w">1W</string>

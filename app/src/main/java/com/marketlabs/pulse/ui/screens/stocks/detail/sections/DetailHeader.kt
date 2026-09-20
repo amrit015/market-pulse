@@ -27,8 +27,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.components.widgets.ChangeDirection
 import com.marketlabs.pulse.ui.components.widgets.DirectionalChangePill
+import com.marketlabs.pulse.ui.components.widgets.FavoriteStarToggle
 import com.marketlabs.pulse.ui.components.widgets.GlossaryTapChevron
 import com.marketlabs.pulse.ui.components.widgets.SignalPill
+import com.marketlabs.pulse.ui.components.widgets.animateFlashColor
 import com.marketlabs.pulse.ui.screens.stocks.detail.OutlinedBadge
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
@@ -79,6 +81,7 @@ import kotlin.math.abs
 fun DetailHeader(
     symbol: String,
     name: String?,
+    assetType: String?,
     price: Double?,
     changePercent: Double?,
     previousClose: Double?,
@@ -87,7 +90,9 @@ fun DetailHeader(
     technicalSetup: String?,
     regimeAtAnalysis: String?,
     analyzedAsOfTimestamp: Long?,
+    isFavorite: Boolean,
     onNavigateUp: () -> Unit,
+    onFavoriteClick: () -> Unit,
     onTechnicalSetupClick: () -> Unit = {},
     onRegimeClick: () -> Unit = {},
     modifier: Modifier = Modifier
@@ -101,19 +106,36 @@ fun DetailHeader(
             .padding(dimensionResource(id = R.dimen.padding_large))
     ) {
         Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.clickable(onClick = onNavigateUp)
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_back),
-                contentDescription = stringResource(id = R.string.nav_back_content_description),
-                tint = pulseColors.onSurfaceMuted
-            )
-            Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
-            Text(
-                text = stringResource(id = R.string.stock_detail_back_label),
-                style = MaterialTheme.typography.labelMedium,
-                color = pulseColors.onSurfaceMuted
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.clickable(onClick = onNavigateUp)
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_back),
+                    contentDescription = stringResource(id = R.string.nav_back_content_description),
+                    tint = pulseColors.onSurfaceMuted
+                )
+                Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+                Text(
+                    text = stringResource(id = R.string.stock_detail_back_label),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = pulseColors.onSurfaceMuted
+                )
+            }
+            // 💡 Sibling of the back row, not inside its `clickable` -- a plain append would have
+            // made tapping the star also trigger back-navigation.
+            FavoriteStarToggle(
+                isFavorite = isFavorite,
+                onClick = onFavoriteClick,
+                contentDescription = stringResource(
+                    id = if (isFavorite) R.string.stock_analysis_remove_favorite_content_description
+                    else R.string.stock_analysis_add_favorite_content_description,
+                    symbol
+                )
             )
         }
 
@@ -123,11 +145,20 @@ fun DetailHeader(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = symbol,
-                    style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = symbol,
+                        style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    // 💡 Same disclosure badge `StockPreviewCard` shows next to the symbol -- flags
+                    // a symbol that isn't a single-company stock (SPY as an ETF, ^GSPC as an index,
+                    // ...). Omitted for "STOCK" (the majority) and for a null/missing value.
+                    assetType?.takeIf { it != "STOCK" }?.let {
+                        Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+                        OutlinedBadge(text = it)
+                    }
+                }
                 name?.let {
                     Text(
                         text = it,
@@ -137,6 +168,20 @@ fun DetailHeader(
                         overflow = TextOverflow.Ellipsis
                     )
                 }
+            }
+
+            // 💡 Hoisted above both the price text and the pill below (was computed inline only
+            // for the pill) -- the price text's refresh-flash reuses the same bullish/bearish/
+            // neutral read so the two never disagree.
+            val direction = when {
+                (changePercent ?: 0.0) > 0 -> ChangeDirection.UP
+                (changePercent ?: 0.0) < 0 -> ChangeDirection.DOWN
+                else -> ChangeDirection.FLAT
+            }
+            val (pillColor, textColor) = when (direction) {
+                ChangeDirection.UP -> pulseColors.signalBullishPill to pulseColors.signalBullishText
+                ChangeDirection.DOWN -> pulseColors.signalBearishPill to pulseColors.signalBearishText
+                ChangeDirection.FLAT -> pulseColors.signalNeutralPill to pulseColors.signalNeutralText
             }
 
             Column(horizontalAlignment = Alignment.End) {
@@ -151,21 +196,15 @@ fun DetailHeader(
                     Text(
                         text = "$${String.format(Locale.US, "%.2f", it)}",
                         style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = animateFlashColor(
+                            value = it,
+                            flashColor = textColor,
+                            restingColor = MaterialTheme.colorScheme.onSurface
+                        )
                     )
                 }
                 changePercent?.let { changeValue ->
                     Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
-                    val direction = when {
-                        changeValue > 0 -> ChangeDirection.UP
-                        changeValue < 0 -> ChangeDirection.DOWN
-                        else -> ChangeDirection.FLAT
-                    }
-                    val (pillColor, textColor) = when (direction) {
-                        ChangeDirection.UP -> pulseColors.signalBullishPill to pulseColors.signalBullishText
-                        ChangeDirection.DOWN -> pulseColors.signalBearishPill to pulseColors.signalBearishText
-                        ChangeDirection.FLAT -> pulseColors.signalNeutralPill to pulseColors.signalNeutralText
-                    }
                     DirectionalChangePill(
                         changeText = "${String.format(Locale.US, "%.2f", abs(changeValue))}%",
                         direction = direction,
@@ -233,6 +272,7 @@ private fun PreviewDetailHeaderLight() {
         DetailHeader(
             symbol = "AMZN",
             name = "Amazon.com, Inc.",
+            assetType = "STOCK",
             price = 274.48,
             changePercent = 0.82,
             previousClose = 269.10,
@@ -241,7 +281,9 @@ private fun PreviewDetailHeaderLight() {
             technicalSetup = "MEAN_REVERSION",
             regimeAtAnalysis = "risk_on",
             analyzedAsOfTimestamp = System.currentTimeMillis(),
-            onNavigateUp = {}
+            isFavorite = false,
+            onNavigateUp = {},
+            onFavoriteClick = {}
         )
     }
 }
@@ -253,6 +295,7 @@ private fun PreviewDetailHeaderDark() {
         DetailHeader(
             symbol = "AMZN",
             name = "Amazon.com, Inc.",
+            assetType = "STOCK",
             price = 274.48,
             changePercent = 0.82,
             previousClose = 269.10,
@@ -261,7 +304,32 @@ private fun PreviewDetailHeaderDark() {
             technicalSetup = "MEAN_REVERSION",
             regimeAtAnalysis = "risk_on",
             analyzedAsOfTimestamp = System.currentTimeMillis(),
-            onNavigateUp = {}
+            isFavorite = true,
+            onNavigateUp = {},
+            onFavoriteClick = {}
+        )
+    }
+}
+
+@Preview(name = "ETF disclosure badge", showBackground = true)
+@Composable
+private fun PreviewDetailHeaderEtf() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
+        DetailHeader(
+            symbol = "SPY",
+            name = "SPDR S&P 500 ETF Trust",
+            assetType = "ETF",
+            price = 574.20,
+            changePercent = -0.31,
+            previousClose = 576.00,
+            analysisDate = "2026-09-11",
+            isEquityOpen = true,
+            technicalSetup = null,
+            regimeAtAnalysis = "risk_on",
+            analyzedAsOfTimestamp = System.currentTimeMillis(),
+            isFavorite = false,
+            onNavigateUp = {},
+            onFavoriteClick = {}
         )
     }
 }

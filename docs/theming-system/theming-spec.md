@@ -95,7 +95,7 @@ re-deriving 10 hex values.
 | Light-mode page `background` | `lerp(white base, accent.primary, 0.05)` | `colorScheme.background`/`surfaceContainerLowest`/`surfaceDim`, computed once in `toColorScheme()` and reused for all three so they can't drift apart. Dark mode: untouched flat token. |
 | `surfaceTinted` | `lerp(accent.tinted, accent.surface, 0.45)` | `PulseCard(style = DATA_SPARKLINE)` only (see §6) |
 | `accentSurfaceStrong` — **dark mode** | `lerp(lerp(accent.tinted, accent.surfaceBorder, 0.55), Color.Black, 0.12)` | `PulseCard(style = SYNTHESIS)` background, dark mode |
-| `accentSurfaceStrong` — **light mode** | `lerp(Color.White, accent.primary, 0.15)` | `PulseCard(style = SYNTHESIS)` background, light mode |
+| `accentSurfaceStrong` — **light mode** | `lerp(Color.White, accent.primary, 0.18)` | `PulseCard(style = SYNTHESIS)` background, light mode |
 
 `accentSurfaceStrong` is deliberately computed differently per mode, not one shared formula: the
 dark-mode formula (darken an existing blend toward black) doesn't reliably darken in light mode

@@ -9,10 +9,12 @@ import com.marketlabs.pulse.core.charts.resolveEffectiveRange
 import com.marketlabs.pulse.core.glossary.MetricGlossaryProvider
 import com.marketlabs.pulse.core.indicators.IndicatorsRepository
 import com.marketlabs.pulse.core.indicators.MetricHistoryRepository
+import com.marketlabs.pulse.data.favorites.FavoriteMetricsRepository
 import com.marketlabs.pulse.storage.model.charts.ChartRange
 import com.marketlabs.pulse.storage.model.indicators.DomainUnifiedMetric
 import com.marketlabs.pulse.storage.model.indicators.MarketIndicators
-import com.marketlabs.pulse.ui.screens.indicators.detail.MetricDetailViewModel.Companion.ARG_METRIC_ID
+import com.marketlabs.pulse.storage.model.indicators.MetricHistorySeries
+import com.marketlabs.pulse.ui.screens.indicators.detail.MetricDetailViewModel.Companion.HISTORY_LIMIT
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -57,6 +59,7 @@ class MetricDetailViewModel @Inject constructor(
     private val indicatorsRepository: IndicatorsRepository,
     private val glossaryProvider: MetricGlossaryProvider,
     private val metricHistoryRepository: MetricHistoryRepository,
+    private val favoriteMetricsRepository: FavoriteMetricsRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -82,13 +85,24 @@ class MetricDetailViewModel @Inject constructor(
     // AssetDetailViewModel's own `_hasTimedOut`.
     private val _hasTimedOut = MutableStateFlow(false)
 
+    /** Local-only, per-device -- same `FavoriteMetricsRepository` the Indicators tab's star reads. */
+    private val isFavoriteFlow: Flow<Boolean> = favoriteMetricsRepository.favoriteMetricIds
+        .map { metricId in it }
+
+    // 💡 Array<Any?>-based combine() overload -- 6 streams, past the max arity (5) of Kotlin's
+    // named-parameter combine() overload. Each value is cast back to its real type by index
+    // rather than by name, same shape `IndicatorsViewModel`/`InsightsViewModel` already use.
     val uiState: StateFlow<MetricDetailUiState> = combine(
         matchingMetric,
         metricHistoryRepository.getHistoryStream(metricId),
         _isHistoryLoading,
         _selectedChartRange,
-        _hasTimedOut
-    ) { metric, historySeries, isHistoryLoading, selectedChartRange, hasTimedOut ->
+        _hasTimedOut,
+        isFavoriteFlow
+    ) { values ->
+        val metric = values[0] as DomainUnifiedMetric?
+        val historySeries = values[1] as MetricHistorySeries?
+        val selectedChartRange = values[3] as ChartRange
         val allPoints = historySeries?.points.orEmpty()
         val availableChartRanges = allPoints.computeAvailableChartRanges(dateOf = { it.date })
         // A picker with 0 or 1 real options isn't a picker -- MetricDetailScreen hides it entirely
@@ -100,10 +114,11 @@ class MetricDetailViewModel @Inject constructor(
             metric = metric,
             glossaryEntry = glossaryProvider.get(metricId),
             historyPoints = if (effectiveRange != null) allPoints.filteredForRange(effectiveRange, dateOf = { it.date }) else allPoints,
-            isHistoryLoading = isHistoryLoading,
+            isHistoryLoading = values[2] as Boolean,
             selectedChartRange = effectiveRange ?: selectedChartRange,
             availableChartRanges = availableChartRanges,
-            hasTimedOut = hasTimedOut
+            hasTimedOut = values[4] as Boolean,
+            isFavorite = values[5] as Boolean
         )
     }.stateIn(
         scope = viewModelScope,
@@ -137,6 +152,11 @@ class MetricDetailViewModel @Inject constructor(
     /** Called by the range picker -- a local re-slice of the already-fetched series, no network call. */
     fun onRangeSelected(range: ChartRange) {
         _selectedChartRange.value = range
+    }
+
+    /** Called when the reader taps the app bar's favorite star -- persists immediately, local-only. */
+    fun toggleFavorite() {
+        viewModelScope.launch { favoriteMetricsRepository.toggleFavorite(metricId) }
     }
 
     companion object {

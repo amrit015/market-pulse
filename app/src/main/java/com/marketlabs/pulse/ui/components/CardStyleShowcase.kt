@@ -832,11 +832,10 @@ private fun SynthesisMultiSectionDigestSample() {
                     heading?.let {
                         // 💡 accentPrimary, matching this card's own "DAILY DIGEST" eyebrow above --
                         // was onSurfaceMuted, which read as a disconnected label family.
-                        Text(
-                            it,
-                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                            color = pulseColors.accentPrimary
-                        )
+                        // `CardEyebrowLabel`, not a one-off `Text` -- mirrors the real
+                        // `DailyDigestHeroCard`/`DigestCard` fix, so this sample stops demonstrating
+                        // the drifted `labelMedium` version.
+                        CardEyebrowLabel(text = it, color = pulseColors.accentPrimary)
                         Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
                     }
                     Text(

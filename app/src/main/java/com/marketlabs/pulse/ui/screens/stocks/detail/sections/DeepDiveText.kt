@@ -85,14 +85,14 @@ fun DeepDiveLabel(deepAnalysisDate: String?, nextDeepDiveTriggerDate: String?, m
             painter = painterResource(id = R.drawable.ic_deep_dive),
             contentDescription = stringResource(id = R.string.stock_analysis_ai_glyph_content_description),
             tint = pulseColors.accentPrimary,
-            modifier = Modifier.size(dimensionResource(id = R.dimen.icon_size_small))
+            modifier = Modifier.size(dimensionResource(id = R.dimen.icon_size_large))
         )
         Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
         // 💡 No `.uppercase()` -- the label half already carries its own caps in the string
         // resource, and the interpolated date must stay natural case (see doc comment above).
         Text(
             text = text,
-            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
             color = pulseColors.accentPrimary
         )
     }

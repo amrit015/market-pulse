@@ -25,6 +25,7 @@ data class StockPreviewEntity(
     val lastSyncedTimestamp: Long,
 
     val name: String? = null,
+    val assetType: String? = null,
     val schemaVersion: Int? = null,
     val analysisDate: String? = null,
     val price: Double? = null,

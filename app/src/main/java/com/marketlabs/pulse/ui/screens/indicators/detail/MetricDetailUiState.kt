@@ -30,5 +30,7 @@ data class MetricDetailUiState(
     val isHistoryLoading: Boolean = false,
     val selectedChartRange: ChartRange = ChartRange.FIVE_DAY,
     val availableChartRanges: List<ChartRange> = ChartRange.entries - ChartRange.ONE_DAY,
-    val hasTimedOut: Boolean = false
+    val hasTimedOut: Boolean = false,
+    /** Local-only, per-device -- same `FavoriteMetricsRepository` the Indicators tab's star reads. */
+    val isFavorite: Boolean = false
 )

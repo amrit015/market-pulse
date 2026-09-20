@@ -95,13 +95,17 @@ enum class MarketPulseTheme(val displayName: String, val isDark: Boolean) {
             // easing the black blend back down, this switched approach entirely: white blended with
             // a moderate amount of this preset's own `accent.primary`, the same "light, tuned to the
             // brand color" technique `toColorScheme()`'s page-background blend already uses (see
-            // that function), just at a stronger 15% (vs. the page background's 5%) so an AI card
-            // still reads as a distinctly-colored surface sitting on top of that faintly-tinted page,
-            // not the same tint at the same strength.
+            // that function), so an AI card still reads as a distinctly-colored surface sitting on
+            // top of that faintly-tinted page, not the same tint at the same strength.
+            //
+            // 💡 2026-09-15: bumped from 15% to 18% (vs. the page background's 5%) -- SYNTHESIS
+            // cards (AI briefings, verdicts, news) were reading too faint/washed-out in light mode,
+            // hard to tell apart from the page and from `DATA`-style cards next to them. Dark mode's
+            // formula above is untouched -- this was a light-mode-only legibility complaint.
             accentSurfaceStrong = if (isDark) {
                 lerp(lerp(accent.tinted, accent.surfaceBorder, 0.55f), Color.Black, 0.12f)
             } else {
-                lerp(Color.White, accent.primary, 0.15f)
+                lerp(Color.White, accent.primary, 0.25f)
             },
             // 💡 Blended 45% from the literal Token Contract `tinted` value toward `surface` --
             // the raw `tinted` value alone reads as too close to the page background to register

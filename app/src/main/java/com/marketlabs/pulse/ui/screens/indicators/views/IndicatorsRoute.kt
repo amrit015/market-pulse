@@ -95,6 +95,8 @@ fun IndicatorsRoute(
                         scaffoldPadding = scaffoldPadding,
                         selectedTabIndex = uiState.selectedTabIndex,
                         onTabSelected = viewModel::onTabSelected,
+                        favoriteMetricIds = uiState.favoriteMetricIds,
+                        onToggleFavoriteMetric = viewModel::toggleFavoriteMetric,
                         onNavigateToHorizons = onNavigateToHorizons,
                         onNavigateToMetricDetail = onNavigateToMetricDetail
                     )

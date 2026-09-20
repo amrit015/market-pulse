@@ -15,8 +15,6 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -185,6 +183,7 @@ fun StockDetailRoute(
         DetailHeader(
             symbol = uiState.symbol,
             name = uiState.preview?.name,
+            assetType = uiState.preview?.assetType,
             price = uiState.preview?.price,
             changePercent = uiState.preview?.changePercent,
             previousClose = uiState.preview?.previousClose,
@@ -193,7 +192,9 @@ fun StockDetailRoute(
             technicalSetup = uiState.preview?.technicalSetup,
             regimeAtAnalysis = uiState.preview?.regimeAtAnalysis,
             analyzedAsOfTimestamp = uiState.detail?.timestamp,
+            isFavorite = uiState.isFavorite,
             onNavigateUp = onNavigateUp,
+            onFavoriteClick = viewModel::toggleFavorite,
             onTechnicalSetupClick = { glossaryTarget = StockGlossaryTarget.TECHNICAL_SETUP },
             onRegimeClick = { glossaryTarget = StockGlossaryTarget.REGIME },
             modifier = Modifier.fillMaxWidth()

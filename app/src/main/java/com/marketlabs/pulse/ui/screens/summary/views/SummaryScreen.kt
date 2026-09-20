@@ -1,6 +1,8 @@
 package com.marketlabs.pulse.ui.screens.summary.views
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -32,6 +34,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -54,7 +57,6 @@ import com.marketlabs.pulse.storage.model.summary.DominoEffect
 import com.marketlabs.pulse.storage.model.summary.MacroItem
 import com.marketlabs.pulse.storage.model.summary.MarketDriver
 import com.marketlabs.pulse.storage.model.summary.MarketPosition
-import com.marketlabs.pulse.storage.model.summary.MarketPulse
 import com.marketlabs.pulse.storage.model.summary.MarketSentiment
 import com.marketlabs.pulse.storage.model.summary.MarketVerdict
 import com.marketlabs.pulse.storage.model.summary.NewsItem
@@ -450,7 +452,8 @@ private fun SummaryDayPage(
                                 setup = validData.verdict?.setup,
                                 whatChanged = validData.whatChanged,
                                 onSetupClick = onSetupClick,
-                                onCycleZoneClick = onCycleZoneClick
+                                onCycleZoneClick = onCycleZoneClick,
+                                onShowIndicatorsClick = onNavigateToIndicators
                             )
                         }
                     }
@@ -691,11 +694,19 @@ private fun String?.cycleZoneToSignalColor(): SignalColor = when {
  */
 @Composable
 private fun ConvictionMeter(conviction: Conviction, filledColor: Color) {
-    val filledFraction = when (conviction) {
-        Conviction.LOW -> 1f / 3f
-        Conviction.MODERATE -> 2f / 3f
-        Conviction.HIGH -> 1f
-        Conviction.UNKNOWN -> 0f
+    var filledFractionTarget by remember { mutableFloatStateOf(0f) }
+    val filledFraction by animateFloatAsState(
+        targetValue = filledFractionTarget,
+        animationSpec = tween(durationMillis = 1500),
+        label = "conviction_meter_fraction"
+    )
+    LaunchedEffect(conviction) {
+        filledFractionTarget = when (conviction) {
+            Conviction.LOW -> 1f / 3f
+            Conviction.MODERATE -> 2f / 3f
+            Conviction.HIGH -> 1f
+            Conviction.UNKNOWN -> 0f
+        }
     }
     val barHeight = dimensionResource(id = R.dimen.padding_medium)
     Box(
@@ -822,7 +833,8 @@ fun MarketPositionSection(
     setup: TechnicalSetup?,
     whatChanged: String?,
     onSetupClick: () -> Unit,
-    onCycleZoneClick: () -> Unit
+    onCycleZoneClick: () -> Unit,
+    onShowIndicatorsClick: () -> Unit
 ) {
     // 💡 Collapsed to 3 lines by default, tap to read the rest -- the app-wide default for
     // AI-synthesis body text (docs/theming-system/card-heading-conventions.md's Seventeenth step).
@@ -974,6 +986,12 @@ fun MarketPositionSection(
                         )
                     }
                 }
+
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                ViewMoreRow(
+                    text = stringResource(id = R.string.summary_show_indicators),
+                    onClick = onShowIndicatorsClick
+                )
             }
         }
     }
@@ -1692,7 +1710,8 @@ private fun PreviewMarketPositionSection() {
                 setup = TechnicalSetup.OVERBOUGHT,
                 whatChanged = "Retail sales missed, pulling forward Fed cut odds.",
                 onSetupClick = {},
-                onCycleZoneClick = {}
+                onCycleZoneClick = {},
+                onShowIndicatorsClick = {}
             )
         }
     }

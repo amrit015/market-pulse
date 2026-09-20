@@ -814,6 +814,17 @@ object DatabaseMigrations {
         }
     }
 
+    // Migration from Version 30 to 31: `assetType` added to both `market_stock_previews` and
+    // `market_stock_details` -- backs the new backend `asset_type` field (STOCK/ETF/INDEX/CRYPTO/
+    // OTHER) used to badge a symbol for disclosure and to split the Analysis tab's Stocks/
+    // Indices-ETF tabs. Purely additive, no existing column touched.
+    val MIGRATION_30_31 = object : Migration(30, 31) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE `market_stock_previews` ADD COLUMN `assetType` TEXT")
+            db.execSQL("ALTER TABLE `market_stock_details` ADD COLUMN `assetType` TEXT")
+        }
+    }
+
     val ALL_MIGRATIONS = arrayOf(
         MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5,
         MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9,
@@ -822,6 +833,6 @@ object DatabaseMigrations {
         MIGRATION_17_18, MIGRATION_18_19, MIGRATION_19_20, MIGRATION_20_21,
         MIGRATION_21_22, MIGRATION_22_23, MIGRATION_23_24, MIGRATION_24_25,
         MIGRATION_25_26, MIGRATION_26_27, MIGRATION_27_28, MIGRATION_28_29,
-        MIGRATION_29_30
+        MIGRATION_29_30, MIGRATION_30_31
     )
 }

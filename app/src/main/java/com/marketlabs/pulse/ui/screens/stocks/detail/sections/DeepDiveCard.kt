@@ -65,12 +65,13 @@ fun DeepDiveCard(
         onClick = if (hasDeepDive) onClick else null
     ) {
         Column(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.padding_standard), horizontal = dimensionResource(id = R.dimen.padding_large))) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            val labelStyle = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold)
+            Row( verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_deep_dive),
                     contentDescription = stringResource(id = R.string.stock_analysis_ai_glyph_content_description),
                     tint = pulseColors.accentPrimary,
-                    modifier = Modifier.size(dimensionResource(id = R.dimen.icon_size_small))
+                    modifier = Modifier.size(dimensionResource(id = R.dimen.icon_size_large))
                 )
                 Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
                 Text(
@@ -79,7 +80,7 @@ fun DeepDiveCard(
                         bullet = stringResource(id = R.string.bullet_separator),
                         baseFontSize = MaterialTheme.typography.labelSmall.fontSize
                     ),
-                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                    style = labelStyle,
                     color = pulseColors.accentPrimary
                 )
             }

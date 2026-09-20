@@ -1,6 +1,9 @@
 package com.marketlabs.pulse.ui.navigation
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -35,6 +38,8 @@ import com.marketlabs.pulse.utils.enums.ReportType
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
+
+private const val NavTransitionFadeDurationMs = 200
 
 /** Store Navigation Route constants */
 object PulseRoutes {
@@ -186,7 +191,14 @@ fun PulseNavGraph(
     NavHost(
         navController = navController,
         startDestination = PulseRoutes.MARKET_OVERVIEW,
-        modifier = modifier.fillMaxSize()
+        modifier = modifier.fillMaxSize(),
+        // 💡 Applied once here (none of the routes below override it) so every push/pop in the
+        // app gets the same fade instead of Navigation-Compose's raw default. Fade-only (no
+        // slide) both ways -- a slide was tried first and asked to be dropped.
+        enterTransition = { fadeIn(tween(NavTransitionFadeDurationMs)) },
+        exitTransition = { fadeOut(tween(NavTransitionFadeDurationMs)) },
+        popEnterTransition = { fadeIn(tween(NavTransitionFadeDurationMs)) },
+        popExitTransition = { fadeOut(tween(NavTransitionFadeDurationMs)) }
     ) {
         composable(PulseRoutes.MARKET_SUMMARY) {
             MarketSummaryRoute(

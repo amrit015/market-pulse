@@ -1,5 +1,7 @@
 package com.marketlabs.pulse.ui.components.widgets
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -7,8 +9,12 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.dimensionResource
@@ -38,6 +44,23 @@ fun TriSegmentBar(
 ) {
     val pulseColors = LocalPulseColors.current
 
+    var bullTarget by remember { mutableFloatStateOf(0f) }
+    var neutralTarget by remember { mutableFloatStateOf(0f) }
+    var bearTarget by remember { mutableFloatStateOf(0f) }
+    val animSpec = tween<Float>(durationMillis = 1500)
+    val animatedBull by animateFloatAsState(bullTarget, animSpec, label = "tri_segment_bull")
+    val animatedNeutral by animateFloatAsState(neutralTarget, animSpec, label = "tri_segment_neutral")
+    val animatedBear by animateFloatAsState(bearTarget, animSpec, label = "tri_segment_bear")
+    LaunchedEffect(bullFraction, neutralFraction, bearFraction) {
+        bullTarget = bullFraction
+        neutralTarget = neutralFraction
+        bearTarget = bearFraction
+    }
+
+    // 💡 `Modifier.weight` requires a value strictly greater than zero, but the animation's very
+    // first composed frame reads each `mutableFloatStateOf(0f)` before its `LaunchedEffect` has
+    // pushed the real target -- a tiny floor avoids that one-frame crash without visibly changing
+    // the drawn width of an otherwise-empty segment.
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -45,16 +68,18 @@ fun TriSegmentBar(
             .clip(RoundedCornerShape(dimensionResource(id = R.dimen.tri_segment_bar_height) / 2))
     ) {
         if (bullFraction > 0f) {
-            Box(modifier = Modifier.weight(bullFraction).fillMaxHeight().background(pulseColors.signalBullishText))
+            Box(modifier = Modifier.weight(animatedBull.coerceAtLeast(MinSegmentWeight)).fillMaxHeight().background(pulseColors.signalBullishText))
         }
         if (neutralFraction > 0f) {
-            Box(modifier = Modifier.weight(neutralFraction).fillMaxHeight().background(pulseColors.signalNeutralText))
+            Box(modifier = Modifier.weight(animatedNeutral.coerceAtLeast(MinSegmentWeight)).fillMaxHeight().background(pulseColors.signalNeutralText))
         }
         if (bearFraction > 0f) {
-            Box(modifier = Modifier.weight(bearFraction).fillMaxHeight().background(pulseColors.signalBearishText))
+            Box(modifier = Modifier.weight(animatedBear.coerceAtLeast(MinSegmentWeight)).fillMaxHeight().background(pulseColors.signalBearishText))
         }
     }
 }
+
+private const val MinSegmentWeight = 0.0001f
 
 @Preview(showBackground = true, backgroundColor = 0xFF121212)
 @Composable

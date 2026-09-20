@@ -103,7 +103,6 @@ private fun HorizonCard(horizon: DomainHorizonBlock) {
             CardEyebrowLabel(
                 text = horizon.timeWindow,
                 color = LocalPulseColors.current.accentPrimary,
-                iconRes = R.drawable.ic_ai_sparkle_filled,
                 iconContentDescription = "Analysis Engine"
             )
 
