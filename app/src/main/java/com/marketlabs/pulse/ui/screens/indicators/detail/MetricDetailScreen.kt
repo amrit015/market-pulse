@@ -176,20 +176,8 @@ fun MetricDetailScreen(
                 text = glossaryEntry.whatItIs,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.padding(top = paddingSmall, bottom = if (glossaryEntry.provenance != null) paddingSmall else paddingLarge)
+                modifier = Modifier.padding(top = paddingSmall, bottom = paddingLarge)
             )
-
-            // 💡 spec-20260917-content-refinement.md Pass 2: teachable-vs-proprietary framing --
-            // a quiet attribution line, not its own section header, since it's context on "What it
-            // is" rather than a new fact about the metric.
-            glossaryEntry.provenance?.let { provenance ->
-                Text(
-                    text = provenance,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(bottom = paddingLarge)
-                )
-            }
 
             Text(
                 text = stringResource(id = R.string.indicators_detail_how_to_read).uppercase(),
@@ -271,12 +259,16 @@ private fun BandRow(band: MetricGlossaryBand, isCurrent: Boolean) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // 💡 `weight(1f)` so a long label wraps inside its own share of the row instead of
+                // squeezing the "CURRENT" pill into a one-letter-wide column.
                 Text(
                     text = band.label,
                     style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onBackground
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.weight(1f)
                 )
                 if (isCurrent) {
+                    Spacer(modifier = Modifier.width(paddingSmall))
                     SignalPill(
                         text = stringResource(id = R.string.status_current),
                         pillColor = accent.copy(alpha = 0.16f),
@@ -350,7 +342,6 @@ private val previewGlossaryEntry = MetricGlossaryEntry(
     whatItIs = "Trailing twelve-month price divided by trailing earnings for the S&P 500.",
     howToRead = "Higher readings mean investors are paying more per dollar of past earnings -- a stretched multiple leaves less room for disappointment.",
     watch = "Watch it alongside P/B and dividend yield rather than alone -- agreement across all three (plus ERP) on \"richly priced\" is a stronger read than any single ratio.",
-    provenance = "The P/E concept is fully teachable and standard; the 16x/22x band cutoffs are this app's own reasonable round numbers, not a historical percentile.",
     bands = listOf(
         MetricGlossaryBand(label = "Cheap", meaning = "16x or below -- earnings priced for pessimism."),
         MetricGlossaryBand(label = "Fair Value", meaning = "16x-22x -- in line with typical historical norms."),

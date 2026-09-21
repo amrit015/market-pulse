@@ -4,10 +4,11 @@ package com.marketlabs.pulse.ui.screens.tutorials
 
 import androidx.annotation.StringRes
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.ui.components.tutorials.Mechanism
 
 /**
- * spec-20260915-compliance-disclaimers.md §6.2: display-only curation (category grouping + a
- * human title per metric id) for the Tutorials hub's "Understanding the Gauges" section — the
+ * Display-only curation (category grouping + a human title per metric id) for the per-mechanism
+ * indicator list a mechanism deck's last card links to — the
  * actual definitions are NOT duplicated here, they're read at runtime from
  * `MetricGlossaryProvider.getAll()` (`metric_glossary.json`), the same bundle `GlossaryDetailScreen`/
  * `MetricDetailScreen` already use. Category grouping mirrors the Indicators tab's own pillar
@@ -20,6 +21,7 @@ import com.marketlabs.pulse.R
  */
 data class TutorialsGaugeCategory(
     @param:StringRes val titleRes: Int,
+    val mechanism: Mechanism,
     val metricIds: List<String>
 )
 
@@ -28,21 +30,25 @@ object TutorialsGaugesCatalog {
     val categories: List<TutorialsGaugeCategory> = listOf(
         TutorialsGaugeCategory(
             titleRes = R.string.tutorials_gauges_category_tactical_momentum,
-            metricIds = listOf("fear_and_greed", "put_call_ratio", "spy_rsi", "sma_extension")
+            mechanism = Mechanism.TACTICAL_MOMENTUM,
+            metricIds = listOf("fear_and_greed", "put_call_ratio", "spy_rsi", "sma_extension", "vix")
         ),
         TutorialsGaugeCategory(
             titleRes = R.string.tutorials_gauges_category_systemic_risk,
+            mechanism = Mechanism.SYSTEMIC_RISK,
             metricIds = listOf(
-                "vix", "yield_curve", "credit_spreads", "move_index",
+                "yield_curve", "credit_spreads", "move_index",
                 "copper_gold", "consumer_rotation", "market_breadth", "dxy", "oil"
             )
         ),
         TutorialsGaugeCategory(
             titleRes = R.string.tutorials_gauges_category_valuation,
+            mechanism = Mechanism.VALUATION,
             metricIds = listOf("pe_ratio", "pb_ratio", "erp", "div_yield")
         ),
         TutorialsGaugeCategory(
             titleRes = R.string.tutorials_gauges_category_macro_vitals,
+            mechanism = Mechanism.MACRO_VITALS,
             metricIds = listOf(
                 "cpi_yoy", "core_pce_yoy", "core_pce_mom", "unemployment",
                 "nfp", "real_gdp", "retail_sales", "fed_funds", "yield_10y"
@@ -50,6 +56,7 @@ object TutorialsGaugesCatalog {
         ),
         TutorialsGaugeCategory(
             titleRes = R.string.tutorials_gauges_category_positioning,
+            mechanism = Mechanism.POSITIONING,
             metricIds = listOf(
                 "positioning.aaii_bull_bear_spread", "positioning.cot_nc_net_pct_oi", "positioning.cot_percentile",
                 "positioning.short_interest_days_to_cover", "positioning.short_interest_shares",
@@ -58,6 +65,7 @@ object TutorialsGaugesCatalog {
         ),
         TutorialsGaugeCategory(
             titleRes = R.string.tutorials_gauges_category_posture,
+            mechanism = Mechanism.POSTURE,
             metricIds = listOf("posture.naaim_exposure", "posture.dark_pool_index", "posture.net_liquidity")
         )
     )

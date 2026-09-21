@@ -5,24 +5,21 @@ package com.marketlabs.pulse.ui.components
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
@@ -45,10 +42,9 @@ import com.marketlabs.pulse.ui.theme.LocalPulseColors
  *
  * 2026-09: no more `Scaffold`/`TopAppBar` -- that filled, elevated bar chrome is gone app-wide for
  * Tutorials and every other screen reached from Settings (see `MainActivity`'s `isPushedDestination`
- * list, unchanged: the shared bottom nav was already suppressed for all of these). [title] now
- * renders as a plain large headline directly in the scrollable content, below a bare (unstyled, no
- * background/elevation) back button -- navigability is preserved, just without the Material AppBar
- * surface.
+ * list, unchanged: the shared bottom nav was already suppressed for all of these). [title] renders
+ * to the right of a bare (unstyled, no background/elevation) back arrow via `PulseBackTitleRow` --
+ * navigability is preserved, just without the Material AppBar surface.
  */
 @Composable
 fun DocumentSectionsScreen(
@@ -61,29 +57,19 @@ fun DocumentSectionsScreen(
     // TutorialDiagrams composables right after a specific section's card, keyed by that section's
     // index in `sections` -- optional and empty by default so every existing call site (Terms &
     // Conditions, Privacy Policy, the other 4 Tutorials articles) keeps compiling unchanged.
-    diagrams: Map<Int, @Composable () -> Unit> = emptyMap()
+    diagrams: Map<Int, @Composable () -> Unit> = emptyMap(),
+    // Extra content rendered after the last section card (e.g. About's app-info block and its
+    // links) -- optional so every existing call site keeps compiling unchanged.
+    trailingContent: @Composable (() -> Unit)? = null
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .windowInsetsPadding(WindowInsets.statusBars)
+            .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Top + WindowInsetsSides.Bottom))
             .verticalScroll(rememberScrollState())
     ) {
-        IconButton(onClick = onNavigateUp) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_back),
-                contentDescription = stringResource(id = R.string.nav_back_content_description),
-                tint = LocalPulseColors.current.onSurfaceMuted
-            )
-        }
+        PulseBackTitleRow(title = title, onNavigateUp = onNavigateUp)
         Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_xlarge)))
-
             if (lastUpdatedLabel != null) {
                 Text(
                     text = lastUpdatedLabel,
@@ -121,9 +107,12 @@ fun DocumentSectionsScreen(
                 }
             }
 
+            trailingContent?.invoke()
+
             if (showFooter) {
                 DisclaimerFooter()
             }
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_xlarge)))
         }
     }
 }

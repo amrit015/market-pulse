@@ -41,9 +41,7 @@ import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 import com.marketlabs.pulse.ui.theme.pillColor
 import com.marketlabs.pulse.ui.theme.textColor
 import com.marketlabs.pulse.utils.enums.RiskImpactLevel
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import com.marketlabs.pulse.utils.extensions.toAnalyzedAsOfString
 
 @Composable
 fun TailRisksSection(risksData: MarketRiskAssessment) {
@@ -111,11 +109,10 @@ private fun RiskAssessmentHeader(data: MarketRiskAssessment) {
             )
         }
 
-        val date = data.lastUpdated?.let { Date(it) } ?: Date()
-        val format = SimpleDateFormat("MMM dd, h:mm a", Locale.getDefault())
+        val analyzedAt = (data.lastUpdated ?: System.currentTimeMillis()).toAnalyzedAsOfString()
 
         Text(
-            text = stringResource(id = R.string.analyzed_at, format.format(date)),
+            text = stringResource(id = R.string.analyzed_at, analyzedAt),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             // 💡 No trailing bottom padding here -- TailRisksSection's outer Column already adds

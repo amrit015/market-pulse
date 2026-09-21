@@ -41,8 +41,9 @@ import com.marketlabs.pulse.ui.components.widgets.MetricInfoAction
 import com.marketlabs.pulse.ui.components.widgets.buildBulletJoinedText
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
+import com.marketlabs.pulse.utils.extensions.toAnalyzedAsOfString
+import com.marketlabs.pulse.utils.extensions.toTodayOrYesterdayLabel
 import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
 
 @Composable
@@ -80,11 +81,10 @@ fun WeeklyPlaybookSection(playbook: WeeklyPlaybook) {
             )
         }
 
-        val date = playbook.lastUpdated?.let { Date(it) } ?: Date()
-        val format = SimpleDateFormat("MMM dd, h:mm a", Locale.getDefault())
+        val analyzedAt = (playbook.lastUpdated ?: System.currentTimeMillis()).toAnalyzedAsOfString()
 
         Text(
-            text = stringResource(id = R.string.analyzed_at, format.format(date)),
+            text = stringResource(id = R.string.analyzed_at, analyzedAt),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(
@@ -288,7 +288,8 @@ private fun formatEventDateSafe(rawDate: String): FormattedEventDate {
         val parsed = parser.parse(rawDate)
 
         if (parsed != null) {
-            val datePart = SimpleDateFormat("EEEE, MMM dd", Locale.getDefault()).format(parsed)
+            val datePart = parsed.toTodayOrYesterdayLabel()
+                ?: SimpleDateFormat("EEEE, MMM dd", Locale.getDefault()).format(parsed)
             val timePart = if (isIsoWithTime) SimpleDateFormat("h:mm a", Locale.getDefault()).format(parsed) else null
             FormattedEventDate(datePart, timePart)
         } else {

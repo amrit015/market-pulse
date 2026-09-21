@@ -20,7 +20,6 @@ import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.stocks.DomainDigestSection
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
-import com.marketlabs.pulse.ui.components.widgets.AiGeneratedLabel
 import com.marketlabs.pulse.ui.components.widgets.CardEyebrowLabel
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
@@ -99,12 +98,6 @@ fun DigestCard(headline: String?, sections: List<DomainDigestSection>, modifier:
                         thickness = dimensionResource(id = R.dimen.border_thin)
                     )
                 }
-            }
-            // 💡 No expand/collapse state on this card -- sits below all of the digest's own text
-            // (was above the first block instead), always visible.
-            if (blocks.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
-                AiGeneratedLabel()
             }
         }
     }

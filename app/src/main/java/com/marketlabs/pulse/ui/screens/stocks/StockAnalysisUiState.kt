@@ -33,5 +33,6 @@ data class StockAnalysisUiState(
     val isEquityOpen: Boolean = false,
     val selectedTabIndex: Int = 0,
     val favoriteSymbols: Set<String> = emptySet(),
+    val clickedDeepDiveSymbols: Set<String> = emptySet(),
     val error: UiError? = null
 )

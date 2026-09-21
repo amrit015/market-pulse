@@ -6,20 +6,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
-import com.marketlabs.pulse.ui.components.DocumentSectionsScreen
+import com.marketlabs.pulse.ui.components.tutorials.DeckPage
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
-/** spec-20260915-compliance-disclaimers.md §6.5. */
 @Composable
 fun TutorialsDataLimitationsScreen(onNavigateUp: () -> Unit) {
-    val sections = listOf(
-        stringResource(id = R.string.tutorials_data_limitations_title) to
-            stringResource(id = R.string.tutorials_data_limitations_body)
+    val pages = listOf(
+        DeckPage(
+            title = stringResource(id = R.string.tutorials_data_limitations_title),
+            body = stringResource(id = R.string.tutorials_data_limitations_body)
+        )
     )
 
-    DocumentSectionsScreen(
+    CarouselArticleScreen(
         title = stringResource(id = R.string.tutorials_item_data_limitations),
-        sections = sections,
+        pages = pages,
         onNavigateUp = onNavigateUp
     )
 }

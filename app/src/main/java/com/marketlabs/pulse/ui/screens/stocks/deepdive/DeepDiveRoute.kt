@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -106,15 +105,6 @@ fun DeepDiveRoute(
                     painter = painterResource(id = R.drawable.ic_back),
                     contentDescription = stringResource(id = R.string.nav_back_content_description),
                     tint = pulseColors.onSurfaceMuted
-                )
-                Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
-                // 💡 "{symbol} · ANALYSIS" -- reuses DetailHeader's own back-label copy
-                // (`stock_detail_back_label`, "ANALYSIS") rather than a new duplicate string, since
-                // this screen is one level deeper than Stock Detail's own "< ANALYSIS" back row.
-                Text(
-                    text = "${uiState.symbol} · ${stringResource(id = R.string.stock_detail_back_label)}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = pulseColors.onSurfaceMuted
                 )
             }
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))

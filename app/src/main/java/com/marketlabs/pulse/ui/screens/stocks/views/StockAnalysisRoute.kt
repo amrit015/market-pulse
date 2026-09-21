@@ -117,7 +117,8 @@ fun StockAnalysisRoute(
             tabs = StockAnalysisTab.entries.map { stringResource(id = it.labelRes) },
             selectedTabIndex = uiState.selectedTabIndex,
             onTabSelected = viewModel::onTabSelected,
-            highlightedTabIndex = StockAnalysisTab.FAVORITES.ordinal
+            highlightedTabIndex = StockAnalysisTab.FAVORITES.ordinal,
+            selectionPosition = { pagerState.currentPage + pagerState.currentPageOffsetFraction }
         )
 
         Box(modifier = Modifier.fillMaxSize()) {
@@ -143,8 +144,10 @@ fun StockAnalysisRoute(
                             isEquityOpen = uiState.isEquityOpen,
                             pagerState = pagerState,
                             favoriteSymbols = uiState.favoriteSymbols,
+                            clickedDeepDiveSymbols = uiState.clickedDeepDiveSymbols,
                             onCardClick = onNavigateToDetail,
                             onToggleFavorite = viewModel::toggleFavorite,
+                            onDeepDiveClick = viewModel::onDeepDiveClicked,
                             onTechnicalSetupClick = { setup -> glossaryStockSetup = setup },
                             getIntradayStream = viewModel::getIntradayStream,
                             scaffoldPadding = PaddingValues(bottom = scaffoldPadding.calculateBottomPadding())

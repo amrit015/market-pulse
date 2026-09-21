@@ -6,26 +6,26 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.ui.components.PulseBackTitleRow
 import com.marketlabs.pulse.ui.settings.components.PresetSwatchGrid
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
@@ -56,24 +56,11 @@ fun ThemePickerScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .windowInsetsPadding(WindowInsets.statusBars)
+            .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Top + WindowInsetsSides.Bottom))
             .verticalScroll(rememberScrollState())
     ) {
-        IconButton(onClick = onNavigateUp) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_back),
-                contentDescription = stringResource(id = R.string.nav_back_content_description),
-                tint = LocalPulseColors.current.onSurfaceMuted
-            )
-        }
+        PulseBackTitleRow(title = stringResource(id = R.string.settings_section_theme), onNavigateUp = onNavigateUp)
         Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
-            Text(
-                text = stringResource(id = R.string.settings_section_theme),
-                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_xlarge)))
-
             val sections = if (systemInDark) {
                 listOf(
                     R.string.settings_preset_mode_dark to darkPresets,
@@ -99,6 +86,7 @@ fun ThemePickerScreen(
                     Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_xxlarge)))
                 }
             }
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_xlarge)))
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.marketlabs.pulse.utils
 
+import com.marketlabs.pulse.utils.extensions.toShortDateWithYearString
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -90,18 +91,9 @@ fun String.toRelativeDayLabel(): String {
     }
 }
 
-private val DISPLAY_DATE_FORMATTER = DateTimeFormatter.ofPattern("MMM d, yyyy")
-
 /**
  * Reformats a backend `yyyy-MM-dd` date string (report_date/settlement_date/reported_date/date --
- * every raw date field Posture/Positioning show) into "Aug 27, 2026" for display. Falls back to
- * the raw string on a parse failure rather than throwing, same as `MetricDetailScreen`'s own
- * `formatReleaseDate` precedent for its release-date field.
+ * every raw date field Posture/Positioning show) as "Today", "Yesterday", or "Aug 27, 2026" for
+ * display. Falls back to the raw string on a parse failure rather than throwing.
  */
-fun String.toDisplayDate(): String {
-    return try {
-        java.time.LocalDate.parse(this, DateTimeFormatter.ISO_LOCAL_DATE).format(DISPLAY_DATE_FORMATTER)
-    } catch (e: Exception) {
-        this
-    }
-}
+fun String.toDisplayDate(): String = toShortDateWithYearString()

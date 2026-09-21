@@ -19,6 +19,12 @@ interface FavoriteStocksRepository {
     /** Emits an empty set until the reader has ever favorited a symbol; persisted after. */
     val favoriteSymbols: Flow<Set<String>>
 
+    /** Emits the set of symbols whose Deep Dives have been clicked by the user. */
+    val clickedDeepDiveSymbols: Flow<Set<String>>
+
     /** Adds [symbol] to the favorite set if absent, removes it otherwise. */
     suspend fun toggleFavorite(symbol: String)
+
+    /** Marks the Deep Dive for [symbol] as clicked. */
+    suspend fun markDeepDiveClicked(symbol: String)
 }

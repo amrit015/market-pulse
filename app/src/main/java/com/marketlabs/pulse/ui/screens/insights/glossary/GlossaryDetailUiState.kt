@@ -46,6 +46,5 @@ data class GlossarySection(
     val whatItIs: String,
     val howToRead: String,
     val watch: String?,
-    val provenance: String?,
     val gotchas: String?
 )

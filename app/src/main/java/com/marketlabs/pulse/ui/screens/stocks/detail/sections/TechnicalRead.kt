@@ -16,7 +16,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
-import com.marketlabs.pulse.ui.components.widgets.AiGeneratedLabel
 import com.marketlabs.pulse.ui.components.widgets.CardEyebrowLabel
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
@@ -52,10 +51,6 @@ fun TechnicalRead(technicalRead: String?, modifier: Modifier = Modifier) {
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurface
             )
-            // 💡 No expand/collapse state on this card -- sits directly below the body text,
-            // always visible (was beside the eyebrow above).
-            androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
-            AiGeneratedLabel()
         }
     }
 }

@@ -212,7 +212,8 @@ private fun RiskGlossarySection(title: String, terms: List<GlossaryTerm>, curren
                 Text(
                     text = item.term,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = titleColor
+                    color = titleColor,
+                    modifier = Modifier.weight(1f, fill = false)
                 )
                 if (isCurrent) {
                     Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))

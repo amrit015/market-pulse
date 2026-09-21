@@ -15,8 +15,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.components.PulseWebViewScreen
 import com.marketlabs.pulse.ui.screens.dashboard.detail.AssetDetailRoute
@@ -39,13 +41,17 @@ import com.marketlabs.pulse.ui.screens.stocks.detail.timeline.ResolvedCallsListR
 import com.marketlabs.pulse.ui.screens.stocks.detail.timeline.TechnicalTimelineListRoute
 import com.marketlabs.pulse.ui.screens.stocks.views.StockAnalysisRoute
 import com.marketlabs.pulse.ui.screens.summary.views.MarketSummaryRoute
-import com.marketlabs.pulse.ui.screens.tutorials.TutorialsAiContentScreen
 import com.marketlabs.pulse.ui.screens.tutorials.TutorialsDataLimitationsScreen
 import com.marketlabs.pulse.ui.screens.tutorials.TutorialsGaugeAnatomyScreen
+import com.marketlabs.pulse.ui.screens.tutorials.ConceptArticle
+import com.marketlabs.pulse.ui.components.tutorials.Mechanism
+import com.marketlabs.pulse.ui.screens.tutorials.MechanismDeckScreen
+import com.marketlabs.pulse.ui.screens.tutorials.StockSetupsGlossaryScreen
+import com.marketlabs.pulse.ui.screens.tutorials.TutorialsConceptScreen
 import com.marketlabs.pulse.ui.screens.tutorials.TutorialsGaugesRoute
-import com.marketlabs.pulse.ui.screens.tutorials.TutorialsHowItWorksScreen
 import com.marketlabs.pulse.ui.screens.tutorials.TutorialsHubScreen
-import com.marketlabs.pulse.ui.screens.tutorials.TutorialsMarketConceptsScreen
+import com.marketlabs.pulse.ui.settings.AboutRoute
+import com.marketlabs.pulse.ui.settings.DataSyncScreen
 import com.marketlabs.pulse.ui.settings.SettingsRoute
 import com.marketlabs.pulse.ui.settings.ThemePickerRoute
 import com.marketlabs.pulse.utils.enums.ReportType
@@ -132,10 +138,10 @@ object PulseRoutes {
 
     // Reached from Settings -> Tutorials (spec §6, Phase 2).
     const val TUTORIALS_HUB = "tutorials_hub"
-    const val TUTORIALS_HOW_IT_WORKS = "tutorials_how_it_works"
-    const val TUTORIALS_GAUGES = "tutorials_gauges"
-    const val TUTORIALS_MARKET_CONCEPTS = "tutorials_market_concepts"
-    const val TUTORIALS_AI_CONTENT = "tutorials_ai_content"
+    // Route-argument prefixes -- the full route is "$TUTORIALS_DECK/{mechanism}" etc.
+    const val TUTORIALS_DECK = "tutorials_deck"
+    const val TUTORIALS_GLOSSARY = "tutorials_glossary"
+    const val TUTORIALS_CONCEPT = "tutorials_concept"
     const val TUTORIALS_DATA_LIMITATIONS = "tutorials_data_limitations"
     const val TUTORIALS_GAUGE_ANATOMY = "tutorials_gauge_anatomy"
 
@@ -537,9 +543,7 @@ fun PulseNavGraph(
                 onNavigateToTutorials = { navController.navigate(PulseRoutes.TUTORIALS_HUB) }
             )
         }
-        // spec-20260915-compliance-disclaimers.md: wired up but content/design not yet supplied --
-        // PlaceholderScreen is a bare Scaffold + back button + "coming soon" body, reused across all
-        // three rather than three near-identical stub files.
+        // Content/design not yet supplied -- PlaceholderScreen is a bare back button + "coming soon" body.
         composable(PulseRoutes.SETTINGS_NOTIFICATIONS) {
             PlaceholderScreen(
                 title = stringResource(id = R.string.settings_item_notifications),
@@ -547,15 +551,13 @@ fun PulseNavGraph(
             )
         }
         composable(PulseRoutes.SETTINGS_DATA_SYNC) {
-            PlaceholderScreen(
-                title = stringResource(id = R.string.settings_item_data_sync),
-                onNavigateUp = { navController.popBackStack() }
-            )
+            DataSyncScreen(onNavigateUp = { navController.popBackStack() })
         }
         composable(PulseRoutes.SETTINGS_ABOUT) {
-            PlaceholderScreen(
-                title = stringResource(id = R.string.settings_item_about),
-                onNavigateUp = { navController.popBackStack() }
+            AboutRoute(
+                onNavigateUp = { navController.popBackStack() },
+                onNavigateToPrivacyPolicy = { navController.navigate(PulseRoutes.PRIVACY_POLICY) },
+                onNavigateToTerms = { navController.navigate(PulseRoutes.TERMS_CONDITIONS) }
             )
         }
         composable(PulseRoutes.SETTINGS_THEME_PICKER) {
@@ -564,25 +566,53 @@ fun PulseNavGraph(
         composable(PulseRoutes.TUTORIALS_HUB) {
             TutorialsHubScreen(
                 onNavigateUp = { navController.popBackStack() },
-                onNavigateToHowItWorks = { navController.navigate(PulseRoutes.TUTORIALS_HOW_IT_WORKS) },
-                onNavigateToGauges = { navController.navigate(PulseRoutes.TUTORIALS_GAUGES) },
-                onNavigateToMarketConcepts = { navController.navigate(PulseRoutes.TUTORIALS_MARKET_CONCEPTS) },
-                onNavigateToAiContent = { navController.navigate(PulseRoutes.TUTORIALS_AI_CONTENT) },
-                onNavigateToDataLimitations = { navController.navigate(PulseRoutes.TUTORIALS_DATA_LIMITATIONS) },
-                onNavigateToGaugeAnatomy = { navController.navigate(PulseRoutes.TUTORIALS_GAUGE_ANATOMY) }
+                onNavigateToGaugeAnatomy = { navController.navigate(PulseRoutes.TUTORIALS_GAUGE_ANATOMY) },
+                onNavigateToConcept = { navController.navigate("${PulseRoutes.TUTORIALS_CONCEPT}/${it.routeKey}") },
+                onNavigateToMechanism = { navController.navigate("${PulseRoutes.TUTORIALS_DECK}/${it.routeKey}") },
+                onNavigateToDataLimitations = { navController.navigate(PulseRoutes.TUTORIALS_DATA_LIMITATIONS) }
             )
         }
-        composable(PulseRoutes.TUTORIALS_HOW_IT_WORKS) {
-            TutorialsHowItWorksScreen(onNavigateUp = { navController.popBackStack() })
+        composable("${PulseRoutes.TUTORIALS_CONCEPT}/{article}") { backStackEntry ->
+            val article = ConceptArticle.fromRouteKey(backStackEntry.arguments?.getString("article"))
+            if (article != null) {
+                TutorialsConceptScreen(article = article, onNavigateUp = { navController.popBackStack() })
+            }
         }
-        composable(PulseRoutes.TUTORIALS_GAUGES) {
-            TutorialsGaugesRoute(onNavigateUp = { navController.popBackStack() })
+        // Optional `group` = comma-separated mechanism keys when opened from a screen's "Show More"
+        // that spans several mechanisms (a tab row then switches between them).
+        composable(
+            route = "${PulseRoutes.TUTORIALS_DECK}/{mechanism}?group={group}",
+            arguments = listOf(navArgument("group") { type = NavType.StringType; nullable = true; defaultValue = null })
+        ) { backStackEntry ->
+            val mechanism = Mechanism.fromRouteKey(backStackEntry.arguments?.getString("mechanism"))
+            val group = backStackEntry.arguments?.getString("group")
+                ?.split(",")
+                ?.mapNotNull { Mechanism.fromRouteKey(it) }
+                .orEmpty()
+            if (mechanism != null) {
+                MechanismDeckScreen(
+                    mechanism = mechanism,
+                    group = group,
+                    onNavigateUp = { navController.popBackStack() },
+                    onSeeIndicators = { current, whole ->
+                        val query = if (whole.isEmpty()) "" else "?group=${whole.joinToString(",") { it.routeKey }}"
+                        navController.navigate("${PulseRoutes.TUTORIALS_GLOSSARY}/${current.routeKey}$query")
+                    }
+                )
+            }
         }
-        composable(PulseRoutes.TUTORIALS_MARKET_CONCEPTS) {
-            TutorialsMarketConceptsScreen(onNavigateUp = { navController.popBackStack() })
-        }
-        composable(PulseRoutes.TUTORIALS_AI_CONTENT) {
-            TutorialsAiContentScreen(onNavigateUp = { navController.popBackStack() })
+        // Optional `group` = every mechanism of the screen that opened it ("See all indicators" from
+        // a "Show More" deck); absent = just the one mechanism (opened from the Tutorials hub).
+        composable(
+            route = "${PulseRoutes.TUTORIALS_GLOSSARY}/{mechanism}?group={group}",
+            arguments = listOf(navArgument("group") { type = NavType.StringType; nullable = true; defaultValue = null })
+        ) { backStackEntry ->
+            val mechanism = Mechanism.fromRouteKey(backStackEntry.arguments?.getString("mechanism"))
+            if (mechanism == Mechanism.STOCK_ANALYSIS) {
+                StockSetupsGlossaryScreen(onNavigateUp = { navController.popBackStack() })
+            } else if (mechanism != null) {
+                TutorialsGaugesRoute(onNavigateUp = { navController.popBackStack() })
+            }
         }
         composable(PulseRoutes.TUTORIALS_GAUGE_ANATOMY) {
             TutorialsGaugeAnatomyScreen(onNavigateUp = { navController.popBackStack() })

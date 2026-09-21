@@ -7,14 +7,17 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,85 +29,78 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.ui.components.tutorials.Mechanism
+import com.marketlabs.pulse.ui.components.PulseBackTitleRow
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 /**
- * spec-20260915-compliance-disclaimers.md §6 (Phase 2). Settings → Tutorials -- a menu into the
- * static/glossary-backed articles below.
- *
- * 2026-09: each row is now its own `PulseCard(DATA)` (was one shared card holding every row with
- * internal dividers) -- matches the individual-card treatment the rest of Settings now uses too, no
- * more "list of rows inside one card." Also no more `Scaffold`/`TopAppBar` -- see
- * `DocumentSectionsScreen`'s doc comment for the same chrome removal applied everywhere reached from
- * Settings.
+ * Settings -> Tutorials, and the "See all market concepts" target of every screen's "?" sheet:
+ * the full library, in four sections -- how to read a gauge, standard market concepts (6
+ * articles), market mechanisms (7 card decks), and data limitations. Each row is its own
+ * `PulseCard(DATA)`.
  */
 @Composable
 fun TutorialsHubScreen(
     onNavigateUp: () -> Unit,
-    onNavigateToHowItWorks: () -> Unit,
-    onNavigateToGauges: () -> Unit,
-    onNavigateToMarketConcepts: () -> Unit,
-    onNavigateToAiContent: () -> Unit,
-    onNavigateToDataLimitations: () -> Unit,
-    onNavigateToGaugeAnatomy: () -> Unit
+    onNavigateToGaugeAnatomy: () -> Unit,
+    onNavigateToConcept: (ConceptArticle) -> Unit,
+    onNavigateToMechanism: (Mechanism) -> Unit,
+    onNavigateToDataLimitations: () -> Unit
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .windowInsetsPadding(WindowInsets.statusBars)
+            .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Top + WindowInsetsSides.Bottom))
+            .verticalScroll(rememberScrollState())
     ) {
-        IconButton(onClick = onNavigateUp) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_back),
-                contentDescription = stringResource(id = R.string.nav_back_content_description),
-                tint = LocalPulseColors.current.onSurfaceMuted
-            )
-        }
-        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
-            Text(
-                text = stringResource(id = R.string.tutorials_hub_screen_title),
-                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_xlarge)))
-
-            val rowSpacing = dimensionResource(id = R.dimen.padding_medium)
-            TutorialsHubRow(
-                label = stringResource(id = R.string.tutorials_item_how_it_works),
-                onClick = onNavigateToHowItWorks
-            )
-            Spacer(modifier = Modifier.height(rowSpacing))
-            TutorialsHubRow(
-                label = stringResource(id = R.string.tutorials_item_gauges),
-                onClick = onNavigateToGauges
-            )
-            Spacer(modifier = Modifier.height(rowSpacing))
-            // spec-20260917-content-refinement.md Pass 3a -- sits right after "Understanding the
-            // Gauges" since it's the primer for reading any of those entries.
+        PulseBackTitleRow(title = stringResource(id = R.string.tutorials_hub_screen_title), onNavigateUp = onNavigateUp)
+        Column(
+            modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)),
+            verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_medium))
+        ) {
+            TutorialsHubSectionHeader(text = stringResource(id = R.string.tutorials_hub_section_start))
             TutorialsHubRow(
                 label = stringResource(id = R.string.tutorials_item_gauge_anatomy),
                 onClick = onNavigateToGaugeAnatomy
             )
-            Spacer(modifier = Modifier.height(rowSpacing))
-            TutorialsHubRow(
-                label = stringResource(id = R.string.tutorials_item_market_concepts),
-                onClick = onNavigateToMarketConcepts
-            )
-            Spacer(modifier = Modifier.height(rowSpacing))
-            TutorialsHubRow(
-                label = stringResource(id = R.string.tutorials_item_ai_content),
-                onClick = onNavigateToAiContent
-            )
-            Spacer(modifier = Modifier.height(rowSpacing))
+
+            TutorialsHubSectionHeader(text = stringResource(id = R.string.tutorials_hub_section_concepts), spaceAbove = true)
+            ConceptArticle.entries.forEach { article ->
+                TutorialsHubRow(
+                    label = stringResource(id = article.titleRes),
+                    onClick = { onNavigateToConcept(article) }
+                )
+            }
+
+            TutorialsHubSectionHeader(text = stringResource(id = R.string.tutorials_hub_section_mechanisms), spaceAbove = true)
+            Mechanism.entries.forEach { mechanism ->
+                TutorialsHubRow(
+                    label = stringResource(id = mechanism.titleRes),
+                    onClick = { onNavigateToMechanism(mechanism) }
+                )
+            }
+
+            TutorialsHubSectionHeader(text = stringResource(id = R.string.tutorials_hub_section_data), spaceAbove = true)
             TutorialsHubRow(
                 label = stringResource(id = R.string.tutorials_item_data_limitations),
                 onClick = onNavigateToDataLimitations
             )
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_xlarge)))
         }
     }
+}
+
+@Composable
+private fun TutorialsHubSectionHeader(text: String, spaceAbove: Boolean = false) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+        color = LocalPulseColors.current.accentPrimary,
+        modifier = if (spaceAbove) Modifier.padding(top = dimensionResource(id = R.dimen.padding_medium)) else Modifier
+    )
 }
 
 @Composable
@@ -141,12 +137,10 @@ private fun PreviewTutorialsHubScreenLight() {
     MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
         TutorialsHubScreen(
             onNavigateUp = {},
-            onNavigateToHowItWorks = {},
-            onNavigateToGauges = {},
-            onNavigateToMarketConcepts = {},
-            onNavigateToAiContent = {},
-            onNavigateToDataLimitations = {},
-            onNavigateToGaugeAnatomy = {}
+            onNavigateToGaugeAnatomy = {},
+            onNavigateToConcept = {},
+            onNavigateToMechanism = {},
+            onNavigateToDataLimitations = {}
         )
     }
 }
@@ -157,12 +151,10 @@ private fun PreviewTutorialsHubScreenDark() {
     MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
         TutorialsHubScreen(
             onNavigateUp = {},
-            onNavigateToHowItWorks = {},
-            onNavigateToGauges = {},
-            onNavigateToMarketConcepts = {},
-            onNavigateToAiContent = {},
-            onNavigateToDataLimitations = {},
-            onNavigateToGaugeAnatomy = {}
+            onNavigateToGaugeAnatomy = {},
+            onNavigateToConcept = {},
+            onNavigateToMechanism = {},
+            onNavigateToDataLimitations = {}
         )
     }
 }

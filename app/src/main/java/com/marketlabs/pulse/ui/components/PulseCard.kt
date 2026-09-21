@@ -84,6 +84,11 @@ enum class PulseCardStyle {
     DATA_SPARKLINE
 }
 
+enum class GlowOrigin {
+    TOP_LEFT,
+    TOP_RIGHT
+}
+
 /**
  * 💡 THOUGHT PROCESS:
  * Before this, every card in the app hand-rolled its own `Card(colors = ..., border = ..., shape =
@@ -122,6 +127,15 @@ fun PulseCard(
     // color at a glance. `null` (the default) renders nothing extra -- every other `PulseCard`
     // call site is unaffected.
     glowColor: Color? = null,
+    glowOrigin: GlowOrigin = GlowOrigin.TOP_LEFT,
+    // 💡 When true, the glow's radius grows from 0 to the full card diagonal over the fade-in/hold
+    // window (then fades out as before), so it reads as color filling the card outward from
+    // `glowOrigin` instead of a fixed-size gradient just brightening in place -- which on a wide,
+    // short banner looks like a glow sitting on one side.
+    glowFill: Boolean = false,
+    // How opaque the glow gets at its brightest -- a card sitting on a light background can need a
+    // stronger one for the same visibility.
+    glowPeakAlpha: Float = CardGlowPeakAlpha,
     content: @Composable ColumnScope.() -> Unit
 ) {
     val pulseColors = LocalPulseColors.current
@@ -219,13 +233,26 @@ fun PulseCard(
                         animation = keyframes {
                             durationMillis = CardGlowCycleMs
                             0f at 0
-                            CardGlowPeakAlpha at CardGlowFadeInMs using FastOutSlowInEasing
-                            CardGlowPeakAlpha at CardGlowHoldMs
+                            glowPeakAlpha at CardGlowFadeInMs using FastOutSlowInEasing
+                            glowPeakAlpha at CardGlowHoldMs
                             0f at CardGlowFadeOutMs
                             0f at CardGlowCycleMs
                         }
                     ),
                     label = "card_glow_alpha"
+                )
+                val fillProgress by glowTransition.animateFloat(
+                    initialValue = 0f,
+                    targetValue = 0f,
+                    animationSpec = infiniteRepeatable(
+                        animation = keyframes {
+                            durationMillis = CardGlowCycleMs
+                            0f at 0
+                            1f at CardGlowHoldMs using FastOutSlowInEasing
+                            1f at CardGlowCycleMs
+                        }
+                    ),
+                    label = "card_glow_fill"
                 )
                 // 💡 Radial, anchored at the top-left corner, radius = the card's own diagonal --
                 // so the transparent edge of the gradient lands exactly at the far corner and the
@@ -234,7 +261,12 @@ fun PulseCard(
                     Modifier
                         .matchParentSize()
                         .drawBehind {
-                            val radius = sqrt(size.width * size.width + size.height * size.height)
+                            val diagonal = sqrt(size.width * size.width + size.height * size.height)
+                            val radius = if (glowFill) (diagonal * fillProgress).coerceAtLeast(1f) else diagonal
+                            val centerOffset = when (glowOrigin) {
+                                GlowOrigin.TOP_LEFT -> Offset.Zero
+                                GlowOrigin.TOP_RIGHT -> Offset(size.width, 0f)
+                            }
                             drawRect(
                                 brush = Brush.radialGradient(
                                     colorStops = arrayOf(
@@ -242,7 +274,7 @@ fun PulseCard(
                                         0.6f to glowColor.copy(alpha = glowAlpha * CardGlowMidAlphaFraction),
                                         1f to glowColor.copy(alpha = 0f)
                                     ),
-                                    center = Offset.Zero,
+                                    center = centerOffset,
                                     radius = radius
                                 )
                             )

@@ -5,12 +5,10 @@ package com.marketlabs.pulse.ui.components.bottomSheet
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -18,103 +16,67 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.dimensionResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.marketlabs.pulse.R
-import com.marketlabs.pulse.ui.components.FormattedBodyText
-import com.marketlabs.pulse.ui.components.PulseCard
-import com.marketlabs.pulse.ui.components.PulseCardStyle
-import com.marketlabs.pulse.ui.theme.LocalPulseColors
+import com.marketlabs.pulse.ui.components.tutorials.CardCarousel
+import com.marketlabs.pulse.ui.components.tutorials.DeckPage
+import com.marketlabs.pulse.ui.screens.stocks.detail.ViewMoreRow
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 /**
- * A per-SCREEN "?" affordance (see `ScreenGuideAction`), replacing the earlier per-card
- * "AI-generated" tap-to-explain badge. Two fixed sections: "Overview" (what this screen shows) and
- * "How to Interpret It" (how to read the different things on it) -- a screen-level guide, not a
- * single card's own explainer. Content is intentionally a starting point, expected to grow over
- * time as more is added per screen.
- *
- * Each section renders as its own `PulseCard(DATA)` -- this app's card system, not a bare `Text`
- * block, matching every other list-of-entries sheet (`StockAnalysisGlossaryBottomSheet`,
- * `MarketGlossaryBottomSheet`).
+ * The per-screen "?" guide: a [CardCarousel] of [pages] (one card per piece of guide text --
+ * "Overview", "How to Interpret It") inside a bottom sheet. [showMoreLabel] is a single link under
+ * the cards, not part of any card; it's `null` for a screen with no matching Tutorials deck.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScreenGuideSheet(
     screenTitle: String,
-    overview: String,
-    howToInterpret: String,
+    pages: List<DeckPage>,
+    showMoreLabel: String?,
+    onShowMore: () -> Unit,
     onDismiss: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val paddingExtraLarge = dimensionResource(id = R.dimen.padding_extra_large)
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
-    val paddingSmall = dimensionResource(id = R.dimen.padding_small)
+    val maxCardHeight = (LocalConfiguration.current.screenHeightDp * CardHeightFraction).dp
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         // 💡 Same reasoning as StockAnalysisGlossaryBottomSheet/MarketGlossaryBottomSheet's
         // identical comment -- the default whole-surface swipe-to-dismiss competes with this
-        // sheet's own scrollable content. Closing still works via the drag handle, scrim, or back.
+        // sheet's own scrollable/swipeable content. Closing still works via the drag handle, scrim, or back.
         sheetGesturesEnabled = false,
         dragHandle = { BottomSheetDragHandle(onDismiss = onDismiss) },
         containerColor = MaterialTheme.colorScheme.surface
     ) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = paddingExtraLarge)
-        ) {
-            item {
-                Text(
-                    text = screenTitle,
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.padding(bottom = paddingLarge)
+        Column {
+            Text(
+                text = screenTitle,
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.padding(start = dimensionResource(id = R.dimen.padding_extra_large), end = paddingLarge, bottom = paddingLarge)
+            )
+            CardCarousel(pages = pages, maxCardHeight = maxCardHeight)
+            if (showMoreLabel != null) {
+                ViewMoreRow(
+                    text = showMoreLabel,
+                    onClick = onShowMore,
+                    modifier = Modifier.padding(start = dimensionResource(id = R.dimen.padding_extra_large), top = paddingLarge)
                 )
             }
-            item {
-                PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.padding(paddingLarge)) {
-                        Text(
-                            text = stringResource(id = R.string.screen_guide_overview_heading),
-                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                            color = LocalPulseColors.current.accentPrimary
-                        )
-                        FormattedBodyText(
-                            text = overview,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.padding(top = paddingSmall)
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(paddingSmall))
-            }
-            item {
-                PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.padding(paddingLarge)) {
-                        Text(
-                            text = stringResource(id = R.string.screen_guide_how_to_interpret_heading),
-                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                            color = LocalPulseColors.current.accentPrimary
-                        )
-                        FormattedBodyText(
-                            text = howToInterpret,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.padding(top = paddingSmall)
-                        )
-                    }
-                }
-            }
-            item { Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars)) }
+            Spacer(modifier = Modifier.height(paddingLarge))
+            Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
         }
     }
 }
+
+private const val CardHeightFraction = 0.7f
 
 @Preview(name = "Light", showBackground = true)
 @Composable
@@ -122,8 +84,12 @@ private fun PreviewScreenGuideSheetLight() {
     MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
         ScreenGuideSheet(
             screenTitle = "Overview",
-            overview = "A snapshot of the whole market: today's AI-written digest, sentiment gauges, futures, and your tracked assets, all in one scrollable feed.",
-            howToInterpret = "Numbers, charts, and prices are computed directly from data -- no AI involved. The Daily Digest card is the one AI-written section on this screen, clearly labeled.",
+            pages = listOf(
+                DeckPage(title = "Overview", body = "A snapshot of the whole market: today's AI-written digest, sentiment gauges, futures, and your tracked assets."),
+                DeckPage(title = "How to Interpret It", body = "Numbers, charts, and prices are computed directly from data -- no AI involved.")
+            ),
+            showMoreLabel = "Show More",
+            onShowMore = {},
             onDismiss = {}
         )
     }

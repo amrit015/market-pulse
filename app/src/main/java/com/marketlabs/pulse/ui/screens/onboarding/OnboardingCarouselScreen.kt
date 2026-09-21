@@ -15,7 +15,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -34,6 +36,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.ui.components.PulseCard
+import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 import kotlinx.coroutines.launch
@@ -134,40 +138,46 @@ private fun OnboardingSlideContent(page: Int, modifier: Modifier = Modifier) {
             if (isDark) R.drawable.slide_3_dark else R.drawable.slide_3_light
         )
     }
-    // 💡 The illustration deliberately sits OUTSIDE the padded text block below (full device width,
-    // no side inset) so it reads edge-to-edge -- `aspectRatio` matches the source art's own 1170x900
-    // ratio exactly, so `ContentScale.Fit` has nothing to letterbox and the image always fills the
-    // full width it's given, whatever that width is.
-    Column(
-        modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Image(
-            painter = painterResource(id = illustrationRes),
-            contentDescription = null,
-            contentScale = ContentScale.Fit,
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(1170f / 900f)
-        )
+    // 💡 The whole slide -- illustration plus text -- is one card (this app's card system), centered
+    // on the screen. `aspectRatio` matches the source art's own 1170x900 ratio exactly, so
+    // `ContentScale.Fit` has nothing to letterbox and the image fills the card's full width; the
+    // card's own rounded shape clips the art's top corners. The column scrolls only if a slide ever
+    // outgrows a very short screen.
+    Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(
-            modifier = Modifier.padding(horizontal = dimensionResource(id = R.dimen.padding_xxlarge))
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = dimensionResource(id = R.dimen.padding_xxlarge))
         ) {
-            Text(
-                text = stringResource(id = titleRes),
-                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_xlarge))
-            )
-            Column(modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_xlarge))) {
-                Text(
-                    text = stringResource(id = bodyRes),
-                    style = MaterialTheme.typography.bodyLarge,
-                    textAlign = TextAlign.Center,
-                    color = LocalPulseColors.current.onSurfaceMuted
-                )
+            PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Image(
+                        painter = painterResource(id = illustrationRes),
+                        contentDescription = null,
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(1170f / 900f)
+                    )
+                    Column(
+                        modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_extra_large)),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = stringResource(id = titleRes),
+                            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = stringResource(id = bodyRes),
+                            style = MaterialTheme.typography.bodyLarge,
+                            textAlign = TextAlign.Center,
+                            color = LocalPulseColors.current.onSurfaceMuted,
+                            modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_large))
+                        )
+                    }
+                }
             }
         }
     }

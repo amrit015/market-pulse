@@ -157,18 +157,6 @@ fun GlossaryDetailScreen(
                 modifier = Modifier.padding(top = paddingSmall, bottom = paddingMedium)
             )
 
-            // 💡 spec-20260917-content-refinement.md Pass 2: same quiet teachable-vs-proprietary
-            // attribution MetricDetailScreen shows under its own "What it is" -- one line, no
-            // section header, per underlying value.
-            if (!section.provenance.isNullOrBlank()) {
-                Text(
-                    text = section.provenance,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(bottom = paddingMedium)
-                )
-            }
-
             if (!showSectionLabels) {
                 Text(
                     text = stringResource(id = R.string.indicators_detail_how_to_read).uppercase(),
@@ -265,16 +253,22 @@ private fun GlossaryBandRow(band: MetricGlossaryBand, isCurrent: Boolean) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // 💡 `weight(1f)` so a long label wraps inside its own share of the row instead of
+                // squeezing the "CURRENT" badge into a one-letter-wide column.
                 Text(
                     text = band.label,
                     style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                    color = if (isCurrent) accent else MaterialTheme.colorScheme.onBackground
+                    color = if (isCurrent) accent else MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.weight(1f)
                 )
                 if (isCurrent) {
                     Text(
                         text = stringResource(id = R.string.status_current),
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                        color = accent
+                        color = accent,
+                        maxLines = 1,
+                        softWrap = false,
+                        modifier = Modifier.padding(start = paddingSmall)
                     )
                 }
             }
@@ -359,7 +353,6 @@ private val previewSections = listOf(
         whatItIs = "If every short seller tried to buy back their shares using only a typical day's trading volume, this is roughly how many days it would take.",
         howToRead = "Higher days-to-cover means less room for short sellers to exit quickly.",
         watch = "Watch this as squeeze potential, not squeeze likelihood.",
-        provenance = "Teachable -- derived from FINRA's public short-interest and volume data.",
         gotchas = "This measures potential, not likelihood."
     ),
     GlossarySection(
@@ -367,7 +360,6 @@ private val previewSections = listOf(
         whatItIs = "How much short interest changed since the prior FINRA settlement date.",
         howToRead = "The trend is often more informative than the absolute level.",
         watch = "Watch whether shorts are building or covering.",
-        provenance = "Teachable -- same public FINRA settlement data, roughly 8 business days old by publication.",
         gotchas = "Settlement data is roughly 8 business days old by the time it's published."
     )
 )

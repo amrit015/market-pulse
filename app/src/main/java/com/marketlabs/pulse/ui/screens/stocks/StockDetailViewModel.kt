@@ -155,8 +155,9 @@ class StockDetailViewModel @Inject constructor(
     val uiState: StateFlow<StockDetailUiState> = combine(
         coreFlow,
         isEquityOpenFlow,
-        isFavoriteFlow
-    ) { core, isEquityOpen, isFavorite ->
+        isFavoriteFlow,
+        favoriteStocksRepository.clickedDeepDiveSymbols
+    ) { core, isEquityOpen, isFavorite, clickedDeepDiveSymbols ->
         StockDetailUiState(
             symbol = symbol,
             detail = core.detail,
@@ -173,6 +174,7 @@ class StockDetailViewModel @Inject constructor(
             availableChartRanges = core.chart.availableChartRanges,
             isEquityOpen = isEquityOpen,
             isFavorite = isFavorite,
+            clickedDeepDiveSymbols = clickedDeepDiveSymbols,
             error = core.flags.error
         )
     }.stateIn(
@@ -225,6 +227,11 @@ class StockDetailViewModel @Inject constructor(
     /** Called when the reader taps the header's favorite star -- persists immediately, local-only. */
     fun toggleFavorite() {
         viewModelScope.launch { favoriteStocksRepository.toggleFavorite(symbol) }
+    }
+
+    /** Called when the reader taps the Deep Dive card or navigates to Deep Dive. */
+    fun markDeepDiveClicked() {
+        viewModelScope.launch { favoriteStocksRepository.markDeepDiveClicked(symbol) }
     }
 
     /** Called when the user taps a range button on the period chart's `ChartRangePicker`. */

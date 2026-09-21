@@ -34,6 +34,7 @@ import com.marketlabs.pulse.data.theme.ThemeRepository
 import com.marketlabs.pulse.ui.components.AppTopBar
 import com.marketlabs.pulse.ui.components.FloatingBottomNav
 import com.marketlabs.pulse.ui.components.PulseSplashScreen
+import com.marketlabs.pulse.ui.components.tutorials.Mechanism
 import com.marketlabs.pulse.ui.components.widgets.ScreenGuideContent
 import com.marketlabs.pulse.ui.navigation.PulseNavGraph
 import com.marketlabs.pulse.ui.navigation.PulseRoutes
@@ -95,9 +96,8 @@ class MainActivity : ComponentActivity() {
         // 💡 `collectAsStateWithLifecycle`'s `initialValue` is what the very first Compose frame
         // renders with, before `themeRepository.selectedTheme` (backed by DataStore, an async disk
         // read on a cold process start) has emitted anything at all. That used to be hardcoded to
-        // `MarketPulseTheme.LILAC` -- correct for a brand-new user with no persisted preference
-        // (LILAC really is the first thing the repository itself emits for them, see
-        // `ThemeRepositoryImpl.DEFAULT_THEME`), but wrong for anyone who already picked a different
+        // `MarketPulseTheme.LILAC` -- correct for a brand-new user on a dark-mode device with no
+        // persisted preference (see `ThemeRepositoryImpl.defaultThemeForSystem`), but wrong for anyone who already picked a different
         // theme: their real preference hadn't loaded from disk yet, so the app briefly painted
         // LILAC's dark status bar/chrome, then snapped to their actual (often light) theme once the
         // DataStore read finished a frame or two later -- the flash. Reading the real value
@@ -150,9 +150,12 @@ class MainActivity : ComponentActivity() {
                 // screen's own scroll is exactly the conflict this file's header comment already
                 // describes for Indicators/Insights (see docs/architecture/collapsing-header-
                 // tabs.md, "The global top app bar fighting a screen's own collapsing chrome").
+                // Market Analysis added the same way: it already pins its own PulseTabRow above a
+                // per-tab pager, so the top bar staying put (like Insights) is the consistent shape.
                 val hasStaticTopBar = currentRoute == PulseRoutes.MARKET_INDICATORS ||
                     currentRoute == PulseRoutes.MARKET_INSIGHTS ||
-                    currentRoute == PulseRoutes.MARKET_SUMMARY
+                    currentRoute == PulseRoutes.MARKET_SUMMARY ||
+                    currentRoute == PulseRoutes.MARKET_ANALYSIS
                 val scrollBehavior = if (hasStaticTopBar) pinnedScrollBehavior else enterAlwaysScrollBehavior
 
                 // 💡 News, Settings, Indicator Horizons, the in-app web view, and the stock detail
@@ -189,11 +192,10 @@ class MainActivity : ComponentActivity() {
                     currentRoute == PulseRoutes.TERMS_CONDITIONS ||
                     currentRoute == PulseRoutes.PRIVACY_POLICY ||
                     currentRoute == PulseRoutes.TUTORIALS_HUB ||
-                    currentRoute == PulseRoutes.TUTORIALS_HOW_IT_WORKS ||
-                    currentRoute == PulseRoutes.TUTORIALS_GAUGES ||
                     currentRoute == PulseRoutes.TUTORIALS_GAUGE_ANATOMY ||
-                    currentRoute == PulseRoutes.TUTORIALS_MARKET_CONCEPTS ||
-                    currentRoute == PulseRoutes.TUTORIALS_AI_CONTENT ||
+                    currentRoute?.startsWith("${PulseRoutes.TUTORIALS_DECK}/") == true ||
+                    currentRoute?.startsWith("${PulseRoutes.TUTORIALS_GLOSSARY}/") == true ||
+                    currentRoute?.startsWith("${PulseRoutes.TUTORIALS_CONCEPT}/") == true ||
                     currentRoute == PulseRoutes.TUTORIALS_DATA_LIMITATIONS ||
                     currentRoute == PulseRoutes.SETTINGS_NOTIFICATIONS ||
                     currentRoute == PulseRoutes.SETTINGS_DATA_SYNC ||
@@ -281,7 +283,11 @@ class MainActivity : ComponentActivity() {
                                 title = topBarTitle(currentRoute, summaryReportType),
                                 scrollBehavior = scrollBehavior,
                                 onSettingsClick = { navController.navigate(PulseRoutes.SETTINGS) },
-                                guideContent = screenGuideContentFor(currentRoute)
+                                guideContent = screenGuideContentFor(currentRoute),
+                                onGuideShowMore = { mechanisms ->
+                                    val group = mechanisms.joinToString(",") { it.routeKey }
+                                    navController.navigate("${PulseRoutes.TUTORIALS_DECK}/${mechanisms.first().routeKey}?group=$group")
+                                }
                             )
                         }
                     },
@@ -392,7 +398,8 @@ private fun screenGuideContentFor(route: String?): ScreenGuideContent? = when (r
     PulseRoutes.MARKET_INDICATORS -> ScreenGuideContent(
         screenTitle = stringResource(id = R.string.indicators_screen_title),
         overview = stringResource(id = R.string.screen_guide_indicators_overview),
-        howToInterpret = stringResource(id = R.string.screen_guide_indicators_how_to_interpret)
+        howToInterpret = stringResource(id = R.string.screen_guide_indicators_how_to_interpret),
+        mechanisms = listOf(Mechanism.TACTICAL_MOMENTUM, Mechanism.SYSTEMIC_RISK, Mechanism.VALUATION, Mechanism.MACRO_VITALS)
     )
     PulseRoutes.MARKET_SUMMARY -> ScreenGuideContent(
         screenTitle = stringResource(id = R.string.summary_screen_title),
@@ -402,12 +409,14 @@ private fun screenGuideContentFor(route: String?): ScreenGuideContent? = when (r
     PulseRoutes.MARKET_INSIGHTS -> ScreenGuideContent(
         screenTitle = stringResource(id = R.string.insights_screen_title),
         overview = stringResource(id = R.string.screen_guide_insights_overview),
-        howToInterpret = stringResource(id = R.string.screen_guide_insights_how_to_interpret)
+        howToInterpret = stringResource(id = R.string.screen_guide_insights_how_to_interpret),
+        mechanisms = listOf(Mechanism.POSTURE, Mechanism.POSITIONING)
     )
     PulseRoutes.MARKET_ANALYSIS -> ScreenGuideContent(
         screenTitle = stringResource(id = R.string.market_analysis_screen_title),
         overview = stringResource(id = R.string.screen_guide_analysis_overview),
-        howToInterpret = stringResource(id = R.string.screen_guide_analysis_how_to_interpret)
+        howToInterpret = stringResource(id = R.string.screen_guide_analysis_how_to_interpret),
+        mechanisms = listOf(Mechanism.STOCK_ANALYSIS)
     )
     else -> null
 }

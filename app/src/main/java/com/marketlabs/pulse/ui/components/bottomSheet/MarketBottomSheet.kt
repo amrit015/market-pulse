@@ -260,9 +260,11 @@ private fun GlossaryTermCard(term: GlossaryTerm, isCurrent: Boolean, accent: Col
                 Text(
                     text = term.term,
                     style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onBackground
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.weight(1f)
                 )
                 if (isCurrent) {
+                    Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
                     SignalPill(
                         text = stringResource(id = R.string.status_current),
                         pillColor = accent.copy(alpha = 0.16f),

@@ -24,10 +24,6 @@ data class MetricGlossaryEntry(
      * about this metric over time (a level, a direction, a duration) rather than read as a single
      * static number. */
     @Json(name = "watch") val watch: String? = null,
-    /** spec-20260917-content-refinement.md Pass 2: teachable-vs-proprietary framing -- whether this
-     * is a standard, independently reproducible measure or this app's own lens/cutoffs on public
-     * data. Every entry has one; nullable only so a JSON entry missing it still parses. */
-    @Json(name = "provenance") val provenance: String? = null,
     @Json(name = "bands") val bands: List<MetricGlossaryBand> = emptyList(),
     @Json(name = "gotchas") val gotchas: String? = null
 )

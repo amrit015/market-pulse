@@ -85,6 +85,8 @@ fun StockPreviewCard(
     isFavorite: Boolean = false,
     onFavoriteClick: () -> Unit = {},
     onTechnicalSetupClick: () -> Unit = {},
+    isDeepDiveFlashing: Boolean = false,
+    onDeepDiveClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     intradayStream: Flow<IntradaySeries?> = emptyFlow()
 ) {
@@ -263,7 +265,9 @@ fun StockPreviewCard(
                 Box(modifier = Modifier.weight(1f)) {
                     DeepDiveLabel(
                         deepAnalysisDate = preview.deepAnalysisDate,
-                        nextDeepDiveTriggerDate = preview.nextDeepDiveTriggerDate
+                        nextDeepDiveTriggerDate = preview.nextDeepDiveTriggerDate,
+                        isFlashing = isDeepDiveFlashing,
+                        onClick = onDeepDiveClick
                     )
                 }
                 FavoriteStarToggle(

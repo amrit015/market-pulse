@@ -5,33 +5,33 @@ package com.marketlabs.pulse.ui.screens.tutorials
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.ui.components.PulseBackTitleRow
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 /**
- * spec-20260915-compliance-disclaimers.md §6.2 -- stateless; `TutorialsGaugesRoute` resolves
+ * Per-mechanism indicator list (the target of a mechanism deck's last card) -- stateless; `TutorialsGaugesRoute` resolves
  * `uiState` from `MetricGlossaryProvider` via the ViewModel. Definitions render exactly as bundled
  * (`what_it_is` only, not the fuller what-it-is/how-to-read/bands/gotchas shape the real per-metric
  * detail pages show) -- this is a browse/reference list, not a replacement for tapping into a gauge's
@@ -40,30 +40,18 @@ import com.marketlabs.pulse.ui.theme.MarketPulseTheme
  */
 @Composable
 fun TutorialsGaugesScreen(
+    title: String,
     uiState: TutorialsGaugesUiState,
     onNavigateUp: () -> Unit
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .windowInsetsPadding(WindowInsets.statusBars)
+            .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Top + WindowInsetsSides.Bottom))
             .verticalScroll(rememberScrollState())
     ) {
-        IconButton(onClick = onNavigateUp) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_back),
-                contentDescription = stringResource(id = R.string.nav_back_content_description),
-                tint = LocalPulseColors.current.onSurfaceMuted
-            )
-        }
+        PulseBackTitleRow(title = title, onNavigateUp = onNavigateUp)
         Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
-            Text(
-                text = stringResource(id = R.string.tutorials_item_gauges),
-                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_xlarge)))
-
             // 💡 PulseCard(DATA) -- this app's card system, matching the "one card per list entry"
             // shape every other glossary/reference list in the app uses.
             PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
@@ -76,12 +64,15 @@ fun TutorialsGaugesScreen(
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_xlarge)))
 
             uiState.categories.forEach { category ->
-                Text(
-                    text = stringResource(id = category.titleRes),
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = LocalPulseColors.current.accentPrimary
-                )
-                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                // One mechanism per screen now, so the category heading would just repeat the title.
+                if (uiState.categories.size > 1) {
+                    Text(
+                        text = stringResource(id = category.titleRes),
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = LocalPulseColors.current.accentPrimary
+                    )
+                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                }
 
                 category.gauges.forEach { gauge ->
                     PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
@@ -103,6 +94,7 @@ fun TutorialsGaugesScreen(
 
                 Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
             }
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_xlarge)))
         }
     }
 }
@@ -129,7 +121,7 @@ private val previewUiState = TutorialsGaugesUiState(
 @Composable
 private fun PreviewTutorialsGaugesScreenLight() {
     MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
-        TutorialsGaugesScreen(uiState = previewUiState, onNavigateUp = {})
+        TutorialsGaugesScreen(title = "Tactical Momentum indicators", uiState = previewUiState, onNavigateUp = {})
     }
 }
 
@@ -137,6 +129,6 @@ private fun PreviewTutorialsGaugesScreenLight() {
 @Composable
 private fun PreviewTutorialsGaugesScreenDark() {
     MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
-        TutorialsGaugesScreen(uiState = previewUiState, onNavigateUp = {})
+        TutorialsGaugesScreen(title = "Tactical Momentum indicators", uiState = previewUiState, onNavigateUp = {})
     }
 }

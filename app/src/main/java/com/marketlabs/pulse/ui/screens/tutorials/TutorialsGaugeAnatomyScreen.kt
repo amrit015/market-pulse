@@ -6,7 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
-import com.marketlabs.pulse.ui.components.DocumentSectionsScreen
+import com.marketlabs.pulse.ui.components.tutorials.DeckPage
 import com.marketlabs.pulse.ui.components.tutorials.GaugeAnatomyDiagram
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
@@ -25,20 +25,26 @@ import com.marketlabs.pulse.ui.theme.MarketPulseTheme
  */
 @Composable
 fun TutorialsGaugeAnatomyScreen(onNavigateUp: () -> Unit) {
-    val sections = listOf(
-        stringResource(id = R.string.tutorials_gauge_anatomy_steps_title) to
-            stringResource(id = R.string.tutorials_gauge_anatomy_steps_body),
-        stringResource(id = R.string.tutorials_gauge_anatomy_exceptions_title) to
-            stringResource(id = R.string.tutorials_gauge_anatomy_exceptions_body),
-        stringResource(id = R.string.tutorials_gauge_anatomy_naming_title) to
-            stringResource(id = R.string.tutorials_gauge_anatomy_naming_body)
+    val pages = listOf(
+        DeckPage(
+            title = stringResource(id = R.string.tutorials_gauge_anatomy_steps_title),
+            body = stringResource(id = R.string.tutorials_gauge_anatomy_steps_body),
+            diagram = { GaugeAnatomyDiagram() }
+        ),
+        DeckPage(
+            title = stringResource(id = R.string.tutorials_gauge_anatomy_exceptions_title),
+            body = stringResource(id = R.string.tutorials_gauge_anatomy_exceptions_body)
+        ),
+        DeckPage(
+            title = stringResource(id = R.string.tutorials_gauge_anatomy_naming_title),
+            body = stringResource(id = R.string.tutorials_gauge_anatomy_naming_body)
+        )
     )
 
-    DocumentSectionsScreen(
+    CarouselArticleScreen(
         title = stringResource(id = R.string.tutorials_item_gauge_anatomy),
-        sections = sections,
-        onNavigateUp = onNavigateUp,
-        diagrams = mapOf(0 to { GaugeAnatomyDiagram() })
+        pages = pages,
+        onNavigateUp = onNavigateUp
     )
 }
 

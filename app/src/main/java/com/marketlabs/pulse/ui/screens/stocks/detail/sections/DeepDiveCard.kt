@@ -16,12 +16,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.ui.components.GlowOrigin
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.widgets.buildBulletJoinedText
@@ -30,39 +32,37 @@ import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 /**
- * Chrome-level `PulseCard(SYNTHESIS)` on Stock Detail (pinned between `DetailHeader` and the tab
- * row, not tab content -- visible regardless of which tab is selected): an icon + date line, a
- * fixed description of what a deep dive covers (not model-generated -- the 9 topics are a fixed
- * schema, so this is static copy), and a [ViewMoreRow] "Open full Deep Dive" CTA. Omitted entirely
- * when the symbol has neither a `deepAnalysisDate` nor a `nextDeepDiveTriggerDate` yet -- see
- * [deepDiveDisplayParts] for the exact cold-start text rules.
- *
- * The CTA row and the tap-through to the Deep Dive screen are both gated on `deepAnalysisDate`
- * being non-null -- cold start (a computed `nextDeepDiveTriggerDate` but no deep dive has actually
- * run yet) has nothing to "open," so the card renders as informational-only ("NEXT DEEP DIVE:
- * {date}", no CTA, not clickable) rather than offering an action that lands on an empty screen.
- *
- * Not [com.marketlabs.pulse.ui.components.widgets.CardEyebrowLabel] -- that always uppercases its
- * whole text, which would also force the interpolated date to caps ("SEPT 4" instead of "Sept 4").
- * This hand-rolls the same icon-sized-to-text-height technique directly so [deepDiveDisplayParts]'s
- * pre-cased label + natural-case date can join via the shared bigger-bullet helper unmodified.
+ * Chrome-level `PulseCard(SYNTHESIS)` on Stock Detail: an icon + date line, a fixed description, and a CTA.
+ * When [isFlashing] is true, renders a continuous glow that fills the card outward from the top-left corner toward the bottom-right.
  */
 @Composable
 fun DeepDiveCard(
     deepAnalysisDate: String?,
     nextDeepDiveTriggerDate: String?,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isFlashing: Boolean = false
 ) {
     val parts = deepDiveDisplayParts(deepAnalysisDate, nextDeepDiveTriggerDate)
     if (parts.isEmpty()) return
     val hasDeepDive = deepAnalysisDate != null
     val pulseColors = LocalPulseColors.current
 
+    // 💡 The accent-colored glow reads clearly on a dark card but not on light mode's tinted card,
+    // so light mode gets a plain white, stronger glow instead. It has to be pure white: that card's
+    // background is itself 75% white + 25% accent, so any accent-tinted "whitish" mix lands on the
+    // exact same color as the card and the glow disappears.
+    val glowColor = if (pulseColors.isDark) pulseColors.accentPrimary else Color.White
+    val glowPeakAlpha = if (pulseColors.isDark) DarkGlowPeakAlpha else LightGlowPeakAlpha
+
     PulseCard(
         style = PulseCardStyle.SYNTHESIS,
         modifier = modifier.fillMaxWidth(),
-        onClick = if (hasDeepDive) onClick else null
+        onClick = if (hasDeepDive) onClick else null,
+        glowColor = if (isFlashing) glowColor else null,
+        glowPeakAlpha = glowPeakAlpha,
+        glowOrigin = GlowOrigin.TOP_LEFT,
+        glowFill = true
     ) {
         Column(modifier = Modifier.padding(vertical = dimensionResource(id = R.dimen.padding_standard), horizontal = dimensionResource(id = R.dimen.padding_large))) {
             val labelStyle = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold)
@@ -117,3 +117,7 @@ private fun PreviewDeepDiveCardNextOnly() {
         DeepDiveCard(deepAnalysisDate = null, nextDeepDiveTriggerDate = "2026-09-18", onClick = {})
     }
 }
+
+// How opaque each mode's glow gets at its brightest (the shared default is 0.32).
+private const val LightGlowPeakAlpha = 0.75f
+private const val DarkGlowPeakAlpha = 0.32f

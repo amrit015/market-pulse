@@ -17,9 +17,11 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 
 // News-preview StateFlow below added with Claude Code assistance.
@@ -109,11 +111,24 @@ class DashboardViewModel @Inject constructor(
 
     private fun fetchDashboard(force: Boolean) {
         viewModelScope.launch {
-            if (force) _isRefreshing.value = true else _isLoading.value = true
+            // 💡 Always flag loading (the UI only shows the loading indicator while there are also
+            // no assets, so this is invisible when cached data exists) so a retry from the error
+            // state shows the indicator too, not the empty state.
+            _isLoading.value = true
+            if (force) _isRefreshing.value = true
             _errorMessage.value = null
 
             try {
                 repository.refreshDashboard(force)
+                // 💡 `refreshDashboard` is a no-op -- the data actually arrives through the Firestore
+                // listener into Room, a moment later. On a fresh install (right after onboarding)
+                // that means the very first read is legitimately empty, so keep the loading state up
+                // until the first assets land; only a real timeout counts as a failure worth showing
+                // a retry for. With a warm cache this returns immediately.
+                val firstData = withTimeoutOrNull(INITIAL_DATA_TIMEOUT_MS) {
+                    repository.getDashboardAssetsStream().first { it.isNotEmpty() }
+                }
+                if (firstData == null) _errorMessage.value = "Couldn't load market data. Please try again."
             } catch (e: Exception) {
                 _errorMessage.value = e.localizedMessage ?: "Failed to load dashboard"
             } finally {
@@ -140,5 +155,6 @@ class DashboardViewModel @Inject constructor(
 
     private companion object {
         private const val NEWS_PREVIEW_COUNT = 3
+        private const val INITIAL_DATA_TIMEOUT_MS = 15_000L
     }
 }

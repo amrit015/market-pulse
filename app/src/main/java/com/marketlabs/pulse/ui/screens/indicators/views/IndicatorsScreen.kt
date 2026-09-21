@@ -353,7 +353,8 @@ private fun IndicatorsMainFeed(
             tabs = IndicatorsTab.entries.map { stringResource(id = it.labelRes) },
             selectedTabIndex = selectedTabIndex,
             onTabSelected = onTabSelected,
-            highlightedTabIndex = IndicatorsTab.FAVORITES.ordinal
+            highlightedTabIndex = IndicatorsTab.FAVORITES.ordinal,
+            selectionPosition = { pagerState.currentPage + pagerState.currentPageOffsetFraction }
         )
 
         // 💡 `weight(1f)`, not just `fillMaxSize()` -- without it, if the collapsing chrome above
@@ -910,6 +911,16 @@ private fun PillarScorecardCard(
         modifier = modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(paddingLarge)) {
+            // 💡 Same eyebrow (sparkle icon + accent label) as the executive briefing hero's
+            // "Today's Read" -- marks this card as AI-sourced and names it, so the sparkle no
+            // longer needs to sit beside the one-liner below.
+            CardEyebrowLabel(
+                text = stringResource(id = R.string.indicators_alignments_read),
+                color = LocalPulseColors.current.accentPrimary,
+                iconRes = R.drawable.ic_ai_sparkle_filled,
+                iconContentDescription = stringResource(id = R.string.summary_analysis_engine_content_description)
+            )
+            Spacer(modifier = Modifier.height(paddingMedium))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -940,26 +951,14 @@ private fun PillarScorecardCard(
             }
             Spacer(modifier = Modifier.height(paddingMedium))
             // 💡 `oneLiner` is AI-authored prose (the model narrates around the code-computed
-            // agreement/stance above it, never invents them) -- the same sparkle glyph the
-            // executive briefing hero's "Today's Read" eyebrow uses marks it as AI-sourced here
-            // too, rather than reading as a plain data label like the stance pill next to it.
-            Row(verticalAlignment = Alignment.Top) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_ai_sparkle_filled),
-                    contentDescription = stringResource(id = R.string.summary_analysis_engine_content_description),
-                    tint = LocalPulseColors.current.accentPrimary,
-                    modifier = Modifier
-                        .padding(top = 2.dp)
-                        .size(14.dp)
-                )
-                Spacer(modifier = Modifier.width(paddingSmall))
-                Text(
-                    text = entry.oneLiner,
-                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                    color = MaterialTheme.colorScheme.onSurface,
-                    lineHeight = MaterialTheme.typography.bodyMedium.lineHeight
-                )
-            }
+            // agreement/stance above it, never invents them); the eyebrow at the top of the card
+            // is what marks it as AI-sourced.
+            Text(
+                text = entry.oneLiner,
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                color = MaterialTheme.colorScheme.onSurface,
+                lineHeight = MaterialTheme.typography.bodyMedium.lineHeight
+            )
             // 💡 This card has no expand/collapse state -- `oneLiner` is always shown in full, so
             // the label just sits directly below it, always visible (was its own row above the
             // agreement/stance pills).

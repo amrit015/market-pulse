@@ -11,16 +11,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
@@ -35,10 +30,10 @@ import com.marketlabs.pulse.ui.theme.MarketPulseTheme
  * -- omitted from Settings, Legal (Terms & Conditions/Privacy Policy), and onboarding/acceptance,
  * every other screen includes it.
  *
- * No background fill on the outer row -- the shadow is scoped to the TEXT itself (`Modifier.shadow`
- * on the `Text`, same mechanism `PulseCard` uses for its own shadow, well past its alpha values by
- * request), not the full-width row, so it reads as a tight halo around the disclaimer copy rather
- * than a bar spanning the screen.
+ * Plain text, no background fill or shadow -- a shadow here only ever drew as a visible rectangle
+ * around the text's bounds (most noticeably in light mode), and since the footer is inline content
+ * at the end of a screen rather than an overlay above scrolling content, nothing needs it to stand
+ * out from what's behind it.
  *
  * No `windowInsetsPadding` of its own -- as inline scrollable content now (not bottom-of-screen
  * chrome), it doesn't need to individually clear the system navigation bar; each screen's own
@@ -49,24 +44,13 @@ import com.marketlabs.pulse.ui.theme.MarketPulseTheme
  * noise there, so those cards carry none at all (see `SynthesisHeroCard`/`MarketSentimentCard`/
  * `StockPreviewCard` etc.) and this screen-level footer becomes their one AI disclosure instead:
  * the same "AI-generated · Not advice" text as its own first line, directly above the existing
- * "For informational purposes..." line -- same shadow/halo treatment as the line below it, just
- * bold to read as the disclosure rather than the finer print underneath it. Every other screen
+ * "For informational purposes..." line -- just bold to read as the disclosure rather than the finer
+ * print underneath it. Every other screen
  * keeps the plain single-line footer (`showAiDisclosure = false`, the default) since their AI cards
  * already disclose themselves individually.
  */
 @Composable
 fun DisclaimerFooter(modifier: Modifier = Modifier, showAiDisclosure: Boolean = false) {
-    val isDarkMode = MaterialTheme.colorScheme.background.luminance() < 0.5f
-    val shadowElevation = if (isDarkMode) FooterShadowElevationDark else FooterShadowElevationLight
-    val shadowAmbient = if (isDarkMode) FooterShadowAmbientDark else FooterShadowAmbientLight
-    val shadowSpot = if (isDarkMode) FooterShadowSpotDark else FooterShadowSpotLight
-    val shadowModifier = Modifier.shadow(
-        elevation = shadowElevation,
-        shape = RectangleShape,
-        ambientColor = shadowAmbient,
-        spotColor = shadowSpot
-    )
-
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -80,7 +64,7 @@ fun DisclaimerFooter(modifier: Modifier = Modifier, showAiDisclosure: Boolean = 
                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                     color = LocalPulseColors.current.onSurfaceMuted,
                     textAlign = TextAlign.Center,
-                    modifier = shadowModifier.padding(
+                    modifier = Modifier.padding(
                         horizontal = dimensionResource(id = R.dimen.padding_medium),
                         vertical = dimensionResource(id = R.dimen.padding_tiny)
                     )
@@ -91,7 +75,7 @@ fun DisclaimerFooter(modifier: Modifier = Modifier, showAiDisclosure: Boolean = 
                 style = MaterialTheme.typography.labelSmall,
                 color = LocalPulseColors.current.onSurfaceMuted,
                 textAlign = TextAlign.Center,
-                modifier = shadowModifier.padding(
+                modifier = Modifier.padding(
                     horizontal = dimensionResource(id = R.dimen.padding_medium),
                     vertical = dimensionResource(id = R.dimen.padding_tiny)
                 )
@@ -99,19 +83,6 @@ fun DisclaimerFooter(modifier: Modifier = Modifier, showAiDisclosure: Boolean = 
         }
     }
 }
-
-// 💡 Kept LOW elevation but HIGH alpha, deliberately -- a large elevation (tried first, 28dp/20dp)
-// blurs the shadow's spread wide and thin, reading as a faint wash rather than a visible edge. A
-// tight, low-elevation, high-opacity shadow hugs the text's own bounds instead, which is what
-// actually reads as "there's an opaque label here" against scrolling content behind it. Still well
-// past PulseCard's own 13dp/3dp elevation and 0.50/0.24 / 0.24/0.10 ambient/spot alphas on the
-// alpha side, just not on elevation.
-private val FooterShadowElevationLight = 10.dp
-private val FooterShadowElevationDark = 8.dp
-private val FooterShadowAmbientLight = Color.Black.copy(alpha = 0.92f)
-private val FooterShadowSpotLight = Color.Black.copy(alpha = 0.70f)
-private val FooterShadowAmbientDark = Color.Black.copy(alpha = 0.80f)
-private val FooterShadowSpotDark = Color.Black.copy(alpha = 0.55f)
 
 // ============================================================================
 // 🎨 PREVIEWS

@@ -3,7 +3,6 @@
     "what_it_is": "CNN's blend of 7 indicators into a single 0-100 score of immediate market psychology -- how euphoric or panicked traders are right now.",
     "how_to_read": "This is a contrarian gauge: extreme fear has historically marked good buying opportunities, and extreme greed has historically preceded pullbacks. It moves with sentiment, not fundamentals, so it can stay at an extreme for weeks.",
     "watch": "Watch the level and its direction of travel together -- a reading climbing toward an extreme reads differently than one that's already been pinned there for weeks.",
-    "provenance": "Proprietary -- CNN's own composite of 7 inputs. Present it as CNN's read, not an independently reproducible calculation.",
     "bands": [
       { "label": "Extreme Fear", "meaning": "Score of 25 or below. The crowd is panicking and dumping good assets alongside bad ones." },
       { "label": "Fear", "meaning": "26-45. Sentiment is cautious but not yet capitulating." },
@@ -17,7 +16,6 @@
     "what_it_is": "The ratio of options volume betting on a decline (puts) to volume betting on a rise (calls) across the market.",
     "how_to_read": "Read contrarian, same as Fear & Greed: a high ratio means traders are aggressively buying crash insurance, which has historically preceded bounces. A low ratio means traders are leveraged for more upside, which can set up a trap if sentiment reverses.",
     "watch": "Watch for a sustained move past 1.00 or below 0.60, not a single day's print -- one day's ratio is noisy on its own (see gotcha).",
-    "provenance": "Proprietary -- a CNN-sourced options-volume read; the ratio itself is public but CNN's own band cutoffs are not independently published.",
     "bands": [
       { "label": "Extreme Greed", "meaning": "0.60 or below. Traders are heavily positioned for further gains with little hedging." },
       { "label": "Greed", "meaning": "0.61-0.75. Call buying outweighs put buying." },
@@ -31,7 +29,6 @@
     "what_it_is": "The 14-day Relative Strength Index on SPY -- a 0-100 score of how far and how fast price has moved recently.",
     "how_to_read": "It measures momentum exhaustion, not direction. A high reading means the recent move has been unusually fast and may be due for a pause; a low reading means selling has been unusually fast and may be due for a bounce.",
     "watch": "Watch how long it's held the extreme, not just whether it crossed 70/30 -- a strong trend can keep RSI pinned overbought or oversold for weeks without reversing.",
-    "provenance": "Fully teachable -- a standard momentum oscillator available on any charting platform, using the textbook 14-day formula.",
     "bands": [
       { "label": "Oversold", "meaning": "30 or below. Selling has been sharp and mechanically overextended." },
       { "label": "Neutral", "meaning": "31-69. Normal price action, no extension in either direction." },
@@ -43,7 +40,6 @@
     "what_it_is": "The percentage difference between SPY's current price and its 200-day moving average.",
     "how_to_read": "Price behaves like it's tethered to the 200-day average by a rubber band. The further it stretches in either direction, the more likely a snap back toward the average becomes.",
     "watch": "Watch the direction of the stretch, not just its size -- a widening extension in an already-strong trend reads differently than one that's just starting to snap back.",
-    "provenance": "Fully teachable -- the 200-day SMA is a standard technical reference; this app's own +10%/-5% band cutoffs are reasonable round numbers, not a backtested threshold.",
     "bands": [
       { "label": "Undervalued", "meaning": "-5% or lower. Price has stretched meaningfully below its long-term trend." },
       { "label": "Trend Level", "meaning": "-4% to +9%. Price is trading in normal proximity to its 200-day average." },
@@ -55,7 +51,6 @@
     "what_it_is": "The market's expectation of S&P 500 volatility over the next 30 days, derived from options prices -- Wall Street's \"fear gauge.\"",
     "how_to_read": "Low VIX means options are cheap because traders expect calm markets. A rising VIX means traders are paying up for downside protection, which typically accompanies falling prices.",
     "watch": "Watch for a spike above 30 (stress) or a drift back down through 20 (calming) -- the level matters less than which direction it's moving.",
-    "provenance": "Teachable -- VIX itself is a standard, widely quoted index. Note: the Indicators dashboard elsewhere reuses VIX with a different Fear/Greed-style banding -- same number, two separate ruleset presentations in this app.",
     "bands": [
       { "label": "Calm", "meaning": "Below 20. Normal, low-anxiety market conditions." },
       { "label": "Elevated", "meaning": "20-29. The market is nervous and choppier than usual." },
@@ -67,7 +62,6 @@
     "what_it_is": "The gap between the 10-Year and 2-Year Treasury yields -- the classic recession-warning spread.",
     "how_to_read": "Normally, longer-term debt pays a higher yield than short-term debt. When that relationship compresses or flips, it means investors expect the economy (and short rates) to weaken.",
     "watch": "Watch the zero line specifically -- an inversion has preceded most modern U.S. recessions, making it the most-cited warning in this pillar (see gotcha on timing).",
-    "provenance": "Fully teachable -- both yields are published daily on FRED; the spread is simple subtraction, no proprietary transform.",
     "bands": [
       { "label": "Deep Inversion", "meaning": "Below -0.50%. Short rates pay well above long rates -- historically a strong recession signal." },
       { "label": "Inverted", "meaning": "-0.50% to just below 0%. Short-term rates pay more than long-term rates." },
@@ -80,7 +74,6 @@
     "what_it_is": "The extra yield investors demand to hold high-yield (\"junk\") corporate bonds over safe Treasuries -- a direct read on how worried lenders are about defaults.",
     "how_to_read": "Widening spreads mean lenders are pricing in more default risk and pulling back credit to weak borrowers, which has historically preceded stock market stress. Tight spreads mean credit is flowing freely.",
     "watch": "Watch for sustained widening, not a single day's move -- credit markets tend to move before equities do, making a real trend here an earlier tell than stock-price stress alone.",
-    "provenance": "Fully teachable -- the ICE BofA US High Yield spread is a published FRED series, not an app-specific calculation.",
     "bands": [
       { "label": "Healthy", "meaning": "3.0% or below. Lenders are confident and credit is cheap." },
       { "label": "Caution", "meaning": "3.01%-4.0%. Spreads are drifting wider than comfortable." },
@@ -93,7 +86,6 @@
     "what_it_is": "The bond-market equivalent of the VIX -- implied volatility on U.S. Treasuries.",
     "how_to_read": "The bond market is often considered \"smarter\" and more institutionally driven than equities. A breakdown in bonds (a MOVE spike) has historically preceded stress showing up in stocks.",
     "watch": "Watch for elevated readings around Fed meetings or major data prints specifically -- MOVE reacts to rate-policy uncertainty more than to equity-market moves.",
-    "provenance": "Teachable -- MOVE is a published CBOE index, the bond-market analog to VIX.",
     "bands": [
       { "label": "Calm", "meaning": "100 or below. The Treasury market is stable." },
       { "label": "Elevated", "meaning": "101-130. Rising macro/rate uncertainty." },
@@ -105,7 +97,6 @@
     "what_it_is": "The price of copper (an industrial, \"Dr. Copper\") divided by the price of gold (the classic fear asset) -- a real-time read on global growth expectations.",
     "how_to_read": "Copper outperforming gold means the market expects building and manufacturing to expand (risk-on). Gold outperforming copper means capital is rotating to safety on growth fears (risk-off).",
     "watch": "Watch the direction, not just the level -- a falling ratio means money is rotating toward safety over industrial growth, regardless of which band it's currently in.",
-    "provenance": "This app's own lens -- copper and gold prices are both public, but this specific ratio and its band cutoffs are not a named, independently published indicator.",
     "bands": [
       { "label": "Recessionary", "meaning": "Below 1.10. A steep skew toward gold, consistent with acute growth fear." },
       { "label": "Risk-Aversion", "meaning": "1.10-1.34. Gold is outperforming; capital is playing defense." },
@@ -119,7 +110,6 @@
     "what_it_is": "Discretionary stocks (XLY -- Amazon, Tesla, travel, luxury) versus Staples stocks (XLP -- Walmart, Procter & Gamble, essentials), tracking whether consumers and investors feel confident or defensive.",
     "how_to_read": "Discretionary outperforming means investors expect consumers to keep spending on non-essentials (risk-on). Staples outperforming means investors are rotating into recession-resistant names ahead of an expected slowdown.",
     "watch": "Watch whether Discretionary is leading or lagging Staples over time -- a single day's ratio is noisier than the trend.",
-    "provenance": "This app's own ratio -- XLY and XLP are standard sector ETFs, but pairing them into one ratio with these specific band cutoffs is this app's own construction, not a named indicator.",
     "bands": [
       { "label": "Flight to Safety", "meaning": "Below 1.25. A sharp rotation into defensive Staples names." },
       { "label": "Defensive", "meaning": "1.25-1.44. A milder tilt toward safety." },
@@ -132,7 +122,6 @@
     "what_it_is": "The Equal-Weight S&P 500 (RSP) compared to the standard, market-cap-weighted S&P 500 (SPY) -- whether the average stock is actually participating in the market's move, or just a handful of mega-caps.",
     "how_to_read": "This is a trend read, not a level read -- it compares today's ratio against its recent trajectory rather than an absolute value. Widening means the rally is broad and healthy; narrowing means the index is being propped up by a shrinking group of large stocks.",
     "watch": "Watch the direction more than the label -- this is a 1-day-change classifier, so \"Narrowing\" flags a rally increasingly carried by a shrinking group of mega-caps, a classic warning sign.",
-    "provenance": "The concept (equal-weight vs. cap-weight participation) is a standard market-breadth idea; this specific 1-day-change construction and its thresholds are this app's own.",
     "bands": [
       { "label": "Widening", "meaning": "The equal-weight index is gaining on the cap-weight index -- most stocks are participating." },
       { "label": "Stable", "meaning": "Breadth is holding roughly in line with recent trend." },
@@ -144,7 +133,6 @@
     "what_it_is": "The U.S. Dollar Index -- the dollar's strength against a basket of major foreign currencies.",
     "how_to_read": "A strong dollar tightens global financial conditions: it pressures emerging markets, hurts U.S. exporters' earnings, and typically weighs on commodities and crypto. A weak dollar does the opposite, acting as a tailwind for risk assets broadly.",
     "watch": "Watch for a sustained move past 106 or below 100 -- the dollar's effect on earnings shows up with a lag, so a single day's DXY print rarely moves stocks immediately on its own (see gotcha).",
-    "provenance": "Fully teachable -- DXY is a standard, widely quoted index against a fixed currency basket.",
     "bands": [
       { "label": "Supportive", "meaning": "Below 100. A weak dollar, generally favorable for global risk assets." },
       { "label": "Stable", "meaning": "100-106. Normal conditions." },
@@ -156,7 +144,6 @@
     "what_it_is": "The global price of crude oil, which flows through into shipping, manufacturing input costs, and prices at the pump.",
     "how_to_read": "High oil acts as a tax on consumers and businesses and complicates the inflation picture. Very low oil is unusual and often reflects serious demand weakness somewhere in the global economy, not just cheap energy.",
     "watch": "Watch which direction it's breaking, not just the current band -- high oil feeds inflation and tighter policy, while very low oil is a demand-weakness warning, not simply good news.",
-    "provenance": "The price itself is a universal, teachable data point; the $60/$90 band cutoffs are this app's own round-number thresholds, not an industry-standard scale.",
     "bands": [
       { "label": "Deflationary", "meaning": "Below $60. Unusually low prices, often a symptom of weak global demand." },
       { "label": "Stable", "meaning": "$60-$90. Normal economic functioning." },
@@ -168,7 +155,6 @@
     "what_it_is": "Trailing twelve-month price divided by trailing earnings for the S&P 500.",
     "how_to_read": "Higher readings mean investors are paying more per dollar of past earnings -- a stretched multiple leaves less room for disappointment.",
     "watch": "Watch it alongside P/B and dividend yield rather than alone -- agreement across all three (plus ERP) on \"richly priced\" is a stronger read than any single ratio.",
-    "provenance": "The P/E concept is fully teachable and standard; the 16x/22x band cutoffs are this app's own reasonable round numbers, not a historical percentile.",
     "bands": [
       { "label": "Cheap", "meaning": "16x or below -- earnings priced for pessimism." },
       { "label": "Fair Value", "meaning": "16x-22x -- in line with typical historical norms." },
@@ -180,7 +166,6 @@
     "what_it_is": "The S&P 500's market price compared to the accounting book value (assets minus liabilities) of its constituent companies.",
     "how_to_read": "A high P/B means investors are paying a large premium for future growth promises rather than current hard assets. When it compresses toward historical norms, it typically signals a genuine value opportunity.",
     "watch": "Watch it as one lens among several, not a standalone verdict -- it's structurally blunter for an asset-light modern index than it was for an industrial-era one (see gotcha).",
-    "provenance": "The P/B concept is fully teachable and standard; the 3.0x/4.5x band cutoffs are this app's own.",
     "bands": [
       { "label": "Discount", "meaning": "3.0x or below -- trading near or below net asset value." },
       { "label": "Fair Value", "meaning": "3.0x-4.5x -- a typical historical premium to book." },
@@ -192,7 +177,6 @@
     "what_it_is": "The Equity Risk Premium: the S&P 500's earnings yield (1 / P/E) minus the risk-free 10-Year Treasury yield -- how much extra compensation stocks offer over safe bonds.",
     "how_to_read": "A high premium means stocks pay well for the risk you're taking versus just holding Treasuries. A low or negative premium means you're taking on real equity volatility for little to no extra expected reward compared to a risk-free bond.",
     "watch": "Watch what's actually moving it -- a shrinking premium can mean stocks got more expensive, rates rose, or both; the number alone doesn't say which.",
-    "provenance": "Fully teachable -- reconstructable from the same P/E and 10-Year yield figures shown elsewhere in the app, using the standard formula.",
     "bands": [
       { "label": "Dangerous", "meaning": "Below 2.0%. Minimal extra compensation for equity risk over safe bonds." },
       { "label": "Normal", "meaning": "2.0%-4.0%. Typical historical compensation." },
@@ -204,7 +188,6 @@
     "what_it_is": "The percentage of the S&P 500's price paid out to shareholders annually as cash dividends.",
     "how_to_read": "When prices fall sharply, this yield mechanically rises, which has historically attracted value buyers and helped put a floor under the market. It's a byproduct of price and payout policy, not a standalone growth signal.",
     "watch": "Watch it together with P/E -- a low yield alongside a high P/E reinforces a \"richly priced\" read more than either signal does alone.",
-    "provenance": "The concept is fully teachable and standard; the 1.5%/2.5% band cutoffs are this app's own.",
     "bands": [
       { "label": "Low", "meaning": "Below 1.5%. Payouts are thin relative to price -- often alongside stretched valuations." },
       { "label": "Normal", "meaning": "1.5%-2.5%. Typical historical range for the index." },
@@ -216,7 +199,6 @@
     "what_it_is": "The Consumer Price Index, year-over-year -- the headline inflation rate covering the full basket of consumer goods and services.",
     "how_to_read": "Hot CPI pressures the Fed to keep rates higher for longer, which is generally a headwind for stocks. Cooling CPI gives the Fed room to ease, which is generally supportive.",
     "watch": "Watch the direction of travel across recent prints more than any single month -- a lone hot or cool reading can be noise (see gotcha).",
-    "provenance": "Fully teachable -- a standard, widely published BLS series available on FRED.",
     "bands": [
       { "label": "Cooling", "meaning": "Below 2.0% year-over-year." },
       { "label": "Stable", "meaning": "2.0%-3.0% year-over-year -- near the Fed's target." },
@@ -228,7 +210,6 @@
     "what_it_is": "Core Personal Consumption Expenditures, year-over-year -- inflation with volatile food and energy prices stripped out, the Fed's own preferred gauge.",
     "how_to_read": "The Fed's rate decisions lean on this number specifically. If it's stuck above target, the Fed has little room to cut regardless of what headline CPI shows.",
     "watch": "Watch this over headline CPI when the two disagree -- it's the number the Fed's own rate decisions actually lean on.",
-    "provenance": "Fully teachable -- a standard, widely published BEA series available on FRED.",
     "bands": [
       { "label": "Cooling", "meaning": "Below 2.0% year-over-year." },
       { "label": "Stable", "meaning": "2.0%-3.0% year-over-year -- near the Fed's target." },
@@ -240,7 +221,6 @@
     "what_it_is": "Core PCE measured month-over-month rather than year-over-year -- a faster read on whether inflation is currently accelerating or decelerating.",
     "how_to_read": "A single hot or cool month can move expectations for the next Fed decision even before the year-over-year trend shifts, since it's the freshest data point available.",
     "watch": "Watch this as an early read, not a verdict -- a single hot or cool month can move Fed expectations before the year-over-year trend actually shifts (see gotcha on the band quirk).",
-    "provenance": "Fully teachable -- same underlying BEA series as the year-over-year read, just a faster cadence. Note: this reuses the annual-style >3%/<2% cutoffs on a monthly number, which trips \"Hot\" faster than the YoY version would.",
     "bands": [
       { "label": "Cooling", "meaning": "Below 2.0% on the same scale as the year-over-year read." },
       { "label": "Stable", "meaning": "2.0%-3.0%." },
@@ -252,7 +232,6 @@
     "what_it_is": "The percentage of the labor force actively seeking work but currently without a job.",
     "how_to_read": "A low, stable rate means consumers broadly have income to spend. A rising rate signals softening demand for labor and typically precedes weaker consumer spending and corporate earnings.",
     "watch": "Watch the trend more than the level -- rising off a low base is an earlier recession tell than the absolute rate itself, since this is a lagging indicator (see gotcha).",
-    "provenance": "Fully teachable -- a standard, widely published BLS series (UNRATE) available on FRED.",
     "bands": [
       { "label": "Low", "meaning": "4.2% or below -- a historically healthy labor market." },
       { "label": "Rising", "meaning": "Above 4.2% -- softening labor demand." }
@@ -263,7 +242,6 @@
     "what_it_is": "Nonfarm Payrolls -- the total number of jobs added or lost across the U.S. economy each month, excluding farm workers.",
     "how_to_read": "This reads the month-over-month change, not an absolute level: a rising trend signals labor demand is expanding, a falling trend signals it's contracting.",
     "watch": "Watch this as one of the most market-moving monthly prints there is -- and note it's frequently revised afterward, sometimes substantially (see gotcha).",
-    "provenance": "Fully teachable -- a standard, widely published BLS series available on FRED.",
     "bands": [
       { "label": "Contracting", "meaning": "Payrolls fell versus the prior reading." },
       { "label": "Stable", "meaning": "Payrolls were roughly flat versus the prior reading." },
@@ -275,7 +253,6 @@
     "what_it_is": "Real Gross Domestic Product, annualized -- the total value of goods and services the economy produced, adjusted for inflation.",
     "how_to_read": "Two consecutive negative quarters is the traditional rule-of-thumb definition of a recession. Positive growth confirms the economy is still expanding.",
     "watch": "Watch the cadence, not just the number -- this updates quarterly, so a flat-looking line between releases is the normal cadence, not stale data.",
-    "provenance": "Fully teachable -- a standard, widely published BEA series available on FRED.",
     "bands": [
       { "label": "Slowdown", "meaning": "Below 1.0% annualized growth." },
       { "label": "Growing", "meaning": "1.0% or above annualized growth." }
@@ -286,7 +263,6 @@
     "what_it_is": "Month-over-month change in consumer retail spending -- since consumer spending is roughly 70% of the U.S. economy, this is a real-time read on household demand.",
     "how_to_read": "This reads the trend versus the prior month: expanding sales mean consumers are spending freely; contracting sales suggest households are pulling back.",
     "watch": "Watch the trend versus the prior month -- consumer spending is roughly 70% of the U.S. economy, so a real shift here tends to matter.",
-    "provenance": "Fully teachable -- a standard, widely published Census Bureau series available on FRED.",
     "bands": [
       { "label": "Contracting", "meaning": "Sales fell versus the prior month." },
       { "label": "Stable", "meaning": "Sales were roughly flat versus the prior month." },
@@ -298,7 +274,6 @@
     "what_it_is": "The Federal Funds Rate -- the rate banks lend to each other overnight, which anchors the cost of nearly all other borrowing (mortgages, credit cards, corporate debt).",
     "how_to_read": "Unlike most metrics here, a rising rate reads as Restrictive (a headwind for stocks) and a falling rate reads as Stimulative (a tailwind) -- this metric is read inverted relative to most \"more is better\" intuitions.",
     "watch": "Watch the direction, not the absolute level -- this is the master lever for financial conditions, and it's read inverted (a cut reads Stimulative, a hike reads Restrictive) (see gotcha).",
-    "provenance": "Fully teachable -- the Fed sets and publishes this rate at roughly 8 FOMC meetings a year; no proprietary transform.",
     "bands": [
       { "label": "Stimulative", "meaning": "Rate cut versus the prior reading -- easier financial conditions." },
       { "label": "Stable", "meaning": "Rate held versus the prior reading." },
@@ -310,7 +285,6 @@
     "what_it_is": "The 10-Year Treasury yield -- the government's borrowing cost over a decade, and the baseline discount rate for most of global finance.",
     "how_to_read": "Read inverted, same as the Fed Funds Rate: a rising 10-Year yield reads as Restrictive (higher gravity pulling down stock valuations, especially growth names), and a falling yield reads as Stimulative.",
     "watch": "Watch the direction, not the absolute level -- like Fed Funds, this is read inverted, since it discounts nearly every other asset in the market.",
-    "provenance": "Fully teachable -- a continuously published, standard Treasury series available on FRED.",
     "bands": [
       { "label": "Stimulative", "meaning": "Yield fell versus the prior reading -- lower discount rate, a tailwind for valuations." },
       { "label": "Stable", "meaning": "Yield held versus the prior reading." },
@@ -322,7 +296,6 @@
     "what_it_is": "A weekly survey asking individual investors whether they expect the market to rise, fall, or stay flat over the next six months. The spread is the bullish percentage minus the bearish percentage.",
     "how_to_read": "Retail sentiment extremes have historically lined up with turning points -- not because retail investors are wrong, but because sentiment surveys tend to run hottest right before conditions change.",
     "watch": "Watch this contrarian -- extreme bullish readings have historically lined up with tops, not confirmations that the crowd is right (see gotcha).",
-    "provenance": "Teachable -- AAII publishes this survey free, weekly. The band cutoffs shown here are this app's own, not independently validated.",
     "bands": [
       { "label": "EXTREME BULLISH (CONTRARIAN CAUTION)", "meaning": "+30 points or higher -- retail optimism is stretched; historically a caution flag, not a green light." },
       { "label": "NEUTRAL", "meaning": "-19 to +29 points -- no strong lean either way." },
@@ -334,7 +307,6 @@
     "what_it_is": "Large speculative traders' (hedge funds, managed futures funds) net position in this futures contract, shown as a share of the total contracts outstanding. Positive means more are betting on higher prices; negative means more are betting on lower prices.",
     "how_to_read": "This group tends to move with trends, and heavy one-sided positioning can mean there's a lot of money that would need to reverse if the trend breaks.",
     "watch": "Watch for heavy one-sided positioning -- large speculators tend to move with trends, so a crowded position is the raw material for a sharp unwind if that trend breaks.",
-    "provenance": "Teachable -- CFTC publishes this data weekly (Friday release of the prior Tuesday's positions), though it's inherently lagged by design.",
     "bands": [],
     "gotchas": "Reflects Tuesday's positions, released the following Friday -- not a live number."
   },
@@ -342,7 +314,6 @@
     "what_it_is": "Where the current positioning ranks against the past year of weekly readings. A low percentile means positioning is unusually short; a high percentile means unusually long.",
     "how_to_read": "The raw position alone doesn't say whether it's normal or extreme -- this does. Extremes in either direction have historically preceded a reversal as crowded trades unwind.",
     "watch": "Watch the percentile more than the raw net position -- \"a lot of longs\" only means something measured against this contract's own recent history, and extremes in either direction have historically preceded a reversal as crowded trades unwind.",
-    "provenance": "Teachable -- built from the same public CFTC data as the raw net position above; the ranking itself is a first-pass calculation, not backtested (see gotcha).",
     "bands": [
       { "label": "EXTREME LONG (CROWDED)", "meaning": "90th percentile or higher -- among the most long-leaning readings of the past year." },
       { "label": "NEUTRAL", "meaning": "11th-89th percentile -- within the typical range." },
@@ -355,7 +326,6 @@
     "what_it_is": "If every short seller tried to buy back their shares using only a typical day's trading volume, this is roughly how many days it would take.",
     "how_to_read": "Higher days-to-cover means less room for short sellers to exit quickly, which is the raw material for a short squeeze if prices move against them. Lower days-to-cover means the market can absorb short-covering easily.",
     "watch": "Watch this as squeeze potential, not squeeze likelihood -- a high reading means a squeeze would be more disruptive if one happened, not that one is coming (see gotcha).",
-    "provenance": "Teachable -- derived from FINRA's public short-interest and volume data, released twice monthly on a lag.",
     "bands": [
       { "label": "ELEVATED (CROWDED SHORT)", "meaning": "5x days-to-cover or more -- shorts would take longer than usual to exit, raising squeeze risk if prices move against them." },
       { "label": "NEUTRAL", "meaning": "Below 5x -- short sellers could exit in a typical trading day or two without much friction." }
@@ -366,7 +336,6 @@
     "what_it_is": "The total number of shares currently sold short and not yet bought back.",
     "how_to_read": "Included for reference -- on its own, this number doesn't say much without knowing the total shares outstanding or trading volume, which is why days-to-cover is the more useful figure alongside it.",
     "watch": "Watch this alongside days-to-cover, not alone -- the raw share count doesn't say much without knowing total shares outstanding or trading volume.",
-    "provenance": "Public data (FINRA), reported as-is. Note: FINRA's own feed has no float field, so this is raw short shares, not short-percent-of-float.",
     "bands": [],
     "gotchas": "For SPY/QQQ/IWM specifically, this figure includes routine market-making activity (authorized participants creating and redeeming ETF shares), not only directional bearish bets."
   },
@@ -374,7 +343,6 @@
     "what_it_is": "How much short interest changed since the prior FINRA settlement date, about two weeks to a month earlier depending on the cycle.",
     "how_to_read": "The trend -- shorts building or covering -- is often more informative than the absolute level, since it shows where sentiment is actively shifting.",
     "watch": "Watch whether shorts are building or covering -- the trend is often more informative than the absolute level, since it shows where sentiment is actively shifting.",
-    "provenance": "Teachable -- same public FINRA settlement data as the two metrics above, roughly 8 business days old by publication (see gotcha).",
     "bands": [
       { "label": "COVERING (SHORTS EXITING)", "meaning": "-15% or lower -- short interest is unwinding." },
       { "label": "BUILDING (SHORTS ADDING)", "meaning": "+15% or higher -- short interest is growing." },
@@ -386,7 +354,6 @@
     "what_it_is": "A weekly survey of active investment managers' actual equity exposure -- not opinion, but reported positioning, ranging from fully short to leveraged long.",
     "how_to_read": "This reflects money already committed, which is a different signal than a sentiment survey -- professional managers reporting near-100%+ exposure suggests conviction or performance pressure to stay invested.",
     "watch": "Watch the extremes contrarian -- leveraged-long managers have no dry powder left to keep buying, the same logic that makes any crowded positioning read a caution.",
-    "provenance": "Concept teachable, but current-value-only in this app -- NAAIM's own historical archive moved behind a paywall in August 2026. Band cutoffs are this app's own, not independently validated.",
     "bands": [
       { "label": "EXTREME GREED (LEVERAGED)", "meaning": "100% or higher -- managers are leveraged long." },
       { "label": "BULLISH", "meaning": "80-99% -- high, but not leveraged, equity exposure." },
@@ -399,7 +366,6 @@
     "what_it_is": "The share of trading that happened in \"dark pools\" -- private venues where large trades are placed without showing on the public order book -- that was buying rather than selling.",
     "how_to_read": "Large institutional buyers often prefer dark pools to avoid moving the price against themselves. A sustained high reading can mean institutional accumulation that isn't yet visible in the public tape.",
     "watch": "Watch for a sustained high reading, not a single day -- rising DIX suggests institutions accumulating into weakness before that shows up in the public tape, a smart-money divergence from price.",
-    "provenance": "DIX itself is public (SqueezeMetrics); this app's own band cutoffs are not independently validated or backtested.",
     "bands": [
       { "label": "ACCUMULATION (BULLISH)", "meaning": "45% or higher -- more than usual institutional buying under the surface." },
       { "label": "NEUTRAL", "meaning": "41-44% -- no strong lean either way." },
@@ -410,7 +376,6 @@
     "what_it_is": "The Federal Reserve's balance sheet, minus the Treasury's cash balance, minus reverse repo balances -- a rough estimate of dollar liquidity available to flow into financial markets.",
     "how_to_read": "Rising liquidity has historically been a tailwind for risk assets; falling liquidity a headwind. This is a macro backdrop measure, not a market-timing signal on its own.",
     "watch": "Watch this as a slow backdrop signal, not a timing tool -- there's no dead band here, so even a small, rounding-level move can flip the label between Expanding and Draining.",
-    "provenance": "Teachable -- all three inputs (Fed balance sheet, Treasury cash balance, reverse repo) are published on FRED; this app's own subtraction and pure-direction labeling are not.",
     "bands": [
       { "label": "EXPANDING", "meaning": "Risen since its last reading -- a tailwind for risk assets." },
       { "label": "DRAINING", "meaning": "Fallen since its last reading -- a headwind for risk assets." },
