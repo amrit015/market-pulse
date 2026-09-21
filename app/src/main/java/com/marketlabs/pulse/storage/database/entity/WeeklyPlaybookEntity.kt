@@ -4,9 +4,8 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.marketlabs.pulse.storage.model.weeklyPlaybook.WeeklyEvent
 
-// 💡 2026-08-29 revision: added a `synthesis` block -- kept as flat nullable columns
-// (synthesisHeadline, synthesisDetail, ...), matching MarketPostureEntity's convention for the
-// same narrative layer, purely additive (see MIGRATION_19_20).
+// 💡 The `synthesis` block is stored as flat nullable columns (synthesisHeadline,
+// synthesisDetail, ...), matching MarketPostureEntity's convention for the same narrative layer.
 @Entity(tableName = "weekly_playbook")
 data class WeeklyPlaybookEntity(
     @PrimaryKey val id: String = "latest",

@@ -22,20 +22,16 @@ the checking.
    in `@docs/architecture/known-gaps.md` — don't extend them in new code.
 3. **No hardcoded strings or dimensions in Compose files.** Always `stringResource()` /
    `dimensionResource()`.
-4. **Comment thoroughly. Preserve existing comments** unless verifiably obsolete.
+4. **Comments explain the why, are self-contained, and never cite a spec, mockup, phase, or
+   repo doc — in any file type, Kotlin or XML.** Preserve existing comments unless verifiably
+   obsolete; update them when the code beneath changes. Full rules, examples, and a grep to run
+   before finishing: `@docs/guidelines/comments.md`.
 5. **Explain before you code.** For every non-trivial change, start with a short paragraph on the
-   approach and the choices being made. Keep reasoning in prose, not comments.
+   approach and the choices being made. That explanation goes in your reply, not in code
+   comments.
 6. **Localized changes only.** Do not refactor, reformat, or "clean up" outside the requested
    change. If you see something wrong, flag it — don't silently fix it (the exception: a known
    gap you're already touching for another reason — see `@docs/architecture/known-gaps.md`'s own
    "fix opportunistically" framing).
 7. **Ask before assuming.** Ambiguous requirement, missing color token, unclear data model,
    unfamiliar acronym — stop and ask.
-8. **Comments are self-contained — never cite a spec, ADR, or doc file by name or requested
-   changes.** No `spec-YYYYMMDD-*.md`, no "Token Contract," no "Design Direction," no "per the
-   migration table." A comment has to make sense to someone with only this repo checked out,
-   nothing else open. Document the thought process and the actual implementation directly: what
-   the code does, why it does it that way, what it replaced and why that mattered. If a rule
-   genuinely originates from an external doc, restate the rule itself in the comment — don't
-   point at the doc. (This applies to *code* comments specifically — the `docs/` tree itself is
-   allowed to reference dates/history, since that's its job.)

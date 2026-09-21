@@ -2,7 +2,7 @@ package com.marketlabs.pulse.core.insights
 
 /**
  * Which of the 2 `/insights/{pillar}/history?metric=<id>` routes a given metric id belongs to --
- * a static, closed table of 14 ids (spec: "Per-Metric Posture & Positioning Charts"), same
+ * a static, closed table of 14 ids, same
  * hardcoded-lookup reasoning as Indicators' `MetricHistoryPillar`. An id outside both sets resolves
  * to `null`, and callers treat that as "no history chart for this metric," not an error.
  */
@@ -21,7 +21,7 @@ enum class InsightsHistoryPillar {
         )
 
         // The only 2 genuinely daily metrics in this domain -- everything else is weekly,
-        // bi-monthly, or irregular (spec section 4), so a step-after line communicates "this is what
+        // bi-monthly, or irregular, so a step-after line communicates "this is what
         // it held at until the next real release" far more honestly than a smoothed curve implying a
         // trend between points that can be weeks or months apart. Same reasoning
         // `MetricHistoryPillar.isMacroCadence` uses for Indicators' own sparse metrics, just a

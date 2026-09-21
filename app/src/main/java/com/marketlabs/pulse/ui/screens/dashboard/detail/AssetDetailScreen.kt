@@ -57,11 +57,9 @@ import com.marketlabs.pulse.utils.verticalScrollbar
 import kotlin.math.abs
 
 /**
- * Stateless content for the pushed asset-detail page -- moved out of the old
- * `AssetDetailBottomSheet` body verbatim originally, then restyled 2026-09 onto the same
- * `PulseCard`/`StatGrid`/`DataCardTitleWithInfo` shapes Stock Detail's equivalent sections
- * (`HeadlineMetricsStrip`) already use, rather than the loose `Text`/`Row` blocks the bottom-sheet
- * move had left untouched. `showTechnicals` still hides the technical/SMA sections for sentiment
+ * Stateless content for the pushed asset-detail page, built from the same `PulseCard`/`StatGrid`/
+ * `DataCardTitleWithInfo` shapes Stock Detail's equivalent sections (`HeadlineMetricsStrip`) use.
+ * `showTechnicals` hides the technical/SMA sections for sentiment
  * readings (Fear & Greed, Put/Call), which have no such figures. The chart itself is hidden
  * separately for futures (`asset.type == AssetType.FUTURE`) -- see the chart block's own comment --
  * while still showing technicals/SMA for them, since those figures are real for a futures contract.
@@ -215,7 +213,7 @@ fun AssetDetailScreen(
         // set), so this renders for VIX/commodities/sentiment too, not just the equity-like assets
         // that keep their technicals below. `PeriodChart` handles the loading/empty states itself
         // at a fixed height -- see its own doc comment. Futures (ES=F/YM=F/NQ=F) are excluded
-        // entirely by product decision -- no chart at all for them, not even the period chart
+        // entirely -- no chart at all for them, not even the period chart
         // every other asset class keeps.
         if (asset.type != AssetType.FUTURE) {
             Spacer(modifier = Modifier.height(paddingLarge))
@@ -327,8 +325,8 @@ fun AssetDetailScreen(
         }
 
         // 💡 Same padding_extra_large gap GlossaryDetailScreen/MetricDetailScreen/Dashboard's own
-        // footer already use before this text -- this screen had none, reading as visibly tighter
-        // against the content above than every other screen's footer.
+        // footer use before this text, so it doesn't read as visibly tighter against the content
+        // above than every other screen's footer.
         Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_extra_large)))
         DisclaimerFooter()
     }

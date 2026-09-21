@@ -30,8 +30,8 @@ import kotlin.math.roundToInt
 
 /**
  * Small circular progress ring + centered value, for the Posture cards (NAAIM Exposure, Dark Pool
- * Index) that read as a bounded 0-100-ish gauge next to the card's title/status, per the Posture
- * design mockup's structure. A purpose-built, smaller sibling of `ScoreGauge` rather than a reuse
+ * Index) that read as a bounded 0-100-ish gauge next to the card's title/status. A purpose-built,
+ * smaller sibling of `ScoreGauge` rather than a reuse
  * of it -- `ScoreGauge` is hardcoded to an Int 0-100 score with its own baked-in delta/status text
  * layout (Risk Radar's full-size hero gauge), where this is a compact side-of-card indicator that
  * takes a raw Double against a caller-supplied `maxValue` (NAAIM can read above 100, up to ~150)

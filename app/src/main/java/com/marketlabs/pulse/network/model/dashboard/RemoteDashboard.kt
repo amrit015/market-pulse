@@ -24,9 +24,8 @@ data class NetworkMarketState(
 )
 
 /**
- * The `market_overview/technical_summary` doc's shape post-rewrite: `summary: String?` (deleted
- * outright on the backend, no transition window) is replaced by a nested `synthesis` narrative +
- * a top-level `state` ("unavailable" | "current"), plus the new market-wide `daily_digest`
+ * The `market_overview/technical_summary` doc's shape: a nested `synthesis` narrative + a
+ * top-level `state` ("unavailable" | "current"), plus the market-wide `daily_digest`
  * ("what moved today") riding on the same doc.
  */
 @JsonClass(generateAdapter = true)

@@ -81,8 +81,8 @@ import com.marketlabs.pulse.ui.theme.MarketPulseTheme
  * scrolls this row just enough to bring that chip on-screen. Without this, a tab index changing
  * from outside a tap on this row (a pager swipe landing on a tab this row hasn't scrolled to) left
  * the row wherever it last was, silently stranding whichever tab sits at either end off-screen with
- * no way to see it was even selected. 2026-09-05 fix, surfaced once Stock Detail's tab content
- * became swipeable and its 6 tabs no longer all fit on-screen at once.
+ * no way to see it was even selected. That happens once tab content is swipeable and the tabs no
+ * longer all fit on-screen at once (e.g. Stock Detail's 6 tabs).
  *
  * `highlightedTabIndex` (optional, e.g. a screen's "Favorites" tab) gets a small filled-star glyph
  * before its label -- in both the selected and unselected state, tinted `accentOn` (matching the

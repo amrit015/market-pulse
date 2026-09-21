@@ -34,7 +34,7 @@ import com.marketlabs.pulse.utils.extensions.smartTitleCase
 
 /**
  * Shared hero card for the small Gemini-authored narrative layer both the Posture and Positioning
- * sections add on top of their deterministic gauges (2026-08-26 revamp) -- a "SYNTHESIS" eyebrow +
+ * sections add on top of their deterministic gauges -- a "SYNTHESIS" eyebrow +
  * headline + expandable detail, matching Indicators' `AiExecutiveBriefingHero` eyebrow/expand
  * pattern (icon + label row, `animateContentSize()`, tap-to-expand) rather than inventing a new
  * interaction for what is functionally the same kind of card. Takes primitive headline/detail/
@@ -43,9 +43,8 @@ import com.marketlabs.pulse.utils.extensions.smartTitleCase
  * own doc comments for why this app keeps them duplicated per domain instead of sharing one type.
  *
  * `isUnavailable` renders the backend's `state: "unavailable"` first-run edge case (no headline/
- * detail yet, nothing to fall back to) as real empty-state copy -- not the "Preview unavailable
- * state" toggle link seen in the design mockups, which is a design-tool artifact for switching
- * between mockup variants, not a feature meant to ship.
+ * detail yet, nothing to fall back to) as real empty-state copy, not a preview toggle for
+ * switching between states -- that's a design-tool device, not a feature meant to ship.
  *
  * Headline/detail text styles are pinned to `titleMedium.Bold`/`bodyMedium` (`onSurface`, 1.2x
  * line height, ellipsis when collapsed) to match `AiExecutiveBriefingHero` (Indicators) and the
@@ -79,14 +78,14 @@ fun SynthesisHeroCard(
         onClick = if (detail.isNullOrBlank()) null else { { isExpanded = !isExpanded } }
     ) {
         Column(modifier = Modifier.padding(paddingLarge).animateContentSize()) {
-            // 💡 The expand/collapse arrow used to sit beside the eyebrow in this same row,
-            // forcing the row's height to the icon's own default (unsized) size rather than the
-            // eyebrow text's -- taller than Market Signal's bare eyebrow line, and the extra slack
-            // pushed both the top padding and the eyebrow-to-headline gap out of line with Market
-            // Signal even though the Spacer value below was identical. Moved to sit beside the
-            // headline instead (and explicitly sized), matching Market Sentiment's
-            // chevron-on-the-headline pattern (SummaryScreen.kt) -- the eyebrow row is now just
-            // the label, same as Market Signal/Sentiment.
+            // 💡 The expand/collapse arrow sits beside the headline (explicitly sized), not in the
+            // eyebrow row: an arrow in that row would force the row's height to the icon's own
+            // default (unsized) size rather than the eyebrow text's -- taller than Market Signal's
+            // bare eyebrow line, and the extra slack would push both the top padding and the
+            // eyebrow-to-headline gap out of line with Market Signal even though the Spacer value
+            // below is identical. Matches Market Sentiment's chevron-on-the-headline pattern
+            // (SummaryScreen.kt) -- the eyebrow row is just the label, same as Market
+            // Signal/Sentiment.
             CardEyebrowLabel(
                 text = stringResource(id = R.string.insights_synthesis_label),
                 color = pulseColors.accentPrimary,

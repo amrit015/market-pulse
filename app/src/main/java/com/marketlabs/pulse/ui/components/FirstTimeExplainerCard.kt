@@ -20,8 +20,8 @@ import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 /**
- * One-time, dismissible intro card pinned above a screen's gauges (2026-08-27 interpretive-layer
- * spec, Layer 3) -- not a blocking modal, just a normal card in the scroll flow that the reader can
+ * One-time, dismissible intro card pinned above a screen's gauges -- not a blocking modal, just a
+ * normal card in the scroll flow that the reader can
  * dismiss permanently via "Got it." Persistence lives in the caller (`InsightsUiStateRepository`
  * via `InsightsViewModel`), not here -- this composable is pure display, same "no data of its own"
  * shape every other stateless screen-level composable in this app follows.

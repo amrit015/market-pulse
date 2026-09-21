@@ -4,12 +4,10 @@ import androidx.compose.ui.graphics.Color
 
 /**
  * 💡 THOUGHT PROCESS:
- * This app supports ten color presets (5 light, 5 dark), replacing the old flat single-theme
- * palette (`PulseBlue`/`PulseBlack`/`PulseGold`/`PulseOrange`/`AlertRed`/light+dark surface
- * constants/`PulseStatusColors`/`ColorGreen`/`ColorRed`/`ColorNeutral`) entirely — every one of
- * those is gone, not deprecated. This file is now pure DATA: every resolved hex value the presets
- * use, organized so a future hex change is a single-file edit here. The logic that assembles these
- * into `PulseColors`/`ColorScheme` per preset lives in `MarketPulseTheme.kt`, not here.
+ * This app supports ten color presets (5 light, 5 dark). This file is pure DATA: every resolved
+ * hex value the presets use, organized so a future hex change is a single-file edit here. The
+ * logic that assembles these into `PulseColors`/`ColorScheme` per preset lives in
+ * `MarketPulseTheme.kt`, not here.
  *
  * Three groups:
  * - `Signal` — locked, identical across every preset in a given mode. Bullish/bearish/neutral/
@@ -55,7 +53,7 @@ data class SurfaceRamp(
 
 object PulseTokens {
 
-    /** Layer 1 — signal tokens. LOCKED. Never restyled by any preset. */
+    /** Signal tokens. LOCKED. Never restyled by any preset. */
     object Signal {
         val light = SignalPalette(
             bullishText = Color(0xFF1B5E20),
@@ -84,35 +82,34 @@ object PulseTokens {
         // wires this to the mode's own onSurfaceMuted as an explicit placeholder instead.
     }
 
-    /** Layer 2 — surface ramp. Shared per mode: one instance for all 5 light presets, one for all 5 dark. */
+    /** Surface ramp. Shared per mode: one instance for all 5 light presets, one for all 5 dark. */
     object Surface {
         val light = SurfaceRamp(
-            // 💡 2026-08-29 card redesign, final pass: this is the BASE the light-mode page
-            // background renders from -- pure white, not a flat grey. Two earlier passes tried
-            // greying this value up instead (0xFFEDEBE6, then softened to 0xFFF3F1EC) so a white
-            // `DATA` card would have visible contrast to sit on against its new drop shadow, but a
-            // uniform grey page was asked to be replaced with something more specific: white with a
-            // hint of the active preset's own accent color mixed in. That per-preset tint can't live
-            // as one flat hex here (`accent.primary` varies per preset, this `SurfaceRamp` is
-            // deliberately shared across all 5 light presets) -- so this field now holds only the
+            // 💡 The BASE the light-mode page background renders from -- pure white, not a flat
+            // grey. A grey base would give a white `DATA` card visible contrast to sit on against
+            // its drop shadow, but a uniform grey page reads flat; the page instead gets white with
+            // a hint of the active preset's own accent color mixed in. That per-preset tint can't
+            // live as one flat hex here (`accent.primary` varies per preset, this `SurfaceRamp` is
+            // deliberately shared across all 5 light presets) -- so this field holds only the
             // neutral base, and `toColorScheme()` in `MarketPulseTheme.kt` blends a small amount of
-            // `accent.primary` into it per preset (same lerp-based technique already used for
+            // `accent.primary` into it per preset (same lerp-based technique used for
             // `surfaceTinted`/`accentSurfaceStrong`). The resulting page background is what actually
             // renders and what the top bar shares (`AppTopBar.kt`) -- not this raw value alone.
             // Cards themselves (`surfaceElevated` below) stay plain, untinted white; the accent hint
-            // plus the (now stronger) drop shadow is what separates a card from the page. Dark
-            // mode's background is untouched -- this field only applies to light mode.
+            // plus the drop shadow is what separates a card from the page. Dark mode's background
+            // passes through untouched -- this field only applies to light mode.
             background = Color(0xFFFFFFFF),
             surface = Color(0xFFFBFAF7),
             surfaceElevated = Color(0xFFFFFFFF),
             onBackground = Color(0xFF14161B),
             onSurface = Color(0xFF14161B),
-            // 💡 Darkened from the literal Token Contract value (was 0xFF6B6E76) -- this is the one
+            // 💡 Darkened from the original value (was 0xFF6B6E76) -- this is the one
             // muted-text color every preset in both modes shares (dates, "52W LOW"-style stat
             // labels, subtitles -- 130+ call sites via `onSurfaceMuted`/`colorScheme.onSurfaceVariant`,
-            // both of which read this same value), and it read too light/washed-out against light
-            // backgrounds. Converted to HLS, lightness dropped ~0.08, hue/saturation untouched --
-            // same technique already used for the `tinted` desaturation elsewhere in this file.
+            // both of which read this same value), and a lighter value reads washed-out against
+            // light backgrounds. Derived in HLS from the original value: lightness lowered ~0.08,
+            // hue/saturation untouched -- same technique used for the `tinted` desaturation
+            // elsewhere in this file.
             onSurfaceMuted = Color(0xFF585A61),
             outline = Color(0xFFE4E2DC)
         )
@@ -123,7 +120,7 @@ object PulseTokens {
             surfaceElevated = Color(0xFF1F2026),
             onBackground = Color(0xFFF0EEF3),
             onSurface = Color(0xFFF0EEF3),
-            // 💡 Lightened from the literal Token Contract value (was 0xFF9A9BA3) -- same reasoning
+            // 💡 Lightened from the original value (was 0xFF9A9BA3) -- same reasoning
             // as light mode's `onSurfaceMuted` above, mirrored: too dark/washed-out against dark
             // backgrounds. Lightness raised ~0.08 via the same HLS method.
             onSurfaceMuted = Color(0xFFAFB0B6),
@@ -132,7 +129,7 @@ object PulseTokens {
     }
 
     /**
-     * Layer 2 — accent group, one per preset: the brand color (`primary`), the color text/icons
+     * Accent group, one per preset: the brand color (`primary`), the color text/icons
      * use when sitting on top of it (`on`), a soft tint for synthesis-layer cards like AI
      * briefings and news (`surface`) with a matching hairline border (`surfaceBorder`), and an
      * accent-washed neutral used for price-card backgrounds regardless of bullish/bearish
@@ -144,7 +141,7 @@ object PulseTokens {
             val on = Color(0xFFFFFFFF)
             val surface = Color(0xFFEBDFF3)
             val surfaceBorder = Color(0xFFD8C3E4)
-            // 💡 Grey-desaturated from the literal Token Contract value (was 0xFFF3EEF6) -- text
+            // 💡 Grey-desaturated from the original value (was 0xFFF3EEF6) -- text
             // sitting on price cards read with too little contrast against the full-saturation
             // tint, across every preset in both modes. Converted to HSL, saturation halved, hue
             // and lightness left untouched, converted back -- keeps each preset's accent hue
@@ -152,8 +149,7 @@ object PulseTokens {
             // stronger version of this for their actual background -- that adjustment happens as a
             // runtime blend toward `surface` in `MarketPulseTheme.toPulseColors()` rather than
             // baked into this constant, specifically so the blend factor is a one-line tweak
-            // instead of hand-recomputing ten hex values every time it needs to change (which
-            // happened three times across two sessions before this was worth doing properly).
+            // instead of hand-recomputing ten hex values every time it needs to change.
             val tinted = Color(0xFFF2F0F4)
         }
 

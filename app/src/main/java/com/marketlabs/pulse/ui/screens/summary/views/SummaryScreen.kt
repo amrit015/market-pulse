@@ -102,9 +102,10 @@ import com.marketlabs.pulse.utils.toRelativeDayLabel
  * [HorizontalPager] (see [SummaryDayPage]) and scrolls away with the rest of that day's content --
  * each page shows its own date's label/timestamp, not just whichever day is "selected". The pager
  * is swipeable exactly like [SummaryCalendarStrip]'s own pills select a day, kept in sync with it
- * the same way `PulseTabRow` <-> `HorizontalPager` sync works elsewhere in this app (see
- * `docs/architecture/collapsing-header-tabs.md`'s "Pager <-> ViewModel sync"). Each page implements
- * the same "Safe UI" pattern as before -- sections only render if their data is non-null.
+ * the same way `PulseTabRow` <-> `HorizontalPager` sync works elsewhere in this app (the
+ * ViewModel's selected day and the pager's settled page are synced in both directions). Each page
+ * implements the same "Safe UI" pattern as before -- sections only render if their data is
+ * non-null.
  *
  * @param contentByDateId What to render for each of [calendarDayIds] -- a loaded report, a
  * confirmed-empty past date, today-not-ready-yet, or a past date still syncing for the first
@@ -120,9 +121,9 @@ fun MarketSummaryScreen(
     onDateSelected: (String) -> Unit,
     scaffoldPadding: PaddingValues,
     onNavigateToIndicators: () -> Unit,
-    // spec-20260902-market-sentiment-android.md: the Market Sentiment card's whole-card tap
-    // target -- Posture is a tab on the Insights screen, not its own destination, same shape as
-    // onNavigateToIndicators above but landing on a specific Insights tab.
+    // The jump from the Market Sentiment card to Posture -- Posture is a tab on the Insights
+    // screen, not its own destination, same shape as onNavigateToIndicators above but landing on
+    // a specific Insights tab.
     onNavigateToPosture: () -> Unit = {},
     onRetryDate: (String) -> Unit = {}
 ) {
@@ -139,14 +140,14 @@ fun MarketSummaryScreen(
         calendarDayIds.lastOrNull { contentByDateId[it] is DayContent.Available }
 
     // 💡 Which glossary sheet (if any) is open, and for which term -- regime/direction, setup,
-    // and cycle zone each have their own tap target now (a chevron on that one chip) instead of
-    // one card-wide tap opening a combined sheet, so this needs to track *which* term was tapped,
-    // not just open/closed. Shared across every page rather than per-page state -- a tap can only
+    // and cycle zone each have their own tap target (a chevron on that one chip) rather than one
+    // card-wide tap opening a combined sheet, so this needs to track *which* term was tapped, not
+    // just open/closed. Shared across every page rather than per-page state -- a tap can only
     // land on the currently-settled page anyway, so this always resolves against `data` (the
-    // selected day's), same as before this screen became a pager.
+    // selected day's).
     var glossaryTarget by remember { mutableStateOf<GlossaryTarget?>(null) }
     var showDriversInfo by remember { mutableStateOf(false) }
-    // 💡 2026-09-06: the Signal card's flash headline is now its own tap target, opening the same
+    // 💡 The Signal card's flash headline is its own tap target, opening the same
     // analysis + posture prose TheReadSection renders lower on the page -- a shortcut for the
     // reader who wants the "why" right away, not a replacement for that card (which stays put).
     var showMarketRead by remember { mutableStateOf(false) }
@@ -162,12 +163,12 @@ fun MarketSummaryScreen(
         }
     }
 
-    // 💡 `settledPage`, not `currentPage` -- see collapsing-header-tabs.md's identical fix on
-    // Indicators/Stock Detail: keying off `currentPage` pushes an intermediate, still-in-flight
-    // page value back to the ViewModel mid-swipe/mid-animation, which the effect above then reads
-    // and uses to correct the pager, fighting whatever gesture is still running. This is also what
-    // keeps network syncing lazy -- SummaryViewModel only calls syncPastDate for the page that
-    // actually settles, not every page flicked past mid-swipe.
+    // 💡 `settledPage`, not `currentPage` -- the same fix Indicators/Stock Detail use: keying off
+    // `currentPage` pushes an intermediate, still-in-flight page value back to the ViewModel
+    // mid-swipe/mid-animation, which the effect above then reads and uses to correct the pager,
+    // fighting whatever gesture is still running. This is also what keeps network syncing lazy --
+    // SummaryViewModel only calls syncPastDate for the page that actually settles, not every page
+    // flicked past mid-swipe.
     LaunchedEffect(pagerState.settledPage) {
         val settledDateId = calendarDayIds.getOrNull(pagerState.settledPage)
         if (settledDateId != null && settledDateId != selectedDateId) {
@@ -178,7 +179,7 @@ fun MarketSummaryScreen(
     // 💡 Top padding uses `scaffoldPadding`'s top component (the Scaffold's own measurement of
     // the top bar's real rendered height) instead of the raw status bar inset alone -- the raw
     // inset only accounts for the system status bar, not the app's own top bar sitting below it,
-    // so content used to start underneath the top bar rather than below it.
+    // so content would start underneath the top bar rather than below it.
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -198,10 +199,10 @@ fun MarketSummaryScreen(
             modifier = Modifier.padding(top = scaffoldPadding.calculateTopPadding())
         )
 
-        // 💡 `weight(1f)`, not just `fillMaxSize()` -- same safety net collapsing-header-tabs.md
-        // calls out as required on every screen using this pattern: guarantees the pager (the
-        // only scrollable, touchable content) always gets whatever space is left under the pinned
-        // zone above, however tall that zone happens to be.
+        // 💡 `weight(1f)`, not just `fillMaxSize()` -- required on every screen using this pager
+        // pattern: guarantees the pager (the only scrollable, touchable content) always gets
+        // whatever space is left under the pinned zone above, however tall that zone happens to
+        // be.
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -231,12 +232,10 @@ fun MarketSummaryScreen(
         }
     }
 
-    // 💡 One sheet per tapped chip, not one combined sheet for the whole card -- `call` no longer
-    // exists on MarketVerdict (the backend removed it project-wide) so there's nothing left that
-    // needs a "verdict-wide" glossary. Regime and direction used to share one combined sheet (the
-    // regime chip's own tint carried direction, with no separate text of its own); now that
-    // direction renders as its own pill alongside regime, each gets its own single-term sheet
-    // instead, matching every other chip on this screen (setup, cycle zone).
+    // 💡 One sheet per tapped chip, not one combined sheet for the whole card -- `MarketVerdict`
+    // has no `call` field (the backend removed it project-wide), so there's nothing that needs a
+    // "verdict-wide" glossary. Regime and direction render as separate pills, so each gets its
+    // own single-term sheet, matching every other chip on this screen (setup, cycle zone).
     when (glossaryTarget) {
         GlossaryTarget.REGIME -> {
             MarketGlossaryBottomSheet(
@@ -281,10 +280,10 @@ fun MarketSummaryScreen(
 }
 
 /**
- * One [HorizontalPager] page of [MarketSummaryScreen] -- everything that used to be the single
- * scrolling body before the calendar strip/date label/timestamp moved out into the pinned zone
- * above the pager. Renders [content]: a loaded report's full section stack, or one of the
- * confirmed-empty/loading/not-ready states, each just a centered message.
+ * One [HorizontalPager] page of [MarketSummaryScreen] -- the scrolling body for one calendar day
+ * (the calendar strip sits in the pinned zone above the pager). Renders [content]: a loaded
+ * report's full section stack, or one of the confirmed-empty/loading/not-ready states, each just
+ * a centered message.
  *
  * @param isLatestWithReport Whether [dateId] is the most recent calendar day with an actual
  * report -- not necessarily today's own dateId (see [MarketSummaryScreen]'s `latestAvailableDateId`
@@ -318,11 +317,10 @@ private fun SummaryDayPage(
         ),
         verticalArrangement = Arrangement.spacedBy(paddingLarge)
     ) {
-        // 💡 Each page renders its OWN date's label (and timestamp, once loaded) -- these used to
-        // sit in the pinned zone above the pager reflecting only the globally "selected" day, but
-        // now scroll away with the rest of that page's own content instead, so a page's header
-        // always matches what's actually on that page even mid-swipe, before it settles as
-        // "selected".
+        // 💡 Each page renders its OWN date's label (and timestamp, once loaded), scrolling away
+        // with the rest of that page's own content rather than sitting in the pinned zone -- so a
+        // page's header always matches what's actually on that page even mid-swipe, before it
+        // settles as "selected".
 
         item {
             Column {
@@ -396,11 +394,11 @@ private fun SummaryDayPage(
             is DayContent.Available -> {
                 val validData = content.data
 
-                // 💡 market_pulse v2 hierarchy (2026-08-17 backend revamp): signal -> drivers ->
+                // 💡 market_pulse hierarchy: signal -> drivers ->
                 // position -> lead stories -> macro mix -> domino -> watch & risks -> the read.
                 // Signal (top) and The Read (bottom) both bind to the same MarketVerdict --
                 // signalLine at top, verdict_text (analysis) at bottom -- since the backend
-                // consolidated what used to be a separate signal + the_read split into one object.
+                // delivers signal and the_read as one object.
                 validData.verdict?.let { verdict ->
                     item {
                         SignalSection(
@@ -412,13 +410,12 @@ private fun SummaryDayPage(
                     }
                 }
 
-                // spec-20260902-market-sentiment-android.md: placed directly below the primary
-                // verdict/read block, grouped with the narrative sections rather than the trailing
-                // watch/risks -- sentiment is context for the read, not a footnote. No external
-                // SectionTitle -- same shape as SignalSection above, whose "Market Signal" header
-                // lives inside the card itself rather than as a separate list item. The whole card
-                // always navigates to Posture (not a per-link choice) -- Positioning is reachable
-                // from there once on Insights.
+                // Placed directly below the primary verdict/read block, grouped with the narrative
+                // sections rather than the trailing watch/risks -- sentiment is context for the
+                // read, not a footnote. No external SectionTitle -- same shape as SignalSection
+                // above, whose "Market Signal" header lives inside the card itself rather than as a
+                // separate list item. The whole card always navigates to Posture (not a per-link
+                // choice) -- Positioning is reachable from there once on Insights.
                 validData.marketSentiment?.let { sentiment ->
                     item {
                         MarketSentimentCard(sentiment = sentiment, onClick = onNavigateToPosture)
@@ -437,8 +434,7 @@ private fun SummaryDayPage(
                 }
 
                 // 💡 Position/whatChanged/whatsNew are composed by the backend at request time
-                // regardless of which dateId was requested (api/marketPulse.ts's
-                // marketPulseComposer.ts in the backend repo) -- always the CURRENT live values,
+                // regardless of which dateId was requested -- always the CURRENT live values,
                 // never historically accurate to a past date's own report. Gated to whichever
                 // calendar day currently has the most recent actual report (isLatestWithReport),
                 // not strictly "today" -- today's report usually doesn't post until the afternoon,
@@ -459,7 +455,7 @@ private fun SummaryDayPage(
                         }
                     }
 
-                    // 💡 New 2026-08-21, placed here as a reasonable default -- no hierarchy slot
+                    // 💡 Placed here as a reasonable default -- no hierarchy slot
                     // has been assigned for this section yet. See WhatsNewSection's doc comment
                     // below.
                     val whatsNew = validData.whatsNew
@@ -510,19 +506,19 @@ private enum class GlossaryTarget { REGIME, DIRECTION, SETUP, CYCLE_ZONE }
 
 /**
  * The top-of-screen Signal card and the closing "The Read" card both read from the same
- * [MarketVerdict] (the backend folded the old signal + the_read split into one object). This one
- * renders the glanceable top flash: `regime` (the model's 6-value classification of the market's
- * current phase) and `direction` (RISK_ON/RISK_OFF/MIXED, the code-derived aggregate read) render
- * as two separate pills side by side, each its own tap target with a trailing chevron opening a
- * glossary sheet scoped to just that term -- they used to share one chip (regime's text, tinted by
- * direction's color) but that made direction's own value invisible as text, readable only as a
- * tint. `signal_line` (the flash headline) is the largest prose on the card and is itself tappable
- * (trailing chevron), opening a bottom sheet with the fuller analysis + posture read (the same
- * content [TheReadSection] renders lower on the page) for a reader who wants the "why" without
- * scrolling. `conviction` + `convictionReason` render together, always inline, never behind a tap
- * -- this is the field that makes the verdict earned confidence instead of a black-box "trust me,"
- * and seeing e.g. "2 of 4" signals aligned is what makes the mixed drivers underneath read as a
- * contested call rather than a contradiction. `setup` moved to the Market Position card.
+ * [MarketVerdict] (the backend delivers signal + the_read as one object). This one renders the
+ * glanceable top flash: `regime` (the model's 6-value classification of the market's current
+ * phase) and `direction` (RISK_ON/RISK_OFF/MIXED, the code-derived aggregate read) render as two
+ * separate pills side by side, each its own tap target with a trailing chevron opening a
+ * glossary sheet scoped to just that term -- so direction's own value reads as text, not only as
+ * a tint. `signal_line` (the flash headline) is the largest prose on the card and is itself
+ * tappable (trailing chevron), opening a bottom sheet with the fuller analysis + posture read
+ * (the same content [TheReadSection] renders lower on the page) for a reader who wants the "why"
+ * without scrolling. `conviction` + `convictionReason` render together, always inline, never
+ * behind a tap -- this is the field that makes the verdict earned confidence instead of a
+ * black-box "trust me," and seeing e.g. "2 of 4" signals aligned is what makes the mixed drivers
+ * underneath read as a contested call rather than a contradiction. `setup` lives on the Market
+ * Position card.
  */
 @Composable
 fun SignalSection(
@@ -603,7 +599,7 @@ fun SignalSection(
                 if (verdict.conviction != null) {
                     // 💡 Label-above-bar, matching CardStyleShowcase.kt's SYNTHESIS "headline +
                     // divider + meter" sample -- a full-width continuous fill reads strength at a
-                    // glance better than the 3 discrete segments this used to be.
+                    // glance better than discrete segments would.
                     Text(
                         text = stringResource(id = R.string.label_conviction),
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
@@ -692,8 +688,8 @@ private fun String?.cycleZoneToSignalColor(): SignalColor = when {
 /**
  * A full-width continuous bar, filled left-to-right by [conviction] (LOW = 1/3, MODERATE = 2/3,
  * HIGH = full) -- same shape as CardStyleShowcase.kt's SYNTHESIS "headline + divider + meter"
- * sample, swapped in for the 3 discrete segments this used to be: a continuous fill reads relative
- * strength at a glance the way a real progress/strength meter would, rather than 3 blocky steps.
+ * sample: a continuous fill reads relative strength at a glance the way a real progress/strength
+ * meter would, rather than blocky discrete steps.
  */
 @Composable
 private fun ConvictionMeter(conviction: Conviction, filledColor: Color) {
@@ -720,10 +716,9 @@ private fun ConvictionMeter(conviction: Conviction, filledColor: Color) {
                 // 💡 A translucent `onSurface` overlay, not `colorScheme.surfaceVariant` -- this
                 // card's own SYNTHESIS background is `accentSurfaceStrong`, an accent-tinted
                 // surface close enough in value to `surfaceVariant` in dark mode that the track
-                // read as invisible, indistinguishable from the card behind it. A translucent
+                // would read as invisible, indistinguishable from the card behind it. A translucent
                 // overlay of the foreground color instead guarantees contrast against whatever
-                // background sits behind it, the same technique the old 3-segment meter's own
-                // "empty" segments used.
+                // background sits behind it.
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
                 shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_pill))
             )
@@ -747,22 +742,21 @@ private fun ConvictionMeter(conviction: Conviction, filledColor: Color) {
  * `when`). Sorted HIGH-impact first, same "most-important-first" sort `WatchList.kt` uses for its
  * own urgency field.
  *
- * 💡 No ▲/▼/▪ glyph on the pill (there was one briefly) -- an arrow reads as "the data itself
- * went up/down," which stopped being true once `direction` became the model's reconciled
- * effect-on-equities call rather than a mechanical copy of the indicator's own reading (backend
- * change, 2026-08-18; see [DriversInfoBottomSheet]). The color alone still carries that signal;
- * the glyph was adding a second, now-misleading claim on top of it.
+ * 💡 No ▲/▼/▪ glyph on the pill -- an arrow reads as "the data itself went up/down," which isn't
+ * what `direction` means (it's the model's reconciled effect-on-equities call, not a mechanical
+ * copy of the indicator's own reading; see [DriversInfoBottomSheet]). The color alone carries that
+ * signal; a glyph would add a second, misleading claim on top of it.
  *
- * The header (title + info icon) now lives inside the card, same header+divider treatment as
- * [LeadStoriesSection]/[MacroMixSection], rather than a separate `DriversSectionHeader` list item
- * above it. The info icon stays its own separate tap target (opens [com.marketlabs.pulse.ui.
- * components.bottomSheet.DriversInfoBottomSheet]) -- a nested `clickable` consumes its own taps
+ * The header (title + info icon) lives inside the card, same header+divider treatment as
+ * [LeadStoriesSection]/[MacroMixSection]. The info icon stays its own separate tap target
+ * (opens [com.marketlabs.pulse.ui.components.bottomSheet.DriversInfoBottomSheet]) -- a nested
+ * `clickable` consumes its own taps
  * before they reach the outer card's `onClick`, same as `DataCardTitleWithInfo`'s icon does inside
  * its own row elsewhere in the app. The whole card (below the header) is still the tap target into
  * Indicators (using the same tab-preserving `popUpTo`/`launchSingleTop`/`restoreState` pattern the
  * bottom nav bar itself uses -- see `MainActivity.kt`'s `FloatingBottomNav` `onItemClick`).
  * `drivers[].direction` means "this driver's net effect on equities," not "the underlying
- * indicator's own reading" (backend change, 2026-08-18) -- a distinction a color/arrow alone
+ * indicator's own reading" -- a distinction a color/arrow alone
  * can't communicate, which is what the info icon explains.
  */
 @Composable
@@ -799,8 +793,8 @@ fun DriversSection(drivers: List<MarketDriver>, onClick: () -> Unit, onInfoClick
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
                 thickness = dimensionResource(id = R.dimen.border_thin)
             )
-            // 💡 The pills row is no longer the tap target -- navigation moved onto its own
-            // ViewMoreRow below (no more bare trailing chevron implying the whole row is tappable).
+            // 💡 The pills row isn't the tap target -- navigation lives on its own ViewMoreRow
+            // below (no bare trailing chevron implying the whole row is tappable).
             Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_small)),
@@ -840,7 +834,7 @@ fun MarketPositionSection(
     onShowIndicatorsClick: () -> Unit
 ) {
     // 💡 Collapsed to 3 lines by default, tap to read the rest -- the app-wide default for
-    // AI-synthesis body text (docs/theming-system/card-heading-conventions.md's Seventeenth step).
+    // AI-synthesis body text.
     // What Changed can run several sentences and this card already carries the position
     // gauges/pills above it, so an uncollapsed paragraph pushed everything below it (Lead Stories,
     // Macro Mix, ...) further down the page than its own importance justified.
@@ -1001,7 +995,7 @@ fun MarketPositionSection(
 }
 
 /**
- * whats_new[] (new 2026-08-21) -- a deterministic (non-AI), most-recent-first list of indicators
+ * whats_new[] -- a deterministic (non-AI), most-recent-first list of indicators
  * whose data posted in the last 7 days. Styled as one `DATA`-style card holding every row, split
  * by a divider per entry -- same "one card, divided rows" structure [TheReadSection]'s
  * analysis/posture split already uses, one step further since the row count here is dynamic.
@@ -1009,9 +1003,8 @@ fun MarketPositionSection(
  * left, tinted by `signalColor` -- the same pre-classified backend read [MarketPositionSection]'s
  * gauge caption and [RisksSection]'s severity pill already render directly with no client-side
  * threshold logic; `valueDisplay`/`previousValueDisplay` end-aligned on the right, labeled
- * "Current"/"Previous". `previousValueDisplay` isn't sent by the backend yet (requested addition
- * to buildWhatsNew() in marketPulseComposer.ts, see NetworkWhatsNewEntry's doc comment) -- the
- * Previous line just doesn't render until it ships, same null-safe `?.let` pattern as every other
+ * "Current"/"Previous". `previousValueDisplay` isn't sent by the backend yet -- the Previous line
+ * just doesn't render until it ships, same null-safe `?.let` pattern as every other
  * optional field here. `releaseDate` and `category` are deliberately not shown -- both kept on the
  * domain model for whichever future screen wants them, but not part of this card's layout.
  * TODO(hierarchy-placement): this section's placement (currently right after Market Position) is
@@ -1208,12 +1201,11 @@ fun RisksSection(risks: List<RiskItem>) {
 fun TheReadSection(verdict: MarketVerdict) {
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
 
-    // 💡 No regime/setup pills here anymore -- regime is already the Signal card's headline chip
-    // and repeating it here was the exact redundancy this redesign set out to remove; setup moved
-    // to Market Position. The divider sits between two separately-padded Columns rather than
-    // inside one Column padded as a whole -- same structural idiom LeadStoriesSection/MacroMixSection/
-    // DominoStepCard already use -- so it spans the card's full width instead of stopping short
-    // at the content inset.
+    // 💡 No regime/setup pills here -- regime is already the Signal card's headline chip and
+    // repeating it would be redundant; setup lives on Market Position. The divider sits between
+    // two separately-padded Columns rather than inside one Column padded as a whole -- same
+    // structural idiom LeadStoriesSection/MacroMixSection/DominoStepCard use -- so it spans the
+    // card's full width instead of stopping short at the content inset.
     PulseCard(
         style = PulseCardStyle.SYNTHESIS,
         modifier = Modifier
@@ -1232,8 +1224,7 @@ fun TheReadSection(verdict: MarketVerdict) {
                     color = MaterialTheme.colorScheme.primary
                 )
                 // 💡 The depth -- the full paragraph, for the user who scrolls this far. Same
-                // eyebrow-to-content gap Market Sentiment uses (padding_medium), not the 0/tiny
-                // gap this used to have.
+                // eyebrow-to-content gap Market Sentiment uses (padding_medium).
                 verdict.analysis?.let {
                     Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
                     Text(
@@ -1262,8 +1253,7 @@ fun TheReadSection(verdict: MarketVerdict) {
                         text = stringResource(id = R.string.label_posture),
                         color = MaterialTheme.colorScheme.primary
                     )
-                    // 💡 Same eyebrow-to-content gap Market Sentiment uses (padding_medium), not
-                    // the padding_tiny gap this used to have.
+                    // 💡 Same eyebrow-to-content gap Market Sentiment uses (padding_medium).
                     Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
                     Text(
                         text = posture,
@@ -1277,13 +1267,12 @@ fun TheReadSection(verdict: MarketVerdict) {
 }
 
 /**
- * 💡 Trial revamp (per CardStyleShowcase.kt's `DataTimelineSample` pattern, being tested here
- * first before any other section adopts it): the section title moves INSIDE the card as its own
- * small-caps accent header with a full-bleed divider directly beneath it, replacing the separate
- * `SectionTitle` list item that used to sit above N individual story cards. All stories now live
- * in ONE `PulseCard`, separated by an inset divider between entries -- the divider that used to
- * sit between one story's own headline and summary is gone; only the boundary between two
- * different stories gets one, since that's the boundary actually worth marking now.
+ * 💡 The section title lives INSIDE the card as its own small-caps accent header with a
+ * full-bleed divider directly beneath it (see CardStyleShowcase.kt's `DataTimelineSample`
+ * pattern), not as a separate `SectionTitle` list item above N individual story cards. All
+ * stories live in ONE `PulseCard`, separated by an inset divider between entries -- only the
+ * boundary between two different stories gets one, not the gap between one story's own headline
+ * and summary.
  *
  * @param stories The lead-story items to display. Entries with no headline are skipped; if none
  *   have a headline, the whole section renders nothing.
@@ -1338,17 +1327,16 @@ fun LeadStoriesSection(stories: List<NewsItem>) {
 }
 
 /**
- * spec-20260902-market-sentiment-android.md's Market Sentiment card -- AI-authored cohort-
- * positioning synthesis (headline + summary), styled SYNTHESIS like Signal/The Read (the two
- * other AI-narrative cards on this screen). Collapsed by default to a 3-line clamp of `summary`
+ * The Market Sentiment card -- AI-authored cohort-positioning synthesis (headline + summary),
+ * styled SYNTHESIS like Signal/The Read (the two other AI-narrative cards on this screen).
+ * Collapsed by default to a 3-line clamp of `summary`
  * below the headline (tapping the card toggles [isExpanded], same up/down-arrow-beside-the-headline
- * pattern Indicators' Today's Read card uses) -- the app-wide default for AI-synthesis body text,
- * see `docs/theming-system/card-heading-conventions.md`'s Seventeenth step. Navigating to Posture
- * moved off the whole-card tap onto its own ViewMoreRow at the bottom, so the two interactions
- * (expand-in-place vs. leave-the-screen) don't compete on the same tap target. When there's no
- * headline (rare -- the caller only omits this card entirely when both headline and summary are
- * blank), there's nothing meaningful to collapse *to*, so the summary just always renders
- * unclamped instead of hiding behind a headline-less collapsed state.
+ * pattern Indicators' Today's Read card uses) -- the app-wide default for AI-synthesis body text.
+ * Navigating to Posture is its own ViewMoreRow at the bottom, not a whole-card tap, so the two
+ * interactions (expand-in-place vs. leave-the-screen) don't compete on the same tap target.
+ * When there's no headline (rare -- the caller only omits this card entirely when both
+ * headline and summary are blank), there's nothing meaningful to collapse *to*, so the summary
+ * just always renders unclamped instead of hiding behind a headline-less collapsed state.
  *
  * @param sentiment The [MarketSentiment] to display. Caller (`MarketSummaryScreen`) already omits
  * this card entirely when both headline and summary are blank; either field alone still renders.
@@ -1421,11 +1409,11 @@ fun MarketSentimentCard(sentiment: MarketSentiment, onClick: () -> Unit) {
 /**
  * The macro_mix[] list -- one `DATA` style card (same header+divider treatment as
  * [LeadStoriesSection]/[WatchSection]) holding every macro-economic factor. No left-rail accent
- * bar (removed -- plain padded entries, matching every other merged-card section); a full-width
- * divider sits between entries instead. `tag` renders on its own line below the heading rather
- * than sharing a row with it, so a long headline never crowds it. The divider that used to sit
- * between one item's own headline/tag row and its summary is gone, matching [LeadStoriesSection]'s
- * "only the boundary between two different entries is worth marking" reasoning.
+ * bar -- plain padded entries, matching every other merged-card section; a full-width divider
+ * sits between entries. `tag` renders on its own line below the heading rather than sharing a row
+ * with it, so a long headline never crowds it. There's no divider between one item's own
+ * headline/tag row and its summary, matching [LeadStoriesSection]'s "only the boundary between
+ * two different entries is worth marking" reasoning.
  *
  * @param macros The macro items to display. Entries with no headline are skipped; if none have a
  *   headline, the whole section renders nothing.
@@ -1448,10 +1436,10 @@ fun MacroMixSection(macros: List<MacroItem>) {
                 thickness = dimensionResource(id = R.dimen.border_thin)
             )
             validMacros.forEachIndexed { index, item ->
-                // 💡 No more left-rail accent bar -- plain padded Column, same as every other
-                // merged-card entry (Lead Stories/Watch/Risks). The tag now sits on its own line
-                // below the heading rather than sharing a row with it, so a long headline never
-                // has to compete with the tag for width or push it to a cramped corner.
+                // 💡 No left-rail accent bar -- plain padded Column, same as every other
+                // merged-card entry (Lead Stories/Watch/Risks). The tag sits on its own line below
+                // the heading rather than sharing a row with it, so a long headline never has to
+                // compete with the tag for width or push it to a cramped corner.
                 Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
                     Text(
                         text = item.headline!!,

@@ -39,12 +39,11 @@ import com.marketlabs.pulse.utils.enums.RiskImpactLevel
 
 /**
  * Stateless -- plain data + lambdas, no ViewModel awareness. All three horizons render as a single
- * stacked, scrollable list of cards (replacing the old Short/Medium/Long tab switcher) -- reads as
- * one continuous briefing rather than three separate views the reader has to tab between.
+ * stacked, scrollable list of cards -- reads as one continuous briefing rather than three
+ * separate views the reader has to tab between.
  *
- * 💡 No metric-name resolution needed here -- `horizons.*.key_drivers[]` was removed from the
- * backend schema/prompt/validation/assembly 2026-08-22, so there's no metric_id left in this
- * shape to resolve to a display name.
+ * 💡 No metric-name resolution needed here -- the horizons' response shape carries no metric_id
+ * (no `key_drivers[]`), so there's nothing to resolve to a display name.
  */
 @Composable
 fun IndicatorHorizonsScreen(
@@ -81,16 +80,14 @@ fun IndicatorHorizonsScreen(
 }
 
 /**
- * `CardEyebrowLabel` (time window) + AI-sparkle icon, matching the same app-wide "ai style card"
- * family Market Signal/Today's Read/Digest/Deep Dive all use (2026-09-06) -- was a hand-rolled
- * `labelMedium`/`onSurfaceVariant` row with no icon, its own one-off treatment. The risk pill moved
- * to its own row directly below the eyebrow rather than sharing its row (an eyebrow row never
- * carries trailing content beside its own icon in this convention -- see Today's Read's alignment
- * pill, which sits below its eyebrow the same way). `posture` (this card's own AI-authored
- * headline) dropped from `titleLarge` to `titleMedium.Bold`, matching every other AI-card's content
- * heading (Market Signal's `signalLine`, Digest's headline). Heading-to-body gaps are all
- * `padding_medium` now too, same app-wide rule (was `padding_large` between `posture` and
- * `whatThisMeans`, and between `whatThisMeans` and `watchFor`).
+ * `CardEyebrowLabel` (time window) + AI-sparkle icon, matching the app-wide "ai style card" family
+ * Market Signal/Today's Read/Digest/Deep Dive all use. The risk pill sits on its own row directly
+ * below the eyebrow rather than sharing its row (an eyebrow row never carries trailing content
+ * beside its own icon in this convention -- see Today's Read's alignment pill, which sits below
+ * its eyebrow the same way). `posture` (this card's own AI-authored headline) is
+ * `titleMedium.Bold`, matching every other AI-card's content heading (Market Signal's
+ * `signalLine`, Digest's headline). Heading-to-body gaps are all `padding_medium`, the same
+ * app-wide rule.
  */
 @Composable
 private fun HorizonCard(horizon: DomainHorizonBlock) {

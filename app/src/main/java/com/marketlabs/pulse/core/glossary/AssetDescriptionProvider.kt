@@ -3,10 +3,9 @@ package com.marketlabs.pulse.core.glossary
 import android.content.Context
 
 /**
- * Client-side replacement for `market_overview/{symbol}.description`, removed from the backend
- * doc entirely (hard cutover, no dual-write) -- the per-asset blurb on `AssetDetailScreen` now
- * comes from this bundled copy instead of the network. Backend's original strings weren't pulled
- * into this pass; these are written fresh, scoped to exactly the fixed asset set Dashboard already
+ * Client-side per-asset blurbs for `AssetDetailScreen`, bundled as `assets/asset_descriptions.json`
+ * (the backend `market_overview/{symbol}` doc carries no `description`). Scoped to exactly the
+ * fixed asset set Dashboard
  * renders (`DashboardScreen.kt`'s `equitySortOrder`/`cryptoCommoditySortOrder`/`futureSortOrder`/
  * `sectorSymbols` plus the three sentiment assets) -- extend `assets/asset_descriptions.json`
  * directly if a new symbol is added to Dashboard. Same flat `symbol -> description` shape as

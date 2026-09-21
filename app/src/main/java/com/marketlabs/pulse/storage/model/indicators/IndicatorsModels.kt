@@ -49,8 +49,7 @@ data class DomainShift(
 
 // 💡 `pillar` reuses the existing app-wide `IndicatorCategory` enum (Summary domain's driver
 // pillar tag) rather than a second identically-shaped enum -- both name the same 4 quantitative
-// pillars. `contributingMetricIds` removed 2026-08-22 -- the backend dropped it from assembly;
-// it was never rendered on this side either.
+// pillars.
 data class DomainPillarScorecardEntry(
     val pillar: IndicatorCategory,
     val stance: SignalColor,
@@ -67,8 +66,6 @@ data class DomainHorizons(
 // 💡 `riskLevel` reuses `RiskImpactLevel` (utils/enums/RiskEnums.kt) -- its `fromString` already
 // normalizes "MODERATE" to `MEDIUM`, and the backend's horizon risk_level enum (LOW/MODERATE/HIGH)
 // is a strict subset of what `RiskImpactLevel` already models, so no new risk enum is needed.
-// `keyDrivers`/`DomainKeyDriver` removed 2026-08-22 -- the backend dropped `key_drivers[]` from
-// the schema, prompt, validation, and assembly entirely.
 data class DomainHorizonBlock(
     val posture: String,
     val timeWindow: String,

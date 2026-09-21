@@ -6,8 +6,8 @@ import com.marketlabs.pulse.utils.enums.AssetType
 /**
  * Represents the master state of the market (Open/Closed) and the Global Technical Summary.
  *
- * `synthesisHeadline`/`synthesisDetail`/`synthesisState` replace the old flat `technicalSummary`
- * String (backend deleted `summary` outright, no transition window) -- same `{headline, detail}` +
+ * `synthesisHeadline`/`synthesisDetail`/`synthesisState` hold the market-wide narrative -- same
+ * `{headline, detail}` +
  * `state: "unavailable"|"current"` shape Posture/Positioning already use for their own synthesis
  * field. `dailyDigestSections` is new market-wide AI content riding on the same `market_overview`
  * collection listener. `synthesisGeneratedAt` is `synthesis.generated_at` from that same doc --

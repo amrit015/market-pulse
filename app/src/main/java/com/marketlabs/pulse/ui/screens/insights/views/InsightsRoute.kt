@@ -40,7 +40,7 @@ import com.marketlabs.pulse.ui.screens.insights.InsightsViewModel
 fun InsightsRoute(
     scaffoldPadding: PaddingValues,
     onNavigateToGlossaryDetail: (metricIds: List<String>, chartMetricId: String, title: String, description: String?, status: String?) -> Unit,
-    // spec-20260902-market-sentiment-android.md: Market Sentiment's two footer links need to land
+    // Market Sentiment's two footer links need to land
     // on a specific tab. Same one-shot hoisted-state shape PulseNavGraph already uses for
     // `highlightedNewsArticleUrl` (News' scroll-to-article signal) -- not a nav argument, so
     // `PulseRoutes.MARKET_INSIGHTS`'s plain route string (and FloatingBottomNav's route-equality
@@ -55,7 +55,7 @@ fun InsightsRoute(
     val pullRefreshState = rememberPullToRefreshState()
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    // 💡 Insights-only swipe (2026-08-29) -- see InsightsScreen.kt's own doc comment for why this
+    // 💡 Swipe between tabs -- see InsightsScreen.kt's own doc comment for why this
     // lives here rather than inside PulseTabRow. Two one-directional effects keep `pagerState` and
     // the ViewModel's `selectedTabIndex` in sync without fighting each other: tapping a PulseTabRow
     // chip changes `selectedTabIndex` first, which animates the pager to match; swiping the pager
@@ -82,16 +82,16 @@ fun InsightsRoute(
         }
     }
 
-    // 💡 Fixes "lands in between tabs": this used to key off `pagerState.currentPage`, which
-    // updates continuously the moment scroll progress crosses the halfway point -- including
-    // *during* an in-flight `animateScrollToPage` (ours or the pager's own fling), not just once
-    // it's finished. A fast two-page swipe, or a programmatic multi-page jump like Market
+    // 💡 Keyed off `settledPage`, not `pagerState.currentPage`, to avoid "lands in between tabs":
+    // `currentPage` updates continuously the moment scroll progress crosses the halfway point --
+    // including *during* an in-flight `animateScrollToPage` (ours or the pager's own fling), not
+    // just once it's finished. A fast two-page swipe, or a programmatic multi-page jump like Market
     // Sentiment's "always land on Posture" from an unrelated tab, passes through an intermediate
-    // page on the way to its target; with `currentPage`, that intermediate value got pushed to the
-    // ViewModel mid-transition, which the effect above then read back and used to correct the
-    // pager -- fighting the animation/fling that was still in progress and leaving it stuck
-    // between two pages. `settledPage` only updates once the pager has actually come to rest, so
-    // there's no longer a competing target for an active gesture or animation to race against.
+    // page on the way to its target; with `currentPage`, that intermediate value would be pushed to
+    // the ViewModel mid-transition, which the effect above would then read back and use to correct
+    // the pager -- fighting the animation/fling still in progress and leaving it stuck between two
+    // pages. `settledPage` only updates once the pager has actually come to rest, so there's no
+    // competing target for an active gesture or animation to race against.
     LaunchedEffect(pagerState.settledPage) {
         if (pagerState.settledPage != uiState.selectedTabIndex) {
             viewModel.onTabSelected(pagerState.settledPage)

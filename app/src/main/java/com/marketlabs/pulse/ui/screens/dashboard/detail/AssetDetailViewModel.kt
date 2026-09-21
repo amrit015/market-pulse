@@ -136,10 +136,8 @@ class AssetDetailViewModel @Inject constructor(
     /** Called by the UI when the screen becomes visible. */
     fun onStart() {
         // ONE_DAY has no `/charts/:symbol` fetch to do -- same guard `selectChartRange` already
-        // applies, needed here too now that ONE_DAY can be the *initial* range (see
+        // applies, needed here too since ONE_DAY can be the *initial* range (see
         // `_selectedChartRange`'s own doc comment) and not just something tapped into later.
-        // Skipping it unconditionally used to be safe by accident, since the old FIVE_DAY default
-        // never hit this branch on first load.
         if (_selectedChartRange.value != ChartRange.ONE_DAY) {
             fetchChart(_selectedChartRange.value, force = false)
         }

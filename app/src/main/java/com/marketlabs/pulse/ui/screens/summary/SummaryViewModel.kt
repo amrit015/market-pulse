@@ -56,8 +56,8 @@ class SummaryViewModel @Inject constructor(
     ) { pairs -> pairs.toMap() }
 
     // dateId -> failure message, for a past date whose sync attempt (below) failed with nothing
-    // cached yet -- syncPastDate's Result used to be discarded entirely, so a failure here left
-    // that page stuck on DayContent.Loading forever with no way to tell "still loading" apart from
+    // cached yet -- surfaced so a failed syncPastDate doesn't leave that page stuck on
+    // DayContent.Loading forever with no way to tell "still loading" apart from
     // "will never load." Cleared the moment that date's own entry is confirmed cached, so a
     // successful retry (or a later successful background sync) doesn't leave a stale error behind.
     private val _failedPastDates = MutableStateFlow<Map<String, String>>(emptyMap())
@@ -130,10 +130,8 @@ class SummaryViewModel @Inject constructor(
             contentByDateId = contentByDateId,
             // 💡 The SELECTED day's weekday, not always today's -- e.g. Saturday/Sunday should
             // read "Weekend Update" whenever that's the day actually on screen, today included.
-            // The earlier root-cause bug (Today's tab silently rendering a stale previous day's
-            // content, see SummaryRepositoryImpl/LocalSummaryDataSourceImpl's today-scoped
-            // queries) was what made this misleading before -- with that fixed, whatever's
-            // rendered for `selectedDateId` and this label always agree.
+            // Whatever's rendered for `selectedDateId` and this label always agree (today's content
+            // is queried today-scoped; see SummaryRepositoryImpl/LocalSummaryDataSourceImpl).
             reportType = selectedDateId.toWeekdayReportType()
         )
     }.stateIn(

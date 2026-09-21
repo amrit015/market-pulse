@@ -27,11 +27,11 @@ data class MarketPulse(
     val watch: List<WatchItem>? = null,
     val risks: List<RiskItem>? = null,
     val whatChanged: String? = null,
-    // New 2026-08-21: deterministic (non-AI), most-recent-first list of indicators whose data
+    // Deterministic (non-AI), most-recent-first list of indicators whose data
     // posted in the last 7 days. Can legitimately be empty on a quiet week -- mapped to
     // emptyList() rather than left null, same convention leadStories/macroMix already follow.
     val whatsNew: List<WhatsNewItem>? = null,
-    // spec-20260902-market-sentiment-android.md: AI-authored cohort-positioning synthesis, rides
+    // AI-authored cohort-positioning synthesis, rides
     // inside the existing pulse response -- no new network call. Null when the field is absent or
     // both headline/summary are blank (see SummaryMappers.kt's NetworkMarketSentiment.toDomain()),
     // which the screen treats as "card not shown," same convention every other optional pulse
@@ -39,12 +39,10 @@ data class MarketPulse(
     val marketSentiment: MarketSentiment? = null
 )
 
-// Replaces the old Verdict/TheRead split -- the backend consolidated signal + the_read into
-// one verdict object (2026-08-17 backend revamp). signalLine is the top-of-screen flash,
-// analysis (verdict_text) is the closing synthesis; both sections read from this one model.
-// `posture` was `action`; there is no `call` (BUY/SELL/HOLD) field anymore -- removed
-// project-wide backend-side since it was the one field structurally immune to the
-// compliance sanitizer.
+// The single verdict object (the backend's signal + the_read consolidated into one). signalLine is
+// the top-of-screen flash, analysis (verdict_text) is the closing synthesis; both sections read
+// from this one model. There is no `call` (BUY/SELL/HOLD) field: the backend removed it since it
+// was the one field structurally immune to the compliance sanitizer.
 @JsonClass(generateAdapter = true)
 data class MarketVerdict(
     val regime: MarketRegime? = null,
@@ -59,13 +57,13 @@ data class MarketVerdict(
 
 // direction is mapped straight to SignalColor in the mapper (BULLISH/BEARISH/NEUTRAL ->
 // GREEN/RED/YELLOW), so this renders through the existing SignalColor.textColor/.pillColor
-// extensions with no new color logic. 💡 As of 2026-08-18, direction is the model's own
-// reconciled call on this driver's net effect on equities right now -- NOT a mechanical
+// extensions with no new color logic. 💡 `direction` is the model's own reconciled call on this
+// driver's net effect on equities right now -- NOT a mechanical
 // pass-through of the underlying indicator's own raw reading. A weak print can still be BULLISH
 // here if it's fueling a dovish-pivot rally ("bad news is good news"); BEARISH means "currently
 // pressuring the market down," not "this data point was bad." Don't reintroduce copy, tooltips,
 // or logic that assumes the two are the same thing.
-// 💡 As of 2026-08-21, direction and dataDirection are two deliberately separate reads, not a
+// 💡 `direction` and `dataDirection` are two deliberately separate reads, not a
 // primary/fallback pair -- direction is the model's reconciled call on this driver's net effect
 // on equities right now (see this class's doc comment above), while dataDirection is the
 // indicator's own natural/deterministic reading, independent of narrative (e.g. contracting
@@ -131,8 +129,7 @@ data class NewsItem(
 )
 
 // Individually-nullable fields (not a collapsed single string) so the card can render whichever
-// half is present -- see spec-20260902-market-sentiment-android.md's "headline present, summary
-// blank -> render what's present" rule.
+// half is present (headline present, summary blank -> render what's present).
 @JsonClass(generateAdapter = true)
 data class MarketSentiment(
     val headline: String? = null,
@@ -170,7 +167,7 @@ data class RiskItem(
     val note: String? = null
 )
 
-// One row of whats_new[] (new 2026-08-21) -- signalText/signalColor are pre-classified
+// One row of whats_new[] -- signalText/signalColor are pre-classified
 // backend-side, same convention Positioning's own signalText/signalColor pair already follows:
 // render directly, no client-side threshold logic. No hierarchy slot or visual design has landed
 // for this section yet -- see WhatsNewSection in SummaryScreen.kt for the placeholder rendering.

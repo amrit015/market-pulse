@@ -10,11 +10,11 @@ import javax.inject.Inject
 /**
  * Routes to the right of the 4 `.../history` endpoints via `MetricHistoryPillar.forMetricId`,
  * since the pillar isn't part of the metric id itself. An id outside all four sets (e.g.
- * `positioning`'s or `ai_synthesis`'s fields, neither of which is chartable per the spec) resolves
+ * `positioning`'s or `ai_synthesis`'s fields, neither of which is chartable) resolves
  * to `null` and this returns `Result.success(null)` without a network call -- not an error, just
  * "no history endpoint exists for this."
  *
- * An empty response array is a normal, successful "no data yet for this metric" per the spec
+ * An empty response array is a normal, successful "no data yet for this metric"
  * (`[]`, not a 404) -- mapped straight through to an empty-points `MetricHistorySeries`, same as
  * any other successful fetch.
  */

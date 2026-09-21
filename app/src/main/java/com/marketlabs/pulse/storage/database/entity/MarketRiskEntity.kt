@@ -6,13 +6,11 @@ import androidx.room.TypeConverters
 import com.marketlabs.pulse.storage.database.converters.RiskConverters
 import com.marketlabs.pulse.storage.model.marketRisk.MarketRiskFactor
 
-// 💡 2026-08-29 revision: `summary` column dropped (backend hard-deleted the field; its content
-// is now `synthesis.detail`) and a `synthesis` block added -- kept as flat nullable columns
-// (synthesisHeadline, synthesisDetail, ...), matching MarketPostureEntity's convention for the
-// same narrative layer, even though this entity's own main content (`risks`) is stored as a
-// JSON-blob column via RiskConverters rather than flat scalars -- the two are independent
-// storage choices, and synthesis's own 5 fields are flat scalars like Posture's. See
-// MIGRATION_19_20 for the table-recreate this column removal requires.
+// 💡 The `synthesis` block is stored as flat nullable columns (synthesisHeadline, synthesisDetail,
+// ...), matching MarketPostureEntity's convention for the same narrative layer, even though this
+// entity's own main content (`risks`) is stored as a JSON-blob column via RiskConverters rather
+// than flat scalars -- the two are independent storage choices, and synthesis's own 5 fields are
+// flat scalars like Posture's.
 @Entity(tableName = "market_tail_risks")
 @TypeConverters(RiskConverters::class)
 data class MarketRiskEntity(

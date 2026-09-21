@@ -5,9 +5,9 @@ import com.marketlabs.pulse.utils.enums.AssetType
 import kotlinx.coroutines.flow.Flow
 
 /**
- * Today's intraday bars, backend-polled -- replaces the old client-side Finnhub-WS-driven
- * sparkline. Deliberately skips the standard Remote/Local/Repository 5-layer scaffold
- * (`docs/architecture/overview.md` explicitly allows this when nothing needs Room caching): this data resets
+ * Today's intraday bars, backend-polled. Deliberately skips the standard Remote/Local/Repository
+ * 5-layer scaffold, since
+ * nothing needs Room caching: this data resets
  * every trading day server-side and is never meant to survive process death, so caching it
  * locally would be actively wrong, not just unnecessary.
  *

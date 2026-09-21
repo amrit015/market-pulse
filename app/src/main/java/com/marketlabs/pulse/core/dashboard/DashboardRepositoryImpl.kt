@@ -13,15 +13,13 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Live prices used to be a Finnhub WebSocket overlaid in-memory on top of the Firestore-cached
- * base list (see git history if you need the old shape) -- retired per the backend spec's Part D:
- * Finnhub only allows one connection per API key, so a single shared key never scaled past one
- * concurrent Overview-tab viewer. Live prices now come from the backend itself
- * (`refreshLiveDashboardPrices`, writing `price`/`previous_close`/`change_percent` to
- * `market_overview/{symbol}` every minute for the 23 symbols that used to be WS-covered,
- * everything else on the existing 15-minute cadence) straight through the Firestore listener
- * already wired up below -- no separate live-price merge step needed, Room already reflects
- * whatever Firestore has, and Firestore now gets written to more often.
+ * Live prices come from the backend itself (`refreshLiveDashboardPrices`, writing
+ * `price`/`previous_close`/`change_percent` to `market_overview/{symbol}` every minute for the 23
+ * live-priced symbols, everything else on the existing 15-minute cadence) straight through the
+ * Firestore listener already wired up below -- no separate live-price merge step needed, Room
+ * already reflects whatever Firestore has. (A client-side Finnhub WebSocket isn't used: Finnhub
+ * only allows one connection per API key, so a single shared key never scaled past one concurrent
+ * Overview-tab viewer.)
  */
 @Singleton
 class DashboardRepositoryImpl @Inject constructor(

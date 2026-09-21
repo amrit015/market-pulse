@@ -50,11 +50,11 @@
     <dimen name="corner_radius_small">8dp</dimen>
 
     <!-- FloatingBottomNav's shadow. A deliberate exception to this codebase's otherwise flat, no
-         shadow visual language. See CLAUDE.md. -->
+         shadow visual language. -->
     <dimen name="nav_elevation">2dp</dimen>
 
     <!-- Stock Analysis preview card: the live intraday sparkline's footprint, under the
-         price/change block. Height matches the Design mockups; width is fixed rather than
+         price/change block. Width is fixed rather than
          fillMaxWidth since this sits in the Row's unweighted (price/pill) column; fillMaxWidth
          there would claim the whole Row's width before the weighted symbol/name column gets a
          chance to size itself. -->
@@ -82,7 +82,7 @@
     <!-- Detail screen: fixed width for each stat item in a FlowRow metric grid (Fundamentals, Macro). -->
     <dimen name="detail_stat_width">96dp</dimen>
 
-    <!-- Institutional Posture / Market Positioning (2026-08-26 revamp) -->
+    <!-- Institutional Posture / Market Positioning -->
     <dimen name="gauge_size_small">56dp</dimen>
     <dimen name="gauge_stroke_width_small">6dp</dimen>
     <dimen name="tri_segment_bar_height">12dp</dimen>
@@ -97,7 +97,7 @@
          continuation line lines up under the item's own text (a hanging indent). -->
     <dimen name="list_marker_column_width">20dp</dimen>
 
-    <!-- Tutorials Pass 4 inline diagrams (TutorialDiagrams.kt) -->
+    <!-- Tutorials inline diagrams (TutorialDiagrams.kt) -->
     <dimen name="tutorial_diagram_height">160dp</dimen>
     <dimen name="tutorial_diagram_height_tall">220dp</dimen>
     <dimen name="tutorial_diagram_gauge_bar_height">20dp</dimen>

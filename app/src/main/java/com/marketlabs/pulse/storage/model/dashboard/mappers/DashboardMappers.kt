@@ -49,8 +49,7 @@ fun NetworkDigestSection.toDomain(): DomainDigestSection {
 /**
  * Merges the `market_overview/technical_summary` doc's fields onto an existing entity being built
  * from `market_state`/asset docs in the same Firestore snapshot -- see
- * `RemoteDashboardDataSourceImpl.observeDashboardData()`, same merge point `technicalSummary` used
- * to go through before this rewrite.
+ * `RemoteDashboardDataSourceImpl.observeDashboardData()`.
  */
 fun MarketStateEntity.mergeTechnicalSummary(summary: NetworkTechnicalSummary?): MarketStateEntity {
     return this.copy(
@@ -105,8 +104,8 @@ fun AssetOverview.toEntity(): AssetOverviewEntity {
 /**
  * Base entity from the `market_state` doc alone -- `synthesisHeadline`/`synthesisDetail`/
  * `synthesisState`/`synthesisGeneratedAt`/`dailyDigestSections` are merged in afterward from the
- * `technical_summary` doc in the same Firestore snapshot, same two-step shape `technicalSummary`
- * used before this rewrite (see `mergeTechnicalSummary` below and
+ * `technical_summary` doc in the same Firestore snapshot, a two-step shape (see
+ * `mergeTechnicalSummary` below and
  * `RemoteDashboardDataSourceImpl.observeDashboardData()`).
  */
 fun NetworkMarketState.toEntity(): MarketStateEntity {

@@ -30,13 +30,13 @@ import com.marketlabs.pulse.ui.theme.PulseColors
  * carries its own backend-authored `description` string (that's what it exists for), so this is
  * just a tap target to surface it rather than a new glossary entry. Deliberately NOT routed
  * through `core/glossary/MetricGlossaryProvider` -- that's the Indicators domain's 26-metric
- * glossary (2026-08-22 revamp) and none of these gauges (NAAIM, DIX, net liquidity, AAII, COT,
+ * glossary and none of these gauges (NAAIM, DIX, net liquidity, AAII, COT,
  * FINRA short interest) are in it.
  *
  * A plain sized+clickable `Icon`, not `IconButton` -- `IconButton` forces Material3's 48dp minimum
- * touch target, which is far taller than the title-row text it sits next to and inflated the whole
- * row (and so every card's outer height) with dead space above/below. Matches the same fix
- * Summary's `GlossaryChevron` already uses for its own inline per-term tap icon.
+ * touch target, which is far taller than the title-row text it sits next to and would inflate the
+ * whole row (and so every card's outer height) with dead space above/below. Same approach as
+ * Summary's `GlossaryChevron` for its own inline per-term tap icon.
  */
 @Composable
 fun MetricInfoAction(title: String, description: String?, modifier: Modifier = Modifier) {

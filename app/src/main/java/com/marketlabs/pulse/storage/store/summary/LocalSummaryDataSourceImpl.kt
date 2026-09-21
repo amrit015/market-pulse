@@ -16,8 +16,8 @@ class LocalSummaryDataSourceImpl @Inject constructor(
 ) : LocalSummaryDataSource {
 
     // V3 Stream -- explicitly scoped to TODAY's own dateId (NY calendar, getTodayDateString()),
-    // not just "whichever row was most recently cached". Now that market_pulse holds one row per
-    // day (the calendar strip), the two used to be the same thing but no longer are: on a morning
+    // not just "whichever row was most recently cached". Since market_pulse holds one row per
+    // day (the calendar strip), the two differ: on a morning
     // before today's report has posted, "most recently cached" is yesterday's row, and this stream
     // is what the Summary screen's Today tab reads its (live, SyncManager-driven) content from --
     // it must come back null on a morning with no report yet, not silently serve yesterday's.

@@ -354,7 +354,7 @@ object DatabaseMigrations {
         }
     }
 
-    // Migration from Version 13 to 14: the 2026-08-17 backend revamp consolidated
+    // Migration from Version 13 to 14: the backend revamp consolidated
     // market_pulse's verdict/signal/the_read split into one verdict object (dropping `call`,
     // renaming `action` to `posture`) and added drivers[], market_position, watch[], risks[]
     // as new sibling fields, while market_outlook is no longer modeled client-side at all.
@@ -402,7 +402,7 @@ object DatabaseMigrations {
         }
     }
 
-    // Migration from Version 15 to 16: market_pulse gained two new backend fields (2026-08-21) --
+    // Migration from Version 15 to 16: market_pulse gained two new backend fields --
     // drivers[].data_direction (a sibling field on the existing `drivers` JSON column, no schema
     // change needed there) and the new top-level whats_new[] list, which gets its own column, same
     // pattern as watch/risks/drivers rather than nesting inside an existing blob. Unlike
@@ -441,8 +441,8 @@ object DatabaseMigrations {
 
     // Migration from Version 17 to 18: new `metric_history` table backing the indicator
     // detail page's history chart -- one row per `metricId` (no range key, unlike
-    // `market_charts`: the spec explicitly says not to build a range picker for this yet, so
-    // each metric only ever has one cached series). Purely additive, no existing table touched.
+    // `market_charts`: each metric caches one series, and any range picker slices it
+    // client-side). Purely additive, no existing table touched.
     val MIGRATION_17_18 = object : Migration(17, 18) {
         override fun migrate(db: SupportSQLiteDatabase) {
             db.execSQL(
@@ -458,14 +458,14 @@ object DatabaseMigrations {
         }
     }
 
-    // Migration from Version 18 to 19: Posture/Positioning revamp (2026-08-26) -- Posture's three
+    // Migration from Version 18 to 19: Posture's three
     // existing gauges (naaim_exposure, dark_pool_index, net_liquidity) each gain a
     // last_observation/delta/delta_direction/fetched_at/stale_since envelope, and the document
     // gains a new synthesis narrative block. Kept as flat nullable columns, same shape this entity
     // already used for every existing field, rather than restructuring onto JSON-blob columns like
     // Indicators/Stocks -- purely additive `ADD COLUMN`s, same style as MIGRATION_15_16, no
     // existing column touched. The new sibling `market_positioning` table (greenfield domain) is
-    // created here too since both land in the same revamp.
+    // created here too since both arrive together.
     val MIGRATION_18_19 = object : Migration(18, 19) {
         override fun migrate(db: SupportSQLiteDatabase) {
             db.execSQL("ALTER TABLE `market_posture` ADD COLUMN `naaimLastObsValue` REAL")
@@ -518,7 +518,7 @@ object DatabaseMigrations {
         }
     }
 
-    // Migration from Version 19 to 20: Risks/Events revision (2026-08-29) -- both
+    // Migration from Version 19 to 20: both
     // market_insights/current_risks and market_insights/weekly_playbook gain the same synthesis
     // narrative block Posture/Positioning already carry, stored as the same 5 flat nullable
     // columns MIGRATION_18_19 added to `market_posture` (synthesisHeadline/Detail/GeneratedAt/
@@ -567,8 +567,8 @@ object DatabaseMigrations {
         }
     }
 
-    // Migration from Version 20 to 21: market_pulse gains the new market_sentiment field
-    // (spec-20260902-market-sentiment-android.md) -- an AI-authored cohort-positioning synthesis
+    // Migration from Version 20 to 21: market_pulse gains the new market_sentiment field -- an
+    // AI-authored cohort-positioning synthesis
     // riding inside the existing pulse response. Purely additive `ADD COLUMN`, same style as
     // MIGRATION_15_16/18_19 -- no existing column touched, old rows just read back with
     // marketSentiment null until the next sync.
@@ -640,8 +640,8 @@ object DatabaseMigrations {
 
     // Migration from Version 24 to 25: `market_stock_details.setupConfirming`/`setupConflicting`
     // moved off `List<String>` onto the same structured `List<DomainSetupSignal>` shape
-    // `setupSignals` already used (backend change `54c2f93`, see card-heading-conventions.md's
-    // Fifteenth step). Unlike every migration above, this one is NOT purely additive -- the SQL
+    // `setupSignals` already used (the backend now returns that shape for these two fields as
+    // well). Unlike every migration above, this one is NOT purely additive -- the SQL
     // column type is unchanged (still TEXT, both are JSON-blob columns), but the JSON *content* an
     // existing row holds is now incompatible with what `StocksConverters.toSetupSignals` expects to
     // parse (a plain string element where an object is now expected), and that mismatch isn't

@@ -1,9 +1,8 @@
 package com.marketlabs.pulse.ui.screens.indicators.detail
 
-// Content preserved from the deleted IndicatorDetailSheet.kt (header, value+pill, release date,
-// glossary what-it-is/how-to-read/bands/gotchas) -- only the ModalBottomSheet wrapper is gone,
-// replaced by a plain scrollable Column matching AssetDetailScreen's shape. IndicatorHistoryChart
-// is the one genuinely new section, inserted between the release date and the glossary.
+// Header, value+pill, release date, IndicatorHistoryChart, and the glossary
+// what-it-is/how-to-read/bands/gotchas sections, in a plain scrollable Column matching
+// AssetDetailScreen's shape. The chart sits between the release date and the glossary.
 
 import android.util.Log
 import androidx.compose.foundation.BorderStroke
@@ -59,9 +58,8 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 
 /**
- * Stateless content for the pushed metric-detail page -- moved out of the old
- * `IndicatorDetailSheet` body verbatim (value + signal pill, release date, glossary sections),
- * only the `ModalBottomSheet` wrapper is gone. The "current" row in the Bands section is still
+ * Stateless content for the pushed metric-detail page (value + signal pill, release date,
+ * history chart, glossary sections). The "current" row in the Bands section is still
  * resolved by matching [metric]'s live `signalText` against each band's `label`, not by
  * re-deriving a threshold here, so the highlighted row always reflects whatever the backend's
  * classifier actually returned.
@@ -88,8 +86,8 @@ fun MetricDetailScreen(
         it.label.equals(metric.signalText?.trim(), ignoreCase = true)
     }?.takeIf { it >= 0 }
 
-    // 💡 A bundled band label that no longer matches the metric's live signal_text means the
-    // backend's classifier moved out from under the bundle's content -- degrade to an
+    // 💡 A bundled band label that doesn't match the metric's live signal_text means the
+    // backend's classifier and the bundle's content have drifted apart -- degrade to an
     // unhighlighted list (see the Bands section below) instead of crashing, but this should get
     // fixed on the content side, hence the dev-visible warning.
     LaunchedEffect(metric.id, metric.signalText) {
@@ -191,7 +189,7 @@ fun MetricDetailScreen(
                 modifier = Modifier.padding(top = paddingSmall, bottom = paddingLarge)
             )
 
-            // 💡 Pass 2's "form-your-own-read" hook -- same section treatment as What it is/How to
+            // 💡 The "form-your-own-read" hook -- same section treatment as What it is/How to
             // read above, sitting between How to read and Bands since it's about tracking the
             // metric over time, a bridge between the static explanation and the live band list.
             glossaryEntry.watch?.let { watch ->

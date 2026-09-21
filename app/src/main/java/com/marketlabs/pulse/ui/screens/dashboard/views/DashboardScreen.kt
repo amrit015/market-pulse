@@ -71,8 +71,6 @@ import kotlinx.coroutines.flow.emptyFlow
 import java.util.Locale
 import kotlin.math.abs
 
-// News preview section below added with Claude Code assistance.
-
 @Composable
 fun DashboardScreen(
     marketState: MarketState?,
@@ -132,7 +130,7 @@ fun DashboardScreen(
     // 💡 Top padding uses `scaffoldPadding`'s top component (the Scaffold's own measurement of
     // the top bar's real rendered height) instead of the raw status bar inset alone -- the raw
     // inset only accounts for the system status bar, not the app's own top bar sitting below it,
-    // so content used to start underneath the top bar rather than below it. No extra top padding
+    // so content would start underneath the top bar rather than below it. No extra top padding
     // beyond that -- `AnalyzedAtHeader` (below) is the first thing in this Column, at the same
     // `scaffoldPadding.calculateTopPadding()` offset `IndicatorsScreen.kt` places its own copy at,
     // so the timestamp reads at the exact same pixel on both screens.
@@ -499,22 +497,16 @@ fun AssetCard(
 
     val baseColor: Color
     val pillColor: Color
-    // 💡 Price cards are uniform/non-directional now -- the card container no longer flips between
-    // a bullish-tinted and bearish-tinted background. Direction lives only in baseColor/pillColor
+    // 💡 Price cards are uniform/non-directional -- the card container doesn't flip between a
+    // bullish-tinted and bearish-tinted background. Direction lives only in baseColor/pillColor
     // (the directional pill below), so a grid of six down-days does not read as visually alarming.
+    // Every price/reading card (sentiment cards included) shares the same DATA style.
     //
-    // Sentiment cards (Fear & Greed, Put/Call) used to get a distinct NEUTRAL card style (plain
-    // white/elevated surface) instead of the DATA style every other price card uses, on the theory
-    // that a computed reading shouldn't look like raw data -- retired once that distinction stopped
-    // being wanted; every price/reading card shares the same DATA style now.
-    //
-    // 💡 A "Contrarian Logic for Sentiment Indicators" branch used to live here, keyed on
-    // `isSentimentAsset`/`rsiStatus`, but it was dead: Fear & Greed and Put/Call both always
-    // supply `customVisual` below, so this function's own price/pill rendering (the only place
-    // that reads `baseColor`/`pillColor`) never runs for them -- whatever this branch computed was
-    // silently discarded. Each sentiment widget's own contrarian coloring now lives directly
-    // inside itself (`SpeedometerGauge`/`PutCallHorizontalBar`), confirmed correct there instead of
-    // duplicated (and drifted) here. Every asset now goes through the one path below.
+    // 💡 There is no separate "contrarian logic for sentiment indicators" branch here: Fear & Greed
+    // and Put/Call both always supply `customVisual` below, so this function's own price/pill
+    // rendering (the only place that reads `baseColor`/`pillColor`) never runs for them. Each
+    // sentiment widget's own contrarian coloring lives directly inside itself
+    // (`SpeedometerGauge`/`PutCallHorizontalBar`); every asset here goes through the one path below.
     run {
         val change = asset.changePercent ?: 0.0
         val isMathematicallyPositive = change >= 0
@@ -564,18 +556,17 @@ fun AssetCard(
         onClick = onClick,
         glowColor = glowColor
     ) {
-        // 💡 Horizontal padding moved off this Column and onto each child individually (instead
-        // of the usual single `.padding(padding_large)` every side) so the sparkline below can
-        // sit flush with the card's left/right edges -- a small chart reads noticeably better
+        // 💡 Horizontal padding is on each child individually (rather than a single
+        // `.padding(padding_large)` on every side of this Column) so the sparkline below can sit
+        // flush with the card's left/right edges -- a small chart reads noticeably better
         // full-bleed than inset, and the card's rounded corners already clip it back into shape
-        // at the bottom. Every other child still gets the same horizontal inset it always had.
+        // at the bottom.
         //
-        // 💡 Bottom padding moved off this Column too (top-only now) -- a card ending in a
-        // sparkline applies its own bottom padding conditionally below (see the `else` branch),
-        // since that card wants the sparkline flush with the card's bottom edge, same reasoning
-        // as the horizontal edges above. Every other ending (customVisual, or the no-sparkline
-        // fallback) still gets the same padding_large gap it always had, just added explicitly at
-        // its own tail instead of inherited from here.
+        // 💡 Bottom padding isn't on this Column either (top-only) -- a card ending in a sparkline
+        // applies its own bottom padding conditionally below (see the `else` branch), since that
+        // card wants the sparkline flush with the card's bottom edge, same reasoning as the
+        // horizontal edges above. Every other ending (customVisual, or the no-sparkline fallback)
+        // gets the same padding_large gap, added explicitly at its own tail.
         // 💡 `fillMaxHeight()` so this Column actually occupies the full, row-matched card height
         // (siblings in the same row can be taller, e.g. one with a longer subtitle -- see the
         // `Row(Modifier.height(IntrinsicSize.Max))` call sites below) rather than sizing itself to

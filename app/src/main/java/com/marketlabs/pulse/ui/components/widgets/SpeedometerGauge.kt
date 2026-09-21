@@ -40,12 +40,10 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 /**
- * A 5-band Fear & Greed dial (redesigned to match a reference "arc + tick marks + floating
- * triangle pointer" gauge), replacing the old 3-color smooth-gradient/needle-and-dot version.
- * Bands run green (Fear) to red (Greed), left to right -- a contrarian read, same convention
- * [PutCallHorizontalBar] now uses: Fear is colored bullish (a buying-opportunity framing), Greed
- * bearish (a warning framing), confirmed against the reference image's own green-on-Fear/
- * red-on-Greed coloring rather than the app's old direct (Fear=red) reading.
+ * A 5-band Fear & Greed dial (arc + tick marks + floating triangle pointer). Bands run green
+ * (Fear) to red (Greed), left to right -- a contrarian read, same convention
+ * [PutCallHorizontalBar] uses: Fear is colored bullish (a buying-opportunity framing), Greed
+ * bearish (a warning framing), not the direct (Fear=red) reading.
  *
  * Only [pulseColors]' own signal tokens feed the 5 bands (green/neutral/red, with the two
  * in-between bands interpolated from them) -- no new raw colors, so every theme preset still
@@ -172,8 +170,8 @@ fun SpeedometerGauge(score: Double, previousScore: Double?, status: String?) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // 💡 Change pill stacked below the score, not inline beside it -- asked to move
-                // off the "number, pill right beside it" row layout.
+                // 💡 Change pill stacked below the score, not inline beside it, rather than the
+                // "number, pill right beside it" row layout.
                 Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
                 Text(
                     text = "${score.toInt()}",

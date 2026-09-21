@@ -5,8 +5,7 @@ import android.content.Context
 /**
  * The Dashboard asset detail screen's own simplified RSI/MACD/Trend/SMA definitions -- deliberately
  * separate content from `StockAnalysisGlossaryProvider`'s more technical wording for the same
- * terms (Dashboard's copy is intentionally more colloquial for a tile-glance audience), previously
- * 4 hardcoded `dashboard_glossary_*_def` strings in `strings.xml`. Bundled as
+ * terms (Dashboard's copy is intentionally more colloquial for a tile-glance audience). Bundled as
  * `assets/dashboard_glossary.json`.
  */
 object DashboardGlossaryProvider {

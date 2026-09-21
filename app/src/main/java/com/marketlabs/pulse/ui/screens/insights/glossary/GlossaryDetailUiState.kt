@@ -5,8 +5,8 @@ import com.marketlabs.pulse.storage.model.charts.ChartRange
 import com.marketlabs.pulse.storage.model.insights.InsightsHistoryPoint
 
 /**
- * Drives the pushed glossary-detail page for a whole Positioning/Posture CARD (2026-08-27
- * convergence pass -- cards are the tap target now, not individual values within them). A card
+ * Drives the pushed glossary-detail page for a whole Positioning/Posture CARD (cards are the tap
+ * target, not individual values within them). A card
  * can cover more than one glossary entry (a COT contract's % OI + percentile; a short-interest
  * instrument's days-to-cover + shares + mom-change), so `sections` is a list, each pairing one
  * entry with the display label for the value it explains -- shown as its own labeled block only

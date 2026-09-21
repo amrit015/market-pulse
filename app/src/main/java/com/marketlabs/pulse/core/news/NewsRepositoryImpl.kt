@@ -16,8 +16,8 @@ class NewsRepositoryImpl @Inject constructor(
 
     /**
      * Refreshes the news from the network.
-     * Note: Cache expiration logic has been removed. This method is now strictly
-     * driven by the SyncManager or explicit user pull-to-refresh actions.
+     * There is no cache expiration: this method is driven strictly by the SyncManager or
+     * explicit user pull-to-refresh actions.
      *
      * Fetches today's stories (`/news/latest`) and the last 2 archived days
      * (`/news/history`) and merges them into one cached list, so the News tab has enough

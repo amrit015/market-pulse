@@ -6,8 +6,8 @@ import com.marketlabs.pulse.storage.model.dashboard.AssetOverview
 import com.marketlabs.pulse.storage.model.intraday.IntradaySeries
 
 /**
- * Drives the pushed asset-detail page (replaces the old `AssetDetailBottomSheet` -- every
- * dashboard tile tap now pushes a real destination instead of opening a sheet, matching
+ * Drives the pushed asset-detail page (every
+ * dashboard tile tap pushes a real destination, matching
  * `StockDetailUiState`'s shape). `asset` cross-references the same live `DashboardRepository`
  * stream the Overview tab itself reads, filtered to this one symbol -- there's no separate
  * "asset detail" backend fetch, this domain has no data of its own beyond what the tile already

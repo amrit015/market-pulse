@@ -53,10 +53,9 @@ fun TailRisksSection(risksData: MarketRiskAssessment) {
     ) {
         RiskAssessmentHeader(risksData)
 
-        // 💡 2026-08-29 revision: the old inline `summary` paragraph (rendered at the bottom of
-        // the header) is gone -- its content is now `synthesis.detail`, surfaced through the same
-        // SynthesisHeroCard Posture/Positioning already use, rather than duplicating that text in
-        // two places on screen.
+        // 💡 The narrative is `synthesis.detail`, surfaced through the same SynthesisHeroCard
+        // Posture/Positioning use -- there's no separate inline `summary` paragraph in the header,
+        // which would duplicate that text in two places on screen.
         risksData.synthesis?.let { synthesis ->
             SynthesisHeroCard(
                 headline = synthesis.headline,
@@ -121,29 +120,24 @@ private fun RiskAssessmentHeader(data: MarketRiskAssessment) {
             // synthesis card, unlike Posture/Positioning's single-gap spacing.
             modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_micro))
         )
-        // 💡 Source Narrative section removed -- the SynthesisHeroCard rendered below this header
-        // (see TailRisksSection) is now the one narrative surface on this screen; `sourceNarrative`
-        // stays on the domain model (backend still sends it) but is no longer read here.
+        // 💡 No Source Narrative section -- the SynthesisHeroCard rendered below this header
+        // (see TailRisksSection) is the one narrative surface on this screen; `sourceNarrative`
+        // stays on the domain model (backend still sends it) but isn't read here.
     }
 }
 
 @Composable
 private fun TailRiskCard(risk: MarketRiskFactor) {
-    // 💡 The old flat, non-theme-aware AlertRed constant is gone. EXTREME used to get its own raw
-    // red, kept visually distinct from HIGH's theme-aware bearish red. This app's signal system
-    // has exactly four tiers (bullish/bearish/neutral/warning) and no fifth "beyond bearish" tier,
-    // so EXTREME and HIGH now collapse to the same signalBearishText/.pill pair. A real visual
-    // change worth knowing about: EXTREME risk cards no longer look distinctly redder than HIGH ones.
+    // 💡 EXTREME and HIGH share the same signalBearishText/.pill pair: this app's signal system has
+    // exactly four tiers (bullish/bearish/neutral/warning) and no fifth "beyond bearish" tier, so
+    // EXTREME risk cards don't look distinctly redder than HIGH ones.
     val impactTextColor = risk.impactLevel.textColor
     val impactBgColor = risk.impactLevel.pillColor
     val pulseColors = LocalPulseColors.current
 
-    // 💡 DATA style -- was SYNTHESIS (an AI-assessed tail risk, treated as AI content). This app's
-    // darker SYNTHESIS background is now reserved for the one AI briefing/verdict hero card per
-    // screen, so a risk-list card reads with the same background every other data-display card in
-    // the app uses. Replaces the old `secondaryContainer.copy(alpha = 0.4f)` leftover from before
-    // this app had its own token system. `elevation = 0.dp` dropped along with it -- PulseCard
-    // never adds elevation, matching this app's flat, no-shadow convention everywhere else.
+    // 💡 DATA style: this app's darker SYNTHESIS background is reserved for the one AI
+    // briefing/verdict hero card per screen, so a risk-list card reads with the same background
+    // every other data-display card in the app uses.
     PulseCard(
         style = PulseCardStyle.DATA,
         modifier = Modifier.fillMaxWidth()
@@ -181,8 +175,8 @@ private fun TailRiskCard(risk: MarketRiskFactor) {
                 ) {
                     if (risk.category != null) {
                         // 💡 Same TagPill treatment as Summary's What to Watch/Macro Mix tags
-                        // (accentPrimary fill + accentOn text) -- the old secondaryContainer fill
-                        // blended into the card background instead of standing out as a tag.
+                        // (accentPrimary fill + accentOn text) -- a secondaryContainer fill would
+                        // blend into the card background instead of standing out as a tag.
                         Surface(
                             color = pulseColors.accentPrimary,
                             shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_chip))

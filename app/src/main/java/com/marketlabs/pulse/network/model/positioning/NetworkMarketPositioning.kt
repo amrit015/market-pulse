@@ -3,20 +3,16 @@ package com.marketlabs.pulse.network.model.positioning
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
-// 💡 Named NetworkMarketPositioning, not the spec doc's literal "NetworkPositioning" -- that name
+// 💡 Named NetworkMarketPositioning, not "NetworkPositioning" -- that name
 // already exists in network/model/summary/RemoteSummary.kt for a completely unrelated concept
 // (the Summary tab's SPY 52-week "Market Position" gauge). Mirrors this app's existing
 // NetworkMarketPosture naming (every layer of that domain is already prefixed MarketPosture) and
-// avoids the exact same-word-different-thing confusion the backend's own
-// marketPositioningEngine.ts header warns about (market_indicators/positioning is yet a THIRD,
-// also-unrelated document -- an SPY 52-week high/low metric, nothing to do with this domain).
+// avoids the exact same-word-different-thing confusion (market_indicators/positioning is yet a
+// THIRD, also-unrelated document -- an SPY 52-week high/low metric, nothing to do with this domain).
 //
-// Backend route (`GET /insights/positioning`) is genuinely new and, as of 2026-08-26, has never
-// successfully returned data -- the scheduled engine (8pm ET weekdays) hasn't completed a run yet,
-// confirmed live (curl returns `{"error":"No market positioning data found."}`). Every shape below
-// is modeled directly from marketPositioningEngine.ts and its shared utils/gaugeDocument.ts /
-// utils/gaugeSynthesis.ts helpers (the same ones market_posture already uses live), not from a
-// sampled response -- re-verify field presence once the backend has produced a real document.
+// Route: `GET /insights/positioning`. Every shape below is modeled directly from the backend
+// engine's source and the same shared gauge helpers market_posture already uses live, not from a
+// sampled response -- re-verify field presence against a real document.
 //
 // `last_updated` is deliberately NOT modeled -- see NetworkMarketPosture.kt's identical note; it's
 // a Firestore server-timestamp sentinel, not a string or number, and this app has never consumed
@@ -36,11 +32,10 @@ data class NetworkMarketPositioning(
 // lives alongside them at this same flat level since retail_sentiment is a flat (non-composite)
 // gauge, same shape as Posture's three gauges.
 //
-// 💡 2026-08-27: `description` is being actively removed from Firestore (FieldValue.delete() on
-// the backend's next successful run, not just stopped) -- kept here as nullable rather than
-// deleted outright since a still-cached pre-removal document could briefly have it, but the app no
-// longer reads it; the UI now shows a client-authored string instead (see
-// R.string.positioning_retail_sentiment_description).
+// 💡 `description` is deliberately not read: the backend deletes the field from Firestore, and
+// the UI shows a client-authored string instead (see
+// R.string.positioning_retail_sentiment_description). Kept nullable rather than removed so a
+// still-cached older document that has it still deserializes.
 @JsonClass(generateAdapter = true)
 data class NetworkRetailSentiment(
     @Json(name = "bull_pct") val bullPct: Double? = null,
@@ -62,11 +57,10 @@ data class NetworkRetailSentiment(
 // marketPositioningEngine.ts's buildInstitutionalPositioningGauge(). `es`/`nq`/`rty`/`dia` are
 // individually nullable: Firestore's `{merge:true}` means an instrument that has NEVER once
 // succeeded since this document was created is simply absent, even once the others have data
-// (buildCotInstrument's per-instrument partial-failure handling). `dia` (E-mini Dow) added
-// 2026-08-27, live-verified -- unlike es/nq/rty it isn't reported under CFTC's Legacy
+// `dia` (E-mini Dow) differs from es/nq/rty: it isn't reported under CFTC's Legacy
 // non-commercial category (Dow futures aren't in that report at all), so it carries a different
 // `methodology` value on the contract itself; see `NetworkFuturesContract.methodology`.
-// `description` removal note: see `NetworkRetailSentiment`'s identical doc comment.
+// `description` is not read: see `NetworkRetailSentiment`'s identical doc comment.
 @JsonClass(generateAdapter = true)
 data class NetworkInstitutionalPositioning(
     @Json(name = "es") val es: NetworkFuturesContract? = null,
@@ -85,8 +79,8 @@ data class NetworkInstitutionalPositioning(
 // for this specific contract). `pctile_window` (the 52-entry backing array) is intentionally NOT
 // modeled -- no UI consumer yet.
 //
-// 💡 `methodology` (2026-08-27, live-verified: "legacy_non_commercial" for es/nq/rty,
-// "tff_leveraged_funds" for dia) -- CFTC doesn't report Dow futures under the Legacy
+// 💡 `methodology` ("legacy_non_commercial" for es/nq/rty, "tff_leveraged_funds" for dia) -- CFTC
+// doesn't report Dow futures under the Legacy
 // non-commercial category at all, so `dia` is sourced from the TFF report's Leveraged Funds
 // category instead. Different reporting universe/methodology, so `dia`'s percentile/status aren't
 // directly comparable to es/nq/rty's -- surfaced in the UI, not silently blended together.
@@ -104,9 +98,8 @@ data class NetworkFuturesContract(
 )
 
 // 💡 Composite gauge, same fetchedAt/staleSince-at-group-level shape as institutional_positioning
-// above -- FINRA's short-interest pull covers all six instruments as one logical unit. `dia`/
-// `rsp`/`mags` added 2026-08-27, live-verified. `description` removal note: see
-// `NetworkRetailSentiment`'s identical doc comment.
+// above -- FINRA's short-interest pull covers all six instruments as one logical unit.
+// `description` is not read: see `NetworkRetailSentiment`'s identical doc comment.
 @JsonClass(generateAdapter = true)
 data class NetworkShortInterest(
     @Json(name = "spy") val spy: NetworkShortInterestInstrument? = null,

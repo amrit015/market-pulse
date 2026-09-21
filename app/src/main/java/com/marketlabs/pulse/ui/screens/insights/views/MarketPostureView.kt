@@ -55,8 +55,8 @@ import kotlin.math.abs
 import kotlin.math.roundToInt
 
 /**
- * `onNavigateToGlossaryDetail` -- 2026-08-27 convergence: the whole CARD is the tap target now
- * (was individual values with their own chevrons), so this pushes to a merged glossary-detail page
+ * `onNavigateToGlossaryDetail` -- the whole CARD is the tap target (not individual values), so this
+ * pushes to a merged glossary-detail page
  * covering everything the card shows. Each Posture card maps to exactly one `core/glossary/` entry
  * (`metricIds` is a single-element list every time here, unlike Positioning's multi-field COT/
  * short-interest cards), but the callback shape stays a `List<String>` for both domains rather than
@@ -97,9 +97,8 @@ fun InstitutionalPostureSection(
 
             Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
 
-            // 💡 2026-08-27 convergence: this icon and the first-time explainer card below now
-            // show the SAME merged string (posture_explainer_text) -- was two separate, partly
-            // overlapping paragraphs.
+            // 💡 This icon and the first-time explainer card below show the SAME string
+            // (posture_explainer_text).
             MetricInfoAction(
                 title = stringResource(id = R.string.posture_section_title),
                 description = stringResource(id = R.string.posture_explainer_text)
@@ -115,8 +114,8 @@ fun InstitutionalPostureSection(
             modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_micro))
         )
 
-        // --- FIRST-TIME EXPLAINER (2026-08-27 interpretive-layer spec, Layer 3) -- stays visible
-        // (not auto-dismissed by anything else) until the reader taps "Got it" here. ---
+        // --- FIRST-TIME EXPLAINER -- stays visible (not auto-dismissed by anything else) until
+        // the reader taps "Got it" here. ---
         if (!isIntroDismissed) {
             Spacer(modifier = Modifier.height(paddingLarge))
             FirstTimeExplainerCard(

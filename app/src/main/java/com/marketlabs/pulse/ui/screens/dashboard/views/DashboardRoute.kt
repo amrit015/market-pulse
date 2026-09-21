@@ -39,13 +39,13 @@ import com.marketlabs.pulse.ui.components.PulseLoadingIndicator
 @Composable
 fun DashboardRoute(
     scaffoldPadding: PaddingValues,
-    onNavigateToNews: () -> Unit, // Added with Claude Code assistance.
-    onNavigateToNewsArticle: (String) -> Unit, // Added with Claude Code assistance.
+    onNavigateToNews: () -> Unit,
+    onNavigateToNewsArticle: (String) -> Unit,
     onNavigateToAssetDetail: (String) -> Unit,
     viewModel: DashboardViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val latestNewsPreview by viewModel.latestNewsPreview.collectAsStateWithLifecycle() // Added with Claude Code assistance.
+    val latestNewsPreview by viewModel.latestNewsPreview.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val pullRefreshState = rememberPullToRefreshState()
     val lifecycleOwner = LocalLifecycleOwner.current

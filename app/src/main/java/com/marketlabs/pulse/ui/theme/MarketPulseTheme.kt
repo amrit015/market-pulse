@@ -31,8 +31,7 @@ import androidx.compose.ui.graphics.lerp
  *
  * `error`/`errorContainer`/`onError`/`onErrorContainer` are intentionally left OUT of the
  * `ColorScheme` builder calls below — there is no danger/error hex defined anywhere in this
- * theming system (the closest thing, the old flat `AlertRed` constant, is deleted along with the
- * rest of the single-theme palette). Rather than invent a value, M3's own
+ * theming system. Rather than invent a value, M3's own
  * `lightColorScheme()`/`darkColorScheme()` baseline default takes over for these four roles —
  * same reasoning as leaving `signal.unknown` as an explicit placeholder rather than a guess.
  */
@@ -79,49 +78,39 @@ enum class MarketPulseTheme(val displayName: String, val isDark: Boolean) {
             // `surfaceTinted` below in every preset, in both modes, without hand-picking a
             // separate hex per preset.
             //
-            // 💡 2026-08-29, dark mode: darkened one step further by blending 12% toward plain black
-            // on top of the above. `surfaceBorder` isn't reliably darker than `tinted` in every
-            // preset -- for several dark presets it's actually the lighter of the two (a more
-            // visible accent tone against a near-black `tinted`), so pushing further toward
-            // `surfaceBorder` alone would have made AI cards lighter in dark mode, not darker.
-            // Blending toward black instead guarantees "darker," independent of which direction
-            // `surfaceBorder` happens to sit relative to `tinted` for a given preset. Left exactly
-            // as it landed through every later light-mode pass below -- dark mode was asked to stay
-            // untouched each time.
+            // Dark mode: darkened one step further by blending 12% toward plain black on top of the
+            // above. `surfaceBorder` isn't reliably darker than `tinted` in every preset -- for
+            // several dark presets it's actually the lighter of the two (a more visible accent tone
+            // against a near-black `tinted`), so pushing further toward `surfaceBorder` alone would
+            // make AI cards lighter in dark mode, not darker. Blending toward black instead
+            // guarantees "darker," independent of which direction `surfaceBorder` happens to sit
+            // relative to `tinted` for a given preset.
             //
-            // 💡 2026-08-29, light mode: went through a darkening pass (6% toward black, mirroring
-            // dark mode's approach) and then a lightening one -- the darkened version read too heavy
-            // against the light page once the card shadow itself got stronger. Rather than just
-            // easing the black blend back down, this switched approach entirely: white blended with
-            // a moderate amount of this preset's own `accent.primary`, the same "light, tuned to the
-            // brand color" technique `toColorScheme()`'s page-background blend already uses (see
-            // that function), so an AI card still reads as a distinctly-colored surface sitting on
-            // top of that faintly-tinted page, not the same tint at the same strength.
-            //
-            // 💡 2026-09-15: bumped from 15% to 18% (vs. the page background's 5%) -- SYNTHESIS
-            // cards (AI briefings, verdicts, news) were reading too faint/washed-out in light mode,
-            // hard to tell apart from the page and from `DATA`-style cards next to them. Dark mode's
-            // formula above is untouched -- this was a light-mode-only legibility complaint.
+            // Light mode: white blended 25% toward this preset's own `accent.primary` -- the same
+            // "light, tuned to the brand color" technique `toColorScheme()`'s page-background blend
+            // uses (there at 5%), so an AI card still reads as a distinctly-colored surface sitting
+            // on top of that faintly-tinted page, not the same tint at the same strength. A lower
+            // blend makes SYNTHESIS cards (AI briefings, verdicts, news) read too faint/washed-out,
+            // hard to tell apart from the page and from `DATA`-style cards next to them; a blend
+            // toward black (mirroring dark mode) reads too heavy against the light page next to the
+            // card shadow.
             accentSurfaceStrong = if (isDark) {
                 lerp(lerp(accent.tinted, accent.surfaceBorder, 0.55f), Color.Black, 0.12f)
             } else {
                 lerp(Color.White, accent.primary, 0.25f)
             },
-            // 💡 Blended 45% from the literal Token Contract `tinted` value toward `surface` --
-            // the raw `tinted` value alone reads as too close to the page background to register
-            // as a distinct card (35% was an earlier attempt, still a bit too subtle once judged
-            // against the finished app rather than in isolation). Computed here (not baked into
-            // the `tinted` constant) so this factor is a one-line change the next time it needs
-            // tuning -- and it only needs tuning in this one spot, since every DATA-style card
-            // (Equities' AssetCard, Indicators' UniversalMetricCard) reads it through the same
-            // `PulseCard` component.
+            // 💡 Blended 45% from the original `tinted` value toward `surface` -- the raw `tinted`
+            // value alone reads as too close to the page background to register as a distinct card
+            // (a lower blend is still too subtle once judged against the finished app rather than in
+            // isolation). Computed here (not baked into the `tinted` constant) so this factor is a
+            // one-line change the next time it needs tuning -- and it only needs tuning in this one
+            // spot, since every DATA-style card (Equities' AssetCard, Indicators'
+            // UniversalMetricCard) reads it through the same `PulseCard` component.
             surfaceTinted = lerp(accent.tinted, accent.surface, 0.45f),
             onSurfaceMuted = surface.onSurfaceMuted,
-            // 💡 2026-08-25: was signal.bullishText/bearishText in every mode (committed), then
-            // briefly signal.bullishPill/bearishPill in every mode (an in-progress edit to fix how
-            // dark mode looked) -- the pill tone reads well as a dark-mode tile fill but washed out
-            // in light mode, so this picks a different source per mode instead of one token family
-            // for both. See PulseColors' own doc comment on these two fields.
+            // 💡 A different source token per mode rather than one family for both: the pill tone
+            // reads well as a dark-mode tile fill but washes out in light mode. See PulseColors'
+            // own doc comment on these two fields.
             sectorHeatmapBullish = if (isDark) signal.bullishPill else signal.bullishText,
             sectorHeatmapBearish = if (isDark) signal.bearishPill else signal.bearishText,
             isDark = isDark
@@ -132,14 +121,13 @@ enum class MarketPulseTheme(val displayName: String, val isDark: Boolean) {
         val accent = accentGroup()
         val surface = if (isDark) PulseTokens.Surface.dark else PulseTokens.Surface.light
 
-        // 💡 2026-08-29: light mode's page background is `surface.background` (pure white, see the
-        // field's own doc comment in `Color.kt`) blended with a small hint of this preset's own
+        // 💡 Light mode's page background is `surface.background` (pure white, see the field's own
+        // doc comment in `Color.kt`) blended with a small hint of this preset's own
         // `accent.primary` -- a page that reads as "white, tinted faintly toward the app's brand
-        // color" instead of one flat neutral shared by every preset. Dark mode is untouched --
-        // `surface.background` passes straight through, same as before this pass. Computed once
-        // here and reused everywhere `surface.background` used to be read directly below
-        // (`background`, `surfaceContainerLowest`, `surfaceDim` -- all three are the same page-level
-        // role, just different M3 slots for it) so they can't drift apart from each other.
+        // color" instead of one flat neutral shared by every preset. Dark mode passes
+        // `surface.background` straight through. Computed once here and reused for `background`,
+        // `surfaceContainerLowest`, and `surfaceDim` (all three are the same page-level role, just
+        // different M3 slots for it) so they can't drift apart from each other.
         val background = if (isDark) surface.background else lerp(surface.background, accent.primary, 0.05f)
 
         // 💡 error/onError/errorContainer/onErrorContainer are deliberately NOT passed below —

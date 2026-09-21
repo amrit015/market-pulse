@@ -58,11 +58,11 @@ fun UniversalMetricCard(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    // 💡 Price cards are uniform/non-directional now (an accent-washed neutral, regardless of
+    // 💡 Price cards are uniform/non-directional (an accent-washed neutral, regardless of
     // signal) -- direction lives only in the sparkline stroke and the pill below, both keyed off
-    // signalColor.textColor/.pillColor. A grid of price cards used to flip its own background
-    // color per card based on direction, which made a down day look alarming at a glance; keeping
-    // the container neutral and the direction in smaller details reads calmer.
+    // signalColor.textColor/.pillColor. Flipping each card's own background by direction would make
+    // a down day look alarming at a glance; keeping the container neutral and the direction in
+    // smaller details reads calmer.
     //
     // DATA style -- the same outer shell Equities' price cards use (AssetCard in
     // DashboardScreen.kt), so a change to how price cards look updates both at once.
@@ -108,12 +108,12 @@ fun UniversalMetricCard(
             // 💡 Everything below the header lives in this `weight(1f)` box -- when a row's sibling
             // card is taller (a 2-line title, or a title/value combo that just wraps more), each
             // `UniversalMetricCard` in that row is stretched to match it (`IntrinsicSize.Max` +
-            // `fillMaxHeight()` at the call site). That extra height has to go somewhere; it used to
-            // go into a `Spacer(weight(1f))` sitting *between* the value row and the signal badge,
-            // which visibly shoved the badge/date down toward the bottom of the taller card instead
-            // of leaving it sitting right under the value. Now the value/badge/date block is a plain
-            // top-aligned `Column` (no internal weight spacer of its own) inside this one shared box,
-            // so it always reads as one compact group regardless of how much extra height the row
+            // `fillMaxHeight()` at the call site). That extra height has to go somewhere: a
+            // `Spacer(weight(1f))` *between* the value row and the signal badge would visibly shove
+            // the badge/date down toward the bottom of the taller card instead of leaving it
+            // sitting right under the value. So the value/badge/date block is a plain top-aligned
+            // `Column` (no internal weight spacer of its own) inside this one shared box, so it
+            // always reads as one compact group regardless of how much extra height the row
             // stretch adds -- the leftover space collects below/around it inside the box instead.
             Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
                 Column(modifier = Modifier.fillMaxWidth()) {
@@ -124,9 +124,9 @@ fun UniversalMetricCard(
                             style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onSurface
                         )
-                        // 💡 The change percent used to be plain colored text -- direction was only
-                        // implied by the sign character. A pill with a triangle makes direction read
-                        // as a shape, not just a color, at a glance on a dense grid of cards. Since
+                        // 💡 The change percent is a pill with a triangle, so direction reads as a shape,
+                        // not just a color or a sign character, at a glance on a dense grid of cards.
+                        // Since
                         // the triangle already carries the sign, the leading "+"/"-" is stripped from
                         // the caller's pre-formatted string so direction is not stated twice. An exact
                         // 0% reading gets the neutral signal tone and a flat-bar icon instead of

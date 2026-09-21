@@ -15,7 +15,7 @@ import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 /**
  * Small forward chevron marking a value as tappable-for-definition -- a public sibling of
  * Summary's private `GlossaryChevron` (`SummaryScreen.kt`), same icon/size/purpose, pulled out
- * shared since Positioning/Posture (2026-08-27 interpretive-layer spec) need the identical
+ * shared since Positioning/Posture need the identical
  * affordance on several independent values per card (a COT contract's % OI value and its
  * percentile badge, a short-interest instrument's days-to-cover/shares/mom-change), not just one
  * pill per card the way Summary's regime/setup/cycle-zone chips are. `contentDescription` is null

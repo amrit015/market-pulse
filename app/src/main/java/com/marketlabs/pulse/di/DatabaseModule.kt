@@ -75,10 +75,6 @@ object DatabaseModule {
         return database.weeklyPlaybookDao()
     }
 
-    // 💡 Added @Singleton -- this provider was one of two DAO providers in this module missing it
-    // (the other, provideMarketSummaryDao, is left alone since this touch is scoped to the
-    // Posture/Positioning revamp, not a summary-domain change). Every other DAO provider here
-    // already has it; this was a documented copy-paste gap, not an intentional exception.
     @Provides
     @Singleton
     fun provideMarketPostureDao(database: AppDatabase): MarketPostureDao {

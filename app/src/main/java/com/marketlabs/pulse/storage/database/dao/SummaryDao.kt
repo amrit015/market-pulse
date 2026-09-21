@@ -19,13 +19,11 @@ interface SummaryDao {
 
     // --- By dateId (today's live row, and calendar-strip past-day lookups) ---
     //
-    // 💡 There used to be an `ORDER BY lastUpdated DESC LIMIT 1` "latest" query here, back when
-    // this table only ever held one row total (today's, always overwritten). Once the calendar
-    // strip started caching one row per day, "latest by lastUpdated" silently stopped meaning
-    // "today's row" -- it returns whatever day's report was most recently generated, which is
-    // yesterday's whenever today's hasn't posted yet (e.g. every morning before the afternoon
-    // report run). Every caller that actually means "today" now passes today's own dateId
-    // explicitly instead (SummaryRepositoryImpl computes it via getTodayDateString()).
+    // 💡 There is no "latest by lastUpdated" query: this table holds one row per calendar day, so
+    // it wouldn't mean "today's row" -- it would return whatever day's report was most recently
+    // generated, which is yesterday's whenever today's hasn't posted yet (e.g. every morning before
+    // the afternoon report run). Callers that mean "today" pass today's own dateId explicitly
+    // (SummaryRepositoryImpl computes it via getTodayDateString()).
 
     @Query("SELECT * FROM market_pulse WHERE dateId = :dateId LIMIT 1")
     fun getByDateId(dateId: String): Flow<MarketPulseEntity?>

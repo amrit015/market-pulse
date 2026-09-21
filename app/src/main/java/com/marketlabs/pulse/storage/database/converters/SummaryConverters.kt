@@ -131,7 +131,7 @@ class SummaryConverters {
         return moshi.adapter<List<RiskItem>>(type).fromJson(json)
     }
 
-    // 9. What's New (List<WhatsNewItem>) Converter -- new 2026-08-21
+    // 9. What's New (List<WhatsNewItem>) Converter
     @TypeConverter
     fun fromWhatsNewList(list: List<WhatsNewItem>?): String? {
         if (list == null) return null
@@ -146,7 +146,7 @@ class SummaryConverters {
         return moshi.adapter<List<WhatsNewItem>>(type).fromJson(json)
     }
 
-    // 10. Market Sentiment Converter -- new 2026-09-02
+    // 10. Market Sentiment Converter
     @TypeConverter
     fun fromMarketSentiment(sentiment: MarketSentiment?): String? {
         if (sentiment == null) return null

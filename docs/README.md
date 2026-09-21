@@ -26,6 +26,8 @@ docs/
   guidelines/                      — prescriptive: how to write new code in this repo
     kotlin-style.md                  DI (Hilt @Provides-in-object), null handling, naming
     compose-conventions.md           PulseTabRow, glossary system, resource conventions
+    comments.md                      how to write code comments (Kotlin, Compose, XML): the why,
+                                      self-contained, never citing a spec/mockup/phase/repo doc
     review-standards.md              what a review (human or `/code-review`) actually checks
 
   theming-system/                  — a cohesive domain with both a spec and a history that

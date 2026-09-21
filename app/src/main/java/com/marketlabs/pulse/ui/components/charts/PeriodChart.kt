@@ -80,10 +80,10 @@ import kotlin.math.roundToInt
  *
  * Owns all three states -- real data, [isLoading], and empty -- at one fixed total height (plot
  * area + caption row), rather than callers swapping this composable out for their own
- * differently-sized empty-state block. Switching the range picker used to hide the whole chart
- * and show a shorter "No chart history yet" block while the new range's data loaded, which visibly
- * shifted every section below it up and back down on every tap; showing a progress indicator in
- * the same reserved space instead keeps the layout stable through a range switch.
+ * differently-sized empty-state block. Switching the range picker shows a progress indicator in
+ * the same reserved space while the new range's data loads, rather than swapping in a shorter "No
+ * chart history yet" block, which would shift every section below it up and back down on every
+ * tap.
  *
  * Pinch-zoom is disabled and the zoom level is pinned to fit the whole series in view -- with only
  * 5-252 points and no need to inspect sub-ranges, letting someone zoom in/out just hides data
@@ -237,7 +237,7 @@ private fun PeriodChartPlot(
     // (same baseline the caption row and periodChartLineColor already use), not a fixed
     // day-over-day delta -- see PeriodChart's own doc comment on why the first point in the
     // returned range is the only correct baseline for a multi-day series. Same line-2 shape
-    // [IntradayChartPlot] already used before this was unified -- see [rememberPeriodChartMarker]'s
+    // [IntradayChartPlot] uses -- see [rememberPeriodChartMarker]'s
     // doc comment.
     val marker = rememberPeriodChartMarker(points.size) { index ->
         val point = points[index]
@@ -355,7 +355,7 @@ internal fun VicoLinePlot(
     // 💡 `referenceLineValue` folded into min/max here -- Vico's own `HorizontalLine` decoration
     // (below) computes its Y position by linear extrapolation against exactly this range, with no
     // clamping of its own, so a `previousClose` that falls outside `[minPrice, maxPrice]` (a large
-    // overnight gap, most often) used to extrapolate to a Y position outside the chart's own
+    // overnight gap, most often) would extrapolate to a Y position outside the chart's own
     // bounds entirely -- rendering the line below the chart, over the axis labels or whatever sits
     // underneath it on the page. Including it here guarantees the line's own value is always
     // inside the range Vico draws against.
@@ -412,18 +412,18 @@ internal fun VicoLinePlot(
                 markerVisibilityListener = markerVisibilityListener,
                 decorations = decorations
                 // Marker controller left at its default (showOnPress -- press-and-drag to scrub
-                // across points). An earlier attempt disabled Vico's own horizontal-scroll gesture
-                // entirely to "fit all data, no scrolling," which left the marker's touch-move
-                // tracking as the only gesture handler active over the chart -- and unlike a
-                // proper `scrollable`/`draggable` modifier, that raw tracking doesn't participate
-                // in Compose's normal orthogonal-direction arbitration against the page's own
-                // vertical scroll, so it just won outright regardless of drag direction, making
-                // the whole page unscrollable when a drag started over the chart. Re-enabling
-                // `scrollState` below (while pinning zoom to Zoom.Content, so there's nothing to
+                // across points). Vico's own horizontal-scroll gesture has to stay enabled: with
+                // it disabled ("fit all data, no scrolling"), the marker's touch-move tracking is
+                // the only gesture handler active over the chart, and unlike a proper
+                // `scrollable`/`draggable` modifier that raw tracking doesn't participate in
+                // Compose's normal orthogonal-direction arbitration against the page's own
+                // vertical scroll, so it wins outright regardless of drag direction, making the
+                // whole page unscrollable when a drag starts over the chart. Keeping `scrollState`
+                // below enabled (while pinning zoom to Zoom.Content, so there's nothing to
                 // actually pan into) keeps Vico's own `scrollable` modifier in the gesture tree,
                 // which *does* correctly hand vertical-predominant drags to the page and only
-                // claims horizontal-predominant ones -- restoring drag-to-scrub without
-                // reintroducing the scroll-blocking bug.
+                // claims horizontal-predominant ones -- drag-to-scrub works without blocking the
+                // page's scroll.
             ),
             modelProducer = modelProducer,
             scrollState = rememberVicoScrollState(scrollEnabled = true),
@@ -539,8 +539,8 @@ private fun intradayChartLineColor(points: List<IntradayPoint>, previousClose: D
  * Builds [IntradayPeriodChart]'s local-time x-axis/marker text and delegates to [VicoLinePlot].
  *
  * Labels are evenly spaced by index (up to 5 across the series, always including both endpoints --
- * see [evenlySpacedIndices]/[FixedItemPlacer]), not placed at real clock-hour boundaries -- an
- * earlier version labeled every hour, which reads fine for a 6.5-hour equity session but crowds
+ * see [evenlySpacedIndices]/[FixedItemPlacer]), not placed at real clock-hour boundaries --
+ * labeling every hour reads fine for a 6.5-hour equity session but crowds
  * into an unreadable wall of labels for a 24-hour one (crypto's `12 AM`...`11 PM` span). Since
  * labels don't necessarily land exactly on the hour, both the axis and the marker show minute
  * precision.
@@ -624,7 +624,7 @@ internal fun evenlySpacedIndices(size: Int, count: Int): List<Double> {
 
 /**
  * A [HorizontalAxis.ItemPlacer] that labels exactly the indices in [labelValues] -- see
- * [evenlySpacedIndices]'s doc comment for why this replaces Vico's own `aligned()` placer.
+ * [evenlySpacedIndices]'s doc comment for why this is used instead of Vico's own `aligned()` placer.
  * `getFirstLabelValue`/`getLastLabelValue` (both `null` by default, meaning "no reserved padding")
  * are overridden so the axis actually measures and reserves real space for the first/last labels,
  * the same way `AlignedHorizontalAxisItemPlacer`'s own `addExtremeLabelPadding` does -- without

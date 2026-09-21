@@ -35,7 +35,7 @@ data class DomainInstitutionalPositioning(
     val staleSince: Long?
 )
 
-// 💡 `methodology` (2026-08-27): "legacy_non_commercial" (es/nq/rty) vs. "tff_leveraged_funds"
+// 💡 `methodology`: "legacy_non_commercial" (es/nq/rty) vs. "tff_leveraged_funds"
 // (dia) -- see NetworkFuturesContract's identical doc comment for why dia isn't directly
 // comparable to the other three.
 data class DomainFuturesContract(

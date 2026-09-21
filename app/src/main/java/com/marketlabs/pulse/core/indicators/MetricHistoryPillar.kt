@@ -2,7 +2,7 @@ package com.marketlabs.pulse.core.indicators
 
 /**
  * Which of the 4 `.../history?metric=<id>` endpoints a given metric id belongs to -- the backend
- * spec gives a static, closed table of ids per route (26 total, one per tracked indicator), so
+ * defines a static, closed table of ids per route (26 total, one per tracked indicator), so
  * this is a hardcoded lookup rather than derived from `DomainUnifiedMetric.category`'s string
  * value, matching `DashboardIntradayEligibility`'s same "closed allowlist, not a live field"
  * precedent. `positioning` and `ai_synthesis` aren't chartable at all (no numeric field, or not a
@@ -37,7 +37,7 @@ enum class MetricHistoryPillar {
 
         /**
          * The 8 Macro Vitals metrics that release monthly/quarterly rather than daily -- everything
-         * in [macroVitalsIds] except `yield_10y`, which the backend spec itself calls out as a
+         * in [macroVitalsIds] except `yield_10y`, which the backend treats as a
          * daily-moving exception within that pillar. History points for these are only written when
          * a new release actually lands (a handful a year, not one per trading day), so a chart for
          * one of these ids should render a step-after line rather than a smoothed curve -- a curve

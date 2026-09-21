@@ -7,13 +7,11 @@ import com.marketlabs.pulse.storage.model.positioning.mappers.toDomain
 import javax.inject.Inject
 
 /**
- * 💡 As of 2026-08-26, `GET /insights/positioning` has never successfully returned data -- the
- * backend's scheduled engine (8pm ET weekdays) hasn't completed a run yet, and the route 404s with
- * `{"error":"No market positioning data found."}` (curl-verified). That 404 surfaces here as a
- * plain Retrofit `HttpException`, caught by the same generic try/catch every other domain's remote
- * data source already uses -- callers see it as an ordinary `Result.failure`, same as any other
- * network error, so no special "no data yet" handling was added. Re-verify this once the backend
- * has produced a real document.
+ * 💡 `GET /insights/positioning` 404s with `{"error":"No market positioning data found."}` until
+ * the backend's scheduled engine has produced a document. That 404 surfaces here as a plain
+ * Retrofit `HttpException`, caught by the same generic try/catch every other domain's remote
+ * data source uses -- callers see it as an ordinary `Result.failure`, same as any other network
+ * error, so there is no special "no data yet" handling.
  */
 class RemoteMarketPositioningDataSourceImpl @Inject constructor(
     private val api: MarketPositioningApi

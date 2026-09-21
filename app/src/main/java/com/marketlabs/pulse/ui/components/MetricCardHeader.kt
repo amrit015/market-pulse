@@ -21,8 +21,8 @@ import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 /**
- * Title + info-icon row for every Posture and Positioning metric card. The info icon used to sit
- * in the card's footer next to the "as of" date; it now sits directly after the title instead, so
+ * Title + info-icon row for every Posture and Positioning metric card. The info icon sits
+ * directly after the title (not in the footer next to the "as of" date), so
  * the "what is this metric" explanation reads as attached to the card's name, not to its
  * timestamp. `description` is the same backend-authored text `MetricInfoAction` always uses --
  * this is a layout change only, not a new data source.

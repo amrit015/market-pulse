@@ -32,8 +32,8 @@ class RemoteSummaryDataSourceImpl @Inject constructor(
     }
 
     // Calendar strip -- a specific past date. `market_position`/`whatChanged`/`whatsNew` on the
-    // returned MarketPulse are composed by the backend at request time regardless of `dateId`
-    // (see api/marketPulse.ts's marketPulseComposer.ts in the backend repo) -- always today's live
+    // returned MarketPulse are composed by the backend at request time regardless of `dateId` --
+    // always today's live
     // values, never historically accurate to the requested date. The Summary screen only renders
     // those three for today's selection for that reason; every other field is written into that
     // date's own doc at generation time and is genuinely historical.

@@ -35,8 +35,7 @@ import javax.inject.Inject
  * one the Indicators tab reads) rather than a separate fetch -- `MarketIndicators` already holds
  * every metric across all 4 pillars, so this page shows whatever the tapped card last showed and
  * updates live if the Indicators tab's own listener is still active. `glossaryEntry` is a plain
- * synchronous lookup into `MetricGlossaryProvider`'s in-memory bundle, same as
- * `IndicatorsViewModel.glossaryEntryFor` used to provide for the now-deleted `IndicatorDetailSheet`.
+ * synchronous lookup into `MetricGlossaryProvider`'s in-memory bundle.
  * `historyPoints` (raw, unfiltered) is the one genuinely new fetch this page needs --
  * `MetricHistoryRepository`'s on-demand read, fetched once in `onStart()` same as every other
  * detail screen's period chart, capped at [HISTORY_LIMIT].
@@ -164,7 +163,7 @@ class MetricDetailViewModel @Inject constructor(
         const val ARG_METRIC_ID = "metricId"
 
         /**
-         * The backend's own hard cap (spec section 6) -- always passed explicitly rather than
+         * The backend's own hard cap -- always passed explicitly rather than
          * relying on the per-route default (30/12/48), since the widest range button always wants
          * as much history as the backend will return. For the monthly/quarterly macro metrics this
          * still comes back as just their handful-a-year of real points; for daily-moving metrics

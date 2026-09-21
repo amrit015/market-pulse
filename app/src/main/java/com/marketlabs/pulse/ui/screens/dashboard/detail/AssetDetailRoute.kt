@@ -29,9 +29,9 @@ import com.marketlabs.pulse.ui.components.PulseErrorState
 import com.marketlabs.pulse.ui.components.PulseLoadingIndicator
 
 /**
- * Stateful entry point for the pushed `assetDetail/{symbol}` destination -- replaces
- * `AssetDetailBottomSheet`, so every dashboard tile tap (indices/sectors/crypto/commodities/VIX/
- * sentiment) now navigates here instead of opening a sheet. Mirrors `NewsRoute`'s plain
+ * Stateful entry point for the pushed `assetDetail/{symbol}` destination -- every dashboard tile tap
+ * (indices/sectors/crypto/commodities/VIX/sentiment) navigates here.
+ * Mirrors `NewsRoute`'s plain
  * `Scaffold`/`TopAppBar`/back-button shape (this screen has no tabs or pinned rich header, unlike
  * `StockDetailRoute`, so a Material `TopAppBar` is enough).
  */

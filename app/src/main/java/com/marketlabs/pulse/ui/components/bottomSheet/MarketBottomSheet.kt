@@ -65,26 +65,24 @@ fun MarketGlossaryBottomSheet(
         // own tap-to-dismiss (unaffected by this flag), tapping the scrim, or back.
         sheetGesturesEnabled = false,
         dragHandle = { BottomSheetDragHandle(onDismiss = onDismiss) },
-        // 💡 2026-09-07, second pass: colorScheme.surface -- neither of the two tokens tried before
-        // this works, because this app's simplified surface ramp only has 3 genuinely distinct
+        // 💡 colorScheme.surface: this app's simplified surface ramp only has 3 genuinely distinct
         // values (see PulseTokens.Color.kt's `SurfaceRamp`: `background`, `surface`,
         // `surfaceElevated`), and this sheet needs to sit between two of them at once:
-        //   - `surfaceContainerHighest` (first pass) resolves to the literal same value as
-        //     `surfaceVariant` (`surfaceElevated`) -- the exact fill `PulseCard`'s borderless DATA
-        //     style uses, so every DATA card nested in this sheet (the "Current Verdict" card, every
-        //     term card) had zero contrast against the sheet itself.
-        //   - `colorScheme.background` (second pass) fixed that, but is the literal same value the
-        //     screen behind the sheet already uses, so the sheet lost its own visual boundary --
-        //     hard to tell where it starts/ends against the page.
-        // `colorScheme.surface` (`SurfaceRamp.surface`) is the one remaining token, genuinely
-        // distinct from both `background` and `surfaceElevated` in this ramp (confirmed via
-        // PulseTokens.Color.kt's literal hex values, dark mode: 0xFF17181D sits between background's
-        // 0xFF0D0E12 and surfaceElevated's 0xFF1F2026) -- the sheet now reads as its own layer
-        // against the screen AND lets a DATA card read against the sheet, at the same time. Was
-        // deliberately avoided as a `TopAppBar` containerColor elsewhere (see SettingsScreen.kt's own
-        // comment) for reading "noticeably different" from `background` -- that's a bug for a top bar
-        // meant to blend seamlessly with the page below it, but it's exactly the property this sheet
-        // needs.
+        //   - `surfaceContainerHighest` resolves to the literal same value as `surfaceVariant`
+        //     (`surfaceElevated`) -- the exact fill `PulseCard`'s borderless DATA style uses, so
+        //     every DATA card nested in this sheet (the "Current Verdict" card, every term card)
+        //     would have zero contrast against the sheet itself.
+        //   - `colorScheme.background` is the literal same value the screen behind the sheet
+        //     already uses, so the sheet would lose its own visual boundary -- hard to tell where
+        //     it starts/ends against the page.
+        // `colorScheme.surface` (`SurfaceRamp.surface`) is the one token genuinely distinct from
+        // both `background` and `surfaceElevated` in this ramp (dark mode: 0xFF17181D sits between
+        // background's 0xFF0D0E12 and surfaceElevated's 0xFF1F2026) -- the sheet reads as its own
+        // layer against the screen AND lets a DATA card read against the sheet, at the same time.
+        // It's deliberately avoided as a `TopAppBar` containerColor elsewhere (see
+        // SettingsScreen.kt's own comment) for reading "noticeably different" from `background` --
+        // that's a bug for a top bar meant to blend seamlessly with the page below it, but it's
+        // exactly the property this sheet needs.
         containerColor = MaterialTheme.colorScheme.surface
     ) {
         LazyColumn(
@@ -110,10 +108,9 @@ fun MarketGlossaryBottomSheet(
                     )
                 }
 
-                // 💡 2026-09-06: was a headerless block of plain text rows -- now one DATA card
-                // (header + divider, same convention every other data card on Summary/Positioning
-                // uses) so "current verdict" reads as a card among cards, not a stray text block
-                // sitting above the term-list cards below it.
+                // 💡 One DATA card (header + divider, same convention every other data card on
+                // Summary/Positioning uses) so "current verdict" reads as a card among cards,
+                // not a stray text block sitting above the term-list cards below it.
                 if (currentRegime != null || currentSetup != null || currentDirection != null || currentCycleZone != null || currentAction != null || currentStockSetup != null) {
                     PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
                         Column {
@@ -210,13 +207,12 @@ private fun CurrentStatusRow(label: String, value: String, dictionary: List<Glos
 }
 
 /**
- * 2026-09-07: rebuilt to match Indicators' own `MetricDetailScreen.kt` `BandRow`/"BANDS" section
- * exactly (byte-for-byte on spacing and card shape, not just the same general idea) -- was
- * modeled on `GlossaryDetailScreen.kt`'s `GlossaryBandRow` instead, which turns out to differ from
- * `BandRow` in both spacing (label-medium/padding_medium section title vs. that one's label-small/
- * split padding) and card content (this now uses a `SignalPill` "CURRENT" badge + always-onBackground
- * term label, not a plain accent-colored "CURRENT" text label with the term itself re-colored).
- * `BandRow` is Indicators' canonical version of this pattern; the two should read identically.
+ * Matches Indicators' own `MetricDetailScreen.kt` `BandRow`/"BANDS" section exactly
+ * (byte-for-byte on spacing and card shape, not just the same general idea): a `SignalPill`
+ * "CURRENT" badge + always-onBackground term label. `GlossaryDetailScreen.kt`'s `GlossaryBandRow`
+ * is a different variant (different spacing, and a plain accent-colored "CURRENT" text with the
+ * term itself re-colored) -- don't model this on it. `BandRow` is Indicators' canonical version of
+ * this pattern; the two should read identically.
  */
 @Composable
 private fun GlossarySection(title: String, terms: List<GlossaryTerm>, currentVal: String?) {
