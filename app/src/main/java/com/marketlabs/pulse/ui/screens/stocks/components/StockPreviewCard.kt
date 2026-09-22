@@ -29,6 +29,7 @@ import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.intraday.IntradaySeries
 import com.marketlabs.pulse.storage.model.stocks.DomainConditionChip
 import com.marketlabs.pulse.storage.model.stocks.StockPreview
+import com.marketlabs.pulse.ui.components.GlowOrigin
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.widgets.ChangeDirection
@@ -111,7 +112,9 @@ fun StockPreviewCard(
         style = PulseCardStyle.DATA,
         modifier = modifier.fillMaxWidth(),
         onClick = onClick,
-        glowColor = glowColor
+        glowColor = glowColor,
+        glowOrigin = GlowOrigin.TOP_LEFT,
+        glowFill = true
     ) {
         Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
             Row(

@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:name=".di.app.PulseApplication"
@@ -16,6 +17,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:launchMode="singleTop"
             android:resizeableActivity="true"
             android:theme="@style/Theme.MarketPulse.NoActionBar">
             <intent-filter>
@@ -24,6 +26,30 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- A tapped push relaunches the app with its data payload as intent extras. singleTop makes an
+             already-running MainActivity receive them in onNewIntent; with the default launch mode the
+             system just resumes the existing task and the extras (the target screen) are dropped. -->
+        <service
+            android:name=".core.notifications.PulseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <!-- Status-bar glyph for notifications the system tray builds from the push payload; without
+             it the tray falls back to the launcher icon, which renders as a blank white blob. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_stat_notification" />
+
+        <!-- Tints that glyph and the notification's accents (e.g. the app name next to the icon).
+             Resolved from res/values(-night)/colors.xml; see that file for why day/night is what
+             this follows instead of the user's selected theme preset. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/notification_accent_color" />
 
         <!-- Google AdMob Application ID (Official test App ID, pluggable via strings.xml or build config) -->
         <meta-data

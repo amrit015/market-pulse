@@ -125,7 +125,11 @@ fun MarketSummaryScreen(
     // screen, not its own destination, same shape as onNavigateToIndicators above but landing on
     // a specific Insights tab.
     onNavigateToPosture: () -> Unit = {},
-    onRetryDate: (String) -> Unit = {}
+    onRetryDate: (String) -> Unit = {},
+    // Pinned between the calendar strip and the day pager; the Route fills it with the
+    // enable-notifications banner, which renders nothing once answered. Empty by default so the
+    // stateless screen (and its previews) needs no Hilt.
+    banner: @Composable () -> Unit = {}
 ) {
     val data = (contentByDateId[selectedDateId] as? DayContent.Available)?.data
 
@@ -198,6 +202,8 @@ fun MarketSummaryScreen(
             onDateSelected = onDateSelected,
             modifier = Modifier.padding(top = scaffoldPadding.calculateTopPadding())
         )
+
+        banner()
 
         // 💡 `weight(1f)`, not just `fillMaxSize()` -- required on every screen using this pager
         // pattern: guarantees the pager (the only scrollable, touchable content) always gets

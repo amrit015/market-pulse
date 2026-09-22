@@ -13,4 +13,11 @@
          with the app's own light-mode surface, even though icon resources can't
          reach the runtime theme-preset system. -->
     <color name="ic_launcher_background">#FF000000</color>
+
+    <!-- Tints the small status-bar icon FCM draws for a tray notification. A manifest meta-data
+         value can't reach the runtime theme-preset system (it's the selected preset's own accent,
+         picked per user), so this uses PLUM's accent, the default light-mode preset in
+         ThemeRepositoryImpl, with a values-night override to LILAC's accent (the default
+         dark-mode preset there), the same day/night split those two defaults already follow. -->
+    <color name="notification_accent_color">#FF5B2A82</color>
 </resources>

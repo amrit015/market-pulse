@@ -28,6 +28,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.data.notifications.NotificationPreference
+import com.marketlabs.pulse.ui.components.NotificationEnableBanner
 import com.marketlabs.pulse.ui.components.PulseLoadingIndicator
 import com.marketlabs.pulse.ui.components.PulseTabRow
 import com.marketlabs.pulse.ui.components.bottomSheet.MarketGlossaryBottomSheet
@@ -117,6 +119,8 @@ fun StockAnalysisRoute(
             highlightedTabIndex = StockAnalysisTab.FAVORITES.ordinal,
             selectionPosition = { pagerState.currentPage + pagerState.currentPageOffsetFraction }
         )
+
+        NotificationEnableBanner(preference = NotificationPreference.STOCK_ANALYSIS)
 
         Box(modifier = Modifier.fillMaxSize()) {
             PullToRefreshBox(

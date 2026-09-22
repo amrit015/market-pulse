@@ -1,5 +1,6 @@
 package com.marketlabs.pulse
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -26,7 +27,6 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.marketlabs.pulse.data.legal.LegalRepository
@@ -38,6 +38,8 @@ import com.marketlabs.pulse.ui.components.tutorials.Mechanism
 import com.marketlabs.pulse.ui.components.widgets.ScreenGuideContent
 import com.marketlabs.pulse.ui.navigation.PulseNavGraph
 import com.marketlabs.pulse.ui.navigation.PulseRoutes
+import com.marketlabs.pulse.ui.navigation.PushNavigation
+import com.marketlabs.pulse.ui.navigation.navigateToTab
 import com.marketlabs.pulse.ui.navigation.bottomNavItems
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 import com.marketlabs.pulse.utils.enums.ReportType
@@ -87,6 +89,10 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var legalRepository: LegalRepository
 
+    // Destination from a tapped push, waiting for the NavHost to exist (cold start) or to be
+    // navigated (warm start). Compose state so the consumer effect in setContent sees it change.
+    private var pendingPushRoute by mutableStateOf<String?>(null)
+
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
@@ -118,6 +124,10 @@ class MainActivity : ComponentActivity() {
             PulseRoutes.ONBOARDING_CAROUSEL
         }
 
+        // A recreation (rotation, theme change) re-delivers the original launch intent; the push it
+        // carried was already handled by the first instance and must not re-navigate.
+        if (savedInstanceState == null) pendingPushRoute = PushNavigation.routeFor(intent)
+
         setContent {
             val selectedTheme by themeRepository.selectedTheme.collectAsStateWithLifecycle(
                 initialValue = initialTheme
@@ -140,6 +150,22 @@ class MainActivity : ComponentActivity() {
 
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route
+
+                // `currentRoute` is null until the NavHost has composed its first destination, so
+                // this also holds a cold-start push until the graph is ready. A push tapped while
+                // the user is still on the onboarding/legal gate is dropped rather than queued:
+                // jumping past terms acceptance, or landing on a tab right after accepting them,
+                // would both be wrong.
+                val pushRoute = pendingPushRoute
+                LaunchedEffect(pushRoute, currentRoute) {
+                    if (pushRoute == null || currentRoute == null) return@LaunchedEffect
+                    if (currentRoute != PulseRoutes.ONBOARDING_CAROUSEL &&
+                        currentRoute != PulseRoutes.LEGAL_ACCEPTANCE
+                    ) {
+                        navController.navigateToTab(pushRoute)
+                    }
+                    pendingPushRoute = null
+                }
 
                 // 💡 See this file's own header comment on why these routes get a static
                 // (`pinnedScrollBehavior`) top bar instead of the collapsing one every other route
@@ -298,15 +324,7 @@ class MainActivity : ComponentActivity() {
                             FloatingBottomNav(
                                 items = bottomNavItems,
                                 currentRoute = currentRoute,
-                                onItemClick = { route ->
-                                    navController.navigate(route) {
-                                        popUpTo(navController.graph.findStartDestination().id) {
-                                            saveState = true
-                                        }
-                                        launchSingleTop = true
-                                        restoreState = true
-                                    }
-                                }
+                                onItemClick = { route -> navController.navigateToTab(route) }
                             )
                         }
                     }
@@ -357,6 +375,12 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        pendingPushRoute = PushNavigation.routeFor(intent)
     }
 }
 

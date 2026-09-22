@@ -130,7 +130,7 @@ fun SettingsScreen(
 
 /**
  * All six "More" rows are real, navigable destinations -- Data & Sync and About are static content
- * screens; Notifications is still a placeholder (content/design to follow separately). Share isn't
+ * screens; Notifications is the push-preferences screen. Share isn't
  * a destination: it opens the system share sheet. Terms & Conditions and Privacy Policy are their
  * own top-level rows (no intermediate "Legal" hub screen) linking to the same two documents shown
  * once during onboarding; Tutorials is its own screen.

@@ -12,7 +12,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -26,7 +25,6 @@ import com.marketlabs.pulse.ui.screens.dashboard.views.DashboardRoute
 import com.marketlabs.pulse.ui.screens.indicators.detail.MetricDetailRoute
 import com.marketlabs.pulse.ui.screens.indicators.views.IndicatorHorizonsRoute
 import com.marketlabs.pulse.ui.screens.indicators.views.IndicatorsRoute
-import com.marketlabs.pulse.ui.components.PlaceholderScreen
 import com.marketlabs.pulse.ui.screens.insights.glossary.GlossaryDetailRoute
 import com.marketlabs.pulse.ui.screens.insights.views.InsightsRoute
 import com.marketlabs.pulse.ui.screens.insights.views.InsightsTab
@@ -52,6 +50,7 @@ import com.marketlabs.pulse.ui.screens.tutorials.TutorialsGaugesRoute
 import com.marketlabs.pulse.ui.screens.tutorials.TutorialsHubScreen
 import com.marketlabs.pulse.ui.settings.AboutRoute
 import com.marketlabs.pulse.ui.settings.DataSyncScreen
+import com.marketlabs.pulse.ui.settings.NotificationsRoute
 import com.marketlabs.pulse.ui.settings.SettingsRoute
 import com.marketlabs.pulse.ui.settings.ThemePickerRoute
 import com.marketlabs.pulse.utils.enums.ReportType
@@ -533,12 +532,8 @@ fun PulseNavGraph(
                 onNavigateToTutorials = { navController.navigate(PulseRoutes.TUTORIALS_HUB) }
             )
         }
-        // Content/design not yet supplied -- PlaceholderScreen is a bare back button + "coming soon" body.
         composable(PulseRoutes.SETTINGS_NOTIFICATIONS) {
-            PlaceholderScreen(
-                title = stringResource(id = R.string.settings_item_notifications),
-                onNavigateUp = { navController.popBackStack() }
-            )
+            NotificationsRoute(onNavigateUp = { navController.popBackStack() })
         }
         composable(PulseRoutes.SETTINGS_DATA_SYNC) {
             DataSyncScreen(onNavigateUp = { navController.popBackStack() })
