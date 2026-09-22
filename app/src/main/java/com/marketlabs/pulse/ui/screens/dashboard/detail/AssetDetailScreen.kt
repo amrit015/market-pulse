@@ -35,6 +35,7 @@ import com.marketlabs.pulse.storage.model.charts.ChartRange
 import com.marketlabs.pulse.storage.model.charts.ChartSeries
 import com.marketlabs.pulse.storage.model.dashboard.AssetOverview
 import com.marketlabs.pulse.storage.model.intraday.IntradaySeries
+import com.marketlabs.pulse.ui.components.DisclaimerFooter
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.bottomSheet.GlossaryEntry
@@ -324,6 +325,12 @@ fun AssetDetailScreen(
                 }
             }
         }
+
+        // 💡 Same padding_extra_large gap GlossaryDetailScreen/MetricDetailScreen/Dashboard's own
+        // footer already use before this text -- this screen had none, reading as visibly tighter
+        // against the content above than every other screen's footer.
+        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_extra_large)))
+        DisclaimerFooter()
     }
 
     if (showTechnicalGlossary) {

@@ -17,6 +17,7 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.ui.components.DisclaimerFooter
 import com.marketlabs.pulse.storage.model.stocks.DomainDeepDiveHeadlineStat
 import com.marketlabs.pulse.storage.model.stocks.DomainDeepDiveHighlight
 import com.marketlabs.pulse.storage.model.stocks.DomainDeepDiveSection
@@ -69,6 +70,7 @@ fun DeepDiveScreen(
                 deltaChips = if (section.topic == "WHATS_CHANGED") fundamentalsDelta else emptyList()
             )
         }
+        item { DisclaimerFooter() }
     }
 }
 

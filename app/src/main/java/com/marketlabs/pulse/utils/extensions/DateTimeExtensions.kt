@@ -5,8 +5,50 @@ package com.marketlabs.pulse.utils.extensions
 import android.text.format.DateUtils
 import java.text.ParseException
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+
+/** Checks if a [Calendar] represents today in the local time zone. */
+private fun Calendar.isToday(): Boolean {
+    val now = Calendar.getInstance()
+    return get(Calendar.YEAR) == now.get(Calendar.YEAR) &&
+            get(Calendar.DAY_OF_YEAR) == now.get(Calendar.DAY_OF_YEAR)
+}
+
+/** Checks if a [Calendar] represents yesterday in the local time zone. */
+private fun Calendar.isYesterday(): Boolean {
+    val yesterday = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -1) }
+    return get(Calendar.YEAR) == yesterday.get(Calendar.YEAR) &&
+            get(Calendar.DAY_OF_YEAR) == yesterday.get(Calendar.DAY_OF_YEAR)
+}
+
+/** "Today" / "Yesterday" when this date falls on that local day, otherwise null. */
+fun Date.toTodayOrYesterdayLabel(): String? {
+    val cal = Calendar.getInstance().apply { time = this@toTodayOrYesterdayLabel }
+    return when {
+        cal.isToday() -> "Today"
+        cal.isYesterday() -> "Yesterday"
+        else -> null
+    }
+}
+
+/**
+ * Given a `yyyy-MM-dd` date string, formats it as "Today", "Yesterday", or [formatter] for any other day.
+ */
+private fun formatRelativeDateString(dateString: String, formatter: (Date) -> String): String {
+    return try {
+        val parsed = SimpleDateFormat("yyyy-MM-dd", Locale.US).parse(dateString) ?: return dateString
+        val cal = Calendar.getInstance().apply { time = parsed }
+        when {
+            cal.isToday() -> "Today"
+            cal.isYesterday() -> "Yesterday"
+            else -> formatter(parsed)
+        }
+    } catch (e: ParseException) {
+        dateString
+    }
+}
 
 /**
  * Converts an epoch-millis timestamp into a relative "2 hours ago" / "Just now" style string.
@@ -23,53 +65,56 @@ fun Long.toRelativeTimeString(): String {
 }
 
 /**
- * Epoch millis -> "Aug 07, 6:15 PM" -- the "analyzed as of" timestamp format `DashboardScreen`/
- * `IndicatorsScreen`/`NewsScreen`/`SummaryScreen`/`MarketPostureView`/`MarketRisksView` already
- * hand-roll individually via their own local `SimpleDateFormat("MMM dd, h:mm a", ...)`. Pulled out
- * here so the Stock Analysis screens (Preview + Detail) share one definition of that same format
- * rather than adding yet another inline copy -- the older per-screen copies are left alone since
- * touching them isn't part of this change.
+ * Epoch millis -> "Today, 6:15 PM" / "Yesterday, 6:15 PM" / "Aug 07, 6:15 PM".
  */
-fun Long.toAnalyzedAsOfString(): String =
-    SimpleDateFormat("MMM dd, h:mm a", Locale.getDefault()).format(Date(this))
+fun Long.toAnalyzedAsOfString(): String {
+    val date = Date(this)
+    val cal = Calendar.getInstance().apply { time = date }
+    val timeFormat = SimpleDateFormat("h:mm a", Locale.getDefault()).format(date)
+    return when {
+        cal.isToday() -> "Today, $timeFormat"
+        cal.isYesterday() -> "Yesterday, $timeFormat"
+        else -> SimpleDateFormat("MMM dd, h:mm a", Locale.getDefault()).format(date)
+    }
+}
 
 /**
- * The backend's `yyyy-MM-dd` date fields (event log dates, forward-call `made_on`/`resolve_date`,
- * news `source_date`, fundamentals' `next_earnings_date`) -- e.g. "2026-07-28" -- rendered as
- * "July 28" for display. Falls back to the original string on a parse failure (including a value
- * that's already human-formatted, e.g. a source that sends "Oct 29" directly) rather than blanking
- * out an otherwise-fine field.
+ * The backend's `yyyy-MM-dd` date fields -- rendered as "Today", "Yesterday", or "July 28" for display.
  */
 fun String.toLongDateString(): String {
-    return try {
-        val parsed = SimpleDateFormat("yyyy-MM-dd", Locale.US).parse(this) ?: return this
-        SimpleDateFormat("MMMM d", Locale.US).format(parsed)
-    } catch (e: ParseException) {
-        this
+    return formatRelativeDateString(this) { date ->
+        SimpleDateFormat("MMMM d", Locale.US).format(date)
     }
 }
 
 /**
- * Same `yyyy-MM-dd` backend date fields as [toLongDateString], but abbreviated ("Sep 4" rather than
- * "September 4") -- the Deep Dive banner/label and the short-interest date stamp both want the
- * shorter form. A sibling function rather than reusing [toLongDateString], which (despite its name
- * suggesting otherwise) actually renders the full month name, not an abbreviation.
+ * Same `yyyy-MM-dd` backend date fields as [toLongDateString], but abbreviated ("Today", "Yesterday", or "Sep 4").
  */
 fun String.toShortDateString(): String {
-    return try {
-        val parsed = SimpleDateFormat("yyyy-MM-dd", Locale.US).parse(this) ?: return this
-        SimpleDateFormat("MMM d", Locale.US).format(parsed)
-    } catch (e: ParseException) {
-        this
+    return formatRelativeDateString(this) { date ->
+        SimpleDateFormat("MMM d", Locale.US).format(date)
     }
 }
 
-/** Same as [toShortDateString] but with the year appended ("Sep 4, 2026") -- the Deep Dive screen's own header banner shows this fuller form since it's the one place displaying the authoritative last-run date on its own, without a symbol/date context already established elsewhere on screen. */
+/** Same as [toShortDateString] but with the year appended for other days ("Today", "Yesterday", or "Sep 4, 2026"). */
 fun String.toShortDateWithYearString(): String {
-    return try {
-        val parsed = SimpleDateFormat("yyyy-MM-dd", Locale.US).parse(this) ?: return this
-        SimpleDateFormat("MMM d, yyyy", Locale.US).format(parsed)
-    } catch (e: ParseException) {
-        this
+    return formatRelativeDateString(this) { date ->
+        SimpleDateFormat("MMM d, yyyy", Locale.US).format(date)
+    }
+}
+
+/** Epoch millis -> "Today", "Yesterday", or "Sep 4, 2026" (date only, no time). */
+fun Long.toShortDateWithYearString(): String {
+    val date = Date(this)
+    return date.toTodayOrYesterdayLabel() ?: SimpleDateFormat("MMM d, yyyy", Locale.US).format(date)
+}
+
+/** Returns "from Today", "from Yesterday", or "on Sep 4" for grammatically correct captions. */
+fun String.toPrepositionalDateString(): String {
+    val dateStr = this.toShortDateString()
+    return when (dateStr) {
+        "Today" -> "from Today"
+        "Yesterday" -> "from Yesterday"
+        else -> "on $dateStr"
     }
 }

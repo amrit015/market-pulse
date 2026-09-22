@@ -84,6 +84,9 @@ fun StockPreviewCard(
     isEquityOpen: Boolean = false,
     isFavorite: Boolean = false,
     onFavoriteClick: () -> Unit = {},
+    onTechnicalSetupClick: () -> Unit = {},
+    isDeepDiveFlashing: Boolean = false,
+    onDeepDiveClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     intradayStream: Flow<IntradaySeries?> = emptyFlow()
 ) {
@@ -229,9 +232,11 @@ fun StockPreviewCard(
             }
             // 💡 Same `OutlinedBadge` pill `DetailHeader` uses for `technicalSetup` on the Detail
             // screen -- was plain muted text here, reading as a lesser treatment for the same field.
+            // spec-20260917-content-refinement.md P2: tap-to-explain now, same as Detail's own badge
+            // -- this was the one `stock_setups` glossary entry point only reachable from Detail.
             setupText?.let {
                 Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
-                OutlinedBadge(text = it)
+                OutlinedBadge(text = it, onClick = onTechnicalSetupClick)
             }
 
             val previewChips = preview.conditionChips?.let { chips ->
@@ -260,7 +265,9 @@ fun StockPreviewCard(
                 Box(modifier = Modifier.weight(1f)) {
                     DeepDiveLabel(
                         deepAnalysisDate = preview.deepAnalysisDate,
-                        nextDeepDiveTriggerDate = preview.nextDeepDiveTriggerDate
+                        nextDeepDiveTriggerDate = preview.nextDeepDiveTriggerDate,
+                        isFlashing = isDeepDiveFlashing,
+                        onClick = onDeepDiveClick
                     )
                 }
                 FavoriteStarToggle(

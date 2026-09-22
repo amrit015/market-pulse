@@ -123,7 +123,8 @@ enum class MarketPulseTheme(val displayName: String, val isDark: Boolean) {
             // in light mode, so this picks a different source per mode instead of one token family
             // for both. See PulseColors' own doc comment on these two fields.
             sectorHeatmapBullish = if (isDark) signal.bullishPill else signal.bullishText,
-            sectorHeatmapBearish = if (isDark) signal.bearishPill else signal.bearishText
+            sectorHeatmapBearish = if (isDark) signal.bearishPill else signal.bearishText,
+            isDark = isDark
         )
     }
 

@@ -30,6 +30,7 @@ import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.intraday.IntradaySeries
 import com.marketlabs.pulse.storage.model.stocks.StockPreview
 import com.marketlabs.pulse.ui.common.UiError
+import com.marketlabs.pulse.ui.components.DisclaimerFooter
 import com.marketlabs.pulse.ui.components.PulseLoadingIndicator
 import com.marketlabs.pulse.ui.screens.stocks.components.StockPreviewCard
 import com.marketlabs.pulse.ui.screens.stocks.isIndexOrEtf
@@ -69,8 +70,11 @@ fun StockAnalysisScreen(
     isEquityOpen: Boolean,
     pagerState: PagerState,
     favoriteSymbols: Set<String>,
+    clickedDeepDiveSymbols: Set<String> = emptySet(),
     onCardClick: (String) -> Unit,
     onToggleFavorite: (String) -> Unit,
+    onDeepDiveClick: (String) -> Unit = {},
+    onTechnicalSetupClick: (String) -> Unit = {},
     scaffoldPadding: PaddingValues,
     getIntradayStream: (String) -> Flow<IntradaySeries?> = { emptyFlow() },
     modifier: Modifier = Modifier
@@ -119,16 +123,24 @@ fun StockAnalysisScreen(
                     item { StockAnalysisTabEmptyState(tab) }
                 }
                 items(tabPreviews, key = { it.symbol }) { preview ->
+                    val isFavorite = preview.symbol in favoriteSymbols
+                    val hasDeepDive = preview.deepAnalysisDate != null
+                    val isDeepDiveFlashing = isFavorite && hasDeepDive && (preview.symbol !in clickedDeepDiveSymbols)
+
                     StockPreviewCard(
                         preview = preview,
                         onClick = { onCardClick(preview.symbol) },
                         isEquityOpen = isEquityOpen,
-                        isFavorite = preview.symbol in favoriteSymbols,
+                        isFavorite = isFavorite,
                         onFavoriteClick = { onToggleFavorite(preview.symbol) },
+                        onTechnicalSetupClick = { preview.technicalSetup?.let(onTechnicalSetupClick) },
+                        isDeepDiveFlashing = isDeepDiveFlashing,
+                        onDeepDiveClick = { onDeepDiveClick(preview.symbol) },
                         intradayStream = getIntradayStream(preview.symbol),
                         modifier = Modifier.animateItem()
                     )
                 }
+                item { DisclaimerFooter(showAiDisclosure = true) }
             }
         }
     }

@@ -56,7 +56,12 @@ data class PulseColors(
      * which source each mode actually draws from.
      */
     val sectorHeatmapBullish: Color,
-    val sectorHeatmapBearish: Color
+    val sectorHeatmapBearish: Color,
+
+    /** The selected preset's own light/dark identity (`MarketPulseTheme.isDark`) — exposed here so a
+     * composable that needs to pick between a light-mode and dark-mode asset (e.g. onboarding
+     * illustrations) doesn't need the `MarketPulseTheme` enum value threaded down separately. */
+    val isDark: Boolean
 )
 
 val LocalPulseColors = staticCompositionLocalOf<PulseColors> {

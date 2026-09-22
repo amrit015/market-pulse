@@ -35,6 +35,7 @@ import com.marketlabs.pulse.ui.screens.stocks.detail.OutlinedBadge
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 import com.marketlabs.pulse.utils.extensions.toAnalyzedAsOfString
+import com.marketlabs.pulse.utils.extensions.toPrepositionalDateString
 import com.marketlabs.pulse.utils.extensions.toShortDateString
 import java.util.Locale
 import kotlin.math.abs
@@ -118,12 +119,6 @@ fun DetailHeader(
                     painter = painterResource(id = R.drawable.ic_back),
                     contentDescription = stringResource(id = R.string.nav_back_content_description),
                     tint = pulseColors.onSurfaceMuted
-                )
-                Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
-                Text(
-                    text = stringResource(id = R.string.stock_detail_back_label),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = pulseColors.onSurfaceMuted
                 )
             }
             // 💡 Sibling of the back row, not inside its `clickable` -- a plain append would have
@@ -252,7 +247,7 @@ fun DetailHeader(
                 text = stringResource(
                     id = R.string.stock_analysis_close_caption,
                     String.format(Locale.US, "%.2f", previousClose),
-                    analysisDate.toShortDateString()
+                    analysisDate.toPrepositionalDateString()
                 ),
                 style = MaterialTheme.typography.labelSmall,
                 color = pulseColors.accentPrimary

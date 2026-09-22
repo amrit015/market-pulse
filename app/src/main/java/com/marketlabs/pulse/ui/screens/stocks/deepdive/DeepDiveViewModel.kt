@@ -6,6 +6,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.marketlabs.pulse.core.stocks.StockAnalysisRepository
+import com.marketlabs.pulse.data.favorites.FavoriteStocksRepository
 import com.marketlabs.pulse.ui.common.UiError
 import com.marketlabs.pulse.ui.common.toUiError
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -34,6 +35,7 @@ import javax.inject.Inject
 @HiltViewModel
 class DeepDiveViewModel @Inject constructor(
     private val repository: StockAnalysisRepository,
+    private val favoriteStocksRepository: FavoriteStocksRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -66,6 +68,9 @@ class DeepDiveViewModel @Inject constructor(
 
     /** Called by the UI when the screen becomes visible. */
     fun onStart() {
+        viewModelScope.launch {
+            favoriteStocksRepository.markDeepDiveClicked(symbol)
+        }
         fetchDeepDive(force = false)
     }
 

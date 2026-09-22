@@ -1,6 +1,7 @@
 package com.marketlabs.pulse.ui.screens.insights.views
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,6 +21,7 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.ui.components.DisclaimerFooter
 import com.marketlabs.pulse.ui.screens.insights.InsightsUiState
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
@@ -77,10 +79,15 @@ fun InsightsScreen(
             modifier = Modifier.fillMaxSize()
         ) { page ->
             when (InsightsTab.entries[page]) {
+                // 💡 padding_extra_large gap before the footer on all four tabs below -- same
+                // value every other screen's DisclaimerFooter sits below; each of these
+                // LazyColumns only ever has the one content item plus the footer, so spacedBy here
+                // affects just that one gap.
                 InsightsTab.PLAYBOOK -> LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     state = lazyListStates[InsightsTab.PLAYBOOK.ordinal],
-                    contentPadding = contentPadding
+                    contentPadding = contentPadding,
+                    verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_extra_large))
                 ) {
                     item {
                         val playbook = uiState.weeklyPlaybook
@@ -90,12 +97,14 @@ fun InsightsScreen(
                             InsightsTabEmptyState()
                         }
                     }
+                    item { DisclaimerFooter(showAiDisclosure = true) }
                 }
 
                 InsightsTab.RISKS -> LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     state = lazyListStates[InsightsTab.RISKS.ordinal],
-                    contentPadding = contentPadding
+                    contentPadding = contentPadding,
+                    verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_extra_large))
                 ) {
                     item {
                         val risksData = uiState.tailRisks
@@ -105,12 +114,14 @@ fun InsightsScreen(
                             InsightsTabEmptyState()
                         }
                     }
+                    item { DisclaimerFooter(showAiDisclosure = true) }
                 }
 
                 InsightsTab.POSTURE -> LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     state = lazyListStates[InsightsTab.POSTURE.ordinal],
-                    contentPadding = contentPadding
+                    contentPadding = contentPadding,
+                    verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_extra_large))
                 ) {
                     item {
                         val postureData = uiState.marketPosture
@@ -125,12 +136,14 @@ fun InsightsScreen(
                             InsightsTabEmptyState()
                         }
                     }
+                    item { DisclaimerFooter() }
                 }
 
                 InsightsTab.POSITIONING -> LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     state = lazyListStates[InsightsTab.POSITIONING.ordinal],
-                    contentPadding = contentPadding
+                    contentPadding = contentPadding,
+                    verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_extra_large))
                 ) {
                     item {
                         val positioningData = uiState.marketPositioning
@@ -145,6 +158,7 @@ fun InsightsScreen(
                             InsightsTabEmptyState()
                         }
                     }
+                    item { DisclaimerFooter() }
                 }
             }
         }

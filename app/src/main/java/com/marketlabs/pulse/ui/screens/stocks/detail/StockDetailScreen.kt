@@ -36,6 +36,7 @@ import com.marketlabs.pulse.storage.model.charts.ChartSeries
 import com.marketlabs.pulse.storage.model.intraday.IntradaySeries
 import com.marketlabs.pulse.storage.model.stocks.StockDetail
 import com.marketlabs.pulse.storage.model.stocks.StockPreview
+import com.marketlabs.pulse.ui.components.DisclaimerFooter
 import com.marketlabs.pulse.ui.components.charts.ChartRangePicker
 import com.marketlabs.pulse.ui.components.charts.IntradayPeriodChart
 import com.marketlabs.pulse.ui.components.charts.PeriodChart
@@ -252,6 +253,7 @@ private fun DigestTabContent(
         item {
             DigestCard(headline = headline, sections = sections)
         }
+        item { DisclaimerFooter(showAiDisclosure = true) }
     }
 }
 
@@ -334,7 +336,7 @@ private fun TechnicalsTabContent(
             item { SmaCard(indicators = detail?.technicalIndicators, currentPrice = preview?.price) }
         }
         if (detail?.technicalIndicators?.returns != null) {
-            item { Returns(returns = detail.technicalIndicators.returns, changePercent = preview?.changePercent) }
+            item { Returns(returns = detail.technicalIndicators.returns) }
         }
         if (hasKeyLevels) {
             item { KeyLevels(levels = detail?.levels, price = preview?.price) }
@@ -505,6 +507,9 @@ private fun DetailTabContent(
         verticalArrangement = Arrangement.spacedBy(sectionSpacing)
     ) {
         content()
+        // 💡 Always the 2-line "AI-generated · Not advice" footer: the Technical Read card pinned above
+        // the tab row is AI-written and shows on every tab, and it carries no label of its own.
+        item { DisclaimerFooter(showAiDisclosure = true) }
     }
 }
 

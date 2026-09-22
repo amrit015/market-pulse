@@ -13,7 +13,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -22,7 +21,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -78,13 +80,27 @@ fun DashboardRoute(
             onRefresh = { viewModel.refreshDashboard() },
             state = pullRefreshState,
             indicator = {
-                Indicator(
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .padding(top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()),
-                    isRefreshing = uiState.isRefreshing,
-                    state = pullRefreshState
-                )
+                // 💡 Brand-consistent replacement for Material's default spinner -- same
+                // PulseLoadingIndicator the splash screen and this screen's own isLoading state
+                // below use, shrunk down via its `size` param. `distanceFraction` (0 at rest, 1 at
+                // the release threshold, PullToRefreshState's own public API) drives fade/scale-in
+                // while dragging; once isRefreshing is true it's pinned fully visible regardless of
+                // finger position.
+                val indicatorVisibleFraction = if (uiState.isRefreshing) {
+                    1f
+                } else {
+                    pullRefreshState.distanceFraction.coerceIn(0f, 1f)
+                }
+                if (indicatorVisibleFraction > 0f) {
+                    PulseLoadingIndicator(
+                        size = 40.dp,
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .padding(top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding())
+                            .alpha(indicatorVisibleFraction)
+                            .scale(indicatorVisibleFraction)
+                    )
+                }
             }
             ) {
             when {

@@ -84,7 +84,7 @@ class StockAnalysisViewModel @Inject constructor(
         }
     }
 
-    // 💡 Array<Any?>-based combine() overload -- 7 streams, past the max arity (5) of Kotlin's
+    // 💡 Array<Any?>-based combine() overload -- 8 streams, past the max arity (5) of Kotlin's
     // named-parameter combine() overload. Each value is cast back to its real type by index
     // rather than by name, same shape `InsightsViewModel` already uses for the same reason.
     val uiState: StateFlow<StockAnalysisUiState> = combine(
@@ -97,7 +97,8 @@ class StockAnalysisViewModel @Inject constructor(
         // the app that says "the market is open" rather than a second client-side computation.
         dashboardRepository.getMarketStateStream().map { it?.isEquityOpen == true },
         favoriteStocksRepository.favoriteSymbols,
-        _selectedTabIndex
+        _selectedTabIndex,
+        favoriteStocksRepository.clickedDeepDiveSymbols
     ) { values ->
         val previews = values[0] as List<StockPreview>
         val loading = values[1] as Boolean
@@ -109,6 +110,7 @@ class StockAnalysisViewModel @Inject constructor(
             isEquityOpen = values[4] as Boolean,
             selectedTabIndex = values[6] as Int,
             favoriteSymbols = values[5] as Set<String>,
+            clickedDeepDiveSymbols = values[7] as Set<String>,
             error = values[3] as UiError?
         )
     }.stateIn(
@@ -173,6 +175,11 @@ class StockAnalysisViewModel @Inject constructor(
     /** Called when the reader taps a `StockPreviewCard`'s star -- persists immediately, local-only. */
     fun toggleFavorite(symbol: String) {
         viewModelScope.launch { favoriteStocksRepository.toggleFavorite(symbol) }
+    }
+
+    /** Called when the reader taps a Deep Dive touchpoint for a symbol -- marks it as clicked. */
+    fun onDeepDiveClicked(symbol: String) {
+        viewModelScope.launch { favoriteStocksRepository.markDeepDiveClicked(symbol) }
     }
 
     private fun fetchPreviews(force: Boolean) {

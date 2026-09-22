@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.indicators.DomainHorizonBlock
 import com.marketlabs.pulse.storage.model.indicators.DomainHorizons
+import com.marketlabs.pulse.ui.components.DisclaimerFooter
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.widgets.CardEyebrowLabel
@@ -75,6 +76,7 @@ fun IndicatorHorizonsScreen(
         items(horizonBlocks) { horizon ->
             HorizonCard(horizon = horizon)
         }
+        item { DisclaimerFooter(showAiDisclosure = true) }
     }
 }
 

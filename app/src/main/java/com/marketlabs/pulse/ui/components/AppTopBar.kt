@@ -25,6 +25,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.ui.components.tutorials.Mechanism
+import com.marketlabs.pulse.ui.components.widgets.ScreenGuideAction
+import com.marketlabs.pulse.ui.components.widgets.ScreenGuideContent
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
@@ -66,6 +69,11 @@ fun AppTopBar(
     title: String,
     scrollBehavior: TopAppBarScrollBehavior,
     onSettingsClick: () -> Unit,
+    // Once-per-screen "?" (see ScreenGuideAction's own doc comment) -- null on any route
+    // MainActivity hasn't supplied guide copy for yet, in which case this bar renders exactly as
+    // it did before this existed (gear icon only).
+    guideContent: ScreenGuideContent? = null,
+    onGuideShowMore: (List<Mechanism>) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     // 💡 Was `surfaceContainerHighest` (a distinct elevated-white tone) -- switched to
@@ -96,6 +104,9 @@ fun AppTopBar(
                 )
             },
             actions = {
+                if (guideContent != null) {
+                    ScreenGuideAction(content = guideContent, onShowMore = onGuideShowMore)
+                }
                 IconButton(onClick = onSettingsClick) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_settings),

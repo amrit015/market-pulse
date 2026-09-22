@@ -66,6 +66,7 @@ import com.marketlabs.pulse.storage.model.summary.Valuation
 import com.marketlabs.pulse.storage.model.summary.WatchItem
 import com.marketlabs.pulse.storage.model.summary.WhatsNewItem
 import com.marketlabs.pulse.ui.components.AnalyzedAtHeader
+import com.marketlabs.pulse.ui.components.DisclaimerFooter
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.PulseErrorState
@@ -494,6 +495,8 @@ private fun SummaryDayPage(
                 validData.verdict?.let { verdict ->
                     item { TheReadSection(verdict) }
                 }
+
+                item { DisclaimerFooter(showAiDisclosure = true) }
             }
         }
     }
@@ -1367,7 +1370,10 @@ fun MarketSentimentCard(sentiment: MarketSentiment, onClick: () -> Unit) {
                 .animateContentSize()
         ) {
             // 💡 Header lives inside the card, same as SignalSection's "Market Signal" -- not
-            // a separate SectionTitle list item.
+            // a separate SectionTitle list item. No per-card `AiGeneratedLabel` on Summary --
+            // nearly every card on this screen is AI-authored, so the disclosure lives once in
+            // this screen's own footer instead of repeating on each card (see `DisclaimerFooter`
+            // usage in this file).
             CardEyebrowLabel(
                 text = stringResource(id = R.string.section_market_sentiment),
                 color = MaterialTheme.colorScheme.primary

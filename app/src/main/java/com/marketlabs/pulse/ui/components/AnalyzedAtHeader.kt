@@ -8,9 +8,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import com.marketlabs.pulse.utils.extensions.toAnalyzedAsOfString
 
 /**
  * Top-of-content timestamp, outside any card -- the one shared "Analyzed as of" element every
@@ -21,11 +19,8 @@ import java.util.Locale
  */
 @Composable
 fun AnalyzedAtHeader(timestamp: Long, modifier: Modifier = Modifier) {
-    val date = Date(timestamp)
-    val format = SimpleDateFormat("MMM dd, h:mm a", Locale.getDefault())
-
     Text(
-        text = stringResource(id = R.string.analyzed_at, format.format(date)),
+        text = stringResource(id = R.string.analyzed_at, timestamp.toAnalyzedAsOfString()),
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = modifier

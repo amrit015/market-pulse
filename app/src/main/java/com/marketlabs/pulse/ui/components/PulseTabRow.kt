@@ -1,7 +1,21 @@
 package com.marketlabs.pulse.ui.components
 
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.offset
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.IntOffset
+import kotlin.math.abs
+import kotlin.math.roundToInt
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -84,15 +98,25 @@ import com.marketlabs.pulse.ui.theme.MarketPulseTheme
  * uses) so it stays legible over whatever chip content has scrolled underneath it -- `background`
  * itself is what an unselected chip's own fill already uses, so that color wouldn't have stood apart.
  */
-private const val TabSelectionAnimationMs = 200
+private const val TabSelectionAnimationMs = 250
 
+/**
+ * The selected chip's fill is one shared highlight that slides between chips rather than each chip
+ * fading its own fill in and out: [selectionPosition] is the (fractional) index it sits at -- a
+ * screen with a swipeable pager passes `pagerState.currentPage + pagerState.currentPageOffsetFraction`
+ * so the highlight (and the chips' text/border colors) track the swipe finger-for-finger instead of
+ * waiting for the pager to settle; a screen without a pager leaves it `null` and the highlight
+ * animates to [selectedTabIndex] on its own, so a tap slides it too. [selectedTabIndex] still drives
+ * everything else (which chip scrolls into view, what a tap reports).
+ */
 @Composable
 fun PulseTabRow(
     tabs: List<String>,
     selectedTabIndex: Int,
     onTabSelected: (Int) -> Unit,
     modifier: Modifier = Modifier,
-    highlightedTabIndex: Int? = null
+    highlightedTabIndex: Int? = null,
+    selectionPosition: (() -> Float)? = null
 ) {
     val pulseColors = LocalPulseColors.current
     val bringIntoViewRequesters = remember(tabs.size) { List(tabs.size) { BringIntoViewRequester() } }
@@ -110,78 +134,93 @@ fun PulseTabRow(
         bringIntoViewRequesters.getOrNull(selectedTabIndex)?.bringIntoView()
     }
 
+    // Each chip's bounds inside the chip row, measured after layout -- the sliding highlight needs
+    // them to know where to sit and how wide to be.
+    val chipBounds = remember(tabs.size) { mutableStateMapOf<Int, Rect>() }
+    val animatedPosition by animateFloatAsState(
+        targetValue = selectedTabIndex.toFloat(),
+        animationSpec = tween(TabSelectionAnimationMs),
+        label = "tab_selection_position"
+    )
+    val position = { (selectionPosition?.invoke() ?: animatedPosition).coerceIn(0f, (tabs.size - 1).coerceAtLeast(0).toFloat()) }
+    val boundsReady = chipBounds.size == tabs.size
+    val shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_small))
+
     Box(modifier = modifier.fillMaxWidth()) {
-        Row(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .horizontalScroll(scrollState)
                 .padding(
                     horizontal = dimensionResource(id = R.dimen.padding_large),
                     vertical = dimensionResource(id = R.dimen.padding_medium)
-                ),
-            horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_small))
+                )
         ) {
-            tabs.forEachIndexed { index, label ->
-                val isSelected = index == selectedTabIndex
-                val isHighlighted = index == highlightedTabIndex
-                val fillColor by animateColorAsState(
-                    targetValue = if (isSelected) pulseColors.accentPrimary else MaterialTheme.colorScheme.background,
-                    animationSpec = tween(TabSelectionAnimationMs),
-                    label = "tab_fill"
-                )
-                // 💡 Always a real border, animated between the fill color (selected -- blends away,
-                // same look as the old `null`) and the outline color (unselected) -- `BorderStroke`
-                // itself can't be cross-faded since it isn't a `Color`. Unaffected by `isHighlighted`
-                // -- that star glyph alone is enough to stand out; an accent border on top of it read
-                // as too heavy.
-                val borderColor by animateColorAsState(
-                    targetValue = if (isSelected) pulseColors.accentPrimary else pulseColors.accentSurfaceBorder,
-                    animationSpec = tween(TabSelectionAnimationMs),
-                    label = "tab_border"
-                )
-                val textColor by animateColorAsState(
-                    targetValue = if (isSelected) pulseColors.accentOn else pulseColors.onSurfaceMuted,
-                    animationSpec = tween(TabSelectionAnimationMs),
-                    label = "tab_text"
-                )
-                // 💡 The star stays visible in both states (was hidden the moment the tab became
-                // selected) -- `accentOn` when selected, same contrast color the label text switches
-                // to against the solid `accentPrimary` fill; `accentPrimary` otherwise, same as the
-                // unselected label's own accent-on-muted-background treatment reversed.
-                val starTint by animateColorAsState(
-                    targetValue = if (isSelected) pulseColors.accentOn else pulseColors.accentPrimary,
-                    animationSpec = tween(TabSelectionAnimationMs),
-                    label = "tab_star"
-                )
-                Surface(
-                    color = fillColor,
-                    border = BorderStroke(dimensionResource(id = R.dimen.border_thin), borderColor),
-                    shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_small)),
+            if (boundsReady) {
+                // Drawn behind the chips (which are transparent) so their text sits on top of it.
+                Box(
                     modifier = Modifier
-                        .bringIntoViewRequester(bringIntoViewRequesters[index])
-                        .clickable { onTabSelected(index) }
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(
-                            horizontal = dimensionResource(id = R.dimen.padding_large),
-                            vertical = dimensionResource(id = R.dimen.padding_medium)
-                        )
-                    ) {
-                        if (isHighlighted) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_star_filled),
-                                contentDescription = null,
-                                tint = starTint,
-                                modifier = Modifier.size(dimensionResource(id = R.dimen.icon_size_small))
-                            )
-                            Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_tiny)))
+                        .offset {
+                            val (left, _) = interpolatedBounds(chipBounds, position())
+                            IntOffset(left.roundToInt(), chipBounds.getValue(0).top.roundToInt())
                         }
-                        Text(
-                            text = label,
-                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                            color = textColor
-                        )
+                        .layout { measurable, constraints ->
+                            val (_, width) = interpolatedBounds(chipBounds, position())
+                            val height = chipBounds.getValue(0).height.roundToInt()
+                            val placeable = measurable.measure(Constraints.fixed(width.roundToInt().coerceAtLeast(0), height))
+                            layout(placeable.width, placeable.height) { placeable.place(0, 0) }
+                        }
+                        .clip(shape)
+                        .background(pulseColors.accentPrimary)
+                )
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_small))) {
+                tabs.forEachIndexed { index, label ->
+                    val isHighlighted = index == highlightedTabIndex
+                    // How selected this chip looks right now: 1 when the highlight sits exactly on it,
+                    // fading to 0 one chip away -- read inside `graphicsLayer`-free color lerps below so
+                    // it tracks the position frame by frame.
+                    val selectedness = (1f - abs(position() - index)).coerceIn(0f, 1f)
+                    val textColor = lerp(pulseColors.onSurfaceMuted, pulseColors.accentOn, selectedness)
+                    val borderColor = lerp(pulseColors.accentSurfaceBorder, pulseColors.accentPrimary, selectedness)
+                    val starTint = lerp(pulseColors.accentPrimary, pulseColors.accentOn, selectedness)
+                    Surface(
+                        // Transparent once the highlight can render; until the chips have been measured
+                        // (first frame only) the selected chip fills itself so it's never unreadable.
+                        color = if (!boundsReady && index == selectedTabIndex) pulseColors.accentPrimary else Color.Transparent,
+                        border = BorderStroke(dimensionResource(id = R.dimen.border_thin), borderColor),
+                        shape = shape,
+                        modifier = Modifier
+                            .onGloballyPositioned { coordinates ->
+                                val position = coordinates.positionInParent()
+                                val bounds = Rect(position.x, position.y, position.x + coordinates.size.width, position.y + coordinates.size.height)
+                                if (chipBounds[index] != bounds) chipBounds[index] = bounds
+                            }
+                            .bringIntoViewRequester(bringIntoViewRequesters[index])
+                            .clickable { onTabSelected(index) }
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(
+                                horizontal = dimensionResource(id = R.dimen.padding_large),
+                                vertical = dimensionResource(id = R.dimen.padding_medium)
+                            )
+                        ) {
+                            if (isHighlighted) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_star_filled),
+                                    contentDescription = null,
+                                    tint = starTint,
+                                    modifier = Modifier.size(dimensionResource(id = R.dimen.icon_size_small))
+                                )
+                                Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_tiny)))
+                            }
+                            Text(
+                                text = label,
+                                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                                color = textColor
+                            )
+                        }
                     }
                 }
             }
@@ -194,6 +233,16 @@ fun PulseTabRow(
             TabRowOverflowChevron(pointsLeft = false, modifier = Modifier.align(Alignment.CenterEnd))
         }
     }
+}
+
+/** Left edge and width of the highlight at fractional index [position], blended between the two chips it sits between. */
+private fun interpolatedBounds(chipBounds: Map<Int, Rect>, position: Float): Pair<Float, Float> {
+    val lower = position.toInt().coerceIn(0, chipBounds.size - 1)
+    val upper = (lower + 1).coerceAtMost(chipBounds.size - 1)
+    val fraction = (position - lower).coerceIn(0f, 1f)
+    val from = chipBounds.getValue(lower)
+    val to = chipBounds.getValue(upper)
+    return (from.left + (to.left - from.left) * fraction) to (from.width + (to.width - from.width) * fraction)
 }
 
 @Composable

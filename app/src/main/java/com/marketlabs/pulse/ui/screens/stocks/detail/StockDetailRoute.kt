@@ -237,10 +237,15 @@ fun StockDetailRoute(
                         }
                     }
             ) {
+                val isDeepDiveFlashing = uiState.isFavorite && (uiState.preview?.deepAnalysisDate != null) && (uiState.symbol !in uiState.clickedDeepDiveSymbols)
                 DeepDiveCard(
                     deepAnalysisDate = uiState.preview?.deepAnalysisDate,
                     nextDeepDiveTriggerDate = uiState.preview?.nextDeepDiveTriggerDate,
-                    onClick = { onNavigateToDeepDive(uiState.symbol) },
+                    onClick = {
+                        viewModel.markDeepDiveClicked()
+                        onNavigateToDeepDive(uiState.symbol)
+                    },
+                    isFlashing = isDeepDiveFlashing,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(
@@ -276,7 +281,8 @@ fun StockDetailRoute(
         PulseTabRow(
             tabs = DetailTab.entries.map { stringResource(id = it.labelRes) },
             selectedTabIndex = uiState.selectedTabIndex,
-            onTabSelected = viewModel::onTabSelected
+            onTabSelected = viewModel::onTabSelected,
+            selectionPosition = { pagerState.currentPage + pagerState.currentPageOffsetFraction }
         )
 
         // 💡 `weight(1f)`, not just `fillMaxSize()` -- without it, if the collapsing chrome above

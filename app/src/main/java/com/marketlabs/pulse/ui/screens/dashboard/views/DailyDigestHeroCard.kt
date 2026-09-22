@@ -34,6 +34,7 @@ import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.stocks.DomainDigestSection
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
+import com.marketlabs.pulse.ui.components.widgets.AiGeneratedLabel
 import com.marketlabs.pulse.ui.components.widgets.CardEyebrowLabel
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
@@ -140,6 +141,11 @@ fun DailyDigestHeroCard(
                         )
                     }
 
+                    // 💡 `sections` are "extra metadata" -- collapsed hides them entirely (nothing
+                    // renders between detail and the AI label below), expanded shows them here,
+                    // BETWEEN detail and the label. Card order either way: headline, detail, [extra
+                    // metadata if expanded], this label (always visible), then the market-status
+                    // footer below (priority metadata, unaffected by expand state).
                     if (isExpanded) {
                         sections.forEach { section ->
                             Spacer(modifier = Modifier.height(paddingLarge))
@@ -160,6 +166,11 @@ fun DailyDigestHeroCard(
                             )
                         }
                     }
+
+                    if (!detail.isNullOrBlank()) {
+                        Spacer(modifier = Modifier.height(paddingMedium))
+                        AiGeneratedLabel()
+                    }
                 }
             }
             HorizontalDivider(
@@ -176,7 +187,7 @@ fun DailyDigestHeroCard(
                     else painterResource(id = R.drawable.ic_moon),
                     modifier = Modifier.size(dimensionResource(id = R.dimen.icon_size_small)),
                     contentDescription = null,
-                    tint = if (isEquityOpen) LocalPulseColors.current.signalWarningText else Color.Unspecified
+                    tint = if (isEquityOpen) LocalPulseColors.current.signalNeutralText else Color.Unspecified
                 )
                 Spacer(modifier = Modifier.width(paddingSmall))
                 Text(

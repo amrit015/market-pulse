@@ -20,6 +20,10 @@ data class MetricGlossaryBand(
 data class MetricGlossaryEntry(
     @Json(name = "what_it_is") val whatItIs: String,
     @Json(name = "how_to_read") val howToRead: String,
+    /** spec-20260917-content-refinement.md Pass 2: the "form-your-own-read" hook -- what to track
+     * about this metric over time (a level, a direction, a duration) rather than read as a single
+     * static number. */
+    @Json(name = "watch") val watch: String? = null,
     @Json(name = "bands") val bands: List<MetricGlossaryBand> = emptyList(),
     @Json(name = "gotchas") val gotchas: String? = null
 )

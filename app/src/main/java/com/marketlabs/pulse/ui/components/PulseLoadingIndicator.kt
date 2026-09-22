@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
@@ -35,10 +36,17 @@ import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 /**
  * Indeterminate loading treatment used while a screen is waiting for its first set of data.
  * It briefly begins as the completed launcher mark, clears, then reconstructs it continuously.
+ *
+ * `size` defaults to the original full-screen treatment's 184dp but is otherwise free to shrink —
+ * `LauncherMarkAnimation`'s geometry is derived from its own `DrawScope.size` (`size.minDimension /
+ * 108f`), so passing a smaller `size` here scales the whole mark proportionally rather than clipping
+ * it. Used at a small size for `DashboardRoute`'s pull-to-refresh indicator, in place of Material's
+ * default spinner, for brand consistency with the splash screen and every other loading state.
  */
 @Composable
 fun PulseLoadingIndicator(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    size: Dp = 184.dp
 ) {
     val transition = rememberInfiniteTransition(label = "pulse-loader")
     val progress = transition.animateFloat(
@@ -70,13 +78,13 @@ fun PulseLoadingIndicator(
                 painter = painterResource(id = R.drawable.app_launcher_foreground),
                 contentDescription = null,
                 modifier = Modifier
-                    .size(184.dp)
+                    .size(size)
                     .alpha(0.14f)
                     .scale(1.42f)
             )
             LauncherMarkAnimation(
                 progress = progress.value,
-                modifier = Modifier.size(184.dp)
+                modifier = Modifier.size(size)
             )
         }
     }

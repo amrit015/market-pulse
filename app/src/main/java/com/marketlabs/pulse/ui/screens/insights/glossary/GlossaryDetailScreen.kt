@@ -34,6 +34,7 @@ import com.marketlabs.pulse.core.insights.InsightsHistoryPillar
 import com.marketlabs.pulse.storage.model.charts.ChartRange
 import com.marketlabs.pulse.storage.model.indicators.MetricHistoryPoint
 import com.marketlabs.pulse.storage.model.insights.InsightsHistoryPoint
+import com.marketlabs.pulse.ui.components.DisclaimerFooter
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.charts.ChartRangePicker
@@ -177,6 +178,31 @@ fun GlossaryDetailScreen(
                 )
             }
 
+            // 💡 Pass 2's "form-your-own-read" hook, same section treatment MetricDetailScreen
+            // gives it -- shown per underlying value here since each has its own thing to watch.
+            if (!section.watch.isNullOrBlank()) {
+                if (!showSectionLabels) {
+                    Text(
+                        text = stringResource(id = R.string.indicators_detail_watch).uppercase(),
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = section.watch,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.padding(top = paddingSmall, bottom = paddingMedium)
+                    )
+                } else {
+                    Text(
+                        text = section.watch,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = paddingMedium)
+                    )
+                }
+            }
+
             if (!section.gotchas.isNullOrBlank()) {
                 GlossaryGotchaCallout(text = section.gotchas)
                 Spacer(modifier = Modifier.height(paddingMedium))
@@ -202,6 +228,7 @@ fun GlossaryDetailScreen(
         }
 
         Spacer(modifier = Modifier.height(paddingExtraLarge))
+        DisclaimerFooter()
     }
 }
 
@@ -226,16 +253,22 @@ private fun GlossaryBandRow(band: MetricGlossaryBand, isCurrent: Boolean) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // 💡 `weight(1f)` so a long label wraps inside its own share of the row instead of
+                // squeezing the "CURRENT" badge into a one-letter-wide column.
                 Text(
                     text = band.label,
                     style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                    color = if (isCurrent) accent else MaterialTheme.colorScheme.onBackground
+                    color = if (isCurrent) accent else MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.weight(1f)
                 )
                 if (isCurrent) {
                     Text(
                         text = stringResource(id = R.string.status_current),
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                        color = accent
+                        color = accent,
+                        maxLines = 1,
+                        softWrap = false,
+                        modifier = Modifier.padding(start = paddingSmall)
                     )
                 }
             }
@@ -319,12 +352,14 @@ private val previewSections = listOf(
         label = "Days to Cover",
         whatItIs = "If every short seller tried to buy back their shares using only a typical day's trading volume, this is roughly how many days it would take.",
         howToRead = "Higher days-to-cover means less room for short sellers to exit quickly.",
+        watch = "Watch this as squeeze potential, not squeeze likelihood.",
         gotchas = "This measures potential, not likelihood."
     ),
     GlossarySection(
         label = "Month-over-Month Change",
         whatItIs = "How much short interest changed since the prior FINRA settlement date.",
         howToRead = "The trend is often more informative than the absolute level.",
+        watch = "Watch whether shorts are building or covering.",
         gotchas = "Settlement data is roughly 8 business days old by the time it's published."
     )
 )

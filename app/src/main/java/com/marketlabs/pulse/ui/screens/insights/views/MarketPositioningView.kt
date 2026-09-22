@@ -52,9 +52,8 @@ import com.marketlabs.pulse.utils.enums.CotPositioningStatus
 import com.marketlabs.pulse.utils.enums.DeltaDirection
 import com.marketlabs.pulse.utils.enums.RetailSentimentStatus
 import com.marketlabs.pulse.utils.enums.ShortInterestStatus
+import com.marketlabs.pulse.utils.extensions.toAnalyzedAsOfString
 import com.marketlabs.pulse.utils.toDisplayDate
-import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
 import kotlin.math.abs
 
@@ -96,10 +95,9 @@ fun MarketPositioningSection(
             )
         }
 
-        val date = positioningData.timestamp?.let { Date(it) } ?: Date()
-        val format = SimpleDateFormat("MMM dd, h:mm a", Locale.getDefault())
+        val analyzedAt = (positioningData.timestamp ?: System.currentTimeMillis()).toAnalyzedAsOfString()
         Text(
-            text = stringResource(id = R.string.analyzed_at, format.format(date)),
+            text = stringResource(id = R.string.analyzed_at, analyzedAt),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(

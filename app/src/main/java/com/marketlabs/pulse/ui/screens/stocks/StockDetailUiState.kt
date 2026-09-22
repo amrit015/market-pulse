@@ -69,5 +69,6 @@ data class StockDetailUiState(
     val isEquityOpen: Boolean = false,
     /** Local-only, per-device -- same `FavoriteStocksRepository` the Analysis tab's star reads. */
     val isFavorite: Boolean = false,
+    val clickedDeepDiveSymbols: Set<String> = emptySet(),
     val error: UiError? = null
 )

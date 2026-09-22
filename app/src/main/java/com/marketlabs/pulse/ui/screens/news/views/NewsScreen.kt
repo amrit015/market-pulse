@@ -2,6 +2,8 @@ package com.marketlabs.pulse.ui.screens.news.views
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,11 +35,13 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 import com.google.android.gms.ads.nativead.NativeAd
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.news.MarketNews
 import com.marketlabs.pulse.storage.model.news.NewsArticle
+import com.marketlabs.pulse.ui.components.DisclaimerFooter
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.ads.PulseNativeAdCard
@@ -45,11 +49,9 @@ import com.marketlabs.pulse.ui.components.widgets.SignalPill
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 import com.marketlabs.pulse.ui.theme.PulseColors
+import com.marketlabs.pulse.utils.extensions.toAnalyzedAsOfString
 import com.marketlabs.pulse.utils.extensions.toRelativeTimeString
 import com.marketlabs.pulse.utils.getMidnightTimestamp
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 /**
  * 💡 Both NewsArticleCard and NewsPreviewCard resolve the same sentiment -> (text, pill) pair --
@@ -93,7 +95,7 @@ fun NewsScreen(
 
     // Added with Claude Code assistance: scroll the respective card into view when a Dashboard
     // news preview card was tapped. Item index is offset by 1 for the header item above the
-    // list, plus another 1 if the target sits after the "Last 2 Days" banner.
+    // list, plus another 1 if the target sits after the "Last few days" banner.
     LaunchedEffect(highlightedArticleUrl, data.stories) {
         val targetIndex = data.stories?.indexOfFirst { it.url == highlightedArticleUrl } ?: -1
         if (targetIndex >= 0) {
@@ -135,7 +137,10 @@ fun NewsScreen(
         } else {
             // Render Articles safely
             todayStories.forEachIndexed { index, article ->
-                item(key = article.url ?: "today_$index") {
+                // 💡 Key = section + position + url, never the url alone: the backend can send the same
+                // article twice (or a blank/null url for one without a source link), and a repeated
+                // key crashes LazyColumn once the second copy is composed, i.e. partway through a scroll.
+                item(key = "today_${index}_${article.url.orEmpty()}") {
                     NewsArticleCard(
                         article = article,
                         onClick = { url -> onArticleClick(url) },
@@ -178,7 +183,8 @@ fun NewsScreen(
                 item { LastTwoDaysBanner() }
 
                 earlierStories.forEachIndexed { index, article ->
-                    item(key = article.url ?: "earlier_$index") {
+                    // See the matching comment on the today-stories loop above.
+                    item(key = "earlier_${index}_${article.url.orEmpty()}") {
                         NewsArticleCard(
                             article = article,
                             onClick = { url -> onArticleClick(url) },
@@ -221,6 +227,8 @@ fun NewsScreen(
                     }
                 }
             }
+
+            item { DisclaimerFooter() }
         }
     }
 }
@@ -232,11 +240,8 @@ fun NewsScreen(
  */
 @Composable
 fun HeaderSection(timestamp: Long) {
-    val date = Date(timestamp)
-    val format = SimpleDateFormat("MMM dd, h:mm a", Locale.getDefault())
-
     Text(
-        text = stringResource(id = R.string.analyzed_at, format.format(date)),
+        text = stringResource(id = R.string.analyzed_at, timestamp.toAnalyzedAsOfString()),
         style = MaterialTheme.typography.bodySmall,
         // 💡 ACTION: Replaced hardcoded Color.Gray with Theme's semantic variant text color
         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -448,8 +453,13 @@ fun NewsPreviewSection(
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
+        // 💡 The whole title row is the tap target (title text + chevron), not just the chevron --
+        // the chevron is a plain icon here, so there's no nested clickable inside the row.
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 48.dp)
+                .clickable(onClick = onSeeAllClick),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -459,13 +469,12 @@ fun NewsPreviewSection(
                 color = LocalPulseColors.current.accentPrimary
             )
 
-            IconButton(onClick = onSeeAllClick) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_chevron_forward),
-                    contentDescription = stringResource(id = R.string.dashboard_news_see_all),
-                    tint = LocalPulseColors.current.accentPrimary
-                )
-            }
+            Icon(
+                painter = painterResource(id = R.drawable.ic_chevron_forward),
+                contentDescription = stringResource(id = R.string.dashboard_news_see_all),
+                tint = LocalPulseColors.current.accentPrimary,
+                modifier = Modifier.padding(end = dimensionResource(id = R.dimen.padding_medium))
+            )
         }
 
         // 💡 Was `padding_small` (4dp) -- read as cramped next to the more generously spaced

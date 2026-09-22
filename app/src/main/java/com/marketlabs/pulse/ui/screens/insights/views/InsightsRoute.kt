@@ -128,7 +128,8 @@ fun InsightsRoute(
         PulseTabRow(
             tabs = InsightsTab.entries.map { stringResource(id = it.labelRes) },
             selectedTabIndex = uiState.selectedTabIndex,
-            onTabSelected = viewModel::onTabSelected
+            onTabSelected = viewModel::onTabSelected,
+            selectionPosition = { pagerState.currentPage + pagerState.currentPageOffsetFraction }
         )
 
         Box(modifier = Modifier.fillMaxSize()) {

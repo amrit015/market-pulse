@@ -82,6 +82,7 @@ class GlossaryDetailViewModel @Inject constructor(
                 label = context.getString(labelResFor(metricId)),
                 whatItIs = entry.whatItIs,
                 howToRead = entry.howToRead,
+                watch = entry.watch,
                 gotchas = entry.gotchas
             )
         }

@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.Flow
  */
 interface ThemeRepository {
 
-    /** Emits `LILAC` (the default hero preset) until the user has ever picked one; persisted after. */
+    /** Emits PLUM (light-mode device) or LILAC (dark-mode device) until the user has ever picked one; persisted after. */
     val selectedTheme: Flow<MarketPulseTheme>
 
     suspend fun setTheme(theme: MarketPulseTheme)

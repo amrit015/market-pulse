@@ -92,4 +92,13 @@
     <!-- Google AdMob & Native Ad Cards -->
     <dimen name="ad_creative_image_height">140dp</dimen>
     <dimen name="ad_logo_size">20dp</dimen>
+
+    <!-- FormattedBodyText: fixed-width column a list item's "•"/"N." marker sits in, so a wrapped
+         continuation line lines up under the item's own text (a hanging indent). -->
+    <dimen name="list_marker_column_width">20dp</dimen>
+
+    <!-- Tutorials Pass 4 inline diagrams (TutorialDiagrams.kt) -->
+    <dimen name="tutorial_diagram_height">160dp</dimen>
+    <dimen name="tutorial_diagram_height_tall">220dp</dimen>
+    <dimen name="tutorial_diagram_gauge_bar_height">20dp</dimen>
 </resources>

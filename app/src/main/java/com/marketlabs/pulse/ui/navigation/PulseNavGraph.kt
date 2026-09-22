@@ -12,10 +12,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.components.PulseWebViewScreen
 import com.marketlabs.pulse.ui.screens.dashboard.detail.AssetDetailRoute
@@ -23,17 +26,34 @@ import com.marketlabs.pulse.ui.screens.dashboard.views.DashboardRoute
 import com.marketlabs.pulse.ui.screens.indicators.detail.MetricDetailRoute
 import com.marketlabs.pulse.ui.screens.indicators.views.IndicatorHorizonsRoute
 import com.marketlabs.pulse.ui.screens.indicators.views.IndicatorsRoute
+import com.marketlabs.pulse.ui.components.PlaceholderScreen
 import com.marketlabs.pulse.ui.screens.insights.glossary.GlossaryDetailRoute
 import com.marketlabs.pulse.ui.screens.insights.views.InsightsRoute
 import com.marketlabs.pulse.ui.screens.insights.views.InsightsTab
+import com.marketlabs.pulse.ui.screens.legal.LegalAcceptanceRoute
+import com.marketlabs.pulse.ui.screens.legal.PrivacyPolicyScreen
+import com.marketlabs.pulse.ui.screens.legal.TermsConditionsScreen
 import com.marketlabs.pulse.ui.screens.news.views.NewsRoute
+import com.marketlabs.pulse.ui.screens.onboarding.OnboardingCarouselScreen
 import com.marketlabs.pulse.ui.screens.stocks.deepdive.DeepDiveRoute
 import com.marketlabs.pulse.ui.screens.stocks.detail.StockDetailRoute
 import com.marketlabs.pulse.ui.screens.stocks.detail.timeline.ResolvedCallsListRoute
 import com.marketlabs.pulse.ui.screens.stocks.detail.timeline.TechnicalTimelineListRoute
 import com.marketlabs.pulse.ui.screens.stocks.views.StockAnalysisRoute
 import com.marketlabs.pulse.ui.screens.summary.views.MarketSummaryRoute
+import com.marketlabs.pulse.ui.screens.tutorials.TutorialsDataLimitationsScreen
+import com.marketlabs.pulse.ui.screens.tutorials.TutorialsGaugeAnatomyScreen
+import com.marketlabs.pulse.ui.screens.tutorials.ConceptArticle
+import com.marketlabs.pulse.ui.components.tutorials.Mechanism
+import com.marketlabs.pulse.ui.screens.tutorials.MechanismDeckScreen
+import com.marketlabs.pulse.ui.screens.tutorials.StockSetupsGlossaryScreen
+import com.marketlabs.pulse.ui.screens.tutorials.TutorialsConceptScreen
+import com.marketlabs.pulse.ui.screens.tutorials.TutorialsGaugesRoute
+import com.marketlabs.pulse.ui.screens.tutorials.TutorialsHubScreen
+import com.marketlabs.pulse.ui.settings.AboutRoute
+import com.marketlabs.pulse.ui.settings.DataSyncScreen
 import com.marketlabs.pulse.ui.settings.SettingsRoute
+import com.marketlabs.pulse.ui.settings.ThemePickerRoute
 import com.marketlabs.pulse.utils.enums.ReportType
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -104,6 +124,33 @@ object PulseRoutes {
     // GlossaryDetailViewModel's doc comment); "metricIds" itself needs no encoding, since every
     // core/glossary/ id is plain lowercase/dot/underscore.
     const val GLOSSARY_DETAIL = "glossaryDetail"
+
+    // spec-20260915-compliance-disclaimers.md §7/§2: precedes MARKET_OVERVIEW on a cold start until
+    // acceptedVersion >= LegalRepository.CURRENT_LEGAL_VERSION -- see MainActivity's startDestination
+    // computation. Not reachable any other way once accepted (no back-stack entry survives it).
+    const val ONBOARDING_CAROUSEL = "onboarding_carousel"
+    const val LEGAL_ACCEPTANCE = "legal_acceptance"
+
+    // Reached from Settings' own Terms & Conditions/Privacy Policy rows (no intermediate "Legal"
+    // hub screen) and from the acceptance screen's own links.
+    const val TERMS_CONDITIONS = "terms_conditions"
+    const val PRIVACY_POLICY = "privacy_policy"
+
+    // Reached from Settings -> Tutorials (spec §6, Phase 2).
+    const val TUTORIALS_HUB = "tutorials_hub"
+    // Route-argument prefixes -- the full route is "$TUTORIALS_DECK/{mechanism}" etc.
+    const val TUTORIALS_DECK = "tutorials_deck"
+    const val TUTORIALS_GLOSSARY = "tutorials_glossary"
+    const val TUTORIALS_CONCEPT = "tutorials_concept"
+    const val TUTORIALS_DATA_LIMITATIONS = "tutorials_data_limitations"
+    const val TUTORIALS_GAUGE_ANATOMY = "tutorials_gauge_anatomy"
+
+    // Reached from Settings' three formerly-Toast-stub rows -- now real (if content-empty)
+    // destinations per spec-20260915-compliance-disclaimers.md's Settings-rows decision.
+    const val SETTINGS_NOTIFICATIONS = "settings_notifications"
+    const val SETTINGS_DATA_SYNC = "settings_data_sync"
+    const val SETTINGS_ABOUT = "settings_about"
+    const val SETTINGS_THEME_PICKER = "settings_theme_picker"
 }
 
 /** * 💡 UPDATED: Added a second icon resource for the 'selected' filled state
@@ -152,6 +199,13 @@ val bottomNavItems = listOf(
 fun PulseNavGraph(
     navController: NavHostController,
     scaffoldPadding: PaddingValues,
+    // spec-20260915-compliance-disclaimers.md: MainActivity reads LegalRepository.acceptedVersion
+    // synchronously before setContent (same runBlocking-on-a-cached-DataStore-read pattern already
+    // used for the theme) and picks ONBOARDING_CAROUSEL or MARKET_OVERVIEW -- computed once at cold
+    // start, not re-evaluated reactively, since NavHost's own startDestination can't change after
+    // the graph is built. Acceptance itself clears the onboarding back stack via popUpTo/inclusive
+    // instead.
+    startDestination: String,
     // 💡 MainActivity owns the "did we arrive at Indicators via Drivers" flag -- this graph
     // reports the event up (onDriversNavigatedToIndicators) and reads the flag back down
     // (reachedIndicatorsFromDrivers) to place the BackHandler that consumes it, since that
@@ -190,7 +244,7 @@ fun PulseNavGraph(
 
     NavHost(
         navController = navController,
-        startDestination = PulseRoutes.MARKET_OVERVIEW,
+        startDestination = startDestination,
         modifier = modifier.fillMaxSize(),
         // 💡 Applied once here (none of the routes below override it) so every push/pop in the
         // app gets the same fade instead of Navigation-Compose's raw default. Fade-only (no
@@ -200,6 +254,39 @@ fun PulseNavGraph(
         popEnterTransition = { fadeIn(tween(NavTransitionFadeDurationMs)) },
         popExitTransition = { fadeOut(tween(NavTransitionFadeDurationMs)) }
     ) {
+        // spec-20260915-compliance-disclaimers.md §7 -- only ever reached as the graph's own
+        // startDestination on a not-yet-accepted cold start (see the startDestination param above),
+        // never pushed onto an existing back stack.
+        composable(PulseRoutes.ONBOARDING_CAROUSEL) {
+            OnboardingCarouselScreen(
+                onContinue = { navController.navigate(PulseRoutes.LEGAL_ACCEPTANCE) }
+            )
+        }
+        // spec-20260915-compliance-disclaimers.md §2 -- accepting clears the entire onboarding back
+        // stack (popUpTo the graph root, inclusive) so the user can never navigate back into it, and
+        // so a later cold start reads MARKET_OVERVIEW as the start destination instead.
+        composable(PulseRoutes.LEGAL_ACCEPTANCE) {
+            LegalAcceptanceRoute(
+                onAccepted = {
+                    navController.navigate(PulseRoutes.MARKET_OVERVIEW) {
+                        popUpTo(navController.graph.id) {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
+                    }
+                },
+                onNavigateToTerms = { navController.navigate(PulseRoutes.TERMS_CONDITIONS) },
+                onNavigateToPrivacyPolicy = { navController.navigate(PulseRoutes.PRIVACY_POLICY) }
+            )
+        }
+        // Reached both from the acceptance screen's own links (above) and from Settings -> Legal
+        // (below) -- same two destinations either way, no acceptance action from this path.
+        composable(PulseRoutes.TERMS_CONDITIONS) {
+            TermsConditionsScreen(onNavigateUp = { navController.popBackStack() })
+        }
+        composable(PulseRoutes.PRIVACY_POLICY) {
+            PrivacyPolicyScreen(onNavigateUp = { navController.popBackStack() })
+        }
         composable(PulseRoutes.MARKET_SUMMARY) {
             MarketSummaryRoute(
                 scaffoldPadding = scaffoldPadding,
@@ -445,7 +532,93 @@ fun PulseNavGraph(
 
         // Reached from the gear icon on the global top bar.
         composable(PulseRoutes.SETTINGS) {
-            SettingsRoute(onNavigateUp = { navController.popBackStack() })
+            SettingsRoute(
+                onNavigateUp = { navController.popBackStack() },
+                onNavigateToThemePicker = { navController.navigate(PulseRoutes.SETTINGS_THEME_PICKER) },
+                onNavigateToNotifications = { navController.navigate(PulseRoutes.SETTINGS_NOTIFICATIONS) },
+                onNavigateToDataSync = { navController.navigate(PulseRoutes.SETTINGS_DATA_SYNC) },
+                onNavigateToAbout = { navController.navigate(PulseRoutes.SETTINGS_ABOUT) },
+                onNavigateToTerms = { navController.navigate(PulseRoutes.TERMS_CONDITIONS) },
+                onNavigateToPrivacyPolicy = { navController.navigate(PulseRoutes.PRIVACY_POLICY) },
+                onNavigateToTutorials = { navController.navigate(PulseRoutes.TUTORIALS_HUB) }
+            )
+        }
+        // Content/design not yet supplied -- PlaceholderScreen is a bare back button + "coming soon" body.
+        composable(PulseRoutes.SETTINGS_NOTIFICATIONS) {
+            PlaceholderScreen(
+                title = stringResource(id = R.string.settings_item_notifications),
+                onNavigateUp = { navController.popBackStack() }
+            )
+        }
+        composable(PulseRoutes.SETTINGS_DATA_SYNC) {
+            DataSyncScreen(onNavigateUp = { navController.popBackStack() })
+        }
+        composable(PulseRoutes.SETTINGS_ABOUT) {
+            AboutRoute(
+                onNavigateUp = { navController.popBackStack() },
+                onNavigateToPrivacyPolicy = { navController.navigate(PulseRoutes.PRIVACY_POLICY) },
+                onNavigateToTerms = { navController.navigate(PulseRoutes.TERMS_CONDITIONS) }
+            )
+        }
+        composable(PulseRoutes.SETTINGS_THEME_PICKER) {
+            ThemePickerRoute(onNavigateUp = { navController.popBackStack() })
+        }
+        composable(PulseRoutes.TUTORIALS_HUB) {
+            TutorialsHubScreen(
+                onNavigateUp = { navController.popBackStack() },
+                onNavigateToGaugeAnatomy = { navController.navigate(PulseRoutes.TUTORIALS_GAUGE_ANATOMY) },
+                onNavigateToConcept = { navController.navigate("${PulseRoutes.TUTORIALS_CONCEPT}/${it.routeKey}") },
+                onNavigateToMechanism = { navController.navigate("${PulseRoutes.TUTORIALS_DECK}/${it.routeKey}") },
+                onNavigateToDataLimitations = { navController.navigate(PulseRoutes.TUTORIALS_DATA_LIMITATIONS) }
+            )
+        }
+        composable("${PulseRoutes.TUTORIALS_CONCEPT}/{article}") { backStackEntry ->
+            val article = ConceptArticle.fromRouteKey(backStackEntry.arguments?.getString("article"))
+            if (article != null) {
+                TutorialsConceptScreen(article = article, onNavigateUp = { navController.popBackStack() })
+            }
+        }
+        // Optional `group` = comma-separated mechanism keys when opened from a screen's "Show More"
+        // that spans several mechanisms (a tab row then switches between them).
+        composable(
+            route = "${PulseRoutes.TUTORIALS_DECK}/{mechanism}?group={group}",
+            arguments = listOf(navArgument("group") { type = NavType.StringType; nullable = true; defaultValue = null })
+        ) { backStackEntry ->
+            val mechanism = Mechanism.fromRouteKey(backStackEntry.arguments?.getString("mechanism"))
+            val group = backStackEntry.arguments?.getString("group")
+                ?.split(",")
+                ?.mapNotNull { Mechanism.fromRouteKey(it) }
+                .orEmpty()
+            if (mechanism != null) {
+                MechanismDeckScreen(
+                    mechanism = mechanism,
+                    group = group,
+                    onNavigateUp = { navController.popBackStack() },
+                    onSeeIndicators = { current, whole ->
+                        val query = if (whole.isEmpty()) "" else "?group=${whole.joinToString(",") { it.routeKey }}"
+                        navController.navigate("${PulseRoutes.TUTORIALS_GLOSSARY}/${current.routeKey}$query")
+                    }
+                )
+            }
+        }
+        // Optional `group` = every mechanism of the screen that opened it ("See all indicators" from
+        // a "Show More" deck); absent = just the one mechanism (opened from the Tutorials hub).
+        composable(
+            route = "${PulseRoutes.TUTORIALS_GLOSSARY}/{mechanism}?group={group}",
+            arguments = listOf(navArgument("group") { type = NavType.StringType; nullable = true; defaultValue = null })
+        ) { backStackEntry ->
+            val mechanism = Mechanism.fromRouteKey(backStackEntry.arguments?.getString("mechanism"))
+            if (mechanism == Mechanism.STOCK_ANALYSIS) {
+                StockSetupsGlossaryScreen(onNavigateUp = { navController.popBackStack() })
+            } else if (mechanism != null) {
+                TutorialsGaugesRoute(onNavigateUp = { navController.popBackStack() })
+            }
+        }
+        composable(PulseRoutes.TUTORIALS_GAUGE_ANATOMY) {
+            TutorialsGaugeAnatomyScreen(onNavigateUp = { navController.popBackStack() })
+        }
+        composable(PulseRoutes.TUTORIALS_DATA_LIMITATIONS) {
+            TutorialsDataLimitationsScreen(onNavigateUp = { navController.popBackStack() })
         }
     }
 }

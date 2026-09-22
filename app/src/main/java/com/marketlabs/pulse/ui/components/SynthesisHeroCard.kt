@@ -26,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.ui.components.widgets.AiGeneratedLabel
 import com.marketlabs.pulse.ui.components.widgets.CardEyebrowLabel
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
@@ -128,6 +129,10 @@ fun SynthesisHeroCard(
                         maxLines = if (isExpanded) Int.MAX_VALUE else 3,
                         overflow = TextOverflow.Ellipsis,
                     )
+                    // 💡 Card order: headline, then detail (collapsed/expanded), then this label --
+                    // always visible regardless of expand state, not gated behind expanding detail.
+                    Spacer(modifier = Modifier.height(paddingSmall))
+                    AiGeneratedLabel()
                 }
             }
         }
@@ -154,6 +159,10 @@ private fun PreviewSynthesisHeroCardLight() {
 @Composable
 private fun PreviewSynthesisHeroCardUnavailable() {
     MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
-        SynthesisHeroCard(headline = null, detail = null, isUnavailable = true)
+        SynthesisHeroCard(
+            headline = null,
+            detail = null,
+            isUnavailable = true
+        )
     }
 }

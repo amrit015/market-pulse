@@ -62,10 +62,12 @@ import com.marketlabs.pulse.storage.model.indicators.DomainShift
 import com.marketlabs.pulse.storage.model.indicators.DomainUnifiedMetric
 import com.marketlabs.pulse.storage.model.indicators.MarketIndicators
 import com.marketlabs.pulse.ui.components.AnalyzedAtHeader
+import com.marketlabs.pulse.ui.components.DisclaimerFooter
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.PulseTabRow
 import com.marketlabs.pulse.ui.components.UniversalMetricCard
+import com.marketlabs.pulse.ui.components.widgets.AiGeneratedLabel
 import com.marketlabs.pulse.ui.components.widgets.CardEyebrowLabel
 import com.marketlabs.pulse.ui.components.widgets.MetricInfoAction
 import com.marketlabs.pulse.ui.components.widgets.SignalPill
@@ -351,7 +353,8 @@ private fun IndicatorsMainFeed(
             tabs = IndicatorsTab.entries.map { stringResource(id = it.labelRes) },
             selectedTabIndex = selectedTabIndex,
             onTabSelected = onTabSelected,
-            highlightedTabIndex = IndicatorsTab.FAVORITES.ordinal
+            highlightedTabIndex = IndicatorsTab.FAVORITES.ordinal,
+            selectionPosition = { pagerState.currentPage + pagerState.currentPageOffsetFraction }
         )
 
         // 💡 `weight(1f)`, not just `fillMaxSize()` -- without it, if the collapsing chrome above
@@ -383,7 +386,11 @@ private fun IndicatorsMainFeed(
                         end = paddingLarge,
                         top = paddingLarge,
                         bottom = scaffoldPadding.calculateBottomPadding() + paddingLarge
-                    )
+                    ),
+                    // 💡 padding_extra_large gap before the footer -- same value every other
+                    // screen's DisclaimerFooter sits below; this LazyColumn only ever has the one
+                    // content item plus the footer, so spacedBy here affects just that one gap.
+                    verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_extra_large))
                 ) {
                     if (tab == IndicatorsTab.FAVORITES) {
                         val favoritedMetrics = allMetrics.filter { it.id in favoriteMetricIds }
@@ -412,6 +419,8 @@ private fun IndicatorsMainFeed(
                     } else {
                         item { IndicatorsTabEmptyState() }
                     }
+
+                    item { DisclaimerFooter() }
                 }
             }
         }
@@ -628,7 +637,10 @@ private fun AiExecutiveBriefingHero(
                 )
             }
 
-            // 💡 what_changed and shifts[] are both "since yesterday" detail -- collapsed by
+            // 💡 what_changed and shifts[] are "extra metadata" -- collapsed hides them entirely
+            // (nothing renders between alignment_note and the AI label below), expanded shows them
+            // here, BETWEEN alignment_note and the label. Card order either way: alignment pill,
+            // headline, alignment_note, [extra metadata if expanded], this label (always visible).
             // default along with the rest of the card's supporting detail, not shown until the
             // reader taps to expand. No internal scroll/height cap here -- the whole card (and
             // this whole screen's collapsing chrome, which it's part of) grows to show it in full;
@@ -677,6 +689,11 @@ private fun AiExecutiveBriefingHero(
                         }
                     }
                 }
+            }
+
+            if (executive.alignmentNote.isNotBlank()) {
+                Spacer(modifier = Modifier.height(paddingMedium))
+                AiGeneratedLabel()
             }
         }
     }
@@ -800,7 +817,10 @@ private fun PillarSection(
         }
 
         scorecardEntry?.let { entry ->
-            PillarScorecardCard(entry = entry, modifier = Modifier.padding(bottom = paddingMedium))
+            PillarScorecardCard(
+                entry = entry,
+                modifier = Modifier.padding(bottom = paddingMedium)
+            )
         }
 
         val groupedMetrics = config.pillarData.metrics.groupBy { it.subcategory }
@@ -876,7 +896,10 @@ private fun PillarSection(
  * string with no structured agreement/stance to show.
  */
 @Composable
-private fun PillarScorecardCard(entry: DomainPillarScorecardEntry, modifier: Modifier = Modifier) {
+private fun PillarScorecardCard(
+    entry: DomainPillarScorecardEntry,
+    modifier: Modifier = Modifier
+) {
     val paddingMedium = dimensionResource(id = R.dimen.padding_medium)
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
     val paddingSmall = dimensionResource(id = R.dimen.padding_small)
@@ -888,6 +911,16 @@ private fun PillarScorecardCard(entry: DomainPillarScorecardEntry, modifier: Mod
         modifier = modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(paddingLarge)) {
+            // 💡 Same eyebrow (sparkle icon + accent label) as the executive briefing hero's
+            // "Today's Read" -- marks this card as AI-sourced and names it, so the sparkle no
+            // longer needs to sit beside the one-liner below.
+            CardEyebrowLabel(
+                text = stringResource(id = R.string.indicators_alignments_read),
+                color = LocalPulseColors.current.accentPrimary,
+                iconRes = R.drawable.ic_ai_sparkle_filled,
+                iconContentDescription = stringResource(id = R.string.summary_analysis_engine_content_description)
+            )
+            Spacer(modifier = Modifier.height(paddingMedium))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -918,26 +951,19 @@ private fun PillarScorecardCard(entry: DomainPillarScorecardEntry, modifier: Mod
             }
             Spacer(modifier = Modifier.height(paddingMedium))
             // 💡 `oneLiner` is AI-authored prose (the model narrates around the code-computed
-            // agreement/stance above it, never invents them) -- the same sparkle glyph the
-            // executive briefing hero's "Today's Read" eyebrow uses marks it as AI-sourced here
-            // too, rather than reading as a plain data label like the stance pill next to it.
-            Row(verticalAlignment = Alignment.Top) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_ai_sparkle_filled),
-                    contentDescription = stringResource(id = R.string.summary_analysis_engine_content_description),
-                    tint = LocalPulseColors.current.accentPrimary,
-                    modifier = Modifier
-                        .padding(top = 2.dp)
-                        .size(14.dp)
-                )
-                Spacer(modifier = Modifier.width(paddingSmall))
-                Text(
-                    text = entry.oneLiner,
-                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                    color = MaterialTheme.colorScheme.onSurface,
-                    lineHeight = MaterialTheme.typography.bodyMedium.lineHeight
-                )
-            }
+            // agreement/stance above it, never invents them); the eyebrow at the top of the card
+            // is what marks it as AI-sourced.
+            Text(
+                text = entry.oneLiner,
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                color = MaterialTheme.colorScheme.onSurface,
+                lineHeight = MaterialTheme.typography.bodyMedium.lineHeight
+            )
+            // 💡 This card has no expand/collapse state -- `oneLiner` is always shown in full, so
+            // the label just sits directly below it, always visible (was its own row above the
+            // agreement/stance pills).
+            Spacer(modifier = Modifier.height(paddingSmall))
+            AiGeneratedLabel()
         }
     }
 }

@@ -43,6 +43,7 @@ import com.marketlabs.pulse.core.indicators.MetricHistoryPillar
 import com.marketlabs.pulse.storage.model.charts.ChartRange
 import com.marketlabs.pulse.storage.model.indicators.DomainUnifiedMetric
 import com.marketlabs.pulse.storage.model.indicators.MetricHistoryPoint
+import com.marketlabs.pulse.ui.components.DisclaimerFooter
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.charts.ChartRangePicker
@@ -190,6 +191,23 @@ fun MetricDetailScreen(
                 modifier = Modifier.padding(top = paddingSmall, bottom = paddingLarge)
             )
 
+            // 💡 Pass 2's "form-your-own-read" hook -- same section treatment as What it is/How to
+            // read above, sitting between How to read and Bands since it's about tracking the
+            // metric over time, a bridge between the static explanation and the live band list.
+            glossaryEntry.watch?.let { watch ->
+                Text(
+                    text = stringResource(id = R.string.indicators_detail_watch).uppercase(),
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = watch,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.padding(top = paddingSmall, bottom = paddingLarge)
+                )
+            }
+
             if (glossaryEntry.bands.isNotEmpty()) {
                 Text(
                     text = stringResource(id = R.string.indicators_detail_bands).uppercase(),
@@ -210,6 +228,7 @@ fun MetricDetailScreen(
         }
 
         Spacer(modifier = Modifier.height(paddingExtraLarge))
+        DisclaimerFooter()
     }
 }
 
@@ -240,12 +259,16 @@ private fun BandRow(band: MetricGlossaryBand, isCurrent: Boolean) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // 💡 `weight(1f)` so a long label wraps inside its own share of the row instead of
+                // squeezing the "CURRENT" pill into a one-letter-wide column.
                 Text(
                     text = band.label,
                     style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onBackground
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.weight(1f)
                 )
                 if (isCurrent) {
+                    Spacer(modifier = Modifier.width(paddingSmall))
                     SignalPill(
                         text = stringResource(id = R.string.status_current),
                         pillColor = accent.copy(alpha = 0.16f),
@@ -318,6 +341,7 @@ private val previewMetric = DomainUnifiedMetric(
 private val previewGlossaryEntry = MetricGlossaryEntry(
     whatItIs = "Trailing twelve-month price divided by trailing earnings for the S&P 500.",
     howToRead = "Higher readings mean investors are paying more per dollar of past earnings -- a stretched multiple leaves less room for disappointment.",
+    watch = "Watch it alongside P/B and dividend yield rather than alone -- agreement across all three (plus ERP) on \"richly priced\" is a stronger read than any single ratio.",
     bands = listOf(
         MetricGlossaryBand(label = "Cheap", meaning = "16x or below -- earnings priced for pessimism."),
         MetricGlossaryBand(label = "Fair Value", meaning = "16x-22x -- in line with typical historical norms."),

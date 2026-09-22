@@ -13,6 +13,7 @@ import androidx.datastore.preferences.preferencesDataStore
  */
 object FavoriteStocksPreferences {
     val FAVORITE_SYMBOLS: Preferences.Key<Set<String>> = stringSetPreferencesKey("favorite_symbols")
+    val CLICKED_DEEP_DIVE_SYMBOLS: Preferences.Key<Set<String>> = stringSetPreferencesKey("clicked_deep_dive_symbols")
 }
 
 val Context.favoriteStocksDataStore by preferencesDataStore(name = "favorite_stocks_preferences")
