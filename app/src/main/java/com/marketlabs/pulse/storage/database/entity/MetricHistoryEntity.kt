@@ -6,10 +6,10 @@ import com.marketlabs.pulse.storage.database.converters.MetricHistoryConverters
 import com.marketlabs.pulse.storage.model.indicators.MetricHistoryPoint
 
 /**
- * One row per `metricId` -- unlike `market_charts`, there's no range key: the spec explicitly
- * says not to build a range picker for this yet, so each metric only ever has one cached series
- * (whatever the backend's default/max lookback returns). `points` is a JSON-blob column via
- * `MetricHistoryConverters`, same convention as `ChartEntity.points`.
+ * One row per `metricId` -- unlike `market_charts`, there's no range key: each metric caches one
+ * series (whatever the backend's default/max lookback returns) and any range picker slices it
+ * client-side. `points` is a JSON-blob column via `MetricHistoryConverters`, same convention as
+ * `ChartEntity.points`.
  */
 @Entity(tableName = "metric_history", primaryKeys = ["metricId"])
 @TypeConverters(MetricHistoryConverters::class)

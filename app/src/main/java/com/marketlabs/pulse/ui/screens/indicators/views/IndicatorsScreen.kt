@@ -85,9 +85,9 @@ import com.marketlabs.pulse.utils.extensions.smartTitleCase
 import kotlin.math.roundToInt
 
 /**
- * The 4 pillars this screen used to stack in one long scroll are now one [PulseTabRow] tab
- * apiece -- Tactical Momentum, Systemic Risk, Valuation, Macro Vitals, in that order (same move
- * Insights made for its own 4 sections, see `InsightsScreen.kt`'s identical doc comment). The
+ * The 4 pillars are one [PulseTabRow] tab apiece -- Tactical Momentum, Systemic Risk, Valuation,
+ * Macro Vitals, in that order (same shape as Insights' 4 sections, see `InsightsScreen.kt`'s
+ * doc comment). The
  * "Analyzed as of" timestamp, the AI executive briefing, and the Horizons nav card stay shared
  * chrome above the tab row -- they're general context, not specific to any one pillar -- with the
  * same collapse-then-stick behavior Stock Detail's Deep Dive banner/tab row use (see
@@ -135,11 +135,9 @@ fun IndicatorsScreen(
             .flatMap { it.metrics }
     }
     // 💡 metric_id -> display name. `executive.shifts[]` only ever carries a metric_id string --
-    // the backend spec deliberately keeps that cross-reference a UI-layer concern (validated
+    // the backend deliberately keeps that cross-reference a UI-layer concern (validated
     // server-side, but never resolved to a display name server-side) so this app can render
-    // whatever name it's already showing on that metric's own card. (`horizons.*.key_drivers[]`
-    // used to need this same resolution but was removed from the backend schema entirely
-    // 2026-08-22 -- see IndicatorHorizonsScreen.kt.)
+    // whatever name it's already showing on that metric's own card.
     val metricNames = remember(allMetrics) { allMetrics.associate { it.id to it.name } }
 
     IndicatorsMainFeed(
@@ -176,12 +174,12 @@ private fun IndicatorsMainFeed(
     val density = LocalDensity.current
 
     val pagerState = rememberPagerState(initialPage = selectedTabIndex) { IndicatorsTab.entries.size }
-    // 💡 Was missing -- every other `PulseTabRow` + `HorizontalPager` screen in this app
-    // (`StockAnalysisScreen`, `StockDetailScreen`, `InsightsScreen`) hoists one `LazyListState` per
-    // tab above the pager so scroll position survives swiping/tapping away and back; this screen's
-    // `LazyColumn` below used to fall back to a fresh `rememberLazyListState()` scoped to its own
-    // per-page composition instead, which `HorizontalPager` (a lazy layout) can dispose once a page
-    // scrolls far enough off-screen -- so switching tabs and back silently reset scroll to the top.
+    // 💡 One `LazyListState` per tab, hoisted above the pager like every other `PulseTabRow` +
+    // `HorizontalPager` screen in this app (`StockAnalysisScreen`, `StockDetailScreen`,
+    // `InsightsScreen`), so scroll position survives swiping/tapping away and back. A fresh
+    // `rememberLazyListState()` scoped to each page's own composition would be lost when
+    // `HorizontalPager` (a lazy layout) disposes a page scrolled far enough off-screen, silently
+    // resetting scroll to the top on returning to the tab.
     val lazyListStates = remember { List(IndicatorsTab.entries.size) { LazyListState() } }
 
     LaunchedEffect(selectedTabIndex) {
@@ -228,17 +226,17 @@ private fun IndicatorsMainFeed(
         }
     }
 
-    // 💡 Bug fix: the chrome region itself (below) has no scrollable ancestor of its own -- only
-    // the pager's Box (`chromeNestedScrollConnection`, attached further down) receives scroll
-    // deltas, and only once they're dispatched *from* the LazyColumn inside the pager. A drag that
-    // starts directly on `AiExecutiveBriefingHero` (once expanded, tall enough to want scrolling
-    // past) had nothing to claim it as a scroll, so `PulseCard`'s plain `Modifier.clickable` (see
-    // `PulseCard.kt`) never got its tap cancelled by touch-slop the way it does for
+    // 💡 The chrome region itself (below) has no scrollable ancestor of its own -- only the
+    // pager's Box (`chromeNestedScrollConnection`, attached further down) receives scroll deltas,
+    // and only once they're dispatched *from* the LazyColumn inside the pager. A drag that starts
+    // directly on `AiExecutiveBriefingHero` (once expanded, tall enough to want scrolling past)
+    // would have nothing to claim it as a scroll, so `PulseCard`'s plain `Modifier.clickable` (see
+    // `PulseCard.kt`) would never get its tap cancelled by touch-slop the way it does for
     // `SynthesisHeroCard`/`MarketSentimentCard`, both of which sit inside a real `LazyColumn.item{}`
-    // -- so the drag-to-scroll gesture fired `onClick` on release instead, snapping the card straight
+    // -- so the drag-to-scroll gesture would fire `onClick` on release, snapping the card straight
     // back to collapsed. This gives the chrome region its own real `scrollable`, mirroring the exact
-    // same clamp math `chromeNestedScrollConnection` already uses, so a drag beginning here is
-    // claimed by touch-slop like any other scrollable ancestor and no longer misfires as a tap.
+    // same clamp math `chromeNestedScrollConnection` uses, so a drag beginning here is claimed by
+    // touch-slop like any other scrollable ancestor and doesn't misfire as a tap.
     val chromeScrollableState = rememberScrollableState { delta ->
         val newOffset = (collapseOffsetPx + delta).coerceIn(-chromeHeightPx, 0f)
         val consumed = newOffset - collapseOffsetPx
@@ -285,11 +283,11 @@ private fun IndicatorsMainFeed(
 
     val scorecardByPillar = data.aiSynthesis?.pillarScorecard?.associateBy { it.pillar } ?: emptyMap()
 
-    // 💡 The icon+"Market Indicators" row that used to open this screen is gone -- the title now
-    // lives in the global top bar (MainActivity resolves it per-route), so keeping this row would
-    // have said the same thing twice in two places on screen at once. `scaffoldPadding`'s top
-    // component (not the raw status bar inset alone) is what actually accounts for the top bar's
-    // real rendered height, so content starts right below it instead of underneath it.
+    // 💡 No icon+"Market Indicators" row opens this screen -- the title lives in the global top bar
+    // (MainActivity resolves it per-route), so a row here would say the same thing twice in two
+    // places on screen at once. `scaffoldPadding`'s top component (not the raw status bar inset
+    // alone) is what actually accounts for the top bar's real rendered height, so content starts
+    // right below it instead of underneath it.
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -571,19 +569,19 @@ private fun AiExecutiveBriefingHero(
             // 💡 This eyebrow (icon + label) marks the card as AI-sourced, the same role
             // Dashboard's Technical Briefing eyebrow plays -- accentPrimary, same shared
             // CardEyebrowLabel tier "Market Read"/"Where Capital's Moving" (Summary) and
-            // Digest (Insights' SynthesisHeroCard) use. The "Analyzed as of" timestamp that
-            // used to sit under this row moved out of the card entirely -- see
-            // AnalyzedAtHeader, now the first item in the screen's own LazyColumn, matching
-            // how every other screen in this app (Summary's HeaderSection, for instance)
-            // places its own timestamp at the top of the content, not nested inside a card.
+            // Digest (Insights' SynthesisHeroCard) use. The "Analyzed as of" timestamp isn't in
+            // the card at all -- see AnalyzedAtHeader, the first item in the screen's own
+            // LazyColumn, matching how every other screen in this app (Summary's HeaderSection,
+            // for instance) places its own timestamp at the top of the content, not nested
+            // inside a card.
             //
-            // 💡 The expand/collapse arrow used to sit in this same row, forcing the row's height
-            // to the icon's own default (unsized) size rather than the eyebrow text's -- taller
-            // than Market Signal's bare eyebrow line right above it, and the extra slack pushed
-            // both the top padding and the eyebrow-to-pill gap out of line with Market Signal even
-            // though the Spacer values below were identical. Moved to sit beside the headline
-            // instead (and explicitly sized), matching Market Sentiment's chevron-on-the-headline
-            // pattern (SummaryScreen.kt) -- the eyebrow row is now just the label, same as Market
+            // 💡 The expand/collapse arrow sits beside the headline (explicitly sized), not in the
+            // eyebrow row: an arrow in that row would force the row's height to the icon's own
+            // default (unsized) size rather than the eyebrow text's -- taller than Market Signal's
+            // bare eyebrow line right above it, and the extra slack would push both the top padding
+            // and the eyebrow-to-pill gap out of line with Market Signal even though the Spacer
+            // values below are identical. Matches Market Sentiment's chevron-on-the-headline
+            // pattern (SummaryScreen.kt) -- the eyebrow row is just the label, same as Market
             // Signal/Sentiment.
             CardEyebrowLabel(
                 text = stringResource(id = R.string.indicators_todays_read),
@@ -730,7 +728,7 @@ private fun ShiftRow(shift: DomainShift, metricName: String, modifier: Modifier 
 @Composable
 private fun HorizonNavigationCard(onClick: () -> Unit) {
     // 💡 SYNTHESIS style -- an AI-sourced entry point, same card family as the executive briefing
-    // above it, not the plain `primaryContainer` pill this used to be.
+    // above it.
     PulseCard(
         style = PulseCardStyle.SYNTHESIS,
         modifier = Modifier.fillMaxWidth(),
@@ -754,7 +752,7 @@ private fun HorizonNavigationCard(onClick: () -> Unit) {
                 // height override, out of step with every other AI-card's heading-to-body gap and
                 // body-text treatment (Today's Read's alignmentNote/whatChanged, the pillar
                 // scorecard's oneLiner, Horizon cards' whatThisMeans/watchFor all use this same
-                // pairing). Fixed 2026-09-06.
+                // pairing).
                 Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
                 Text(
                     text = stringResource(id = R.string.indicators_horizons_subtitle),
@@ -892,8 +890,7 @@ private fun PillarSection(
  * Code-computed pillar-level rollup (`pillar_scorecard[]`) -- `agreement` (how much this pillar's
  * own metrics agree with each other) on the left, `stance` (this pillar's own color, same
  * [SignalColor] as its individual metric cards) on the right as a pill, `oneLiner` narrating the
- * shape below. Replaces the old ad hoc "AI Glance" box, which only ever had a single free-text
- * string with no structured agreement/stance to show.
+ * shape below.
  */
 @Composable
 private fun PillarScorecardCard(
@@ -905,7 +902,7 @@ private fun PillarScorecardCard(
     val paddingSmall = dimensionResource(id = R.dimen.padding_small)
 
     // 💡 SYNTHESIS style -- same AI-sourced card family as the executive briefing hero and the
-    // Horizons entry card, not the plain `surfaceVariant` box this used to be.
+    // Horizons entry card.
     PulseCard(
         style = PulseCardStyle.SYNTHESIS,
         modifier = modifier.fillMaxWidth()

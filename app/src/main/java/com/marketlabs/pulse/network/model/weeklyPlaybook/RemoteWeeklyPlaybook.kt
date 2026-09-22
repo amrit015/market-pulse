@@ -3,11 +3,9 @@ package com.marketlabs.pulse.network.model.weeklyPlaybook
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
-// 💡 2026-08-29 revision: added `synthesis` -- the same Gemini narrative layer Posture/Positioning/
-// Risks already carry (see NetworkSynthesis's own doc comment below). Per-event `actual`/
-// `post_release_impact` are unchanged: the backend now sources `actual` from the ForexFactory feed
-// itself rather than a search-grounded AI guess, but the Android shape (a plain nullable String,
-// no enum) is identical either way.
+// 💡 `synthesis` is the same Gemini narrative layer Posture/Positioning/Risks carry (see
+// NetworkSynthesis's own doc comment below). Per-event `actual`/`post_release_impact` are a plain
+// nullable String (no enum), whatever the backend sources them from.
 @JsonClass(generateAdapter = true)
 data class NetworkWeeklyPlaybook(
     @Json(name = "timestamp") val lastUpdated: Long? = null,

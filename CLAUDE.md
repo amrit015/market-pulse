@@ -50,6 +50,8 @@ are run manually, not gated by anything automated yet.
 - Hilt DI conventions, null handling, naming → `@docs/guidelines/kotlin-style.md`
 - `PulseTabRow` (including the swipeable-pager + tab-sync pattern), the glossary system, resource
   conventions → `@docs/guidelines/compose-conventions.md`
+- How to write code comments (Kotlin, Compose, and XML alike) — **read before adding or editing
+  any comment** → `@docs/guidelines/comments.md`
 - What a review actually checks → `@docs/guidelines/review-standards.md`
 - Color tokens, the card system, light/dark presets — **check this before adding a new color,
   card style, or badge** → `@docs/theming-system/theming-spec.md`. History/rationale for how it
@@ -81,9 +83,11 @@ are run manually, not gated by anything automated yet.
   always); **every card goes through `PulseCard`**, never a hand-rolled `Card(colors=…, border=…)`;
   **signal/theme colors go through `LocalPulseColors.current`**, never `MaterialTheme.colorScheme`,
   for anything the token system defines separately.
-- **Comments are self-contained** — never cite a spec, ADR, or doc file by name. State the actual
-  reasoning in the comment itself; a reader with only this repo checked out has to be able to
-  follow it.
+- **Comments are self-contained and explain the why** — in Kotlin, Compose, and XML alike. Never
+  cite or allude to a spec, mockup, brief, ticket, phase/pass/layer/§ number, `docs/` file, or
+  `CLAUDE.md`, by name *or* as "the spec"; keep the reasoning and drop the pointer. A reader with
+  only this repo's source open has to be able to follow it. Backend field names are fine. Rules,
+  examples, and a pre-finish grep → `@docs/guidelines/comments.md`.
 - **Ask before assuming; localized changes only.** Ambiguous requirement, missing token, unclear
   data model → stop and ask, don't guess. Don't refactor/reformat/"clean up" outside what was
   asked — flag what you notice instead of silently fixing it.

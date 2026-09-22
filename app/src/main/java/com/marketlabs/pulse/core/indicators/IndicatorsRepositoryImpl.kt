@@ -21,8 +21,8 @@ class IndicatorsRepositoryImpl @Inject constructor(
 
     /**
      * Refreshes the indicators from the network.
-     * Note: Cache expiration logic has been removed. This method is now strictly
-     * driven by the SyncManager or explicit user pull-to-refresh actions.
+     * There is no cache expiration: this method is driven strictly by the SyncManager or
+     * explicit user pull-to-refresh actions.
      */
     override suspend fun refreshIndicators(force: Boolean): Result<Unit> {
         return try {

@@ -93,7 +93,7 @@ fun WeeklyPlaybookSection(playbook: WeeklyPlaybook) {
             )
         )
 
-        // 💡 2026-08-29 revision: same SynthesisHeroCard Posture/Positioning/Risks already use --
+        // 💡 Same SynthesisHeroCard Posture/Positioning/Risks use --
         // see those sections' own doc comments for the "keyed off state" isUnavailable rule.
         playbook.synthesis?.let { synthesis ->
             SynthesisHeroCard(
@@ -114,13 +114,10 @@ fun WeeklyPlaybookSection(playbook: WeeklyPlaybook) {
 
 @Composable
 fun WeeklyEventCard(event: WeeklyEvent) {
-    // 💡 DATA style -- was SYNTHESIS (calendar events with AI-written market context, grouped
-    // with the briefing/news cards as "curated content"). This app's darker SYNTHESIS background
-    // is now reserved for the one AI briefing/verdict hero card per screen (Dashboard's Technical
-    // Briefing, Indicators' AI Executive Briefing, Summary's VerdictCard); an events list reads
-    // with the same background every other data-display card in the app uses. Replaces the old
-    // `secondaryContainer.copy(alpha = 0.4f)` leftover from before this app had its own token
-    // system.
+    // 💡 DATA style: this app's darker SYNTHESIS background is reserved for the one AI
+    // briefing/verdict hero card per screen (Dashboard's Technical Briefing, Indicators' AI
+    // Executive Briefing, Summary's VerdictCard); an events list reads with the same background
+    // every other data-display card in the app uses.
     PulseCard(
         style = PulseCardStyle.DATA,
         modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.padding_medium))

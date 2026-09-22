@@ -68,24 +68,23 @@ object PulseRoutes {
     const val MARKET_INDICATORS = "market_indicators"
     const val MARKET_INSIGHTS = "market_insights"
 
-    // Added with Claude Code assistance: no longer a bottom-nav tab, only reachable by pushing
-    // from the Dashboard's news preview.
+    // Not a bottom-nav tab: only reachable by pushing from the Dashboard's news preview.
     const val MARKET_NEWS = "market_news"
 
-    // Added with Claude Code assistance: replaces the News tab on the bottom bar.
+    // The Analysis tab on the bottom bar.
     const val MARKET_ANALYSIS = "market_analysis"
 
     // Pushed from a StockPreviewCard tap on the Analysis tab. "symbol" is a required nav argument,
     // not a query param -- see StockDetailViewModel's SavedStateHandle read.
     const val STOCK_ANALYSIS_DETAIL = "stockAnalysis"
 
-    // Pushed from the Deep Dive banner on Stock Detail (spec-20260903-per-symbol-intelligence).
-    // Its own full-screen destination, not a tab on STOCK_ANALYSIS_DETAIL -- "symbol" is a required
-    // nav argument, same shape as STOCK_ANALYSIS_DETAIL above.
+    // Pushed from the Deep Dive banner on Stock Detail. Its own full-screen destination, not a
+    // tab on STOCK_ANALYSIS_DETAIL -- "symbol" is a required nav argument, same shape as
+    // STOCK_ANALYSIS_DETAIL above.
     const val DEEP_DIVE_DETAIL = "deepDiveDetail"
 
-    // Pushed from the "View More" row at the bottom of Stock Detail's Timeline tab (2026-09-06,
-    // capped-to-7 Resolved Calls / Technical Timeline cards). "symbol" is a required nav argument,
+    // Pushed from the "View More" row at the bottom of Stock Detail's Timeline tab (capped-to-7
+    // Resolved Calls / Technical Timeline cards). "symbol" is a required nav argument,
     // same shape as STOCK_ANALYSIS_DETAIL above.
     const val RESOLVED_CALLS_LIST = "resolvedCallsList"
     const val TECHNICAL_TIMELINE_LIST = "technicalTimelineList"
@@ -100,18 +99,18 @@ object PulseRoutes {
     const val INDICATOR_HORIZONS = "indicator_horizons"
 
     // Pushed from a dashboard tile tap (indices/sectors/crypto/commodities/VIX/sentiment) on the
-    // Overview tab. Replaces the old AssetDetailBottomSheet -- "symbol" is a required nav
-    // argument, not a query param, same shape as STOCK_ANALYSIS_DETAIL above.
+    // Overview tab. "symbol" is a required nav argument, not a query param, same shape as
+    // STOCK_ANALYSIS_DETAIL above.
     const val ASSET_DETAIL = "assetDetail"
 
-    // Pushed from an indicator card tap on the Indicators tab. Replaces the old
-    // IndicatorDetailSheet -- "metricId" is a required nav argument, same shape as ASSET_DETAIL
+    // Pushed from an indicator card tap on the Indicators tab. "metricId" is a required nav
+    // argument, same shape as ASSET_DETAIL
     // above. Metric ids are plain snake_case (e.g. "pe_ratio"), so unlike ASSET_DETAIL's symbols
     // this doesn't need URL-encoding.
     const val METRIC_DETAIL = "metricDetail"
 
-    // Pushed from a whole-CARD tap on the Positioning/Posture screens (2026-08-27 interpretive-
-    // layer spec, converged 2026-08-27 to a per-card rather than per-value tap target).
+    // Pushed from a whole-CARD tap on the Positioning/Posture screens (a per-card rather than
+    // per-value tap target).
     // "metricIds" is a comma-joined list of dotted core/glossary keys (a card can cover more than
     // one entry -- a COT contract's % OI + percentile; a short-interest instrument's days-to-cover
     // + shares + mom-change), "title"/"description"/"status" are the pushed screen's heading, its
@@ -125,9 +124,9 @@ object PulseRoutes {
     // core/glossary/ id is plain lowercase/dot/underscore.
     const val GLOSSARY_DETAIL = "glossaryDetail"
 
-    // spec-20260915-compliance-disclaimers.md §7/§2: precedes MARKET_OVERVIEW on a cold start until
-    // acceptedVersion >= LegalRepository.CURRENT_LEGAL_VERSION -- see MainActivity's startDestination
-    // computation. Not reachable any other way once accepted (no back-stack entry survives it).
+    // Precedes MARKET_OVERVIEW on a cold start until acceptedVersion >=
+    // LegalRepository.CURRENT_LEGAL_VERSION -- see MainActivity's startDestination computation.
+    // Not reachable any other way once accepted (no back-stack entry survives it).
     const val ONBOARDING_CAROUSEL = "onboarding_carousel"
     const val LEGAL_ACCEPTANCE = "legal_acceptance"
 
@@ -136,7 +135,7 @@ object PulseRoutes {
     const val TERMS_CONDITIONS = "terms_conditions"
     const val PRIVACY_POLICY = "privacy_policy"
 
-    // Reached from Settings -> Tutorials (spec §6, Phase 2).
+    // Reached from Settings -> Tutorials.
     const val TUTORIALS_HUB = "tutorials_hub"
     // Route-argument prefixes -- the full route is "$TUTORIALS_DECK/{mechanism}" etc.
     const val TUTORIALS_DECK = "tutorials_deck"
@@ -145,8 +144,7 @@ object PulseRoutes {
     const val TUTORIALS_DATA_LIMITATIONS = "tutorials_data_limitations"
     const val TUTORIALS_GAUGE_ANATOMY = "tutorials_gauge_anatomy"
 
-    // Reached from Settings' three formerly-Toast-stub rows -- now real (if content-empty)
-    // destinations per spec-20260915-compliance-disclaimers.md's Settings-rows decision.
+    // Reached from Settings' Notifications / Data & Sync / About rows.
     const val SETTINGS_NOTIFICATIONS = "settings_notifications"
     const val SETTINGS_DATA_SYNC = "settings_data_sync"
     const val SETTINGS_ABOUT = "settings_about"
@@ -169,15 +167,14 @@ sealed class BottomNavItem(val route: String, val label: String, val unselectedI
     internal object Insights :
         BottomNavItem(PulseRoutes.MARKET_INSIGHTS, "Insights", R.drawable.ic_insights, R.drawable.ic_insights_filled)
 
-    // Added with Claude Code assistance: replaces News on the bottom bar. No filled variant
-    // exists for this icon, so it's reused for both states — same as `Summary` above.
+    // The Analysis tab's bottom-bar item.
     internal object Analysis :
         BottomNavItem(PulseRoutes.MARKET_ANALYSIS, "Analysis", R.drawable.ic_analysis_trend, R.drawable.ic_analysis_trend_filled)
 }
 
 /**
- * Hoisted to a top-level `val` (was previously rebuilt on every recomposition as a local `val`
- * inside `PulseNavGraph()`) since `MainActivity` also needs this exact list to drive
+ * A top-level `val` (rather than a local inside `PulseNavGraph()` rebuilt on every recomposition)
+ * since `MainActivity` also needs this exact list to drive
  * `FloatingBottomNav`.
  */
 val bottomNavItems = listOf(
@@ -199,12 +196,11 @@ val bottomNavItems = listOf(
 fun PulseNavGraph(
     navController: NavHostController,
     scaffoldPadding: PaddingValues,
-    // spec-20260915-compliance-disclaimers.md: MainActivity reads LegalRepository.acceptedVersion
-    // synchronously before setContent (same runBlocking-on-a-cached-DataStore-read pattern already
-    // used for the theme) and picks ONBOARDING_CAROUSEL or MARKET_OVERVIEW -- computed once at cold
-    // start, not re-evaluated reactively, since NavHost's own startDestination can't change after
-    // the graph is built. Acceptance itself clears the onboarding back stack via popUpTo/inclusive
-    // instead.
+    // MainActivity reads LegalRepository.acceptedVersion synchronously before setContent (same
+    // runBlocking-on-a-cached-DataStore-read pattern already used for the theme) and picks
+    // ONBOARDING_CAROUSEL or MARKET_OVERVIEW -- computed once at cold start, not re-evaluated
+    // reactively, since NavHost's own startDestination can't change after the graph is built.
+    // Acceptance itself clears the onboarding back stack via popUpTo/inclusive instead.
     startDestination: String,
     // 💡 MainActivity owns the "did we arrive at Indicators via Drivers" flag -- this graph
     // reports the event up (onDriversNavigatedToIndicators) and reads the flag back down
@@ -229,17 +225,16 @@ fun PulseNavGraph(
     onSummaryReportTypeLoaded: (ReportType?) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    // Added with Claude Code assistance: one-shot signal set right before navigating to the News
+    // One-shot signal set right before navigating to the News
     // tab from a Dashboard preview card, so NewsRoute knows which card to scroll to + highlight.
     // Hoisted here (not a nav argument) so the bottom-nav's plain "market_news" route pattern —
     // and its selected-tab matching in the bar above — stays untouched.
     var highlightedNewsArticleUrl by remember { mutableStateOf<String?>(null) }
 
-    // spec-20260902-market-sentiment-android.md: same one-shot hoisted-signal shape as
-    // highlightedNewsArticleUrl above, set right before navigating to Insights from the Market
-    // Sentiment card so InsightsRoute lands on the Posture tab -- not a nav argument, so
-    // PulseRoutes.MARKET_INSIGHTS's plain route string (and FloatingBottomNav's route-equality
-    // tab-selected check) stays untouched.
+    // Same one-shot hoisted-signal shape as highlightedNewsArticleUrl above, set right before
+    // navigating to Insights from the Market Sentiment card so InsightsRoute lands on the Posture
+    // tab -- not a nav argument, so PulseRoutes.MARKET_INSIGHTS's plain route string (and
+    // FloatingBottomNav's route-equality tab-selected check) stays untouched.
     var initialInsightsTab by remember { mutableStateOf<InsightsTab?>(null) }
 
     NavHost(
@@ -248,23 +243,22 @@ fun PulseNavGraph(
         modifier = modifier.fillMaxSize(),
         // 💡 Applied once here (none of the routes below override it) so every push/pop in the
         // app gets the same fade instead of Navigation-Compose's raw default. Fade-only (no
-        // slide) both ways -- a slide was tried first and asked to be dropped.
+        // slide) both ways.
         enterTransition = { fadeIn(tween(NavTransitionFadeDurationMs)) },
         exitTransition = { fadeOut(tween(NavTransitionFadeDurationMs)) },
         popEnterTransition = { fadeIn(tween(NavTransitionFadeDurationMs)) },
         popExitTransition = { fadeOut(tween(NavTransitionFadeDurationMs)) }
     ) {
-        // spec-20260915-compliance-disclaimers.md §7 -- only ever reached as the graph's own
-        // startDestination on a not-yet-accepted cold start (see the startDestination param above),
-        // never pushed onto an existing back stack.
+        // Only ever reached as the graph's own startDestination on a not-yet-accepted cold start
+        // (see the startDestination param above), never pushed onto an existing back stack.
         composable(PulseRoutes.ONBOARDING_CAROUSEL) {
             OnboardingCarouselScreen(
                 onContinue = { navController.navigate(PulseRoutes.LEGAL_ACCEPTANCE) }
             )
         }
-        // spec-20260915-compliance-disclaimers.md §2 -- accepting clears the entire onboarding back
-        // stack (popUpTo the graph root, inclusive) so the user can never navigate back into it, and
-        // so a later cold start reads MARKET_OVERVIEW as the start destination instead.
+        // Accepting clears the entire onboarding back stack (popUpTo the graph root, inclusive) so
+        // the user can never navigate back into it, and so a later cold start reads
+        // MARKET_OVERVIEW as the start destination instead.
         composable(PulseRoutes.LEGAL_ACCEPTANCE) {
             LegalAcceptanceRoute(
                 onAccepted = {
@@ -312,10 +306,10 @@ fun PulseNavGraph(
                         restoreState = true
                     }
                 },
-                // spec-20260902-market-sentiment-android.md: same tab-preserving navigate() as
-                // onNavigateToIndicators above -- stash Posture as the Insights tab to land on,
-                // report the arrival up (for the BackHandler below), then push Insights exactly
-                // the way FloatingBottomNav's own tab switch does.
+                // Same tab-preserving navigate() as onNavigateToIndicators above -- stash Posture
+                // as the Insights tab to land on, report the arrival up (for the BackHandler
+                // below), then push Insights exactly the way FloatingBottomNav's own tab switch
+                // does.
                 onNavigateToPosture = {
                     initialInsightsTab = InsightsTab.POSTURE
                     onMarketSentimentNavigatedToInsights()
@@ -332,13 +326,13 @@ fun PulseNavGraph(
         composable(PulseRoutes.MARKET_OVERVIEW) {
             DashboardRoute(
                 scaffoldPadding = scaffoldPadding,
-                // Added with Claude Code assistance: News is a plain push destination now
+                // News is a plain push destination
                 // (not a persisted bottom-nav tab), so this is a simple navigate() — no
                 // popUpTo/saveState/restoreState tab-preserving dance needed.
                 onNavigateToNews = {
                     navController.navigate(PulseRoutes.MARKET_NEWS)
                 },
-                // Added with Claude Code assistance: stash the target article, then push News.
+                // Stash the target article, then push News.
                 onNavigateToNewsArticle = { url ->
                     highlightedNewsArticleUrl = url
                     navController.navigate(PulseRoutes.MARKET_NEWS)
@@ -355,7 +349,7 @@ fun PulseNavGraph(
                 }
             )
         }
-        // Pushed from a dashboard tile tap -- replaces AssetDetailBottomSheet. "symbol" is read
+        // Pushed from a dashboard tile tap. "symbol" is read
         // out of SavedStateHandle by AssetDetailViewModel itself, same as Stock Detail below.
         composable("${PulseRoutes.ASSET_DETAIL}/{symbol}") {
             AssetDetailRoute(
@@ -393,7 +387,7 @@ fun PulseNavGraph(
         composable(PulseRoutes.INDICATOR_HORIZONS) {
             IndicatorHorizonsRoute(onNavigateUp = { navController.popBackStack() })
         }
-        // Pushed from an indicator card tap -- replaces IndicatorDetailSheet. "metricId" is read
+        // Pushed from an indicator card tap. "metricId" is read
         // out of SavedStateHandle by MetricDetailViewModel itself, same as Asset Detail above.
         composable("${PulseRoutes.METRIC_DETAIL}/{metricId}") {
             MetricDetailRoute(
@@ -444,10 +438,6 @@ fun PulseNavGraph(
                 onNavigateUp = { navController.popBackStack() }
             )
         }
-        // 💡 Updated with Claude Code assistance: the stocks domain layer was rebuilt against
-        // the backend's new preview/detail split (see core/stocks, storage/model/stocks), and
-        // this tab now renders the real preview list against it -- the temporary placeholder
-        // that stood in for this tab is gone.
         composable(PulseRoutes.MARKET_ANALYSIS) {
             StockAnalysisRoute(
                 scaffoldPadding = scaffoldPadding,
@@ -504,8 +494,8 @@ fun PulseNavGraph(
                 onNavigateUp = { navController.popBackStack() }
             )
         }
-        // Added with Claude Code assistance: pushed only from the Dashboard's "Latest News"
-        // chevron or a specific preview card — no longer part of the bottom bar.
+        // Pushed only from the Dashboard's "Latest News" chevron or a specific preview card -- not
+        // a bottom-bar tab.
         composable(PulseRoutes.MARKET_NEWS) {
             NewsRoute(
                 scaffoldPadding = scaffoldPadding,

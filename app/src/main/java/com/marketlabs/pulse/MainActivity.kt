@@ -67,17 +67,16 @@ import javax.inject.Inject
  * `verticalScroll` is actually producing scroll deltas, so this single attachment point is enough;
  * no individual screen file needed touching for the collapsing behavior itself.
  *
- * `scrollBehavior` is one of two instances, picked per-route (2026-09-06, Summary added
- * 2026-09-07): Indicators and Insights both grew their own in-content collapsing/sticky chrome (a
- * scrolling banner region topped with a `PulseTabRow`); Summary grew a pinned calendar strip above
- * a swipeable per-day pager. Letting the global bar ALSO react to the same scroll deltas via
- * `enterAlwaysScrollBehavior` meant two independent `NestedScrollConnection`s were competing over
- * one gesture stream -- the in-screen chrome consuming part of each scroll delta before the global
- * bar's own connection (further up the tree) ever saw it, leaving the bar's hide/show animation
- * starved of consistent input and behaving erratically. `pinnedScrollBehavior()` for those routes
- * means the global bar simply never reacts to scroll at all there (fully static, matching what was
- * asked), leaving all of the scroll delta for each screen's own chrome to consume; every other
- * route keeps the original `enterAlwaysScrollBehavior()` unchanged.
+ * `scrollBehavior` is one of two instances, picked per-route: Indicators and Insights have their
+ * own in-content collapsing/sticky chrome (a scrolling banner region topped with a `PulseTabRow`),
+ * and Summary has a pinned calendar strip above a swipeable per-day pager. Letting the global bar
+ * ALSO react to the same scroll deltas via `enterAlwaysScrollBehavior` would put two independent
+ * `NestedScrollConnection`s in competition over one gesture stream -- the in-screen chrome
+ * consuming part of each scroll delta before the global bar's own connection (further up the tree)
+ * ever saw it, leaving the bar's hide/show animation starved of consistent input and behaving
+ * erratically. `pinnedScrollBehavior()` for those routes means the global bar never reacts to
+ * scroll at all there (fully static), leaving all of the scroll delta for each screen's own chrome
+ * to consume; every other route uses `enterAlwaysScrollBehavior()`.
  */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -93,25 +92,25 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
-        // 💡 `collectAsStateWithLifecycle`'s `initialValue` is what the very first Compose frame
-        // renders with, before `themeRepository.selectedTheme` (backed by DataStore, an async disk
-        // read on a cold process start) has emitted anything at all. That used to be hardcoded to
-        // `MarketPulseTheme.LILAC` -- correct for a brand-new user on a dark-mode device with no
-        // persisted preference (see `ThemeRepositoryImpl.defaultThemeForSystem`), but wrong for anyone who already picked a different
-        // theme: their real preference hadn't loaded from disk yet, so the app briefly painted
-        // LILAC's dark status bar/chrome, then snapped to their actual (often light) theme once the
-        // DataStore read finished a frame or two later -- the flash. Reading the real value
-        // synchronously here instead, before `setContent`, means the first frame is already correct
-        // and there's nothing to snap away from. `runBlocking` is safe for this specific case: it's
-        // a single small Preferences value already backed by DataStore's in-process cache after the
-        // first read this process makes, not an unbounded or network-backed read, and `onCreate` is
-        // already blocking the main thread on layout inflation at this point regardless.
+        // 💡 The theme is read synchronously here, before `setContent`, rather than left to
+        // `collectAsStateWithLifecycle`'s `initialValue`: that value is what the very first Compose
+        // frame renders with, before `themeRepository.selectedTheme` (backed by DataStore, an async
+        // disk read on a cold process start) has emitted anything. A hardcoded `initialValue` (e.g.
+        // `MarketPulseTheme.LILAC`, correct for a brand-new user on a dark-mode device with no
+        // persisted preference -- see `ThemeRepositoryImpl.defaultThemeForSystem`) would be wrong
+        // for anyone who already picked a different theme: the app would briefly paint LILAC's dark
+        // status bar/chrome, then snap to their actual (often light) theme once the DataStore read
+        // finished a frame or two later -- a visible flash. Reading the real value here means the
+        // first frame is already correct and there's nothing to snap away from. `runBlocking` is
+        // safe for this specific case: it's a single small Preferences value already backed by
+        // DataStore's in-process cache after the first read this process makes, not an unbounded or
+        // network-backed read, and `onCreate` is already blocking the main thread on layout
+        // inflation at this point regardless.
         val initialTheme = runBlocking { themeRepository.selectedTheme.first() }
 
-        // spec-20260915-compliance-disclaimers.md §2: same reasoning as initialTheme above -- a
-        // single small Preferences value, read synchronously once before the first frame so the
-        // graph's startDestination is correct from the start rather than needing a reactive branch
-        // NavHost doesn't support after construction anyway.
+        // A single small Preferences value, read synchronously once before the first frame (same
+        // as initialTheme above) so the graph's startDestination is correct from the start rather
+        // than needing a reactive branch NavHost doesn't support after construction anyway.
         val initialAcceptedVersion = runBlocking { legalRepository.acceptedVersion.first() }
         val startDestination = if (initialAcceptedVersion >= LegalRepository.CURRENT_LEGAL_VERSION) {
             PulseRoutes.MARKET_OVERVIEW
@@ -144,14 +143,13 @@ class MainActivity : ComponentActivity() {
 
                 // 💡 See this file's own header comment on why these routes get a static
                 // (`pinnedScrollBehavior`) top bar instead of the collapsing one every other route
-                // still uses. Summary added alongside its own calendar-strip pager (pinned strip/
-                // date label/timestamp above a swipeable per-day pager, same shape as Indicators'
+                // still uses. Summary has its own calendar-strip pager (pinned strip/date
+                // label/timestamp above a swipeable per-day pager, same shape as Indicators'
                 // pinned timestamp above its tab pager) -- the global collapsing bar fighting the
                 // screen's own scroll is exactly the conflict this file's header comment already
-                // describes for Indicators/Insights (see docs/architecture/collapsing-header-
-                // tabs.md, "The global top app bar fighting a screen's own collapsing chrome").
-                // Market Analysis added the same way: it already pins its own PulseTabRow above a
-                // per-tab pager, so the top bar staying put (like Insights) is the consistent shape.
+                // describes for Indicators/Insights. Market Analysis is the same: it already pins
+                // its own PulseTabRow above a per-tab pager, so the top bar staying put (like
+                // Insights) is the consistent shape.
                 val hasStaticTopBar = currentRoute == PulseRoutes.MARKET_INDICATORS ||
                     currentRoute == PulseRoutes.MARKET_INSIGHTS ||
                     currentRoute == PulseRoutes.MARKET_SUMMARY ||
@@ -170,12 +168,11 @@ class MainActivity : ComponentActivity() {
                 // both are left out of the Scaffold entirely for these routes, not just visually
                 // collapsed. Stock detail's own header isn't a Material TopAppBar (too rich a
                 // layout for that slot -- symbol/price/badges all in one pinned block), but the
-                // same exclusion applies per the stock-analysis-ui spec's explicit "suppress the
-                // collapsing top bar for this route" instruction.
-                // spec-20260915-compliance-disclaimers.md: onboarding/acceptance/legal-doc/settings-
-                // sub-page/tutorials-hub routes added to this same exclusion list -- each owns its
-                // own Scaffold/TopAppBar (or, for onboarding/acceptance, no top-of-screen chrome at
-                // all) the same way every other pushed destination already does.
+                // same exclusion applies: the collapsing top bar is suppressed for this route too.
+                // The onboarding/acceptance/legal-doc/settings-sub-page/tutorials-hub routes are on
+                // this same exclusion list -- each owns its own Scaffold/TopAppBar (or, for
+                // onboarding/acceptance, no top-of-screen chrome at all) the same way every other
+                // pushed destination already does.
                 val isPushedDestination = currentRoute == PulseRoutes.MARKET_NEWS ||
                     currentRoute == PulseRoutes.SETTINGS ||
                     currentRoute == PulseRoutes.INDICATOR_HORIZONS ||
@@ -208,7 +205,7 @@ class MainActivity : ComponentActivity() {
                 // Indicators/Insights are excluded from it entirely below). Each tab's own
                 // LazyColumn scroll position is already correctly saved/restored per-route by
                 // Compose Navigation's `restoreState`/`saveState` -- but this offset isn't tied to
-                // that, so switching tabs used to carry the previous tab's collapsed-bar amount
+                // that, so switching tabs would otherwise carry the previous tab's collapsed-bar amount
                 // over onto whichever tab you landed on, even a tab visited for the first time this
                 // session (which should start fully expanded). Tracked here per-route instead:
                 // save the outgoing route's offset before it's overwritten, restore the incoming
@@ -254,10 +251,10 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                // spec-20260902-market-sentiment-android.md: same "arrived via a same-tab-switch
-                // jump, not a real tab click" tracking as reachedIndicatorsFromDrivers above, for
-                // the Market Sentiment card's jump to Insights (Posture) -- default back behavior
-                // would otherwise return to Overview instead of Summary.
+                // Same "arrived via a same-tab-switch jump, not a real tab click" tracking as
+                // reachedIndicatorsFromDrivers above, for the Market Sentiment card's jump to
+                // Insights (Posture) -- default back behavior would otherwise return to Overview
+                // instead of Summary.
                 var reachedInsightsFromMarketSentiment by remember { mutableStateOf(false) }
                 LaunchedEffect(currentRoute) {
                     if (currentRoute != PulseRoutes.MARKET_INSIGHTS) {
@@ -265,8 +262,8 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                // 💡 Summary's own in-content header is gone (the report-type label used to live
-                // there) -- the global top bar shows it instead now, reported up via
+                // 💡 The report-type label lives in the global top bar, not in Summary's own content --
+                // reported up via
                 // PulseNavGraph's onSummaryReportTypeLoaded (see MarketSummaryRoute.kt). Null
                 // until that screen's data has loaded at least once this session, in which case
                 // topBarTitle falls back to the fixed "Summary" string below.
@@ -292,11 +289,11 @@ class MainActivity : ComponentActivity() {
                         }
                     },
                     bottomBar = {
-                        // spec-20260915-compliance-disclaimers.md (revised): the disclaimer footer
-                        // moved OUT of this shared chrome -- it's appended to the bottom of each
-                        // screen's own scrollable content instead (see DisclaimerFooter's own doc
-                        // comment), so it can cover pushed destinations too without needing Scaffold
-                        // wiring here. This slot is back to owning just the floating nav.
+                        // The disclaimer footer is not part of this shared chrome: it's appended to
+                        // the bottom of each screen's own scrollable content instead (see
+                        // DisclaimerFooter's own doc comment), so it can cover pushed destinations
+                        // too without needing Scaffold wiring here. This slot owns just the
+                        // floating nav.
                         if (!isPushedDestination) {
                             FloatingBottomNav(
                                 items = bottomNavItems,
@@ -323,8 +320,8 @@ class MainActivity : ComponentActivity() {
                     // transparent) status bar shows real content behind it rather than empty space.
                     //
                     // Adding `scrollBehavior.state.heightOffset` in fixes this: it is 0 when the
-                    // bar is fully expanded (so this equals `innerPadding` exactly, unchanged from
-                    // before) and grows negative as the bar collapses, down to a limit Material 3
+                    // bar is fully expanded (so this equals `innerPadding` exactly) and grows negative
+                    // as the bar collapses, down to a limit Material 3
                     // computes net of the bar's own status-bar inset -- so this bottoms out exactly
                     // at the status bar's height once the bar is fully hidden, never less, without
                     // this needing to know that height itself.

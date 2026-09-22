@@ -15,8 +15,8 @@ data class InsightsUiState(
     // moved from one long stacked scroll to per-section tabs -- same shape as StockDetailUiState's
     // identical field.
     val selectedTabIndex: Int = 0,
-    // 💡 2026-08-27 interpretive-layer spec, Layer 3 -- default false (explainer shown) rather
-    // than true, so a slow-to-load DataStore read never flashes the explainer on then off.
+    // 💡 Default false (explainer shown) rather than true, so a slow-to-load DataStore read never
+    // flashes the explainer on then off.
     val isPositioningIntroDismissed: Boolean = false,
     val isPostureIntroDismissed: Boolean = false,
     val errorMessage: String? = null

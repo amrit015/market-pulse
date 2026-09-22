@@ -37,11 +37,10 @@ fun Long.toDateIdString(): String {
     return try {
         // 💡 `lastUpdated` (and `lastSyncedTimestamp`) are epoch MILLIS everywhere they're set --
         // backend's `timestamp` field is JS `Date.now()`, and this app's own
-        // `System.currentTimeMillis()` calls match. This used to read `Instant.ofEpochSecond`,
-        // which silently produced a garbage far-future dateId (millis misread as seconds) --
-        // harmless while dateId was only ever used as a Room primary key and never queried by
-        // value or displayed, but load-bearing now that the Summary calendar strip looks up
-        // cached rows BY dateId (core/summary/SummaryRepository.kt's syncPastDate).
+        // `System.currentTimeMillis()` calls match. Reading them with `Instant.ofEpochSecond` would
+        // silently produce a garbage far-future dateId (millis misread as seconds), and dateId is
+        // load-bearing: the Summary calendar strip looks up cached rows BY dateId
+        // (core/summary/SummaryRepository.kt's syncPastDate).
         Instant.ofEpochMilli(this)
             .atZone(ZoneId.of("America/New_York"))
             .format(DateTimeFormatter.ISO_LOCAL_DATE) // "2026-02-07"

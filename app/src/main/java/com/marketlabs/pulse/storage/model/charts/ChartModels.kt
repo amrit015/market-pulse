@@ -35,11 +35,10 @@ data class ChartPoint(
  * range that actually spans its named calendar period means sending the trading-day count that
  * period corresponds to, not the calendar-day number itself. `ONE_MONTH`/`SIX_MONTH`/`ONE_YEAR` use
  * ~21 trading days/calendar month (the standard ~252-trading-day/year convention: 252 ÷ 12 ≈ 21).
- * **2026-08-25 fix:** these were previously `30`/`180`/`365` (i.e. the calendar-day numbers,
- * misread as if `days` meant calendar days) -- confirmed on-device that `?days=30` for "1M" was
- * rendering roughly 6 calendar weeks (e.g. Jul 14-Aug 24) instead of the expected ~1 calendar month
- * (Jul 24-Aug 24), exactly the ~42-vs-30-day gap `30` trading days (not calendar days) predicts.
- * `FIVE_DAY` doesn't need this correction -- 5 trading days is already the plain meaning of "5D."
+ * Don't send the calendar-day numbers (30/180/365) for these: `?days=30` for "1M" renders roughly
+ * 6 calendar weeks (~42 days), not ~1 calendar month, since 30 trading days span about 42
+ * calendar days. `FIVE_DAY` needs no conversion -- 5 trading days is already the plain meaning
+ * of "5D."
  *
  * `ONE_DAY` is the exception: both its fields are `null` because it's never sent to
  * `/charts/:symbol` at all -- the ViewModel routes it to `IntradayRepository`'s already-polling

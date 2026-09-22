@@ -73,12 +73,10 @@ fun VixFullWidthCard(asset: AssetOverview, onClick: () -> Unit) {
         needlePercentageTarget = ((price.toFloat() - 10f) / 30f).coerceIn(0f, 1f)
     }
 
-    // 💡 This card previously flipped its own background between a bullish and bearish tint based
-    // on a "contrarian" read of the VIX status (high VIX -> bullish-tinted card, since a volatility
-    // spike is often a buying opportunity; low VIX -> bearish-tinted card, since complacency often
-    // precedes a pullback). The container is uniform and non-directional now, matching every other
-    // price/gauge card in this app -- direction still reads clearly from the status text color and
-    // the needle position, just not the card fill.
+    // 💡 The container is uniform and non-directional, matching every other price/gauge card in
+    // this app -- it doesn't flip between a bullish and bearish tint on a "contrarian" read of the
+    // VIX status. Direction reads clearly from the status text color and the needle position, just
+    // not the card fill.
     //
     // DATA style -- the same tinted background and hairline border every equity price card uses.
     PulseCard(
@@ -99,13 +97,11 @@ fun VixFullWidthCard(asset: AssetOverview, onClick: () -> Unit) {
                         color = MaterialTheme.colorScheme.onSurface
                     )
 
-                    // 💡 Aligned (2026-09) to the same contrarian read Fear & Greed/Put-Call
-                    // already use: "GREED"/"BULLISH" (low VIX, a calm market) reads as
-                    // bearish-red, "FEAR"/"BEARISH" (high VIX, a panicky market) reads as
-                    // bullish-green -- extreme fear is treated as a potential buying opportunity,
-                    // same framing as the other two Sentiment & Fear cards. Was direct before
-                    // (calm=green, panic=red); flipped so all three cards agree on what a color
-                    // means instead of each picking its own convention.
+                    // 💡 The same contrarian read Fear & Greed/Put-Call use: "GREED"/"BULLISH" (low
+                    // VIX, a calm market) reads as bearish-red, "FEAR"/"BEARISH" (high VIX, a
+                    // panicky market) reads as bullish-green -- extreme fear is treated as a
+                    // potential buying opportunity, so all three Sentiment & Fear cards agree on
+                    // what a color means instead of each picking its own convention.
                     if (!asset.rsiStatus.isNullOrEmpty()) {
                         val statusColor = when (asset.rsiStatus.uppercase()) {
                             "EXTREME GREED", "GREED", "BULLISH" -> textBearish
@@ -129,8 +125,8 @@ fun VixFullWidthCard(asset: AssetOverview, onClick: () -> Unit) {
                     )
 
                     // 💡 Null-safe Change % -- shown as a directional pill. The triangle follows
-                    // the raw numeric sign (up = VIX rose); the pill's color now matches the same
-                    // contrarian read the status text above uses (2026-09): rising VIX moves
+                    // the raw numeric sign (up = VIX rose); the pill's color matches the same
+                    // contrarian read the status text above uses: rising VIX moves
                     // toward the Fear zone, so it reads bullish-green; falling VIX moves toward
                     // the Greed zone, so it reads bearish-red. The text itself is unsigned
                     // (magnitude only) since the triangle already states the sign; an exact 0%
@@ -181,8 +177,7 @@ fun VixFullWidthCard(asset: AssetOverview, onClick: () -> Unit) {
                 val thumbX = size.width * needlePercentage
 
                 // 💡 Left (low VIX/calm/Greed) -> red, right (high VIX/panic/Fear) -> green,
-                // matching the flipped Greed=red/Fear=green convention above -- was
-                // green-to-red before the 2026-09 alignment pass.
+                // matching the Greed=red/Fear=green convention above.
                 drawRoundRect(
                     brush = Brush.horizontalGradient(
                         listOf(colorRed, colorNeutral, colorGreen)

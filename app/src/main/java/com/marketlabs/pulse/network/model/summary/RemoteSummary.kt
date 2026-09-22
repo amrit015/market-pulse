@@ -19,7 +19,7 @@ data class NetworkMarketPulse(
     @Json(name = "watch") val watch: List<NetworkWatchItem>? = null,
     @Json(name = "risks") val risks: List<NetworkRiskItem>? = null,
     @Json(name = "what_changed") val whatChanged: String? = null,
-    // 💡 New 2026-08-21: a deterministic (non-AI) list of indicators whose data posted in the
+    // 💡 A deterministic (non-AI) list of indicators whose data posted in the
     // last 7 days, most-recent-first. Additive, no route change -- see NetworkWhatsNewEntry.
     @Json(name = "whats_new") val whatsNew: List<NetworkWhatsNewEntry>? = null,
     // 💡 Present in the payload, deliberately never modeled past the mapper -- see
@@ -29,7 +29,7 @@ data class NetworkMarketPulse(
     @Json(name = "rolling_narrative") val rollingNarrative: String? = null,
     @Json(name = "macro_call") val macroCall: NetworkMacroCall? = null,
     @Json(name = "market_outlook") val marketOutlook: NetworkMarketOutlook? = null,
-    // 💡 spec-20260902-market-sentiment-android.md: AI-authored cohort-positioning synthesis
+    // 💡 AI-authored cohort-positioning synthesis
     // (retail vs. active managers vs. leveraged futures vs. short-side), additive on the same
     // pulse response -- no new endpoint. Nullable end-to-end so a pre-field or degraded response
     // (either field can independently fail the backend's compliance sanitizer) deserializes
@@ -59,7 +59,7 @@ data class NetworkVerdict(
 data class NetworkDriver(
     @Json(name = "label") val label: String? = null,
     @Json(name = "direction") val direction: String? = null,
-    // 💡 New 2026-08-21: the indicator's own natural/deterministic reading, independent of
+    // 💡 The indicator's own natural/deterministic reading, independent of
     // narrative -- e.g. contracting payrolls is always BEARISH here regardless of how the market
     // is trading it that day. See MarketDriver's doc comment in SummaryModels.kt for how this
     // differs from `direction` (the model's reconciled net-effect-on-equities call). Both fields
@@ -112,7 +112,7 @@ data class NetworkNewsItem(
     @Json(name = "summary") val summary: String? = null
 )
 
-// spec-20260902-market-sentiment-android.md -- same flat headline/summary shape as
+// Same flat headline/summary shape as
 // NetworkNewsItem, both AI-authored and already compliance-sanitized backend-side.
 @JsonClass(generateAdapter = true)
 data class NetworkMarketSentiment(
@@ -166,7 +166,7 @@ data class NetworkMarketOutlook(
     @Json(name = "summary") val summary: String? = null
 )
 
-// 💡 New 2026-08-21: one row of whats_new[] -- a deterministic (non-AI) list of indicators whose
+// 💡 One row of whats_new[] -- a deterministic (non-AI) list of indicators whose
 // data posted in the last 7 days, most-recent-first. label/release_date are always present
 // backend-side; everything else can be null. Kept fully nullable here anyway, same as every other
 // Network* DTO in this file -- this is a Retrofit response body, not a Firestore toObject() model,
@@ -177,9 +177,8 @@ data class NetworkWhatsNewEntry(
     @Json(name = "category") val category: String? = null,
     @Json(name = "value_display") val valueDisplay: String? = null,
     @Json(name = "change_display") val changeDisplay: String? = null,
-    // Not sent by the backend yet -- requested addition to buildWhatsNew() in
-    // marketPulseComposer.ts (already computed as previous_value_display on every metric in
-    // marketDataEngine.ts's buildMetric(), just not forwarded into /pulse/v3's whats_new[] yet).
+    // Not sent by the backend yet (already computed per metric there, just not forwarded into
+    // /pulse/v3's whats_new[] yet).
     // Null until that ships; the Previous line in WhatsNewSection just doesn't render until then.
     @Json(name = "previous_value_display") val previousValueDisplay: String? = null,
     @Json(name = "signal_text") val signalText: String? = null,

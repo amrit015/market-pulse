@@ -33,17 +33,16 @@ import javax.inject.Inject
  * `core/glossary/` is plain lowercase/dot/underscore, so no delimiter collision risk, unlike
  * `title`/`description`/`status` which carry spaces/parens and are `Uri.encode()`-d by the caller
  * -- read back here with no manual decode, since Navigation's own path-segment matching already
- * decodes those; see the earlier single-value version of this class for exactly why a second,
- * mismatched manual decode pass crashed). `title`/`sections`/`mergedBands`/`currentBandIndex` stay
- * a plain synchronous in-memory lookup, computed once in `init`, exactly as before this class had a
- * chart -- glossary content never changes underneath an already-open page.
+ * decodes those; a second, mismatched manual decode pass would crash).
+ * `title`/`sections`/`mergedBands`/`currentBandIndex` stay a plain synchronous in-memory lookup,
+ * computed once in `init` -- glossary content never changes underneath an already-open page.
  *
  * `chartMetricId`/`historyPoints`/`selectedChartRange`/`availableChartRanges` are new: an async
  * `InsightsHistoryRepository` read, fetched once in `onStart()` (capped at [HISTORY_LIMIT], same
  * reasoning as `MetricDetailViewModel`'s identical constant for Indicators), plus the same
  * date-based range-picker machinery that ViewModel uses (`core/charts/HistoryChartRangeFiltering.kt`,
  * shared rather than duplicated). This is the one part of this ViewModel that genuinely needs to be
- * a `StateFlow` now -- everything else here was already synchronous before this chart existed.
+ * a `StateFlow` -- everything else here is synchronous.
  */
 @HiltViewModel
 class GlossaryDetailViewModel @Inject constructor(
@@ -170,9 +169,9 @@ class GlossaryDetailViewModel @Inject constructor(
         /**
          * Static metric-id -> display-label mapping for a merged card's sub-section headers.
          * Duplicated from each card's own title string rather than passed as a further nav
-         * argument -- these 9 ids are a fixed, closed set (the same 9 `core/glossary/` entries the
-         * 2026-08-27 interpretive-layer spec added), so a compile-time mapping here is simpler
-         * than round-tripping more `Uri.encode()`-d strings through the nav route.
+         * argument -- these 9 ids are a fixed, closed set (the same 9 `core/glossary/` entries),
+         * so a compile-time mapping here is simpler than round-tripping more `Uri.encode()`-d
+         * strings through the nav route.
          */
         private fun labelResFor(metricId: String): Int = when (metricId) {
             "posture.naaim_exposure" -> R.string.posture_naaim_title

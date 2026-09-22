@@ -94,8 +94,7 @@ fun MarketPulseEntity.toDomain(): MarketPulse {
 // Main Converter
 // 💡 rolling_narrative, macro_call, and market_outlook are all present on
 // NetworkMarketPulse (declared for forward-compat) but deliberately never read here --
-// they stop at the DTO layer and never reach MarketPulse/SummaryUiState. See the spec
-// this domain was rebuilt against (spec-20260816-summary-android.md, §1/§3) for why:
+// they stop at the DTO layer and never reach MarketPulse/SummaryUiState. Why:
 // market_outlook is still AI-authored backend-side because system/active_cache's frozen
 // contract needs it for other engines, and macro_call is a self-scoring, frequently-null
 // SPY prediction never vetted for display -- rendering either would be a bug, not an
@@ -138,11 +137,11 @@ fun NetworkVerdict.toDomain(): MarketVerdict {
 }
 
 // direction/dataDirection are both resolved straight to SignalColor (never a separate Direction
-// enum), sharing the one BULLISH/BEARISH/NEUTRAL mapping below. 💡 As of 2026-08-18 direction is
+// enum), sharing the one BULLISH/BEARISH/NEUTRAL mapping below. 💡 `direction` is
 // the model's reconciled call on the driver's net effect on equities, not a mechanical copy of
 // the underlying indicator's own reading -- see MarketDriver's doc comment in SummaryModels.kt
 // for why that distinction matters (e.g. weak payrolls reading BULLISH when they're fueling a
-// dovish-pivot rally). dataDirection (new 2026-08-21) is that raw reading, kept as a genuinely
+// dovish-pivot rally). `dataDirection` is that raw reading, kept as a genuinely
 // separate field rather than a fallback -- the two can legitimately disagree.
 fun NetworkDriver.toDomain(): MarketDriver {
     return MarketDriver(
@@ -210,7 +209,7 @@ fun NetworkNewsItem.toDomain(): NewsItem {
     )
 }
 
-// spec-20260902-market-sentiment-android.md's null/blank collapse rule: both fields blank means
+// Null/blank collapse rule: both fields blank means
 // the card isn't shown at all (returns null, not an empty MarketSentiment), but either field
 // present alone still renders -- so a single blank field collapses to null on its own rather than
 // being passed through as an empty string.

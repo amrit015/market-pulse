@@ -10,9 +10,8 @@ import com.squareup.moshi.JsonClass
 @JsonClass(generateAdapter = true)
 data class NetworkAiSynthesis(
     @Json(name = "schema_version") val schemaVersion: Int? = null,
-    // 💡 `last_updated` deliberately unmodeled here -- see CLAUDE.md's "last_updated vs
-    // timestamp" cross-repo contract note. It's a pre-formatted, Firestore-console-only string
-    // whose shape isn't guaranteed to stay a plain JSON string across backend changes; a live
+    // 💡 `last_updated` deliberately unmodeled here: it's a pre-formatted, Firestore-console-only
+    // string whose shape isn't guaranteed to stay a plain JSON string across backend changes; a live
     // ai_synthesis document tripped Moshi on it. `timestamp` (epoch millis) is the only field
     // this app reads for "as of" display.
     @Json(name = "timestamp") val timestamp: Long? = null,
@@ -43,9 +42,6 @@ data class NetworkShift(
     @Json(name = "note") val note: String? = null
 )
 
-// 💡 `contributing_metric_ids` removed 2026-08-22 -- the backend dropped it from assembly (indicator
-// synthesis revamp follow-up). Never rendered on this side either, so this is a clean removal, not
-// a UI change.
 @JsonClass(generateAdapter = true)
 data class NetworkPillarScorecardEntry(
     @Json(name = "pillar") val pillar: String? = null,
@@ -61,9 +57,6 @@ data class NetworkHorizons(
     @Json(name = "long_term") val longTerm: NetworkHorizonBlock? = null
 )
 
-// 💡 `key_drivers` removed 2026-08-22 -- the backend dropped it from the schema, prompt,
-// validation, and assembly entirely (indicator synthesis revamp follow-up). `NetworkKeyDriver`
-// removed alongside it -- nothing else in this file referenced it.
 @JsonClass(generateAdapter = true)
 data class NetworkHorizonBlock(
     @Json(name = "posture") val posture: String? = null,

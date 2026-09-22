@@ -18,7 +18,7 @@ import androidx.compose.ui.graphics.Color
  * mode's shared ramp in `MarketPulseTheme.toColorScheme()`.
  */
 data class PulseColors(
-    // --- Layer 1 — signal (locked, preset-invariant within a mode) ---
+    // --- Signal (locked, preset-invariant within a mode) ---
     val signalBullishText: Color,
     val signalBearishText: Color,
     val signalNeutralText: Color,
@@ -31,7 +31,7 @@ data class PulseColors(
     /** No resolved value from Design yet — placeholder-mapped to the mode's `onSurfaceMuted` in `MarketPulseTheme.toPulseColors()`. TODO(session-3): resolve. */
     val signalUnknown: Color,
 
-    // --- Layer 2 — accent group (per preset) ---
+    // --- Accent group (per preset) ---
     val accentPrimary: Color,
     val accentOn: Color,
     val accentSurface: Color,
@@ -43,7 +43,7 @@ data class PulseColors(
     /** Accent-washed neutral used by every price card regardless of direction — the thing that decouples the accent's touch on price cards from the signal layer entirely. */
     val surfaceTinted: Color,
 
-    // --- Layer 2 — surface ramp (shared per mode) ---
+    // --- Surface ramp (shared per mode) ---
     val onSurfaceMuted: Color,
 
     /**
@@ -51,7 +51,7 @@ data class PulseColors(
      * tokens, not a reuse of `signalBullishText`/`signalBullishPill` above. A full-tile background
      * needs a different color per *mode* than either general-purpose token gives uniformly across
      * both modes: the pill tone reads as a clean saturated fill in dark mode but washed-out/low-
-     * contrast as a full tile in light mode, while the text tone (originally used here) was the
+     * contrast as a full tile in light mode, while the text tone was the
      * reverse — fine in light mode, too flat in dark. See `MarketPulseTheme.toPulseColors()` for
      * which source each mode actually draws from.
      */

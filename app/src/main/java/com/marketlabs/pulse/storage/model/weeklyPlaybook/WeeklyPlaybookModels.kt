@@ -3,8 +3,7 @@ package com.marketlabs.pulse.storage.model.weeklyPlaybook
 /**
  * Represents the AI-generated Weekly Event Playbook.
  */
-// 💡 2026-08-29 revision: added `synthesis` (Gemini narrative layer, same shape Posture/
-// Positioning/Risks already carry). Per-event `actual`/`postReleaseImpact` handling is unchanged.
+// 💡 `synthesis` is the Gemini narrative layer, same shape Posture/Positioning/Risks carry.
 data class WeeklyPlaybook(
     val lastUpdated: Long? = null,
     val lastSyncedTimestamp: Long? = null,

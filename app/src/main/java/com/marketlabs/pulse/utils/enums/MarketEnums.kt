@@ -211,9 +211,9 @@ enum class IndicatorCategory {
 // ==========================================
 
 // Code-computed (not AI-authored) read of whether the 4 pillars' stances agree with what the
-// current market_regime would predict -- see indicatorSynthesis.ts's computeAlignmentWithMacro().
-// 💡 2026-08-22: backend replaced the single "TENSION" value with two directional variants --
-// which side of fundamentals the market's currently pricing ahead of/behind. `label` is the
+// current market_regime would predict.
+// 💡 Two directional variants rather than a single generic "tension" value: which side of
+// fundamentals the market's currently pricing ahead of/behind. `label` is the
 // pill's own display string, shorter than the raw enum name for the outlined alignment pill.
 enum class AlignmentState(val label: String) {
     ALIGNED("ALIGNED"),
@@ -250,7 +250,7 @@ enum class AgreementState {
 }
 
 // ==========================================
-// 📊 7. MARKET POSTURE / POSITIONING (2026-08-26 revamp -- last_observation/delta envelope)
+// 📊 7. MARKET POSTURE / POSITIONING (last_observation/delta envelope)
 // ==========================================
 
 // Raw numeric direction of a gauge's current value versus its own last recorded observation

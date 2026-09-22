@@ -6,8 +6,8 @@ import com.marketlabs.pulse.storage.model.indicators.DomainUnifiedMetric
 import com.marketlabs.pulse.storage.model.indicators.MetricHistoryPoint
 
 /**
- * Drives the pushed metric-detail page (replaces `IndicatorDetailSheet` -- every indicator card
- * tap now pushes a real destination instead of opening a sheet, matching `AssetDetailUiState`'s
+ * Drives the pushed metric-detail page (every indicator card
+ * tap pushes a real destination, matching `AssetDetailUiState`'s
  * shape). `metric`/`glossaryEntry` are cross-references into already-loaded state (the live
  * reading from `IndicatorsRepository`'s stream, the glossary bundle from `MetricGlossaryProvider`),
  * not separate fetches -- same "no data of its own beyond the tap target" reasoning

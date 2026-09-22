@@ -21,9 +21,9 @@ import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 /**
  * Every `ModalBottomSheet` in this app's own `dragHandle` slot -- the default pill (still shown,
- * centered) plus an explicit close [IconButton] at the trailing edge. Added alongside
+ * centered) plus an explicit close [IconButton] at the trailing edge. Paired with
  * `sheetGesturesEnabled = false` (see each sheet's own comment on that flag): with the whole-sheet
- * swipe-to-dismiss gone, the pill's own tap-to-dismiss was the only way to close a fully expanded
+ * swipe-to-dismiss off, the pill's own tap-to-dismiss would be the only way to close a fully expanded
  * sheet, and tapping a plain drag handle isn't a discoverable affordance on its own -- this gives
  * every sheet an explicit, obvious close action alongside it. Sits inside `ModalBottomSheet`'s own
  * `Modifier.clickable` wrapper around whatever `dragHandle` renders (tapping the pill/whitespace

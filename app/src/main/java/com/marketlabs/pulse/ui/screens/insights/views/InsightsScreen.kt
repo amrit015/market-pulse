@@ -26,19 +26,16 @@ import com.marketlabs.pulse.ui.screens.insights.InsightsUiState
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 /**
- * The 4 sections this screen used to stack in one long scroll (separated by dividers) are now one
- * `PulseTabRow` tab apiece -- Playbook, Risks, Posture, Positioning, in that order. Mirrors
- * `StockDetailScreen`'s `DetailTab` pattern exactly: an enum with a `labelRes`, a `selectedTabIndex`
- * driven by the ViewModel, and each tab as its own `LazyColumn` with its own `LazyListState` so
- * scroll position is preserved per tab when switching back and forth.
+ * The 4 sections -- Playbook, Risks, Posture, Positioning, in that order -- are one `PulseTabRow`
+ * tab apiece. Mirrors `StockDetailScreen`'s `DetailTab` pattern exactly: an enum with a `labelRes`,
+ * a `selectedTabIndex` driven by the ViewModel, and each tab as its own `LazyColumn` with its own
+ * `LazyListState` so scroll position is preserved per tab when switching back and forth.
  *
- * 💡 Insights-only swipe (2026-08-29): the tab content is now a `HorizontalPager` rather than a
- * plain `when` switch on `selectedTabIndex`, so a reader can swipe left/right between sections in
+ * 💡 The tab content is a `HorizontalPager`, so a reader can swipe left/right between sections in
  * addition to tapping `PulseTabRow`. `pagerState` is created and kept in sync with the ViewModel's
  * `selectedTabIndex` up in `InsightsRoute` (tap -> animateScrollToPage; swipe -> onTabSelected),
  * since that's the one place both `PulseTabRow` and this screen are composed together. Deliberately
- * NOT pushed into `PulseTabRow` itself -- that component is shared with Stock Analysis detail,
- * which doesn't ask for swipe, so this stays local to Insights for now.
+ * NOT pushed into `PulseTabRow` itself, which stays a plain tab bar.
  */
 enum class InsightsTab(val labelRes: Int) {
     PLAYBOOK(R.string.insights_tab_playbook),

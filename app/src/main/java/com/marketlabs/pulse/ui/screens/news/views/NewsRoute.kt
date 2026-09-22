@@ -42,18 +42,18 @@ import com.marketlabs.pulse.ui.components.PulseLoadingIndicator
 import com.marketlabs.pulse.ui.screens.news.NewsViewModel
 
 /**
- * Added with Claude Code assistance: News is no longer a bottom-nav tab — it's reached only by
- * tapping the Dashboard's "Latest News" chevron or a specific preview card — so this now owns its
+ * News isn't a bottom-nav tab — it's reached only by
+ * tapping the Dashboard's "Latest News" chevron or a specific preview card — so this owns its
  * own `Scaffold`/`TopAppBar` with a back button, mirroring `PulseWebViewScreen`'s push-screen shape.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewsRoute(
     scaffoldPadding: PaddingValues,
-    onNavigateUp: () -> Unit, // Added with Claude Code assistance.
+    onNavigateUp: () -> Unit,
     viewModel: NewsViewModel = hiltViewModel(),
     onNavigateToWebView: (String) -> Unit, // webview navigation action
-    // Added with Claude Code assistance: set when a Dashboard news preview card is tapped, so the
+    // Set when a Dashboard news preview card is tapped, so the
     // respective card can be scrolled into view + highlighted here.
     highlightedArticleUrl: String? = null,
     onHighlightConsumed: () -> Unit = {}
@@ -62,7 +62,7 @@ fun NewsRoute(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Added with Claude Code assistance: this screen keeps its own local copy — deliberately NOT
+    // This screen keeps its own local copy — deliberately NOT
     // keyed off `highlightedArticleUrl` — so the highlight border/scroll persists for the rest of
     // this visit even after the NavGraph's one-shot value is nulled out below. Re-fires only when
     // a genuinely new (non-null) value arrives, e.g. tapping a different preview card later.
@@ -111,7 +111,7 @@ fun NewsRoute(
                         )
                     }
                 },
-                // Added with Claude Code assistance: matches the screen's background so the
+                // Matches the screen's background so the
                 // toolbar doesn't render as a visibly different-colored band above the content.
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background

@@ -27,8 +27,9 @@ data class NetworkNewsArticle(
  * also carries `id` (the archive's `YYYY-MM-DD` doc name), `story_count`, `timestamp`, and
  * `last_updated`, but nothing here needs a day-level label or "as of" time -- each story inside
  * `stories` already carries its own `timestamp`, which is all the merge in
- * RemoteNewsDataSourceImpl needs. `last_updated` is deliberately left unmodeled per this repo's
- * `last_updated`/`timestamp` pairing rule (see CLAUDE.md), same as `NetworkMarketNews` above.
+ * RemoteNewsDataSourceImpl needs. `last_updated` is deliberately left unmodeled -- its shape isn't a
+ * guaranteed plain JSON string, and `timestamp` is the only "as of" field read, same as
+ * `NetworkMarketNews` above.
  */
 @JsonClass(generateAdapter = true)
 data class NetworkNewsHistoryDay(

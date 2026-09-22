@@ -9,9 +9,8 @@ import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 /**
  * "As of <observed/reported/settlement date>" footer line for every Posture and Positioning metric
- * card (2026-08-26 revamp). Used to also carry the card's info icon, but that moved up next to the
- * card's title (each card now uses `MetricInfoAction` directly in its title row instead) -- kept as
- * its own small component since every card still needs this exact date-line treatment.
+ * card. The card's info icon lives in its title row (via `MetricInfoAction`), not here -- this is
+ * its own small component because every card needs this exact date-line treatment.
  */
 @Composable
 fun MetricCardFooter(asOfText: String?, modifier: Modifier = Modifier) {

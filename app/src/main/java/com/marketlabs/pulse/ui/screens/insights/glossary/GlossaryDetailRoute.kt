@@ -26,9 +26,9 @@ import com.marketlabs.pulse.R
 /**
  * Stateful entry point for the pushed `glossaryDetail/{title}/{metricIds}/{chartMetricId}/{description}/{status}`
  * destination -- mirrors `MetricDetailRoute`'s plain `Scaffold`/`TopAppBar`/back-button shape,
- * including its `DisposableEffect` lifecycle wiring now that `GlossaryDetailViewModel.uiState` is a
- * proper `StateFlow` fed by an async history fetch (the chart), not the plain synchronous glossary
- * lookup this page used to be alone.
+ * including its `DisposableEffect` lifecycle wiring, since `GlossaryDetailViewModel.uiState` is a
+ * proper `StateFlow` fed by an async history fetch (the chart) alongside the plain synchronous
+ * glossary lookup.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

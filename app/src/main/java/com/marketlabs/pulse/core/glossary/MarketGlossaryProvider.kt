@@ -18,7 +18,7 @@ data class MarketGlossaryData(
 /**
  * Regime/setup/direction/cycle-zone/action definitions for `MarketGlossaryBottomSheet` (Summary's
  * "Market Status & Glossary" sheet) -- bundled as `assets/market_glossary.json`, loaded once and
- * cached in memory for the process lifetime, replacing the old hardcoded `object MarketGlossary`.
+ * cached in memory for the process lifetime.
  *
  * Plain lazily-cached singleton `object` (not a Hilt `@Singleton @Inject` class like
  * `MetricGlossaryProvider`) because every call site is a deeply nested, stateless leaf composable

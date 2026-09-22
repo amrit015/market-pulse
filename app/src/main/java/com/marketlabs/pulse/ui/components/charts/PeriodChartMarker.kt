@@ -2,7 +2,7 @@ package com.marketlabs.pulse.ui.components.charts
 
 // Rescoped from the orphaned ui/charts/types/RememberMarker.kt — same balloon-label + indicator
 // dot + guideline shape, restyled off LocalPulseColors instead of raw MaterialTheme.colorScheme
-// so it matches this app's token contract like every other themed component.
+// so it follows this app's theme tokens like every other themed component.
 
 import android.graphics.Typeface
 import android.text.Layout
@@ -76,8 +76,8 @@ fun rememberPeriodChartMarker(pointCount: Int, labelForIndex: (Int) -> String): 
     )
 
     // 💡 `lineCount` defaults to 1 in Vico's own TextComponent -- the label's underlying
-    // StaticLayout is built with `maxLines = lineCount`, so the percent-change second line was
-    // silently truncated/ellipsized regardless of available width until this was set explicitly.
+    // StaticLayout is built with `maxLines = lineCount`, so the percent-change second line would be
+    // silently truncated/ellipsized regardless of available width unless this is set explicitly.
     // `ALIGN_CENTER` so the (usually shorter) percent-change line centers under the date/value
     // line instead of sitting flush left with it. `lineHeight` tightens the gap between the two
     // lines (Vico's own default leading otherwise adds noticeably more than a compact 2-line

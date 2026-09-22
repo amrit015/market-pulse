@@ -41,7 +41,7 @@ fun MarketPulseTheme(
             val window = (view.context as? Activity)?.window
             window?.let {
                 val controller = WindowCompat.getInsetsController(it, view)
-                // isDark now comes straight off the selected preset, not isSystemInDarkTheme().
+                // isDark comes straight off the selected preset, not isSystemInDarkTheme().
                 controller.isAppearanceLightStatusBars = !theme.isDark
                 controller.isAppearanceLightNavigationBars = !theme.isDark
             }

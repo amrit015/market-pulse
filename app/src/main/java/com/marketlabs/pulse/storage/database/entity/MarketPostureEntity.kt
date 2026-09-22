@@ -10,12 +10,10 @@ import androidx.room.PrimaryKey
  * conflict, we ensure the local database only ever holds the latest snapshot.
  * All fields default to null to safely handle missing or partial backend updates.
  */
-// 💡 2026-08-26 revamp: added last_observation/delta/delta_direction/fetched_at/stale_since to
-// each of the three existing gauges, plus a new synthesis block -- kept as flat nullable columns
-// (naaimLastObsValue, naaimDelta, ...) rather than restructuring this entity onto JSON-blob
-// columns like Indicators/Stocks do for their own nested objects, since every field this entity
-// already stores is flat scalars too and a straightforward `ADD COLUMN` migration (see
-// MIGRATION_18_19) keeps that consistent instead of rebuilding the table. `contentFlags` is the
+// 💡 Each gauge's last_observation/delta/delta_direction/fetched_at/stale_since envelope, and the
+// synthesis block, are flat nullable columns (naaimLastObsValue, naaimDelta, ...) rather than
+// JSON-blob columns like Indicators/Stocks use for their own nested objects -- every field this
+// entity stores is a flat scalar, so this stays consistent. `contentFlags` is the
 // one exception -- it's a `List<String>?`, which already has a registered database-wide
 // TypeConverter via `NewsConverters.fromStringList`/`toStringList` (see StocksConverters.kt's own
 // doc comment on why a second one here would fail KSP with "Multiple functions define the same

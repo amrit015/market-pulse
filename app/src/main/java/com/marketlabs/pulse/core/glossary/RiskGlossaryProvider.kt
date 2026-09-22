@@ -9,7 +9,7 @@ data class RiskGlossaryData(
 
 /**
  * Status/trend definitions for `RiskGlossaryBottomSheet` (Insights' Tail Risks glossary sheet) --
- * bundled as `assets/risk_glossary.json`, replacing the old hardcoded `object RiskGlossary`. Same
+ * bundled as `assets/risk_glossary.json`. Same
  * plain-singleton reasoning as `MarketGlossaryProvider` -- every call site is a stateless leaf
  * composable with no adjacent ViewModel.
  */

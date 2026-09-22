@@ -35,10 +35,10 @@ data class MarketPulseEntity(
     val watch: List<WatchItem>? = null,
     val risks: List<RiskItem>? = null,
     val whatChanged: String? = null,
-    // New 2026-08-21 -- own column (MIGRATION_15_16), same pattern as watch/risks/drivers rather
+    // Own column (MIGRATION_15_16), same pattern as watch/risks/drivers rather than
     // than nested inside an existing JSON blob.
     val whatsNew: List<WhatsNewItem>? = null,
-    // New 2026-09-02 -- own column (MIGRATION_20_21), same pattern as whatsNew above.
+    // Own column (MIGRATION_20_21), same pattern as whatsNew above.
     val marketSentiment: MarketSentiment? = null,
     // New -- own column (MIGRATION_23_24). false marks a tombstone row: the Summary calendar
     // strip confirmed no report exists for this dateId (weekend/holiday/pre-history), written so

@@ -3,9 +3,9 @@ package com.marketlabs.pulse.storage.model.indicators
 import com.marketlabs.pulse.utils.enums.SignalColor
 
 /**
- * One metric's charted history, cached per `metricId` (no range picker -- the spec explicitly
- * says not to build one yet, history only goes back to 2026-08-21, so this is just "whatever the
- * backend returns for its default/max lookback," not a client-selected window).
+ * One metric's charted history, cached per `metricId` (no range key -- each metric caches one
+ * series, whatever the backend returns for its default/max lookback; a range picker slices it
+ * client-side rather than fetching a selected window).
  */
 data class MetricHistorySeries(
     val metricId: String,

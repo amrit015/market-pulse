@@ -23,7 +23,7 @@ import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 /**
  * A 0-100 track with a single dot marking where the current reading falls -- CFTC COT futures
- * positioning's trailing-year percentile, per the Positioning design mockup's structure. The "0"/
+ * positioning's trailing-year percentile. The "0"/
  * "Percentile N"/"100" labels around it are left to the caller (a plain `Row` of `Text`) rather
  * than baked in here, so this stays a reusable bare track+marker for any future 0-100 percentile
  * reading, not something COT-specific.

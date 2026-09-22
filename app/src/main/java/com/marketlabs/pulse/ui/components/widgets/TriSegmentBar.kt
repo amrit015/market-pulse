@@ -24,8 +24,8 @@ import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 /**
- * Three-way proportion bar for AAII retail sentiment's bull/neutral/bear split, per the Positioning
- * design mockup's structure. A weighted `Row` of three colored `Box` segments, using the
+ * Three-way proportion bar for AAII retail sentiment's bull/neutral/bear split. A weighted `Row`
+ * of three colored `Box` segments, using the
  * `signalBullish/Neutral/Bearish TEXT` tokens -- NOT the `...Pill` tokens `SignalPill` uses for its
  * own fill. `Pill` tokens are deliberately pale (SignalPill.kt: "meant to sit behind bright text"),
  * so using them as a large solid fill here read as washed-out/faded rather than the natural

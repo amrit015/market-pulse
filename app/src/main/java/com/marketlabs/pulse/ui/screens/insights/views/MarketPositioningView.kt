@@ -57,7 +57,7 @@ import com.marketlabs.pulse.utils.toDisplayDate
 import java.util.Locale
 import kotlin.math.abs
 
-/** See `MarketPostureView.kt`'s identical doc comment on `InstitutionalPostureSection` for the 2026-08-27 whole-card-tap convergence. */
+/** Whole-card tap target: see `MarketPostureView.kt`'s identical doc comment on `InstitutionalPostureSection`. */
 @Composable
 fun MarketPositioningSection(
     positioningData: DomainMarketPositioning,
@@ -86,9 +86,8 @@ fun MarketPositioningSection(
                 color = MaterialTheme.colorScheme.primary
             )
             Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
-            // 💡 2026-08-27 convergence: this icon and the first-time explainer card below now
-            // show the SAME merged string (positioning_explainer_text) -- was two separate,
-            // partly overlapping paragraphs.
+            // 💡 This icon and the first-time explainer card below show the SAME string
+            // (positioning_explainer_text).
             MetricInfoAction(
                 title = stringResource(id = R.string.positioning_section_title),
                 description = stringResource(id = R.string.positioning_explainer_text)
@@ -106,8 +105,7 @@ fun MarketPositioningSection(
             )
         )
 
-        // --- FIRST-TIME EXPLAINER (2026-08-27 interpretive-layer spec, Layer 3) -- stays visible
-        // until the reader taps "Got it" here. ---
+        // --- FIRST-TIME EXPLAINER -- stays visible until the reader taps "Got it" here. ---
         if (!isIntroDismissed) {
             FirstTimeExplainerCard(
                 text = stringResource(id = R.string.positioning_explainer_text),
@@ -162,11 +160,10 @@ fun MarketPositioningSection(
 
 /**
  * Section-title header shared by all 3 positioning cards (Retail Sentiment, Institutional
- * Positioning, Short Interest) -- brought inside each card 2026-09-05 to match the
+ * Positioning, Short Interest) -- lives inside each card, matching the
  * `Text(titleSmall.Bold, primary) + full-bleed divider` convention Summary's Macro Mix/Drivers/
- * etc. use (see `docs/theming-system/card-heading-conventions.md`), rather than sitting as a
- * separate list item above an otherwise-headerless card the way this screen previously rendered
- * it (this composable folds in what used to be a standalone `SectionLabel`). The divider sits
+ * etc. use, rather than sitting as a separate list item above an otherwise-headerless card. The
+ * divider sits
  * outside the padded `Row` (at the outer, unpadded `Column` level) so it spans the card's full
  * width, matching every section-title header on Summary.
  */
@@ -320,14 +317,13 @@ private fun methodologyLabel(methodology: String): String = when (methodology) {
 }
 
 /**
- * 2026-08-27: was 4 separate `PulseCard`s (one per contract) -- collapsed into one card holding a
- * compact row per contract, ES/DIA/NQ/RTY (the order Amrit asked for), separated by hairline
- * dividers matching `StockPreviewCard`'s divider treatment. The outer `Column` only carries VERTICAL
- * padding now -- each row insets its own horizontal padding instead -- so the divider (added with no
- * horizontal inset of its own) spans the card's full width edge-to-edge, not just the width between
- * the rows' side margins. Each row keeps its OWN tap target and chevron (not one tap for the whole
- * card), since a contract's status/percentile is only meaningful per-contract -- collapsing the
- * outer card chrome doesn't collapse what a tap means.
+ * One card holding a compact row per contract, ES/DIA/NQ/RTY (in that fixed order), separated by
+ * hairline dividers matching `StockPreviewCard`'s divider treatment. The outer `Column` only
+ * carries VERTICAL padding -- each row insets its own horizontal padding instead -- so the divider
+ * (added with no horizontal inset of its own) spans the card's full width edge-to-edge, not just
+ * the width between the rows' side margins. Each row keeps its OWN tap target and chevron (not one
+ * tap for the whole card), since a contract's status/percentile is only meaningful per-contract --
+ * a shared outer card chrome doesn't change what a tap means.
  */
 @Composable
 private fun InstitutionalPositioningCard(
@@ -371,17 +367,15 @@ private fun InstitutionalPositioningCard(
 }
 
 /**
- * One contract's row inside `InstitutionalPositioningCard` -- content unchanged from the old
- * standalone card, just at tighter padding/type sizes (titleLarge value instead of headlineMedium,
- * padding_small/padding_tiny spacers instead of padding_large/padding_small) since 4 of these now
- * share one card instead of each getting a full card's worth of breathing room.
+ * One contract's row inside `InstitutionalPositioningCard`, at tight padding/type sizes (titleLarge
+ * value, padding_small/padding_tiny spacers) since 4 of these share one card.
  *
- * `methodologyLabel(contract.methodology)` used to render directly on the row ("CFTC Legacy ·
- * Non-Commercial" / "CFTC TFF · Leveraged Funds") -- moved into the glossary detail page's intro
- * instead (passed as the nav call's `description` argument, which this row never used otherwise --
- * `institutional.description` is one of the fields the backend actively removed, see
+ * `methodologyLabel(contract.methodology)` ("CFTC Legacy · Non-Commercial" / "CFTC TFF · Leveraged
+ * Funds") isn't rendered on the row -- it's passed to the glossary detail page's intro instead (as
+ * the nav call's `description` argument, which this row uses for nothing else --
+ * `institutional.description` is a field the backend removed, see
  * `positioning_institutional_description`'s doc comment), since it's read-once context rather than
- * something that needs to compete for space on every row of a now-compact card.
+ * something that needs to compete for space on every row of a compact card.
  */
 @Composable
 private fun FuturesContractRow(
@@ -460,7 +454,7 @@ private fun FuturesContractRow(
                 Text(text = stringResource(id = R.string.positioning_percentile_max), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
 
-            // --- Layer 2: paired-field reading (percentile + status only mean something together) ---
+            // --- Paired-field reading (percentile + status only mean something together) ---
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_tiny)))
             Text(
                 text = cotReadingCaption(percentile = contract.percentile, status = status),
@@ -478,12 +472,12 @@ private fun FuturesContractRow(
 }
 
 /**
- * Layer 2 (2026-08-27 interpretive-layer spec): `nc_net_pct_oi` and `percentile` are only
+ * Pairs `nc_net_pct_oi` and `percentile` into one de-emphasized on-card line: they are only
  * interpretable together (a -9.93% net position reads meaningless without knowing whether that's
- * a mundane wobble or a rare extreme) -- this pairs them into one de-emphasized on-card line,
- * visible without a glossary tap, rather than requiring the reader to open two separate entries
- * and connect them mentally. Client-computed per the spec's own §6 recommendation (cheap, no
- * backend round-trip needed since percentile+status are already on the domain model).
+ * a mundane wobble or a rare extreme), and pairing them keeps the reading visible without a
+ * glossary tap, rather than requiring the reader to open two separate entries and connect them
+ * mentally. Client-computed (cheap, no backend round-trip needed since percentile+status are
+ * already on the domain model).
  */
 @Composable
 private fun cotReadingCaption(percentile: Int, status: CotPositioningStatus): String = when (status) {
@@ -505,10 +499,10 @@ private fun Int.withOrdinalSuffix(): String {
 }
 
 /**
- * 2026-08-27: was 6 separate `PulseCard`s (one per ETF proxy) -- collapsed into one card holding a
- * compact row per instrument, SPY/DIA/QQQ/RSP/IWM/MAGS (the order Amrit asked for), same reasoning
- * as `InstitutionalPositioningCard` above (one shared outer card, but each row keeps its own tap
- * target since each instrument's own status/days-to-cover/mom-change reading is independent).
+ * One card holding a compact row per instrument, SPY/DIA/QQQ/RSP/IWM/MAGS (in that fixed order),
+ * same reasoning as `InstitutionalPositioningCard` above (one shared outer card, but each row
+ * keeps its own tap target since each instrument's own status/days-to-cover/mom-change reading is
+ * independent).
  */
 @Composable
 private fun ShortInterestCombinedCard(
@@ -553,9 +547,8 @@ private fun ShortInterestCombinedCard(
     }
 }
 
-/** One instrument's row inside `ShortInterestCombinedCard` -- content unchanged from the old
- * standalone card (titleLarge value instead of headlineMedium, tighter spacers), same reasoning as
- * `FuturesContractRow`. */
+/** One instrument's row inside `ShortInterestCombinedCard` -- titleLarge value and tight spacers,
+ * same reasoning as `FuturesContractRow`. */
 @Composable
 private fun ShortInterestRow(
     displayName: String,
@@ -627,7 +620,7 @@ private fun ShortInterestRow(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            // --- Layer 2: paired-field reading (days-to-cover + mom-change + status only mean
+            // --- Paired-field reading (days-to-cover + mom-change + status only mean
             // something together -- see FuturesContractRow's cotReadingCaption for the identical
             // rationale). ---
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_tiny)))
@@ -646,7 +639,7 @@ private fun ShortInterestRow(
     }
 }
 
-/** Layer 2 (2026-08-27 interpretive-layer spec) -- see `cotReadingCaption`'s identical rationale. */
+/** Paired-field reading -- see `cotReadingCaption`'s identical rationale. */
 @Composable
 private fun shortInterestReadingCaption(instrument: DomainShortInterestInstrument, status: ShortInterestStatus): String {
     val daysToCoverText = String.format(Locale.US, "%.1f", instrument.daysToCover)

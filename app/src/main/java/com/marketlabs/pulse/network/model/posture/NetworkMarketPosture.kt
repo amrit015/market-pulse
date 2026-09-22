@@ -3,14 +3,13 @@ package com.marketlabs.pulse.network.model.posture
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
-// 💡 2026-08-26 revamp: added `synthesis` (Gemini narrative layer) and, on each of the three
+// 💡 Carries `synthesis` (Gemini narrative layer) and, on each of the three
 // gauges below, the last_observation/delta/delta_direction/fetched_at/stale_since envelope --
 // see NetworkLastObservation's own doc comment for why every one of those five fields is
 // nullable. `last_updated` is deliberately NOT modeled here: it's a Firestore server-timestamp
 // sentinel (serializes as `{_seconds, _nanoseconds}`, not a string or number) that this app has
-// never consumed -- the 2026-08-22 indicators revamp already hit this exact bug once by modeling
-// it as a String, see this file's cross-repo-contract rule in CLAUDE.md. `timestamp` (epoch
-// millis) is the only "as of" field this app reads.
+// never consumed -- the indicators response already hit this exact bug once by modeling it as a
+// String. `timestamp` (epoch millis) is the only "as of" field this app reads.
 @JsonClass(generateAdapter = true)
 data class NetworkMarketPosture(
     @Json(name = "naaim_exposure") val naaimExposure: NetworkNaaimExposure? = null,
@@ -62,15 +61,13 @@ data class NetworkNetLiquidity(
 )
 
 // 💡 Every one of these five fields is nullable, and this is load-bearing, not defensive
-// over-caution: naaim_exposure is failing its scrape right now (live-verified 2026-08-26) and its
-// current live document has NONE of last_observation/delta/delta_direction/fetched_at -- a total
-// fetch failure never writes them at all (gaugeDocument.ts's assembleGauge only ever patches
-// `stale_since` on failure, so {merge:true} leaves a gauge that has never once succeeded without
-// this whole envelope). `delta` is independently nullable even on a successful fetch: the very
-// first-ever observation for a gauge has nothing to diff against, so gaugeDocument.ts's
-// computeObservation() sets delta to null that one run (also live-verified today, on
-// net_liquidity). last_observation's own value/status/observed_at ARE always set together
-// whenever the object itself is present -- computeObservation never emits a partial one.
+// over-caution: a gauge whose scrape has failed has NONE of last_observation/delta/
+// delta_direction/fetched_at -- a total fetch failure never writes them at all (the backend only
+// ever patches `stale_since` on failure, so {merge:true} leaves a gauge that has never once
+// succeeded without this whole envelope). `delta` is independently nullable even on a successful
+// fetch: the very first-ever observation for a gauge has nothing to diff against, so the backend
+// sets delta to null that one run. last_observation's own value/status/observed_at ARE always set
+// together whenever the object itself is present -- the backend never emits a partial one.
 @JsonClass(generateAdapter = true)
 data class NetworkLastObservation(
     @Json(name = "value") val value: Double,

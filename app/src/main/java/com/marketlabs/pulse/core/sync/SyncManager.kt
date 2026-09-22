@@ -1,7 +1,5 @@
 package com.marketlabs.pulse.core.sync
 
-// Includes stock analysis sync wiring added with Claude Code assistance.
-
 import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
@@ -161,12 +159,10 @@ class SyncManager @Inject constructor(
                         // ==========================================
                         // 8. STOCK ANALYSIS SYNC (previews only — detail is fetched on demand)
                         // ==========================================
-                        // 💡 Updated with Claude Code assistance: the backend no longer writes
-                        // stock_analysis_eod/stock_analysis_after_hours at all — both were replaced
-                        // by a single stocks_updated flag, fired once per run by the stock-analysis
-                        // hub's completion check rather than by every individual worker. Detail
-                        // documents aren't covered by any sync flag; they're fetched fresh whenever
-                        // a symbol is opened (see StockAnalysisRepository.refreshDetail).
+                        // 💡 A single `stocks_updated` flag, fired once per run by the stock-analysis
+                        // hub's completion check rather than by every individual worker, drives this
+                        // sync. Detail documents aren't covered by any sync flag; they're fetched
+                        // fresh whenever a symbol is opened (see StockAnalysisRepository.refreshDetail).
                         val newStocksTime = snapshot.getLong("stocks_updated") ?: 0L
                         val localStocksTime = stockAnalysisRepository.getLastSyncedTimestamp() ?: 0L
 

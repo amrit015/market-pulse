@@ -24,8 +24,8 @@ import com.marketlabs.pulse.ui.theme.MarketPulseTheme
  * The small-caps "eyebrow" label every SYNTHESIS-family card header uses -- Market Signal, Market
  * Sentiment, Market Read, and Where Capital's Moving (all Summary), Today's Read (Indicators),
  * and Digest (Insights' `SynthesisHeroCard`, shared by Playbook/Risks/Posture/Positioning). One
- * shared labelSmall+uppercase+bold text style so these six call sites can't drift back out of
- * sync with each other the way they'd been hand-kept-in-sync before this was pulled out.
+ * shared labelSmall+uppercase+bold text style so these six call sites can't drift out of sync
+ * with each other.
  *
  * Each caller still owns its own color and whether it carries the leading AI-sparkle icon -- those
  * genuinely differ (Market Signal/Sentiment/Read/Where Capital's Moving have neither icon nor the

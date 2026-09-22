@@ -5,7 +5,7 @@ import android.content.Context
 /**
  * Definitions for the Stock Analysis Detail screen's jargon-y metric labels (ATR, Fair Value
  * Anchor, Trailing PE, ...), surfaced via `StockAnalysisGlossaryBottomSheet`. Bundled as
- * `assets/stock_analysis_glossary.json`, replacing the old hardcoded `object StockAnalysisGlossary`.
+ * `assets/stock_analysis_glossary.json`.
  * Same plain-singleton reasoning as `MarketGlossaryProvider` -- called from a dozen+ Detail section
  * composables (Key Levels, Fundamentals, Macro, ...) with no adjacent ViewModel.
  *

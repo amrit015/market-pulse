@@ -3,11 +3,11 @@ package com.marketlabs.pulse.network.model.marketRisk
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
-// 💡 2026-08-29 revision: `summary` is hard-deleted backend-side (its content is now
-// `synthesis.detail`) -- removed here rather than kept nullable, since a stale cached response
-// with a live `summary` and no `synthesis` would otherwise still parse and mislead. `synthesis` is
-// the same Gemini narrative layer Posture/Positioning already carry (see NetworkSynthesis's own
-// doc comment below) -- this domain has no numeric gauge, so it's the only new field.
+// 💡 No `summary` field: the narrative is `synthesis.detail` (the same Gemini narrative layer
+// Posture/Positioning carry -- see NetworkSynthesis's own doc comment below). `summary` is
+// deliberately not modeled, since a stale cached response with a live `summary` and no
+// `synthesis` would otherwise still parse and mislead. This domain has no numeric gauge, so
+// `synthesis` is its only narrative field.
 @JsonClass(generateAdapter = true)
 data class NetworkMarketRiskAssessment(
     @Json(name = "timestamp") val lastUpdated: Long? = null,

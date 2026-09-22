@@ -41,8 +41,7 @@ import com.marketlabs.pulse.storage.database.entity.StockDetailEntity
 import com.marketlabs.pulse.storage.database.entity.StockPreviewEntity
 import com.marketlabs.pulse.storage.database.entity.WeeklyPlaybookEntity
 
-// Includes registration of the stocks (market_stock_previews / market_stock_details) cache,
-// added with Claude Code assistance.
+// Includes registration of the stocks (market_stock_previews / market_stock_details) cache.
 @Database(
     entities = [
         MarketPulseEntity::class,

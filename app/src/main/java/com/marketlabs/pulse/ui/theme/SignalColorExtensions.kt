@@ -16,16 +16,14 @@ import com.marketlabs.pulse.utils.enums.SignalColor
 
 /**
  * 💡 THOUGHT PROCESS:
- * Replaces `utils/extensions/ColorExtension.kt`'s `SignalColor.toColor()`/`.toBgColor()` — same
- * mapping target (the domain enum), new token source (`LocalPulseColors` instead of the deleted
- * `PulseStatusColors`) and new names (`.textColor`/`.pillColor`, matching the `signal.*.text` /
- * `signal.*.pill` naming used throughout this theming system instead of the old ambiguous "Bg"
- * suffix — a "text" color and a "pill" background read unambiguously; a "Bg" color could mean
- * either).
+ * Maps the domain `SignalColor` enum to theme colors: `LocalPulseColors` is the token source, and
+ * the names (`.textColor`/`.pillColor`) match the `signal.*.text`/`signal.*.pill` naming used
+ * throughout this theming system -- a "text" color and a "pill" background read unambiguously,
+ * where a "Bg" suffix could mean either.
  *
  * `UNKNOWN`/`null` fall back to `LocalPulseColors.current.signalUnknown` — a real color both
  * variants can share, rather than reaching into `MaterialTheme.colorScheme` for an unrelated
- * fallback the way the old extensions did.
+ * fallback.
  */
 val SignalColor?.textColor: Color
     @Composable get() = when (this) {
@@ -135,7 +133,7 @@ val ShiftDirection?.pillColor: Color
     }
 
 // ============================================================================
-// 📊 MARKET POSTURE / POSITIONING (2026-08-26 revamp)
+// 📊 MARKET POSTURE / POSITIONING
 // ============================================================================
 
 /** Posture: NAAIM Exposure Index -- rising manager exposure reads bullish, falling reads bearish. */

@@ -31,9 +31,9 @@ import com.marketlabs.pulse.ui.components.PulseLoadingIndicator
 import com.marketlabs.pulse.ui.components.widgets.FavoriteStarToggle
 
 /**
- * Stateful entry point for the pushed `metricDetail/{metricId}` destination -- replaces
- * `IndicatorDetailSheet`, so every indicator card tap now navigates here instead of opening a
- * sheet. Mirrors `AssetDetailRoute`'s plain `Scaffold`/`TopAppBar`/back-button shape (this screen
+ * Stateful entry point for the pushed `metricDetail/{metricId}` destination -- every indicator card
+ * tap navigates here.
+ * Mirrors `AssetDetailRoute`'s plain `Scaffold`/`TopAppBar`/back-button shape (this screen
  * has no tabs or pinned rich header either).
  */
 @OptIn(ExperimentalMaterial3Api::class)

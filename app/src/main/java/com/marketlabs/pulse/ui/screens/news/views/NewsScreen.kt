@@ -72,7 +72,7 @@ fun NewsScreen(
     data: MarketNews,
     scaffoldPadding: PaddingValues,
     onArticleClick: (String) -> Unit,
-    highlightedArticleUrl: String? = null, // Added with Claude Code assistance.
+    highlightedArticleUrl: String? = null,
     nativeAd: NativeAd? = null,
     isAdFree: Boolean = false,
     showAdPlaceholder: Boolean = true
@@ -93,7 +93,7 @@ fun NewsScreen(
         stories.partition { (it.timestamp ?: 0L) >= todayBoundary }
     }
 
-    // Added with Claude Code assistance: scroll the respective card into view when a Dashboard
+    // Scroll the respective card into view when a Dashboard
     // news preview card was tapped. Item index is offset by 1 for the header item above the
     // list, plus another 1 if the target sits after the "Last few days" banner.
     LaunchedEffect(highlightedArticleUrl, data.stories) {
@@ -234,9 +234,8 @@ fun NewsScreen(
 }
 
 /**
- * Just the "Analyzed at [time]" line now — the icon+title row that used to sit above it duplicated
- * the `TopAppBar`'s own "Market News" title once News became a pushed screen with its own toolbar,
- * so it was removed (Added with Claude Code assistance).
+ * Just the "Analyzed at [time]" line -- no icon+title row above it, since the `TopAppBar`'s own
+ * "Market News" title already says that (News is a pushed screen with its own toolbar).
  */
 @Composable
 fun HeaderSection(timestamp: Long) {
@@ -286,7 +285,7 @@ fun LastTwoDaysBanner() {
 fun NewsArticleCard(
     article: NewsArticle,
     onClick: (String) -> Unit,
-    isHighlighted: Boolean = false, // Added with Claude Code assistance.
+    isHighlighted: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val headline = article.headline ?: "Market Update"
@@ -300,12 +299,10 @@ fun NewsArticleCard(
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
     val cardShape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card))
 
-    // 💡 DATA style -- was SYNTHESIS (grouped with the AI briefing card as "curated content"), but
-    // a news article card is just displaying an external item, not an AI's own interpretation of
-    // one, so it now reads with the same background every other data-display card in the app uses.
-    // The highlighted border (thicker, full accent) draws on top of PulseCard's own hairline
-    // border -- Added with Claude Code assistance: frames the card a Dashboard news preview
-    // linked to.
+    // 💡 DATA style: a news article card just displays an external item, not an AI's own
+    // interpretation of one, so it reads with the same background every other data-display card in
+    // the app uses. The highlighted border (thicker, full accent) draws on top of PulseCard's own
+    // hairline border and frames the card a Dashboard news preview linked to.
     PulseCard(
         style = PulseCardStyle.DATA,
         shape = cardShape,
@@ -373,12 +370,11 @@ fun NewsArticleCard(
                 // 💡 Was `colorScheme.secondary` (mapped to the muted onSurfaceMuted tone) -- the
                 // same fix already applied to NewsPreviewCard's headline, now applied here too.
                 // Card titles are always onSurface (dark-on-light/white-on-dark) across this app.
-                // 💡 Was `titleMedium` (17sp) with no weight override, sitting at the same size as
-                // Equities' bold card title but one weight step lighter (semi-bold) -- read as an
-                // inconsistent size at a glance even though the sp value matched. Every
-                // curated/AI-content card title in the app now uses `titleSmall` (15sp,
-                // semi-bold) as its own distinct, consistent tier, separate from the DATA-style
-                // cards (Equities, VIX, Indicators), which keep their bold 17sp title.
+                // 💡 `titleSmall` (15sp, semi-bold): every curated/AI-content card title in the app
+                // uses this as its own distinct, consistent tier, separate from the DATA-style
+                // cards (Equities, VIX, Indicators), which keep their bold 17sp title. (17sp
+                // semi-bold next to Equities' bold 17sp title reads as an inconsistent size at a
+                // glance even though the sp value matches.)
                 Text(
                     text = headline,
                     style = MaterialTheme.typography.titleSmall,
@@ -438,7 +434,6 @@ fun NewsArticleCard(
 }
 
 // --- Dashboard news preview (condensed cards embedded on the Overview screen) ---
-// Added with Claude Code assistance.
 
 /**
  * Condensed news section for the Dashboard: a "See all" chevron to the full News tab, plus up to
@@ -537,9 +532,8 @@ fun NewsPreviewCard(
             // baseline default rather than anything this app's token set defines -- it read as a
             // washed-out, off-brand purple instead of a real headline color. Switched to `onSurface`,
             // the same dark-on-light/light-on-dark neutral every other card's title text uses.
-            // 💡 Dropped the `.copy(fontWeight = Bold)` override -- `titleSmall` (15sp, semi-bold)
-            // is the consistent title tier every curated/AI-content card title uses now, and this
-            // one was the odd one out at bold instead of semi-bold.
+            // 💡 No `.copy(fontWeight = Bold)` override -- `titleSmall` (15sp, semi-bold) is the
+            // consistent title tier every curated/AI-content card title uses.
             Text(
                 text = headline,
                 style = MaterialTheme.typography.titleSmall,

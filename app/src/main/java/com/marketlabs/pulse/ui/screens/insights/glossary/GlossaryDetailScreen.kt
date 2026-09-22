@@ -47,21 +47,20 @@ import java.util.Locale
 import kotlin.math.abs
 
 /**
- * Stateless content for the pushed glossary-detail page (2026-08-27 convergence pass -- one whole
- * Positioning/Posture CARD is the tap target, not its individual values, so this screen shows
- * everything the card covers in one place: the card's own "what is this" description, then the
- * history chart, then each underlying value's what-it-is/how-to-read/gotcha, then one merged bands
- * list with the card's live status highlighted -- same "current" concept `MetricDetailScreen` uses
- * for Indicators, resolved once across every section here instead of one entry's own bands.
+ * Stateless content for the pushed glossary-detail page. One whole Positioning/Posture CARD is the
+ * tap target, not its individual values, so this screen shows everything the card covers in one
+ * place: the card's own "what is this" description, then the history chart, then each underlying
+ * value's what-it-is/how-to-read/gotcha, then one merged bands list with the card's live status
+ * highlighted -- same "current" concept `MetricDetailScreen` uses for Indicators, resolved once
+ * across every section here instead of one entry's own bands.
  *
- * The chart section (added alongside Posture/Positioning's own history spec) reuses
- * [IndicatorHistoryChart] unchanged -- [historyPoints] (this domain's own raw `{date, value,
- * status}` shape, no backend `value_display`/`signal_color`) is mapped to that composable's
- * `MetricHistoryPoint` shape right here via [formatInsightsValue], the one genuinely new piece of
- * client-side formatting this domain's spec calls for (percent/$ trillions/raw share counts all
+ * The chart section reuses [IndicatorHistoryChart] unchanged -- [historyPoints] (this domain's own
+ * raw `{date, value, status}` shape, no backend `value_display`/`signal_color`) is mapped to that
+ * composable's `MetricHistoryPoint` shape right here via [formatInsightsValue], the one genuinely
+ * new piece of client-side formatting this domain needs (percent/$ trillions/raw share counts all
  * need different treatment -- see that function's own doc comment). `signalColor` is always
- * [SignalColor.UNKNOWN]: per product decision, this domain's chart stays plain-text/no-color,
- * matching how Indicators' own chart already treats `signal_color` as optional and unused.
+ * [SignalColor.UNKNOWN]: this domain's chart stays plain-text/no-color, matching how Indicators'
+ * own chart already treats `signal_color` as optional and unused.
  */
 @Composable
 fun GlossaryDetailScreen(
@@ -178,7 +177,7 @@ fun GlossaryDetailScreen(
                 )
             }
 
-            // 💡 Pass 2's "form-your-own-read" hook, same section treatment MetricDetailScreen
+            // 💡 The "form-your-own-read" hook, same section treatment MetricDetailScreen
             // gives it -- shown per underlying value here since each has its own thing to watch.
             if (!section.watch.isNullOrBlank()) {
                 if (!showSectionLabels) {
@@ -303,8 +302,8 @@ private fun GlossaryGotchaCallout(text: String) {
 }
 
 /**
- * Client-side formatting for the chart's `valueDisplay` -- the Posture/Positioning history spec's
- * `value` has no fixed unit across metrics (a raw percent, a raw share count in the tens of
+ * Client-side formatting for the chart's `valueDisplay` -- a history point's `value` has no fixed
+ * unit across metrics (a raw percent, a raw share count in the tens of
  * millions, a $ trillions figure...) and, unlike Indicators, the backend never computes a display
  * string for it. Mirrors each metric's own LIVE card formatting exactly (`MarketPostureView.kt`/
  * `MarketPositioningView.kt`), not a fresh format invented here, so a historical point on the chart

@@ -6,7 +6,7 @@ import com.marketlabs.pulse.utils.enums.RiskImpactLevel
  * Represents the overall AI-generated Market Risk Assessment.
  * Fetched from the "market_insights/current_risks" collection.
  */
-// 💡 2026-08-29 revision: `summary` removed (its content is now `synthesis.detail`); `risks` is
+// 💡 The narrative is `synthesis.detail`. `risks` is
 // variable-length (backend caps defensively at 8, never a fixed 3-4) -- no count assumption
 // anywhere this list is rendered.
 data class MarketRiskAssessment(

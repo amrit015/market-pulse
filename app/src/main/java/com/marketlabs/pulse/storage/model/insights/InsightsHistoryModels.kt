@@ -18,7 +18,7 @@ data class InsightsHistorySeries(
  * metrics; formatting it is a UI-layer concern (see `GlossaryDetailScreen`'s per-metric formatter),
  * not something baked into this domain model, matching every other `Domain*` model's own
  * raw-backend-shape convention in this app. `status` is free text with no fixed vocabulary or
- * color enum -- shown as plain text where shown at all, per product decision.
+ * color enum -- shown as plain text where shown at all.
  */
 data class InsightsHistoryPoint(
     val date: String,

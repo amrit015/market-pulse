@@ -27,12 +27,11 @@ import com.marketlabs.pulse.ui.theme.MarketPulseTheme
  * already use, holding one static explanation rather than a term list -- drivers[] only has one
  * thing that needs explaining (what the color/arrow means), not a set of lookup terms.
  *
- * Exists because `drivers[].direction` changed meaning backend-side (2026-08-18): it's now the
- * model's reconciled call on a driver's net effect on equities, not a mechanical copy of the
- * underlying indicator's own reading -- see `MarketDriver`'s doc comment in `SummaryModels.kt`.
- * That means a driver's color/arrow can no longer be read as "this data point went up/down"; this
- * sheet is the one place that distinction gets explained to the user, since the drivers[] payload
- * itself carries no separate "raw data direction" field to show alongside it.
+ * Exists because `drivers[].direction` is the model's reconciled call on a driver's net effect on
+ * equities, not a mechanical copy of the underlying indicator's own reading -- see
+ * `MarketDriver`'s doc comment in `SummaryModels.kt`. That means a driver's color/arrow can't be
+ * read as "this data point went up/down"; this sheet is the one place that distinction gets
+ * explained to the user.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
