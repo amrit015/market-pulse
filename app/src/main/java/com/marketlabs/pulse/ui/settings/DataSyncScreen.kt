@@ -14,7 +14,8 @@ fun DataSyncScreen(onNavigateUp: () -> Unit) {
         stringResource(id = R.string.data_sync_section_1_title) to stringResource(id = R.string.data_sync_section_1_body),
         stringResource(id = R.string.data_sync_section_2_title) to stringResource(id = R.string.data_sync_section_2_body),
         stringResource(id = R.string.data_sync_section_3_title) to stringResource(id = R.string.data_sync_section_3_body),
-        stringResource(id = R.string.data_sync_section_4_title) to stringResource(id = R.string.data_sync_section_4_body)
+        stringResource(id = R.string.data_sync_section_4_title) to stringResource(id = R.string.data_sync_section_4_body),
+        stringResource(id = R.string.data_sync_section_5_title) to stringResource(id = R.string.data_sync_section_5_body)
     )
 
     DocumentSectionsScreen(

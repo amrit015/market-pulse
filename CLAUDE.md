@@ -43,6 +43,8 @@ are run manually, not gated by anything automated yet.
   `GlossaryDetailScreen`) — shared chart component + range-picker engine, per-domain id/cadence
   tables, client-side value formatting — LIVING doc, read before adding a third domain →
   `@docs/architecture/history-charts.md`.
+- Push notifications (FCM topics, channels, tap routing) — build order and how to verify a change
+  → `@docs/architecture/push-notifications.md`.
 - Price charts + sparklines (`ChartsRepository`/`IntradayRepository`) — `ChartRange`→API mapping,
   the sync-flag freshness mechanism (`ChartSyncGroup`), intraday market-hours gating + per-cadence
   polling — LIVING doc, several dead ends already tried and reverted, read before touching this

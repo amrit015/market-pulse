@@ -31,6 +31,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.marketlabs.pulse.data.notifications.NotificationPreference
+import com.marketlabs.pulse.ui.components.NotificationEnableBanner
 import com.marketlabs.pulse.ui.components.PulseLoadingIndicator
 import com.marketlabs.pulse.ui.screens.summary.SummaryUiState
 import com.marketlabs.pulse.ui.screens.summary.SummaryViewModel
@@ -160,7 +162,8 @@ fun MarketSummaryRoute(
                         scaffoldPadding = scaffoldPadding,
                         onNavigateToIndicators = onNavigateToIndicators,
                         onNavigateToPosture = onNavigateToPosture,
-                        onRetryDate = viewModel::retryPastDate
+                        onRetryDate = viewModel::retryPastDate,
+                        banner = { NotificationEnableBanner(preference = NotificationPreference.DAILY_SUMMARY) }
                     )
                 }
 

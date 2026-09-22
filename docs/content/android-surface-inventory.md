@@ -417,8 +417,8 @@ Functions v2 HTTP endpoint (see each screen's "Source" line below for the exact 
 
 ### Settings
 - **Source**: none (local `SettingsUiState`, theme preference via DataStore) — not a data screen.
-- **Rows**: Notifications, Data & Sync, About (all `PlaceholderScreen` stubs), Terms & Conditions,
-  Privacy Policy, Tutorials (all real destinations). Now card-wrapped (§ prior work this session).
+- **Rows**: Notifications, Data & Sync, About, Terms & Conditions, Privacy Policy, Tutorials (all
+  real destinations). Now card-wrapped (§ prior work this session).
 - **Gap**: no Screen Guide "?" wired — arguably doesn't need one (no data to interpret).
 
 ### Legal Acceptance / Terms & Conditions / Privacy Policy

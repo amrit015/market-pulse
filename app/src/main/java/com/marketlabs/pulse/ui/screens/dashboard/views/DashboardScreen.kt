@@ -52,6 +52,7 @@ import com.marketlabs.pulse.storage.model.intraday.IntradaySeries
 import com.marketlabs.pulse.storage.model.news.NewsArticle
 import com.marketlabs.pulse.ui.components.AnalyzedAtHeader
 import com.marketlabs.pulse.ui.components.DisclaimerFooter
+import com.marketlabs.pulse.ui.components.GlowOrigin
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.bottomSheet.MarketGlossaryBottomSheet
@@ -554,7 +555,9 @@ fun AssetCard(
         style = cardStyle,
         modifier = modifier,
         onClick = onClick,
-        glowColor = glowColor
+        glowColor = glowColor,
+        glowOrigin = GlowOrigin.TOP_LEFT,
+        glowFill = true
     ) {
         // 💡 Horizontal padding is on each child individually (rather than a single
         // `.padding(padding_large)` on every side of this Column) so the sparkline below can sit

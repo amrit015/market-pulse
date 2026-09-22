@@ -65,7 +65,11 @@ is simply pinned, nothing above it needs to collapse).
 - **Bottom-nav tabs** (`Overview`, `Indicators`, `Summary`, `Insights`, `Analysis`) — navigated
   to with the tab-preserving pattern
   (`popUpTo(startDestination) { saveState = true }; launchSingleTop = true; restoreState = true`),
-  so switching tabs doesn't lose each tab's scroll position/back stack.
+  so switching tabs doesn't lose each tab's scroll position/back stack. The same block is behind
+  the shared `navigateToTab` extension (`PushNavigation.kt`), the one other caller of it: a tapped
+  push notification lands on a tab this same way, on cold start (`MainActivity.onCreate`) and warm
+  start (`onNewIntent`, which needs `MainActivity`'s `launchMode="singleTop"` to fire at all) —
+  full mechanics in `@docs/architecture/push-notifications.md`.
 - **Pushed destinations** (`webview/{encodedUrl}`, `market_news`, `settings`,
   `indicator_horizons`, plus symbol/asset/metric/glossary detail routes) — plain
   `navController.navigate(route)`, popped with `navController.popBackStack()`. `News` used to be

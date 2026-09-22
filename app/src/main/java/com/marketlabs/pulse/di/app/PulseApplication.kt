@@ -9,7 +9,13 @@ import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory
 import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
 import com.marketlabs.pulse.BuildConfig
 import com.marketlabs.pulse.core.ads.AdManager
+import com.marketlabs.pulse.core.notifications.NotificationChannels
+import com.marketlabs.pulse.core.notifications.PushTopicManager
 import dagger.hilt.android.HiltAndroidApp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
@@ -23,10 +29,20 @@ class PulseApplication : Application() {
     @Inject
     lateinit var adManager: AdManager
 
+    @Inject
+    lateinit var pushTopicManager: PushTopicManager
+
+    // Process-lifetime scope for the one-shot subscription reconcile below.
+    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
     override fun onCreate() {
         super.onCreate()
         initializeFirebaseAppCheck()
         adManager.initialize(this)
+        // Channels first: a push can wake this process before any Activity exists, and it must
+        // find its channel already created.
+        NotificationChannels.createAll(this)
+        applicationScope.launch { pushTopicManager.reconcile() }
     }
 
     private fun initializeFirebaseAppCheck() {

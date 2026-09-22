@@ -80,3 +80,23 @@ collections, and producers lives there, not here.
   JSON parsing against a live document — the field isn't reliably a plain JSON string. Removed;
   `timestamp` alone drives the executive hero's "Analyzed as of" display. Treat this rule as
   binding for every backend response, not just the two domains named above.
+
+## Push notifications (FCM topics)
+
+Topic-based, no auth and no token storage. The client's only obligations are the names below.
+
+- **Topics** — release: `daily_summary`, `stock_analysis`. Debug builds also subscribe to
+  `daily_summary_test` / `stock_analysis_test`, which the backend publishes to only while deployed
+  with a topic suffix. All names live in `NotificationTopics`; toggling a preference off
+  unsubscribes every topic mapped to it, and `PushTopicManager.reconcile()` re-issues them all from
+  the persisted preferences on each app start.
+- **Channel ids** — `daily_summary`, `stock_updates` (`NotificationChannels`). The backend sets
+  `android.notification.channelId`; an id with no matching channel silently falls back to FCM's
+  "Miscellaneous" channel.
+- **Payload** — `notification {title, body}` + `data {type, screen}`. `data.screen` is
+  `market_summary` | `stocks` and is the only field routing reads (`PushNavigation`); an unknown or
+  missing value opens the app home. `data.type` (`market_summary` | `stock_analysis`) is logged
+  only. Title and body are server-owned and vary (the summary is "Weekend Summary" on weekends) —
+  never parse or assert on them.
+- **Tap delivery** — the tray's tap intent carries `data` as launch-intent extras;
+  `MainActivity` is `singleTop` so a running instance gets them in `onNewIntent`.

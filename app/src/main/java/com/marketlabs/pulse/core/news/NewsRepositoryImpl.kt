@@ -24,6 +24,11 @@ class NewsRepositoryImpl @Inject constructor(
      * context even on a quiet news day. The history fetch is treated as non-fatal -- a
      * broken/slow history call shouldn't block today's news from showing, so its failure
      * degrades to an empty list instead of failing the whole refresh.
+     *
+     * Stories are deduped by `url`, keeping the first occurrence (today's copy wins over an
+     * archived one): a story still inside the backend's 24-hour window is carried into the
+     * next day's archive with the same `url`. Stories with a null or blank `url` have nothing
+     * to match on and are always kept.
      */
     override suspend fun refreshNews(force: Boolean): Result<Unit> {
         return try {
@@ -38,7 +43,12 @@ class NewsRepositoryImpl @Inject constructor(
                 .onFailure { Log.e("MarketNews", "⚠️ Failed to fetch news history (non-fatal)", it) }
                 .getOrDefault(emptyList())
 
-            val mergedNews = latestNews.copy(stories = latestNews.stories.orEmpty() + historyStories)
+            val seenUrls = HashSet<String>()
+            val mergedStories = (latestNews.stories.orEmpty() + historyStories).filter { story ->
+                val url = story.url
+                url.isNullOrBlank() || seenUrls.add(url)
+            }
+            val mergedNews = latestNews.copy(stories = mergedStories)
             localDataSource.saveNews(mergedNews)
             Log.d(
                 "MarketNews",

@@ -22,6 +22,9 @@ docs/
     collapsing-header-tabs.md        LIVING doc — the collapsing-chrome + sticky-tab-row +
                                       swipeable-pager pattern (Stock Detail, Indicators); real
                                       bugs hit and fixed, read before reusing on a new screen
+    push-notifications.md            FCM topic subscriptions, channels, tap routing — build
+                                      order and how to verify a change (no local emulator for
+                                      delivery, so this means a real console send)
 
   guidelines/                      — prescriptive: how to write new code in this repo
     kotlin-style.md                  DI (Hilt @Provides-in-object), null handling, naming

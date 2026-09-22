@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- LILAC's accent. See the base values/colors.xml entry for why this is split by day/night
+         instead of following the runtime theme-preset system. -->
+    <color name="notification_accent_color">#FFC7A9FF</color>
+</resources>
