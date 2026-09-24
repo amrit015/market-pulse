@@ -1,10 +1,11 @@
 package com.marketlabs.pulse.ui.components.tutorials
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.marketlabs.pulse.R
-import com.marketlabs.pulse.ui.components.tutorials.SentimentGaugesDiagram
-import com.marketlabs.pulse.ui.components.tutorials.YieldCurveDiagram
+import com.marketlabs.pulse.core.learn.LearnContentProvider
+import com.marketlabs.pulse.core.learn.LearnMechanismDeck
 
 /** One card of a [CardCarousel]: a heading, body text, and an optional inline diagram. */
 data class DeckPage(
@@ -18,12 +19,15 @@ data class DeckPage(
  * them together, What to watch, Common misreads, In the wild. The "See all indicators" link is not
  * a card -- the deck screen shows it standalone below the carousel.
  *
- * Card copy is hand-authored static text, kept to descriptions of conditions -- never
+ * Card copy comes from `learn_content.json` (via [LearnContentProvider], keyed by
+ * [Mechanism.routeKey]) -- hand-authored static text, kept to descriptions of conditions -- never
  * recommendations. Every threshold quoted in it must match the backend's own constant for that
- * gauge; when a gauge's bands change, the matching card here needs the same edit.
+ * gauge; when a gauge's bands change, the matching card in the JSON needs the same edit.
  */
 @Composable
 fun mechanismContentPages(mechanism: Mechanism): List<DeckPage> {
+    val deck = LearnContentProvider.get(LocalContext.current).mechanismDecks[mechanism.routeKey] ?: return emptyList()
+
     val titles = listOf(
         R.string.deck_card_title_what_this_is,
         R.string.deck_card_title_signals,
@@ -32,58 +36,17 @@ fun mechanismContentPages(mechanism: Mechanism): List<DeckPage> {
         R.string.deck_card_title_misreads,
         R.string.deck_card_title_wild
     )
-    val bodies = bodyResFor(mechanism)
+    val bodies = listOf(
+        deck.whatThisIs, deck.theSignals, deck.howToReadTogether,
+        deck.whatToWatch, deck.commonMisreads, deck.inTheWild
+    )
+    val diagramKeys = listOf(null, deck.theSignalsDiagram, null, deck.whatToWatchDiagram, null, null)
+
     return titles.indices.map { index ->
         DeckPage(
             title = stringResource(id = titles[index]),
-            body = stringResource(id = bodies[index]),
-            diagram = diagramFor(mechanism, cardIndex = index)
+            body = bodies[index],
+            diagram = learnDiagramFor(diagramKeys[index])
         )
     }
-}
-
-/** Card 2 of Tactical Momentum carries the sentiment bars (Fear & Greed, Put/Call, VIX); card 4 of
- * Systemic Risk carries the yield-curve inversion sketch next to its "yield curve crossing zero" bullet. */
-private fun diagramFor(mechanism: Mechanism, cardIndex: Int): (@Composable () -> Unit)? = when {
-    mechanism == Mechanism.TACTICAL_MOMENTUM && cardIndex == 1 -> ({ SentimentGaugesDiagram() })
-    mechanism == Mechanism.SYSTEMIC_RISK && cardIndex == 3 -> ({ YieldCurveDiagram() })
-    else -> null
-}
-
-private fun bodyResFor(mechanism: Mechanism): List<Int> = when (mechanism) {
-    Mechanism.TACTICAL_MOMENTUM -> listOf(
-        R.string.deck_tactical_momentum_card1_body, R.string.deck_tactical_momentum_card2_body,
-        R.string.deck_tactical_momentum_card3_body, R.string.deck_tactical_momentum_card4_body,
-        R.string.deck_tactical_momentum_card5_body, R.string.deck_tactical_momentum_card6_body
-    )
-    Mechanism.SYSTEMIC_RISK -> listOf(
-        R.string.deck_systemic_risk_card1_body, R.string.deck_systemic_risk_card2_body,
-        R.string.deck_systemic_risk_card3_body, R.string.deck_systemic_risk_card4_body,
-        R.string.deck_systemic_risk_card5_body, R.string.deck_systemic_risk_card6_body
-    )
-    Mechanism.VALUATION -> listOf(
-        R.string.deck_valuation_card1_body, R.string.deck_valuation_card2_body,
-        R.string.deck_valuation_card3_body, R.string.deck_valuation_card4_body,
-        R.string.deck_valuation_card5_body, R.string.deck_valuation_card6_body
-    )
-    Mechanism.MACRO_VITALS -> listOf(
-        R.string.deck_macro_vitals_card1_body, R.string.deck_macro_vitals_card2_body,
-        R.string.deck_macro_vitals_card3_body, R.string.deck_macro_vitals_card4_body,
-        R.string.deck_macro_vitals_card5_body, R.string.deck_macro_vitals_card6_body
-    )
-    Mechanism.POSTURE -> listOf(
-        R.string.deck_posture_card1_body, R.string.deck_posture_card2_body,
-        R.string.deck_posture_card3_body, R.string.deck_posture_card4_body,
-        R.string.deck_posture_card5_body, R.string.deck_posture_card6_body
-    )
-    Mechanism.POSITIONING -> listOf(
-        R.string.deck_positioning_card1_body, R.string.deck_positioning_card2_body,
-        R.string.deck_positioning_card3_body, R.string.deck_positioning_card4_body,
-        R.string.deck_positioning_card5_body, R.string.deck_positioning_card6_body
-    )
-    Mechanism.STOCK_ANALYSIS -> listOf(
-        R.string.deck_stock_analysis_card1_body, R.string.deck_stock_analysis_card2_body,
-        R.string.deck_stock_analysis_card3_body, R.string.deck_stock_analysis_card4_body,
-        R.string.deck_stock_analysis_card5_body, R.string.deck_stock_analysis_card6_body
-    )
 }

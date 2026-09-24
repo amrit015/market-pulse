@@ -349,6 +349,16 @@ private fun AnatomyArrow() {
     }
 }
 
+/** Maps a `learn_content.json` diagram key to the composable it names -- `null` (no key, or an
+ * unrecognized one) means the card carries no diagram. */
+fun learnDiagramFor(key: String?): (@Composable () -> Unit)? = when (key) {
+    "sma_extension" -> ({ SmaExtensionDiagram() })
+    "yield_curve" -> ({ YieldCurveDiagram() })
+    "sentiment_gauges" -> ({ SentimentGaugesDiagram() })
+    "gauge_anatomy" -> ({ GaugeAnatomyDiagram() })
+    else -> null
+}
+
 // ============================================================================
 // 🎨 PREVIEWS
 // ============================================================================

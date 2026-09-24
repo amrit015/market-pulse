@@ -25,8 +25,10 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.core.learn.LearnContentProvider
 import com.marketlabs.pulse.ui.components.PulseBackTitleRow
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
@@ -48,6 +50,7 @@ fun TutorialsHubScreen(
     onNavigateToMechanism: (Mechanism) -> Unit,
     onNavigateToDataLimitations: () -> Unit
 ) {
+    val learnContent = LearnContentProvider.get(LocalContext.current)
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -61,7 +64,7 @@ fun TutorialsHubScreen(
         ) {
             TutorialsHubSectionHeader(text = stringResource(id = R.string.tutorials_hub_section_start))
             TutorialsHubRow(
-                label = stringResource(id = R.string.tutorials_item_gauge_anatomy),
+                label = learnContent.gaugeAnatomy.title,
                 onClick = onNavigateToGaugeAnatomy
             )
 
@@ -70,7 +73,7 @@ fun TutorialsHubScreen(
                 TutorialsHubSubHeader(text = stringResource(id = subGroup.titleRes), spaceAbove = index > 0)
                 ConceptArticle.entries.filter { it.subGroup == subGroup }.forEach { article ->
                     TutorialsHubRow(
-                        label = stringResource(id = article.titleRes),
+                        label = learnContent.conceptArticles[article.routeKey]?.title.orEmpty(),
                         onClick = { onNavigateToConcept(article) }
                     )
                 }
@@ -86,7 +89,7 @@ fun TutorialsHubScreen(
 
             TutorialsHubSectionHeader(text = stringResource(id = R.string.tutorials_hub_section_data), spaceAbove = true)
             TutorialsHubRow(
-                label = stringResource(id = R.string.tutorials_item_data_limitations),
+                label = learnContent.dataLimitations.title,
                 onClick = onNavigateToDataLimitations
             )
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_xlarge)))

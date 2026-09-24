@@ -1,26 +1,19 @@
 package com.marketlabs.pulse.ui.screens.tutorials
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
-import com.marketlabs.pulse.R
+import com.marketlabs.pulse.core.learn.LearnContentProvider
 import com.marketlabs.pulse.ui.components.tutorials.DeckPage
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
+/** Title and card come from `learn_content.json`'s `data_limitations` entry (via [LearnContentProvider]). */
 @Composable
 fun TutorialsDataLimitationsScreen(onNavigateUp: () -> Unit) {
-    val pages = listOf(
-        DeckPage(
-            title = stringResource(id = R.string.tutorials_data_limitations_title),
-            body = stringResource(id = R.string.tutorials_data_limitations_body)
-        )
-    )
+    val article = LearnContentProvider.get(LocalContext.current).dataLimitations
+    val pages = article.cards.map { card -> DeckPage(title = card.title, body = card.body) }
 
-    CarouselArticleScreen(
-        title = stringResource(id = R.string.tutorials_item_data_limitations),
-        pages = pages,
-        onNavigateUp = onNavigateUp
-    )
+    CarouselArticleScreen(title = article.title, pages = pages, onNavigateUp = onNavigateUp)
 }
 
 // ============================================================================
