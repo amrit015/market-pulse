@@ -6,7 +6,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
@@ -39,8 +38,8 @@ import com.marketlabs.pulse.ui.components.widgets.ScreenGuideContent
 import com.marketlabs.pulse.ui.navigation.PulseNavGraph
 import com.marketlabs.pulse.ui.navigation.PulseRoutes
 import com.marketlabs.pulse.ui.navigation.PushNavigation
-import com.marketlabs.pulse.ui.navigation.navigateToTab
 import com.marketlabs.pulse.ui.navigation.bottomNavItems
+import com.marketlabs.pulse.ui.navigation.navigateToTab
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 import com.marketlabs.pulse.utils.enums.ReportType
 import dagger.hilt.android.AndroidEntryPoint
@@ -223,6 +222,7 @@ class MainActivity : ComponentActivity() {
                     currentRoute == PulseRoutes.SETTINGS_NOTIFICATIONS ||
                     currentRoute == PulseRoutes.SETTINGS_DATA_SYNC ||
                     currentRoute == PulseRoutes.SETTINGS_ABOUT ||
+                    currentRoute == PulseRoutes.SETTINGS_COMING_UP ||
                     currentRoute == PulseRoutes.SETTINGS_THEME_PICKER
 
                 // 💡 enterAlwaysScrollBehavior.state.heightOffset is one shared value driving the
@@ -295,11 +295,26 @@ class MainActivity : ComponentActivity() {
                 // topBarTitle falls back to the fixed "Summary" string below.
                 var summaryReportType by remember { mutableStateOf<ReportType?>(null) }
 
+                // The "?" guide's own sheet-visibility flag, hoisted here rather than owned inside
+                // ScreenGuideAction (see its own doc comment) -- AppTopBar, and everything inside
+                // it, isn't composed at all while a pushed destination is on top, so state living
+                // in there wouldn't survive a round trip to one and back.
+                var showScreenGuide by remember { mutableStateOf(false) }
+
                 Box(modifier = Modifier.fillMaxSize()) {
                 Scaffold(
                     modifier = Modifier
                         .fillMaxSize()
-                        .nestedScroll(scrollBehavior.nestedScrollConnection),
+                        // 💡 Only wired for a route that actually renders the collapsing AppTopBar --
+                        // a pushed destination owns its own top-of-screen chrome and has no collapsing
+                        // bar to drive, but this connection is otherwise always live regardless of
+                        // `isPushedDestination`, so scrolling inside a pushed screen (e.g. the
+                        // Tutorials hub) was still feeding delta into this shared `scrollBehavior`.
+                        // That left the bar's collapse state wherever that unrelated screen's own
+                        // scroll last put it, so a tab could come back looking "reset" (bar fully
+                        // re-expanded, or stuck collapsed) independent of where its own content was
+                        // actually scrolled to.
+                        .then(if (isPushedDestination) Modifier else Modifier.nestedScroll(scrollBehavior.nestedScrollConnection)),
                     topBar = {
                         if (!isPushedDestination) {
                             AppTopBar(
@@ -307,10 +322,13 @@ class MainActivity : ComponentActivity() {
                                 scrollBehavior = scrollBehavior,
                                 onSettingsClick = { navController.navigate(PulseRoutes.SETTINGS) },
                                 guideContent = screenGuideContentFor(currentRoute),
+                                showGuide = showScreenGuide,
+                                onGuideVisibilityChange = { showScreenGuide = it },
                                 onGuideShowMore = { mechanisms ->
                                     val group = mechanisms.joinToString(",") { it.routeKey }
                                     navController.navigate("${PulseRoutes.TUTORIALS_DECK}/${mechanisms.first().routeKey}?group=$group")
-                                }
+                                },
+                                onGuideLearnAboutMarket = { navController.navigate(PulseRoutes.TUTORIALS_HUB) }
                             )
                         }
                     },

@@ -9,9 +9,9 @@ import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -27,17 +27,17 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
-import com.marketlabs.pulse.ui.components.tutorials.Mechanism
 import com.marketlabs.pulse.ui.components.PulseBackTitleRow
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
+import com.marketlabs.pulse.ui.components.tutorials.Mechanism
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 /**
- * Settings -> Tutorials, and the "See all market concepts" target of every screen's "?" sheet:
- * the full library, in four sections -- how to read a gauge, standard market concepts (6
- * articles), market mechanisms (7 card decks), and data limitations. Each row is its own
+ * Settings -> Tutorials, and the "Learn about Market" target of every screen's "?" sheet: the full
+ * library, in four sections -- how to read a gauge, market concepts, market mechanisms, and data
+ * limitations. Market concepts splits into [ConceptSubGroup] sub-headings. Each row is its own
  * `PulseCard(DATA)`.
  */
 @Composable
@@ -65,12 +65,15 @@ fun TutorialsHubScreen(
                 onClick = onNavigateToGaugeAnatomy
             )
 
-            TutorialsHubSectionHeader(text = stringResource(id = R.string.tutorials_hub_section_concepts), spaceAbove = true)
-            ConceptArticle.entries.forEach { article ->
-                TutorialsHubRow(
-                    label = stringResource(id = article.titleRes),
-                    onClick = { onNavigateToConcept(article) }
-                )
+            TutorialsHubSectionHeader(text = stringResource(id = R.string.tutorials_hub_section_market_concepts), spaceAbove = true)
+            ConceptSubGroup.entries.forEachIndexed { index, subGroup ->
+                TutorialsHubSubHeader(text = stringResource(id = subGroup.titleRes), spaceAbove = index > 0)
+                ConceptArticle.entries.filter { it.subGroup == subGroup }.forEach { article ->
+                    TutorialsHubRow(
+                        label = stringResource(id = article.titleRes),
+                        onClick = { onNavigateToConcept(article) }
+                    )
+                }
             }
 
             TutorialsHubSectionHeader(text = stringResource(id = R.string.tutorials_hub_section_mechanisms), spaceAbove = true)
@@ -98,6 +101,17 @@ private fun TutorialsHubSectionHeader(text: String, spaceAbove: Boolean = false)
         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
         color = LocalPulseColors.current.accentPrimary,
         modifier = if (spaceAbove) Modifier.padding(top = dimensionResource(id = R.dimen.padding_medium)) else Modifier
+    )
+}
+
+/** A small uppercase label grouping a run of rows under a [TutorialsHubSectionHeader], one rung below it. */
+@Composable
+private fun TutorialsHubSubHeader(text: String, spaceAbove: Boolean = false) {
+    Text(
+        text = text.uppercase(),
+        style = MaterialTheme.typography.labelSmall,
+        color = LocalPulseColors.current.onSurfaceMuted,
+        modifier = if (spaceAbove) Modifier.padding(top = dimensionResource(id = R.dimen.padding_small)) else Modifier
     )
 }
 

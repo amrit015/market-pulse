@@ -49,6 +49,7 @@ import com.marketlabs.pulse.ui.screens.tutorials.TutorialsConceptScreen
 import com.marketlabs.pulse.ui.screens.tutorials.TutorialsGaugesRoute
 import com.marketlabs.pulse.ui.screens.tutorials.TutorialsHubScreen
 import com.marketlabs.pulse.ui.settings.AboutRoute
+import com.marketlabs.pulse.ui.settings.ComingUpScreen
 import com.marketlabs.pulse.ui.settings.DataSyncScreen
 import com.marketlabs.pulse.ui.settings.NotificationsRoute
 import com.marketlabs.pulse.ui.settings.SettingsRoute
@@ -143,10 +144,11 @@ object PulseRoutes {
     const val TUTORIALS_DATA_LIMITATIONS = "tutorials_data_limitations"
     const val TUTORIALS_GAUGE_ANATOMY = "tutorials_gauge_anatomy"
 
-    // Reached from Settings' Notifications / Data & Sync / About rows.
+    // Reached from Settings' Notifications / Data & Sync / About / Coming Up rows.
     const val SETTINGS_NOTIFICATIONS = "settings_notifications"
     const val SETTINGS_DATA_SYNC = "settings_data_sync"
     const val SETTINGS_ABOUT = "settings_about"
+    const val SETTINGS_COMING_UP = "settings_coming_up"
     const val SETTINGS_THEME_PICKER = "settings_theme_picker"
 }
 
@@ -529,7 +531,8 @@ fun PulseNavGraph(
                 onNavigateToAbout = { navController.navigate(PulseRoutes.SETTINGS_ABOUT) },
                 onNavigateToTerms = { navController.navigate(PulseRoutes.TERMS_CONDITIONS) },
                 onNavigateToPrivacyPolicy = { navController.navigate(PulseRoutes.PRIVACY_POLICY) },
-                onNavigateToTutorials = { navController.navigate(PulseRoutes.TUTORIALS_HUB) }
+                onNavigateToTutorials = { navController.navigate(PulseRoutes.TUTORIALS_HUB) },
+                onNavigateToComingUp = { navController.navigate(PulseRoutes.SETTINGS_COMING_UP) }
             )
         }
         composable(PulseRoutes.SETTINGS_NOTIFICATIONS) {
@@ -544,6 +547,9 @@ fun PulseNavGraph(
                 onNavigateToPrivacyPolicy = { navController.navigate(PulseRoutes.PRIVACY_POLICY) },
                 onNavigateToTerms = { navController.navigate(PulseRoutes.TERMS_CONDITIONS) }
             )
+        }
+        composable(PulseRoutes.SETTINGS_COMING_UP) {
+            ComingUpScreen(onNavigateUp = { navController.popBackStack() })
         }
         composable(PulseRoutes.SETTINGS_THEME_PICKER) {
             ThemePickerRoute(onNavigateUp = { navController.popBackStack() })

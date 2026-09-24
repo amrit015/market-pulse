@@ -9,10 +9,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
@@ -26,12 +26,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.layout.SubcomposeLayout
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.SubcomposeLayout
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -55,13 +55,16 @@ import kotlinx.coroutines.launch
  * (none on the side you're already at the end of) and progress dots underneath. All cards share one
  * height -- the tallest card's, capped at [maxCardHeight] (a card scrolls past that) -- so the
  * caller decides how much of the screen the carousel may use, not this component. Used for the
- * per-screen "?" guide and for the Tutorials mechanism decks.
+ * per-screen "?" guide and for the Tutorials mechanism decks. [enlargedText] steps title/body up
+ * one type-scale rung; the "?" guide leaves it off so its sheet stays compact, while the Tutorials
+ * hub's full-screen carousels turn it on.
  */
 @Composable
 fun CardCarousel(
     pages: List<DeckPage>,
     maxCardHeight: Dp,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    enlargedText: Boolean = false
 ) {
     val pagerState = rememberPagerState { pages.size }
     val scope = rememberCoroutineScope()
@@ -70,7 +73,7 @@ fun CardCarousel(
 
     Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         Box(modifier = Modifier.fillMaxWidth()) {
-            EqualHeightPager(pages = pages, pagerState = pagerState, maxCardHeight = maxCardHeight)
+            EqualHeightPager(pages = pages, pagerState = pagerState, maxCardHeight = maxCardHeight, enlargedText = enlargedText)
             if (currentPage > 0) {
                 CarouselArrow(
                     pointsForward = false,
@@ -103,7 +106,7 @@ fun CardCarousel(
  * card once, off-screen, at the width a real card will get.
  */
 @Composable
-private fun EqualHeightPager(pages: List<DeckPage>, pagerState: PagerState, maxCardHeight: Dp) {
+private fun EqualHeightPager(pages: List<DeckPage>, pagerState: PagerState, maxCardHeight: Dp, enlargedText: Boolean) {
     val sidePadding = dimensionResource(id = R.dimen.padding_extra_large)
     val pageSpacing = dimensionResource(id = R.dimen.padding_medium)
 
@@ -111,7 +114,7 @@ private fun EqualHeightPager(pages: List<DeckPage>, pagerState: PagerState, maxC
         val cardWidth = (constraints.maxWidth - sidePadding.roundToPx() * 2).coerceAtLeast(0)
         val probeConstraints = Constraints(minWidth = cardWidth, maxWidth = cardWidth)
         val tallest = subcompose("probe") {
-            pages.forEach { page -> CarouselCard(page = page, fillHeight = false) }
+            pages.forEach { page -> CarouselCard(page = page, fillHeight = false, enlargedText = enlargedText) }
         }.maxOfOrNull { it.measure(probeConstraints).height } ?: 0
         val pagerHeight = tallest.coerceAtMost(maxCardHeight.roundToPx())
 
@@ -124,7 +127,7 @@ private fun EqualHeightPager(pages: List<DeckPage>, pagerState: PagerState, maxC
                 contentPadding = PaddingValues(horizontal = sidePadding),
                 pageSpacing = pageSpacing
             ) { index ->
-                CarouselCard(page = pages[index], fillHeight = true)
+                CarouselCard(page = pages[index], fillHeight = true, enlargedText = enlargedText)
             }
         }.first().measure(constraints)
 
@@ -133,7 +136,7 @@ private fun EqualHeightPager(pages: List<DeckPage>, pagerState: PagerState, maxC
 }
 
 @Composable
-private fun CarouselCard(page: DeckPage, fillHeight: Boolean) {
+private fun CarouselCard(page: DeckPage, fillHeight: Boolean, enlargedText: Boolean = false) {
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
     val scrollState = rememberScrollState()
     PulseCard(
@@ -156,16 +159,24 @@ private fun CarouselCard(page: DeckPage, fillHeight: Boolean) {
                     .then(if (fillHeight) Modifier.verticalScroll(scrollState) else Modifier)
                     // 💡 Wider horizontal inset than vertical: the circular arrows overlap the card's
                     // left/right edges by about half their width, so the text has to start clear of them.
-                    .padding(horizontal = dimensionResource(id = R.dimen.padding_extra_large), vertical = paddingLarge)
+                    // 💡 The tallest card's own height sets every card's height, so its content sits
+                    // flush against this padding with no extra centering slack the way shorter cards
+                    // get -- enlargedText's carousels (whose bigger type more often produces the
+                    // tallest card) get a bit more of it than the "?" guide's compact one.
+                    .padding(
+                        horizontal = dimensionResource(id = R.dimen.padding_extra_large),
+                        vertical = if (enlargedText) dimensionResource(id = R.dimen.padding_xlarge) else paddingLarge
+                    )
             ) {
                 Text(
                     text = page.title,
-                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                    style = (if (enlargedText) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleSmall)
+                        .copy(fontWeight = FontWeight.Bold),
                     color = LocalPulseColors.current.accentPrimary
                 )
                 FormattedBodyText(
                     text = page.body,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = if (enlargedText) MaterialTheme.typography.bodyLarge else MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_small))
                 )
@@ -184,11 +195,11 @@ private fun CarouselCard(page: DeckPage, fillHeight: Boolean) {
  * carousel (mechanism decks, market concept articles).
  */
 @Composable
-fun CenteredCardCarousel(pages: List<DeckPage>, modifier: Modifier = Modifier) {
+fun CenteredCardCarousel(pages: List<DeckPage>, modifier: Modifier = Modifier, enlargedText: Boolean = false) {
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     BoxWithConstraints(modifier = modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
         val maxCardHeight = (screenHeight * 0.7f).coerceAtMost(maxHeight - 48.dp)
-        CardCarousel(pages = pages, maxCardHeight = maxCardHeight)
+        CardCarousel(pages = pages, maxCardHeight = maxCardHeight, enlargedText = enlargedText)
     }
 }
 

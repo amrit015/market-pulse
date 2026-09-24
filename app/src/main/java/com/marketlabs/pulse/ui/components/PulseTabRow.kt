@@ -19,6 +19,7 @@ import kotlin.math.roundToInt
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -42,6 +43,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
@@ -269,6 +273,30 @@ private fun TabRowOverflowChevron(pointsLeft: Boolean, modifier: Modifier = Modi
         }
     }
 }
+
+/**
+ * One [LazyListState] per tab of a `PulseTabRow` + `HorizontalPager` screen, `rememberSaveable`
+ * across the whole list -- not a plain `remember`, which only survives `HorizontalPager` disposing
+ * an off-screen page (a fresh `rememberLazyListState()` scoped to each page's own composition would
+ * already handle that case). This screen-level list also has to survive the screen's own
+ * composition being torn down and recreated -- e.g. navigating to a tapped item's detail screen and
+ * back -- which a plain `remember` does not: `rememberSaveable` is what actually round-trips through
+ * that, since it's backed by the destination's own `NavBackStackEntry`-scoped save/restore, not by
+ * whatever happens to still be in memory.
+ */
+@Composable
+fun rememberPerTabLazyListStates(tabCount: Int): List<LazyListState> = rememberSaveable(saver = perTabLazyListStatesSaver) {
+    List(tabCount) { LazyListState() }
+}
+
+// 💡 Saves just `firstVisibleItemIndex`/`firstVisibleItemScrollOffset` per state via `LazyListState`'s
+// own public constructor, rather than `LazyListState.Saver` -- that Saver's declared type is star-
+// projected (`Saver<LazyListState, *>`), which the compiler won't let a caller outside its own
+// declaration call `restore` on.
+private val perTabLazyListStatesSaver: Saver<List<LazyListState>, Any> = listSaver(
+    save = { states -> states.flatMap { listOf(it.firstVisibleItemIndex, it.firstVisibleItemScrollOffset) } },
+    restore = { saved -> saved.chunked(2).map { (index, offset) -> LazyListState(index, offset) } }
+)
 
 // ============================================================================
 // 🎨 PREVIEWS

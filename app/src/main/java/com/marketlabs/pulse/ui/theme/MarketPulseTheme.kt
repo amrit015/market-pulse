@@ -111,8 +111,15 @@ enum class MarketPulseTheme(val displayName: String, val isDark: Boolean) {
             // 💡 A different source token per mode rather than one family for both: the pill tone
             // reads well as a dark-mode tile fill but washes out in light mode. See PulseColors'
             // own doc comment on these two fields.
-            sectorHeatmapBullish = if (isDark) signal.bullishPill else signal.bullishText,
-            sectorHeatmapBearish = if (isDark) signal.bearishPill else signal.bearishText,
+            //
+            // 💡 Light mode blends 60% toward the pill tone rather than using `bullishText`/
+            // `bearishText` at full strength (too intense) or with reduced alpha (this tile IS the
+            // card's own opaque background, not a layer over another color, so alpha just blends it
+            // toward whatever happens to render underneath -- a washed-out look, not a softer solid
+            // one). Blending toward the pill tone keeps the result a genuine opaque color, softened
+            // using an anchor this theme already defines rather than an arbitrary new hex.
+            sectorHeatmapBullish = if (isDark) signal.bullishPill else lerp(signal.bullishText, signal.bullishPill, 0.25f),
+            sectorHeatmapBearish = if (isDark) signal.bearishPill else lerp(signal.bearishText, signal.bearishPill, 0.25f),
             isDark = isDark
         )
     }

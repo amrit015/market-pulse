@@ -805,84 +805,97 @@ fun SentimentConsensusBadge(sentimentAssets: List<AssetOverview?>, onClick: (Str
 
 @Preview(showBackground = true, backgroundColor = 0xFF121212)
 @Composable
-fun PreviewSectorHeatmapSection() {
+fun PreviewSectorHeatmapSectionDark() {
     MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
-        // Mocking a diverse set of sector performances to visualize the full heatmap gradient
-        val mockAssets = listOf(
-            AssetOverview(
-                symbol = "XLK",
-                name = "Technology",
-                type = AssetType.SECTOR,
-                changePercent = 1.8
-            ),    // Extreme Strength
-            AssetOverview(
-                symbol = "XLC",
-                name = "Communication",
-                type = AssetType.SECTOR,
-                changePercent = 0.5
-            ),   // Mild Strength
-            AssetOverview(
-                symbol = "XLY",
-                name = "Consumer Disc",
-                type = AssetType.SECTOR,
-                changePercent = 0.0
-            ),   // Flat
-            AssetOverview(
-                symbol = "XLF",
-                name = "Financials",
-                type = AssetType.SECTOR,
-                changePercent = -0.4
-            ),     // Mild Weakness
-            AssetOverview(
-                symbol = "XLI",
-                name = "Industrials",
-                type = AssetType.SECTOR,
-                changePercent = -1.5
-            ),    // Extreme Weakness
-            AssetOverview(
-                symbol = "XLE",
-                name = "Energy",
-                type = AssetType.SECTOR,
-                changePercent = 2.1
-            ),
-            AssetOverview(
-                symbol = "XLV",
-                name = "Healthcare",
-                type = AssetType.SECTOR,
-                changePercent = -0.1
-            ),
-            AssetOverview(
-                symbol = "XLP",
-                name = "Consumer Staples",
-                type = AssetType.SECTOR,
-                changePercent = -0.8
-            ),
-            AssetOverview(
-                symbol = "XLU",
-                name = "Utilities",
-                type = AssetType.SECTOR,
-                changePercent = -1.2
-            ),
-            AssetOverview(
-                symbol = "XLB",
-                name = "Materials",
-                type = AssetType.SECTOR,
-                changePercent = 0.2
-            ),
-            AssetOverview(
-                symbol = "XLRE",
-                name = "Real Estate",
-                type = AssetType.SECTOR,
-                changePercent = 1.1
-            )
-        )
+        MarketSectionRotationPreview()
+    }
+}
 
-        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
-            SectorHeatmapSection(
-                title = "Sector Rotation",
-                items = mockAssets,
-                onAssetClick = {}
-            )
-        }
+@Preview(showBackground = true, backgroundColor = 0xFF121212)
+@Composable
+fun PreviewSectorHeatmapSectionLight() {
+    MarketPulseTheme(theme = MarketPulseTheme.PLUM) {
+        MarketSectionRotationPreview()
+    }
+}
+
+@Composable
+fun MarketSectionRotationPreview(){
+    // Mocking a diverse set of sector performances to visualize the full heatmap gradient
+    val mockAssets = listOf(
+        AssetOverview(
+            symbol = "XLK",
+            name = "Technology",
+            type = AssetType.SECTOR,
+            changePercent = 1.8
+        ),    // Extreme Strength
+        AssetOverview(
+            symbol = "XLC",
+            name = "Communication",
+            type = AssetType.SECTOR,
+            changePercent = 0.5
+        ),   // Mild Strength
+        AssetOverview(
+            symbol = "XLY",
+            name = "Consumer Disc",
+            type = AssetType.SECTOR,
+            changePercent = 0.0
+        ),   // Flat
+        AssetOverview(
+            symbol = "XLF",
+            name = "Financials",
+            type = AssetType.SECTOR,
+            changePercent = -0.4
+        ),     // Mild Weakness
+        AssetOverview(
+            symbol = "XLI",
+            name = "Industrials",
+            type = AssetType.SECTOR,
+            changePercent = -1.5
+        ),    // Extreme Weakness
+        AssetOverview(
+            symbol = "XLE",
+            name = "Energy",
+            type = AssetType.SECTOR,
+            changePercent = 2.1
+        ),
+        AssetOverview(
+            symbol = "XLV",
+            name = "Healthcare",
+            type = AssetType.SECTOR,
+            changePercent = -0.1
+        ),
+        AssetOverview(
+            symbol = "XLP",
+            name = "Consumer Staples",
+            type = AssetType.SECTOR,
+            changePercent = -0.8
+        ),
+        AssetOverview(
+            symbol = "XLU",
+            name = "Utilities",
+            type = AssetType.SECTOR,
+            changePercent = -1.2
+        ),
+        AssetOverview(
+            symbol = "XLB",
+            name = "Materials",
+            type = AssetType.SECTOR,
+            changePercent = 0.2
+        ),
+        AssetOverview(
+            symbol = "XLRE",
+            name = "Real Estate",
+            type = AssetType.SECTOR,
+            changePercent = 1.1
+        )
+    )
+
+    Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
+        SectorHeatmapSection(
+            title = "Sector Rotation",
+            items = mockAssets,
+            onAssetClick = {}
+        )
     }
 }

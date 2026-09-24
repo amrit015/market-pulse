@@ -9,8 +9,8 @@ import com.marketlabs.pulse.ui.components.tutorials.YieldCurveDiagram
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 /**
- * One standard market concept article, as the same centered, equal-height card carousel the
- * mechanism decks use (see [ConceptArticle] for each article's cards). Hand-authored
+ * One concept article, from either hub section, as the same centered, equal-height card carousel
+ * the mechanism decks use (see [ConceptArticle] for each article's cards). Hand-authored
  * static text, descriptive of what market participants generally do or believe -- never a
  * recommendation. Each names the app gauge it's anchored to; if that gauge's methodology changes,
  * the article needs the same edit.

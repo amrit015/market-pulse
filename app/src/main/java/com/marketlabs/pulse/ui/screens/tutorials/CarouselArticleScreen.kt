@@ -26,7 +26,7 @@ fun CarouselArticleScreen(title: String, pages: List<DeckPage>, onNavigateUp: ()
             .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Top + WindowInsetsSides.Bottom))
     ) {
         PulseBackTitleRow(title = title, onNavigateUp = onNavigateUp)
-        CenteredCardCarousel(pages = pages, modifier = Modifier.weight(1f))
+        CenteredCardCarousel(pages = pages, modifier = Modifier.weight(1f), enlargedText = true)
         Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_extra_large)))
     }
 }

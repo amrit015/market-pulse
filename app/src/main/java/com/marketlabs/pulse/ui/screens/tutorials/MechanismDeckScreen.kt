@@ -60,7 +60,7 @@ fun MechanismDeckScreen(
             )
         }
         key(current) {
-            CenteredCardCarousel(pages = mechanismContentPages(current), modifier = Modifier.weight(1f))
+            CenteredCardCarousel(pages = mechanismContentPages(current), modifier = Modifier.weight(1f), enlargedText = true)
         }
         ViewMoreRow(
             text = stringResource(id = R.string.deck_link_see_all_indicators),
