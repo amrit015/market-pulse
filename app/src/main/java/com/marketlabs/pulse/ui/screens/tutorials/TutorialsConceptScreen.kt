@@ -19,7 +19,7 @@ import com.marketlabs.pulse.ui.theme.MarketPulseTheme
  * it's anchored to; if that gauge's methodology changes, the article needs the same edit.
  */
 @Composable
-fun TutorialsConceptScreen(article: ConceptArticle, onNavigateUp: () -> Unit) {
+fun TutorialsConceptScreen(article: ConceptArticle, onNavigateUp: () -> Unit, onNavigateToRoute: (String) -> Unit = {}) {
     val content = LearnContentProvider.get(LocalContext.current).conceptArticles[article.routeKey] ?: return
 
     val pages = listOf(
@@ -32,12 +32,13 @@ fun TutorialsConceptScreen(article: ConceptArticle, onNavigateUp: () -> Unit) {
         DeckPage(
             title = stringResource(id = R.string.concept_article_in_market_pulse),
             body = content.inMarketPulse,
-            diagram = learnDiagramFor(content.inMarketPulseDiagram)
+            diagram = learnDiagramFor(content.inMarketPulseDiagram),
+            routes = content.inMarketPulseRoutes
         ),
         DeckPage(title = stringResource(id = R.string.concept_article_doesnt_tell_you), body = content.doesntTellYou)
     )
 
-    CarouselArticleScreen(title = content.title, pages = pages, onNavigateUp = onNavigateUp)
+    CarouselArticleScreen(title = content.title, pages = pages, onNavigateUp = onNavigateUp, onNavigateToRoute = onNavigateToRoute)
 }
 
 // ============================================================================

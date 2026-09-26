@@ -1,5 +1,6 @@
 package com.marketlabs.pulse.ui.screens.indicators.detail
 
+import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,6 +10,7 @@ import com.marketlabs.pulse.core.charts.resolveEffectiveRange
 import com.marketlabs.pulse.core.glossary.MetricGlossaryProvider
 import com.marketlabs.pulse.core.indicators.IndicatorsRepository
 import com.marketlabs.pulse.core.indicators.MetricHistoryRepository
+import com.marketlabs.pulse.core.learn.IndicatorArticlesProvider
 import com.marketlabs.pulse.data.favorites.FavoriteMetricsRepository
 import com.marketlabs.pulse.storage.model.charts.ChartRange
 import com.marketlabs.pulse.storage.model.indicators.DomainUnifiedMetric
@@ -16,6 +18,7 @@ import com.marketlabs.pulse.storage.model.indicators.MarketIndicators
 import com.marketlabs.pulse.storage.model.indicators.MetricHistorySeries
 import com.marketlabs.pulse.ui.screens.indicators.detail.MetricDetailViewModel.Companion.HISTORY_LIMIT
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -59,12 +62,16 @@ class MetricDetailViewModel @Inject constructor(
     private val glossaryProvider: MetricGlossaryProvider,
     private val metricHistoryRepository: MetricHistoryRepository,
     private val favoriteMetricsRepository: FavoriteMetricsRepository,
+    @ApplicationContext context: Context,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private val metricId: String = checkNotNull(savedStateHandle[ARG_METRIC_ID]) {
         "MetricDetailViewModel requires a non-null \"$ARG_METRIC_ID\" nav argument"
     }
+
+    /** Null when `indicator_articles.json` has no matching entry -- see [MetricDetailUiState.articleKey]. */
+    private val articleKey: String? = metricId.takeIf { IndicatorArticlesProvider.get(context).containsKey(it) }
 
     private val _isHistoryLoading = MutableStateFlow(false)
 
@@ -117,12 +124,13 @@ class MetricDetailViewModel @Inject constructor(
             selectedChartRange = effectiveRange ?: selectedChartRange,
             availableChartRanges = availableChartRanges,
             hasTimedOut = values[4] as Boolean,
-            isFavorite = values[5] as Boolean
+            isFavorite = values[5] as Boolean,
+            articleKey = articleKey
         )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = MetricDetailUiState(metricId = metricId, selectedChartRange = _selectedChartRange.value)
+        initialValue = MetricDetailUiState(metricId = metricId, selectedChartRange = _selectedChartRange.value, articleKey = articleKey)
     )
 
     init {

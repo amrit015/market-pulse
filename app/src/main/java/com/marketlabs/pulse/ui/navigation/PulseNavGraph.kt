@@ -46,6 +46,7 @@ import com.marketlabs.pulse.ui.components.tutorials.Mechanism
 import com.marketlabs.pulse.ui.screens.tutorials.MechanismDeckScreen
 import com.marketlabs.pulse.ui.screens.tutorials.StockSetupsGlossaryScreen
 import com.marketlabs.pulse.ui.screens.tutorials.TutorialsConceptScreen
+import com.marketlabs.pulse.ui.screens.tutorials.TutorialsArticleScreen
 import com.marketlabs.pulse.ui.screens.tutorials.TutorialsGaugesRoute
 import com.marketlabs.pulse.ui.screens.tutorials.TutorialsHubScreen
 import com.marketlabs.pulse.ui.settings.AboutRoute
@@ -143,6 +144,8 @@ object PulseRoutes {
     const val TUTORIALS_CONCEPT = "tutorials_concept"
     const val TUTORIALS_DATA_LIMITATIONS = "tutorials_data_limitations"
     const val TUTORIALS_GAUGE_ANATOMY = "tutorials_gauge_anatomy"
+    // One shared route for all 40 `indicator_articles.json` entries -- "$TUTORIALS_ARTICLE/{key}".
+    const val TUTORIALS_ARTICLE = "tutorials_article"
 
     // Reached from Settings' Notifications / Data & Sync / About / Coming Up rows.
     const val SETTINGS_NOTIFICATIONS = "settings_notifications"
@@ -150,6 +153,24 @@ object PulseRoutes {
     const val SETTINGS_ABOUT = "settings_about"
     const val SETTINGS_COMING_UP = "settings_coming_up"
     const val SETTINGS_THEME_PICKER = "settings_theme_picker"
+
+    /**
+     * Resolves a `PulseRoutes` constant NAME (e.g. "MARKET_INDICATORS", as authored in
+     * `learn_content.json`'s `<slot>_routes` fields) to its actual route string, for Learn's
+     * "open in app" chips. Scoped to just the five bottom-nav tabs -- the only routes
+     * [navigateToTab] can safely land on with no required arguments; `LearnContentJsonTest`
+     * validates chip route names against the full set of constants on this object, but a chip
+     * pointing at an argument-requiring route (e.g. `STOCK_ANALYSIS_DETAIL`) isn't supported by
+     * this lookup and won't navigate -- not a need the first curated batch of chips has.
+     */
+    fun tabRouteByConstantName(name: String): String? = when (name) {
+        "MARKET_SUMMARY" -> MARKET_SUMMARY
+        "MARKET_OVERVIEW" -> MARKET_OVERVIEW
+        "MARKET_INDICATORS" -> MARKET_INDICATORS
+        "MARKET_INSIGHTS" -> MARKET_INSIGHTS
+        "MARKET_ANALYSIS" -> MARKET_ANALYSIS
+        else -> null
+    }
 }
 
 /** * 💡 UPDATED: Added a second icon resource for the 'selected' filled state
@@ -224,6 +245,10 @@ fun PulseNavGraph(
     // needs the loaded ReportType to show "Daily Update"/"Weekend Update" instead of a fixed
     // "Summary", but can't reach into MarketSummaryViewModel's state directly.
     onSummaryReportTypeLoaded: (ReportType?) -> Unit = {},
+    // MainActivity's brand splash is drawn over this graph, so the start destination is already
+    // composed and running underneath it. Only the onboarding carousel cares: it holds its
+    // first-slide text animation until the splash is gone.
+    isSplashActive: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     // One-shot signal set right before navigating to the News
@@ -254,7 +279,8 @@ fun PulseNavGraph(
         // (see the startDestination param above), never pushed onto an existing back stack.
         composable(PulseRoutes.ONBOARDING_CAROUSEL) {
             OnboardingCarouselScreen(
-                onContinue = { navController.navigate(PulseRoutes.LEGAL_ACCEPTANCE) }
+                onContinue = { navController.navigate(PulseRoutes.LEGAL_ACCEPTANCE) },
+                isObscured = isSplashActive
             )
         }
         // Accepting clears the entire onboarding back stack (popUpTo the graph root, inclusive) so
@@ -393,7 +419,8 @@ fun PulseNavGraph(
         composable("${PulseRoutes.METRIC_DETAIL}/{metricId}") {
             MetricDetailRoute(
                 scaffoldPadding = scaffoldPadding,
-                onNavigateUp = { navController.popBackStack() }
+                onNavigateUp = { navController.popBackStack() },
+                onNavigateToArticle = { key -> navController.navigate("${PulseRoutes.TUTORIALS_ARTICLE}/$key") }
             )
         }
         composable(PulseRoutes.MARKET_INSIGHTS) {
@@ -436,7 +463,8 @@ fun PulseNavGraph(
         composable("${PulseRoutes.GLOSSARY_DETAIL}/{title}/{metricIds}/{chartMetricId}/{description}/{status}") {
             GlossaryDetailRoute(
                 scaffoldPadding = scaffoldPadding,
-                onNavigateUp = { navController.popBackStack() }
+                onNavigateUp = { navController.popBackStack() },
+                onNavigateToArticle = { key -> navController.navigate("${PulseRoutes.TUTORIALS_ARTICLE}/$key") }
             )
         }
         composable(PulseRoutes.MARKET_ANALYSIS) {
@@ -560,13 +588,20 @@ fun PulseNavGraph(
                 onNavigateToGaugeAnatomy = { navController.navigate(PulseRoutes.TUTORIALS_GAUGE_ANATOMY) },
                 onNavigateToConcept = { navController.navigate("${PulseRoutes.TUTORIALS_CONCEPT}/${it.routeKey}") },
                 onNavigateToMechanism = { navController.navigate("${PulseRoutes.TUTORIALS_DECK}/${it.routeKey}") },
-                onNavigateToDataLimitations = { navController.navigate(PulseRoutes.TUTORIALS_DATA_LIMITATIONS) }
+                onNavigateToDataLimitations = { navController.navigate(PulseRoutes.TUTORIALS_DATA_LIMITATIONS) },
+                onNavigateToArticle = { key -> navController.navigate("${PulseRoutes.TUTORIALS_ARTICLE}/$key") }
             )
         }
         composable("${PulseRoutes.TUTORIALS_CONCEPT}/{article}") { backStackEntry ->
             val article = ConceptArticle.fromRouteKey(backStackEntry.arguments?.getString("article"))
             if (article != null) {
-                TutorialsConceptScreen(article = article, onNavigateUp = { navController.popBackStack() })
+                TutorialsConceptScreen(
+                    article = article,
+                    onNavigateUp = { navController.popBackStack() },
+                    onNavigateToRoute = { routeName ->
+                        PulseRoutes.tabRouteByConstantName(routeName)?.let { navController.navigateToTab(it) }
+                    }
+                )
             }
         }
         // Optional `group` = comma-separated mechanism keys when opened from a screen's "Show More"
@@ -585,24 +620,26 @@ fun PulseNavGraph(
                     mechanism = mechanism,
                     group = group,
                     onNavigateUp = { navController.popBackStack() },
-                    onSeeIndicators = { current, whole ->
-                        val query = if (whole.isEmpty()) "" else "?group=${whole.joinToString(",") { it.routeKey }}"
-                        navController.navigate("${PulseRoutes.TUTORIALS_GLOSSARY}/${current.routeKey}$query")
+                    // Always this one mechanism's own indicators -- never the whole group's, even
+                    // when [group] itself lets the deck's content tabs switch between mechanisms.
+                    onSeeIndicators = { current ->
+                        navController.navigate("${PulseRoutes.TUTORIALS_GLOSSARY}/${current.routeKey}")
+                    },
+                    onNavigateToRoute = { routeName ->
+                        PulseRoutes.tabRouteByConstantName(routeName)?.let { navController.navigateToTab(it) }
                     }
                 )
             }
         }
-        // Optional `group` = every mechanism of the screen that opened it ("See all indicators" from
-        // a "Show More" deck); absent = just the one mechanism (opened from the Tutorials hub).
-        composable(
-            route = "${PulseRoutes.TUTORIALS_GLOSSARY}/{mechanism}?group={group}",
-            arguments = listOf(navArgument("group") { type = NavType.StringType; nullable = true; defaultValue = null })
-        ) { backStackEntry ->
+        composable(route = "${PulseRoutes.TUTORIALS_GLOSSARY}/{mechanism}") { backStackEntry ->
             val mechanism = Mechanism.fromRouteKey(backStackEntry.arguments?.getString("mechanism"))
             if (mechanism == Mechanism.STOCK_ANALYSIS) {
                 StockSetupsGlossaryScreen(onNavigateUp = { navController.popBackStack() })
             } else if (mechanism != null) {
-                TutorialsGaugesRoute(onNavigateUp = { navController.popBackStack() })
+                TutorialsGaugesRoute(
+                    onNavigateUp = { navController.popBackStack() },
+                    onNavigateToArticle = { key -> navController.navigate("${PulseRoutes.TUTORIALS_ARTICLE}/$key") }
+                )
             }
         }
         composable(PulseRoutes.TUTORIALS_GAUGE_ANATOMY) {
@@ -610,6 +647,12 @@ fun PulseNavGraph(
         }
         composable(PulseRoutes.TUTORIALS_DATA_LIMITATIONS) {
             TutorialsDataLimitationsScreen(onNavigateUp = { navController.popBackStack() })
+        }
+        composable("${PulseRoutes.TUTORIALS_ARTICLE}/{key}") { backStackEntry ->
+            val key = backStackEntry.arguments?.getString("key")
+            if (key != null) {
+                TutorialsArticleScreen(articleKey = key, onNavigateUp = { navController.popBackStack() })
+            }
         }
     }
 }

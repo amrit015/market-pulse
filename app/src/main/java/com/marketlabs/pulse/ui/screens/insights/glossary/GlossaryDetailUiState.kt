@@ -40,11 +40,15 @@ data class GlossaryDetailUiState(
     val availableChartRanges: List<ChartRange> = emptyList()
 )
 
-/** One glossary entry within a merged card, paired with the display label for the value it explains. */
+/** One glossary entry within a merged card, paired with the display label for the value it explains.
+ * [articleKey] is the matching `indicator_articles.json` entry's id (always this section's own
+ * metric id when present) -- null when that metric has no article yet, in which case the screen
+ * shows no "Learn more" link for this section. */
 data class GlossarySection(
     val label: String,
     val whatItIs: String,
     val howToRead: String,
     val watch: String?,
-    val gotchas: String?
+    val gotchas: String?,
+    val articleKey: String? = null
 )

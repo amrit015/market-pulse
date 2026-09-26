@@ -1,24 +1,35 @@
 package com.marketlabs.pulse.ui.components.tutorials
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.storage.model.dashboard.AssetOverview
 import com.marketlabs.pulse.ui.components.widgets.PercentileBar
 import com.marketlabs.pulse.ui.components.widgets.PutCallHorizontalBar
+import com.marketlabs.pulse.ui.components.widgets.RingGauge
 import com.marketlabs.pulse.ui.components.widgets.SpeedometerGauge
 import com.marketlabs.pulse.ui.components.widgets.TriSegmentBar
+import com.marketlabs.pulse.ui.components.widgets.VixFullWidthCard
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
+import com.marketlabs.pulse.ui.theme.textColor
+import com.marketlabs.pulse.utils.enums.AssetType
+import com.marketlabs.pulse.utils.enums.CotPositioningStatus
+import com.marketlabs.pulse.utils.enums.DixStatus
+import com.marketlabs.pulse.utils.enums.NaaimStatus
 
 /**
  * The Sentiment & Positioning
@@ -38,8 +49,8 @@ import com.marketlabs.pulse.ui.theme.MarketPulseTheme
  *
  * Every value below is a fixed, neutral illustrative reading (flat/50th-percentile/even thirds),
  * not live data -- this screen has no data source of its own, and a skewed mock value would risk
- * being misread as today's actual reading. [R.string.tutorial_gauge_illustrative_caption] says so
- * explicitly at the end.
+ * being misread as today's actual reading. The caller wraps this in `DiagramScaffold`'s
+ * `LIVE_WIDGET_PREVIEW` note, which says so explicitly below the gauges.
  */
 @Composable
 fun SentimentGaugesLivePreview(modifier: Modifier = Modifier) {
@@ -74,13 +85,71 @@ fun SentimentGaugesLivePreview(modifier: Modifier = Modifier) {
         TriSegmentBar(bullFraction = 0.34f, neutralFraction = 0.33f, bearFraction = 0.33f)
         Spacer(modifier = Modifier.height(paddingSmall))
         GaugePreviewExplanation(text = stringResource(id = R.string.tutorial_gauge_aaii_explanation))
+    }
+}
 
-        Spacer(modifier = Modifier.height(paddingMedium))
-        Text(
-            text = stringResource(id = R.string.tutorial_gauge_illustrative_caption),
-            style = MaterialTheme.typography.labelSmall,
-            color = LocalPulseColors.current.onSurfaceMuted
-        )
+/**
+ * A single real VIX card at a calm reading -- VIX is named in the Volatility Regimes article's own
+ * text (`volatility_regimes.in_market_pulse_diagram`), so this shows the reader exactly what that
+ * reading looks like inside the app rather than a redrawn illustration.
+ */
+@Composable
+fun VixCardPreview() {
+    VixFullWidthCard(
+        asset = AssetOverview(
+            symbol = "VIX",
+            name = "CBOE Volatility Index",
+            type = AssetType.INDEX,
+            price = 14.0,
+            changePercent = -1.2,
+            rsiStatus = "GREED"
+        ),
+        onClick = {}
+    )
+}
+
+/**
+ * The real NAAIM Exposure and Dark Pool Index ring gauges, colored exactly as
+ * [com.marketlabs.pulse.ui.screens.insights.views.MarketPostureView] derives them (status enum ->
+ * `textColor`, both pure functions of the status string, not ViewModel state). Values mirror the
+ * Posture deck's own `in_the_wild` scenario (`posture.what_to_watch_diagram` in
+ * `learn_content.json`) -- NAAIM 38 (Extreme Fear/Hedged), DIX 47 (Accumulation).
+ */
+@Composable
+fun PostureRingsPreview(modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            GaugePreviewLabel(text = stringResource(id = R.string.posture_naaim_title))
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
+            RingGauge(value = 38.0, maxValue = 100.0, ringColor = NaaimStatus.EXTREME_FEAR_HEDGED.textColor)
+        }
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            GaugePreviewLabel(text = stringResource(id = R.string.posture_dix_title))
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
+            RingGauge(value = 47.0, maxValue = 100.0, ringColor = DixStatus.ACCUMULATION_BULLISH.textColor)
+        }
+    }
+}
+
+/**
+ * The real CFTC COT percentile bar and AAII bull/neutral/bear split, colored exactly as
+ * [com.marketlabs.pulse.ui.screens.insights.views.MarketPositioningView] derives them. Values
+ * mirror the Positioning deck's own `in_the_wild` scenario (`positioning.what_to_watch_diagram` in
+ * `learn_content.json`) -- COT percentile 22, AAII bull 20% / neutral 25% / bear 55% (a −35% spread).
+ */
+@Composable
+fun PositioningBarsPreview(modifier: Modifier = Modifier) {
+    Column(modifier = modifier.fillMaxWidth()) {
+        GaugePreviewLabel(text = stringResource(id = R.string.tutorial_gauge_cot_percentile_label))
+        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
+        PercentileBar(percentile = 22, markerColor = CotPositioningStatus.NEUTRAL.textColor)
+        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
+        GaugePreviewLabel(text = stringResource(id = R.string.tutorial_gauge_aaii_label))
+        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
+        TriSegmentBar(bullFraction = 0.20f, neutralFraction = 0.25f, bearFraction = 0.55f)
     }
 }
 
@@ -119,5 +188,53 @@ private fun PreviewSentimentGaugesLivePreviewLight() {
 private fun PreviewSentimentGaugesLivePreviewDark() {
     MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
         SentimentGaugesLivePreview()
+    }
+}
+
+@Preview(name = "Light", showBackground = true)
+@Composable
+private fun PreviewVixCardPreviewLight() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
+        VixCardPreview()
+    }
+}
+
+@Preview(name = "Dark", showBackground = true, backgroundColor = 0xFF0D0E12)
+@Composable
+private fun PreviewVixCardPreviewDark() {
+    MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
+        VixCardPreview()
+    }
+}
+
+@Preview(name = "Light", showBackground = true)
+@Composable
+private fun PreviewPostureRingsPreviewLight() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
+        PostureRingsPreview()
+    }
+}
+
+@Preview(name = "Dark", showBackground = true, backgroundColor = 0xFF0D0E12)
+@Composable
+private fun PreviewPostureRingsPreviewDark() {
+    MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
+        PostureRingsPreview()
+    }
+}
+
+@Preview(name = "Light", showBackground = true)
+@Composable
+private fun PreviewPositioningBarsPreviewLight() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
+        PositioningBarsPreview()
+    }
+}
+
+@Preview(name = "Dark", showBackground = true, backgroundColor = 0xFF0D0E12)
+@Composable
+private fun PreviewPositioningBarsPreviewDark() {
+    MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
+        PositioningBarsPreview()
     }
 }

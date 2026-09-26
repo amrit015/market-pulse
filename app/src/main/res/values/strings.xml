@@ -106,6 +106,7 @@
     <string name="indicators_detail_how_to_read">How to read it</string>
     <string name="indicators_detail_watch">Watch</string>
     <string name="indicators_detail_bands">Bands</string>
+    <string name="indicators_detail_learn_more">Learn more</string>
     <string name="indicators_glossary_desc">Glossary</string>
 
     <string name="dashboard_title">Market Dashboard</string>
@@ -683,13 +684,147 @@
     <string name="tutorial_gauge_put_call_explanation">Reads the same way, in reverse: a high ratio means heavy put-buying (fear), a low ratio means heavy call-buying (greed). Just as capable of sitting at an extreme for weeks without anything changing.</string>
     <string name="tutorial_gauge_cot_percentile_explanation">Most useful ranked against its own recent history, not as a raw number alone — extremes in either direction have historically preceded a reversal as crowded positioning unwinds.</string>
     <string name="tutorial_gauge_aaii_explanation">A widely watched but famously unreliable contrarian indicator on its own: extreme readings are sometimes read as a sign a consensus view has gotten crowded, not as confirmation that the consensus is right.</string>
-    <string name="tutorial_diagram_gauge_anatomy_raw_value_label">RSI = 72</string>
-    <string name="tutorial_diagram_gauge_anatomy_band_label">Band: Overbought</string>
-    <string name="tutorial_diagram_gauge_anatomy_color_label">Color: Amber</string>
-    <string name="tutorial_diagram_gauge_anatomy_meaning_label">Overbought — momentum may be due for a pause, not a reversal call.</string>
+    <string name="tutorial_diagram_illustrative_note">Illustrative — not real data.</string>
+    <string name="tutorial_diagram_content_description_yield_curve">Illustration comparing a normal upward-sloping yield curve with an inverted one.</string>
+    <string name="tutorial_diagram_content_description_sma_extension">Illustration of price moving above and below its 200-day average, with zones for stretched, normal, and below-trend readings.</string>
+    <string name="tutorial_diagram_content_description_sentiment_gauges">Illustration of three sentiment gauges — Fear &amp; Greed, Put/Call, and VIX — showing their reading zones.</string>
+    <string name="tutorial_diagram_content_description_gauge_anatomy">Diagram of how a gauge works: a raw value is sorted into a labeled band, which maps to a color.</string>
+    <string name="tutorial_diagram_content_description_sentiment_gauges_live">Example Fear &amp; Greed and Put/Call gauges with illustrative values.</string>
+    <string name="tutorial_diagram_content_description_vix_card_preview">Example VIX card showing a calm reading, with illustrative values.</string>
+    <string name="tutorial_diagram_content_description_posture_rings_preview">Example NAAIM and Dark Pool Index ring gauges: managers defensively positioned while dark-pool buying is elevated. Illustrative values.</string>
+    <string name="tutorial_diagram_content_description_positioning_bars_preview">Example positioning gauges: futures positioning near the low end of its range and retail sentiment mostly bearish. Illustrative values.</string>
+    <string name="tutorial_diagram_content_description_rate_sensitivity">Illustration of a spectrum from short-duration assets like cash to long-duration assets like growth stocks and long bonds, ordered by how much they react to rate changes.</string>
+    <string name="tutorial_diagram_content_description_growth_vs_value">Illustration of a spectrum from value-heavy sectors like utilities and financials to growth-heavy sectors like technology.</string>
+    <string name="tutorial_diagram_content_description_valuation_basics">Illustration comparing this stock\'s valuation against the overall market and against its own sector peers.</string>
+    <string name="tutorial_diagram_content_description_pe_expansion">Illustration of a P/E expansion: earnings roughly flat, the P/E multiple rising, and price rising as a result.</string>
+    <string name="tutorial_diagram_content_description_pe_contraction">Illustration of a P/E contraction: earnings roughly flat, the P/E multiple falling, and price falling as a result.</string>
+
+    <string name="diagram_caption_rate_sensitivity">Longer-duration assets react more to rate changes than shorter-duration ones.</string>
+    <string name="diagram_caption_growth_vs_value">Growth and value rotate with the rate cycle — both trends can persist for years.</string>
+    <string name="diagram_caption_valuation_basics">A stock can look cheap against the market yet rich against its own sector peers.</string>
+    <string name="diagram_caption_pe_expansion">Rising willingness to pay lifts price even when earnings hold flat.</string>
+    <string name="diagram_caption_pe_contraction">A shrinking multiple can pull price down even when earnings hold.</string>
+
+    <string name="diagram_spectrum_rate_sensitivity_start">Short duration</string>
+    <string name="diagram_spectrum_rate_sensitivity_end">Long duration</string>
+    <string name="diagram_spectrum_rate_sensitivity_item_cash">Cash</string>
+    <string name="diagram_spectrum_rate_sensitivity_item_financials">Financials</string>
+    <string name="diagram_spectrum_rate_sensitivity_item_dividend">Dividends</string>
+    <string name="diagram_spectrum_rate_sensitivity_item_bonds">Long bonds</string>
+    <string name="diagram_spectrum_rate_sensitivity_item_growth">Growth stocks</string>
+
+    <string name="diagram_spectrum_growth_value_start">Value</string>
+    <string name="diagram_spectrum_growth_value_end">Growth</string>
+    <string name="diagram_spectrum_growth_value_item_utilities">Utilities</string>
+    <string name="diagram_spectrum_growth_value_item_financials">Financials</string>
+    <string name="diagram_spectrum_growth_value_item_energy">Energy</string>
+    <string name="diagram_spectrum_growth_value_item_discretionary">Consumer Disc.</string>
+    <string name="diagram_spectrum_growth_value_item_tech">Technology</string>
+
+    <string name="diagram_spectrum_valuation_basics_start">Cheap</string>
+    <string name="diagram_spectrum_valuation_basics_end">Expensive</string>
+    <string name="diagram_spectrum_valuation_basics_item_market">Market avg.</string>
+    <string name="diagram_spectrum_valuation_basics_item_this_stock">This stock</string>
+    <string name="diagram_spectrum_valuation_basics_item_peers">Sector peers</string>
+
+    <string name="diagram_decomposition_earnings_label">Earnings</string>
+    <string name="diagram_decomposition_multiple_label">Multiple (P/E)</string>
+    <string name="diagram_decomposition_price_label">Price</string>
+    <string name="diagram_decomposition_flat_label">≈ flat</string>
+
+    <string name="diagram_divergence_breadth_primary">Cap-weighted (SPY)</string>
+    <string name="diagram_divergence_breadth_secondary">Equal-weight (RSP)</string>
+    <string name="diagram_divergence_breadth_gap">Gap</string>
+    <string name="diagram_divergence_relative_strength_primary">Sector</string>
+    <string name="diagram_divergence_relative_strength_secondary">S&amp;P 500</string>
+
+    <string name="tutorial_diagram_content_description_breadth">Illustration of a cap-weighted index line pulling away from an equal-weight line, with the widening gap between them highlighted.</string>
+    <string name="tutorial_diagram_content_description_relative_strength">Illustration comparing a sector\'s price against the S&amp;P 500, with the ratio between them plotted below to show relative strength.</string>
+    <string name="diagram_caption_breadth">The index can keep rising even as fewer stocks underneath it participate.</string>
+    <string name="diagram_caption_relative_strength">A rising ratio line means the sector is outperforming the index, even if its own price is flat or falling.</string>
+
+    <string name="diagram_wheel_market_phases_accumulation">Accumulation</string>
+    <string name="diagram_wheel_market_phases_accumulation_sig">Breadth improving</string>
+    <string name="diagram_wheel_market_phases_markup">Markup</string>
+    <string name="diagram_wheel_market_phases_markup_sig">Broad participation</string>
+    <string name="diagram_wheel_market_phases_distribution">Distribution</string>
+    <string name="diagram_wheel_market_phases_distribution_sig">Narrowing leadership</string>
+    <string name="diagram_wheel_market_phases_markdown">Markdown</string>
+    <string name="diagram_wheel_market_phases_markdown_sig">Breadth collapsing</string>
+
+    <string name="diagram_wheel_sector_rotation_early">Early Expansion</string>
+    <string name="diagram_wheel_sector_rotation_early_sig">Cyclicals, Financials</string>
+    <string name="diagram_wheel_sector_rotation_late">Late Expansion</string>
+    <string name="diagram_wheel_sector_rotation_late_sig">Energy, Materials</string>
+    <string name="diagram_wheel_sector_rotation_slowdown">Slowdown</string>
+    <string name="diagram_wheel_sector_rotation_slowdown_sig">Healthcare, Staples</string>
+    <string name="diagram_wheel_sector_rotation_recession">Recession</string>
+    <string name="diagram_wheel_sector_rotation_recession_sig">Utilities, Staples</string>
+
+    <string name="tutorial_diagram_content_description_market_phases">Diagram of a 4-stage market cycle read clockwise: Accumulation, Markup, Distribution, and Markdown, each with its own breadth and participation signature.</string>
+    <string name="tutorial_diagram_content_description_sector_rotation">Diagram of the same 4-stage cycle with an outer ring showing which sectors have typically led in each stage: cyclicals and financials early, energy and materials late, healthcare and staples in a slowdown, utilities and staples in a recession.</string>
+    <string name="diagram_caption_market_phases">Phases overlap and don\'t run on a fixed clock — the labels describe a configuration, not a forecast.</string>
+    <string name="diagram_caption_sector_rotation">Sector leadership tends to follow the cycle, but not on a fixed schedule.</string>
+
+    <string name="diagram_flow_macro_inflation">Inflation</string>
+    <string name="diagram_flow_macro_jobs">Jobs</string>
+    <string name="diagram_flow_macro_growth">GDP &amp; Retail Sales</string>
+    <string name="diagram_flow_macro_yield">10-Year Yield</string>
+    <string name="diagram_flow_stock_setup">Setup</string>
+    <string name="diagram_flow_stock_levels">Key Levels</string>
+    <string name="diagram_flow_stock_forward">Forward Calls</string>
+
+    <string name="tutorial_diagram_content_description_macro_vitals">Diagram of inflation, jobs, and growth data all feeding into the 10-year Treasury yield, the market\'s real-time read on where the cycle is heading.</string>
+    <string name="tutorial_diagram_content_description_stock_analysis">Diagram of the stock analysis read-order: setup classification first, then key levels, then forward calls.</string>
+    <string name="diagram_caption_macro_vitals">Inflation, jobs, and growth data all feed into where yields go next.</string>
+    <string name="diagram_caption_stock_analysis">Setup frames everything else — levels and forward calls follow from it.</string>
+
+    <string name="diagram_waterfall_rates">Rates</string>
+    <string name="diagram_waterfall_credit">Credit</string>
+    <string name="diagram_waterfall_risk_appetite">Risk Appetite</string>
+    <string name="diagram_waterfall_net">Net</string>
+
+    <string name="tutorial_diagram_content_description_role_of_liquidity">Illustration of falling rates, roughly steady credit conditions, and a risk-appetite headwind combining into a net liquidity backdrop.</string>
+    <string name="diagram_caption_role_of_liquidity">Rates, credit, and risk appetite combine into one liquidity backdrop — not a forecast of what markets do with it.</string>
+
+    <string name="diagram_cadence_legend_measured">Measured</string>
+    <string name="diagram_cadence_legend_published">Published</string>
+    <string name="diagram_cadence_legend_time">time →</string>
+    <string name="diagram_cadence_aaii">AAII · Weekly</string>
+    <string name="diagram_cadence_cot">COT · Weekly (lagged)</string>
+    <string name="diagram_cadence_short_interest">Short Interest · Twice-monthly</string>
+
+    <string name="tutorial_diagram_content_description_positioning_cadence">Diagram comparing how long AAII, CFTC COT, and FINRA short interest each lag between when a value is measured and when it\'s published, on one shared time scale.</string>
+    <string name="diagram_caption_positioning_cadence">Each source lags differently between when it\'s measured and when it\'s published.</string>
+
+    <string name="diagram_correlation_legend_together">Together</string>
+    <string name="diagram_correlation_legend_independent">Independent</string>
+    <string name="diagram_correlation_asset_stocks">Stocks</string>
+    <string name="diagram_correlation_asset_bonds">Bonds</string>
+    <string name="diagram_correlation_asset_credit">Credit</string>
+    <string name="diagram_correlation_asset_gold">Gold</string>
+    <string name="diagram_correlation_normal_title">Normal</string>
+    <string name="diagram_correlation_stress_title">Stress</string>
+
+    <string name="tutorial_diagram_content_description_correlation_breakdown">Diagram comparing two small grids: under normal conditions stocks, bonds, credit, and gold move mostly independently; under stress, stocks and credit move together while bonds and gold stay independent.</string>
+    <string name="diagram_caption_correlation_breakdown">Under stress, previously independent assets can start moving together — though not all of them.</string>
+
+    <string name="gauge_pattern_step_raw_value">1 · Raw value</string>
+    <string name="gauge_pattern_raw_value">50</string>
+    <string name="gauge_pattern_step_band">2 · Band</string>
+    <string name="gauge_pattern_band_bullish">Bullish</string>
+    <string name="gauge_pattern_band_neutral">Neutral</string>
+    <string name="gauge_pattern_band_bearish">Bearish</string>
+    <string name="gauge_pattern_step_color">3 · Color</string>
+    <string name="gauge_pattern_status_neutral">NEUTRAL</string>
 
 
-    <string name="tutorials_gauges_intro">Every gauge and indicator across Market Pulse follows the same idea: a raw value gets bucketed into a plain-language read (e.g. \"Extreme Fear,\" \"Overbought,\" \"Neutral\") using thresholds defined elsewhere, not judged case by case. The definitions below come from the same glossary data the rest of the app uses — tap any gauge in the app itself for the fuller breakdown, including its current band and any gotchas specific to that metric.\n\nSome of these you can check yourself: the yield curve, RSI, and a stock\'s P/E versus its sector are standard measures you\'ll find on any financial site — use them to test what the app is showing you. Others, like the Fear &amp; Greed Index or this app\'s own Copper/Gold ratio, are composite reads you can\'t easily rebuild from raw data — treat those as one lens, not gospel. Either way, the app names the condition; the conclusion is yours to draw.</string>
+    <string name="tutorials_gauges_intro_tactical_momentum">Every gauge here answers the same question a different way: how fast is the market moving right now, and how nervous or euphoric are the people trading it? A raw reading like the VIX or the Put/Call Ratio gets bucketed into a plain-language read (e.g. \"Extreme Fear,\" \"Overbought\") using thresholds defined elsewhere, not judged case by case. Tap any gauge below for the full breakdown — how to read it, what to watch, and real scenarios.</string>
+    <string name="tutorials_gauges_intro_systemic_risk">Every gauge here is a different lens on the same worry: is stress building up somewhere in the system before it shows up in stock prices? Credit spreads, the yield curve, and market breadth each watch a different corner — bonds, currencies, or how broad a rally really is. Tap any gauge below for the full breakdown — how to read it, what to watch, and real scenarios.</string>
+    <string name="tutorials_gauges_intro_valuation">Every gauge here asks some version of the same question: how much is the market paying for what it\'s actually getting? P/E, P/B, the Equity Risk Premium, and dividend yield each price the market against a different reference point — past earnings, book value, or the safe alternative of Treasuries. Tap any gauge below for the full breakdown — how to read it, what to watch, and real scenarios.</string>
+    <string name="tutorials_gauges_intro_macro_vitals">Every gauge here tracks a different vital sign of the broader economy — inflation, jobs, growth, and the Fed\'s own policy rate — the releases that move markets because they change what the Fed does next. Tap any gauge below for the full breakdown — how to read it, what to watch, and real scenarios.</string>
+    <string name="tutorials_gauges_intro_positioning">Every gauge here answers the same question from a different data source: how crowded is a bet, and who\'s making it? Retail sentiment, futures positioning, and short interest each reveal a different slice of who\'s leaning which way. Tap any gauge below for the full breakdown — how to read it, what to watch, and real scenarios.</string>
+    <string name="tutorials_gauges_intro_posture">Every gauge here is a read on institutional behavior beneath the surface — what active managers are actually doing with client money, where dark-pool buying is concentrated, and how much cash is really available to flow into risk assets. Tap any gauge below for the full breakdown — how to read it, what to watch, and real scenarios.</string>
     <string name="tutorials_gauges_category_tactical_momentum">Tactical Momentum</string>
     <string name="tutorials_gauges_category_systemic_risk">Systemic Risk</string>
     <string name="tutorials_gauges_category_valuation">Valuation</string>
@@ -886,21 +1021,13 @@
     <string name="deck_card_title_watch">What to watch</string>
     <string name="deck_card_title_misreads">Common misreads</string>
     <string name="deck_card_title_wild">In the wild</string>
+    <string name="deck_card_tab_together">Read together</string>
+    <string name="deck_card_tab_misreads">Misreads</string>
     <string name="deck_link_see_all_indicators">See all indicators</string>
     <string name="deck_page_indicator_content_description">Card %1$d of %2$d</string>
     <string name="tutorials_mechanism_stock_analysis">Stock Analysis</string>
-    <string name="tutorials_glossary_all_title">All indicators</string>
     <string name="tutorials_glossary_screen_title">%1$s indicators</string>
     <string name="tutorials_stock_setups_glossary_title">Stock setups</string>
-    <string name="tutorials_hub_section_start">Getting started</string>
-    <string name="tutorials_hub_section_market_concepts">Market concepts</string>
-    <string name="tutorials_hub_subgroup_cycles_structure">Cycles &amp; Structure</string>
-    <string name="tutorials_hub_subgroup_sentiment_behaviour">Sentiment &amp; Behaviour</string>
-    <string name="tutorials_hub_subgroup_valuation_rates">Valuation &amp; Rates</string>
-    <string name="tutorials_hub_subgroup_risk_price_action">Risk &amp; Price Action</string>
-    <string name="tutorials_hub_subgroup_market_fundamentals">Market Fundamentals</string>
-    <string name="tutorials_hub_section_mechanisms">Market mechanisms</string>
-    <string name="tutorials_hub_section_data">About the data</string>
     <string name="concept_article_in_market_pulse">In Market Pulse</string>
     <string name="concept_article_doesnt_tell_you">What it doesn\'t tell you</string>
     <string name="screen_guide_show_more">Show More</string>

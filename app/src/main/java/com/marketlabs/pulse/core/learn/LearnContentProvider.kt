@@ -39,7 +39,9 @@ object LearnContentProvider {
 
     private fun emptyLearnContent() = LearnContent(
         conceptArticles = emptyMap(),
+        conceptSubgroupHeadings = emptyMap(),
         mechanismDecks = emptyMap(),
+        hubSections = emptyMap(),
         gaugeAnatomy = LearnStandaloneArticle(title = "", cards = emptyList()),
         dataLimitations = LearnStandaloneArticle(title = "", cards = emptyList())
     )

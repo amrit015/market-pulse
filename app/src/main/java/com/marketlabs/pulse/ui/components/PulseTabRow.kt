@@ -1,6 +1,7 @@
 package com.marketlabs.pulse.ui.components
 
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.offset
@@ -42,17 +43,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
@@ -94,13 +101,17 @@ import com.marketlabs.pulse.ui.theme.MarketPulseTheme
  * (matching the label's own unselected-state role) respectively. No border change -- the star glyph
  * alone is enough to mark the chip without also weighing down its outline.
  *
- * Small `<`/`>` overflow chevrons fade in at either edge whenever this row's own horizontal scroll
- * has more content in that direction (`canScrollBackward`/`canScrollForward`, read off the same
- * `rememberScrollState()` the row scrolls with) -- purely a "there's more, keep scrolling" cue, not
- * a tap target of their own (the row itself is already the scrollable surface). Each sits on a small
- * circular `surfaceVariant` scrim (one step lighter than the page, same role `PulseCard`'s DATA style
- * uses) so it stays legible over whatever chip content has scrolled underneath it -- `background`
- * itself is what an unselected chip's own fill already uses, so that color wouldn't have stood apart.
+ * Small `<`/`>` overflow chevrons appear in their own slots at the row's start/end whenever this
+ * row's horizontal scroll has more content in that direction (`canScrollBackward`/`canScrollForward`,
+ * read off the same `rememberScrollState()` the row scrolls with) -- purely a "there's more, keep
+ * scrolling" cue, not a tap target of their own (the row itself is already the scrollable surface).
+ * Each sits in its own `Box` outside the scrollable chip content, not overlaid on top of it, so a
+ * chevron can never cover part of whichever chip has scrolled to that edge -- and that slot animates
+ * its width to zero when its direction has nothing left to scroll, so the tab chips get that width
+ * back instead of a permanent empty gutter sitting unused at one end. Selecting a tab also brings it
+ * into view padded by [R.dimen.tab_row_scroll_peek_margin] on both sides (not just its own bounds),
+ * so the tab just past the newly-selected one is already peeking into view rather than only
+ * appearing once it's selected itself.
  */
 private const val TabSelectionAnimationMs = 250
 
@@ -134,13 +145,30 @@ fun PulseTabRow(
     val canScrollBackward by remember { derivedStateOf { scrollState.value > 0 } }
     val canScrollForward by remember { derivedStateOf { scrollState.value < scrollState.maxValue } }
 
-    LaunchedEffect(selectedTabIndex) {
-        bringIntoViewRequesters.getOrNull(selectedTabIndex)?.bringIntoView()
-    }
-
     // Each chip's bounds inside the chip row, measured after layout -- the sliding highlight needs
     // them to know where to sit and how wide to be.
     val chipBounds = remember(tabs.size) { mutableStateMapOf<Int, Rect>() }
+
+    val haptic = LocalHapticFeedback.current
+    val density = LocalDensity.current
+    val scrollPeekMarginPx = with(density) { dimensionResource(id = R.dimen.tab_row_scroll_peek_margin).toPx() }
+    // Chip bounds aren't known until after the first layout pass, so this can't just seed itself
+    // from `selectedTabIndex` -- that would fire a haptic tick on first composition (any screen
+    // that opens with, say, its 3rd tab already selected).
+    var previousSelectedTabIndex by remember { mutableIntStateOf(selectedTabIndex) }
+    LaunchedEffect(selectedTabIndex) {
+        if (selectedTabIndex != previousSelectedTabIndex) {
+            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+        }
+        previousSelectedTabIndex = selectedTabIndex
+        // Bring the selected chip into view padded by a peek margin on both sides, not just its own
+        // bounds -- so landing on (or swiping to) the second-to-last tab already reveals a sliver of
+        // the last one, rather than only appearing once that tab is itself selected.
+        val bounds = chipBounds[selectedTabIndex]
+        val request = bounds?.let { Rect(-scrollPeekMarginPx, 0f, it.width + scrollPeekMarginPx, it.height) }
+        bringIntoViewRequesters.getOrNull(selectedTabIndex)?.bringIntoView(request)
+    }
+
     val animatedPosition by animateFloatAsState(
         targetValue = selectedTabIndex.toFloat(),
         animationSpec = tween(TabSelectionAnimationMs),
@@ -149,11 +177,31 @@ fun PulseTabRow(
     val position = { (selectionPosition?.invoke() ?: animatedPosition).coerceIn(0f, (tabs.size - 1).coerceAtLeast(0).toFloat()) }
     val boundsReady = chipBounds.size == tabs.size
     val shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_small))
+    val chevronSlotSize = dimensionResource(id = R.dimen.icon_size_extra_large)
+    // Collapses to zero rather than staying reserved when there's nothing to scroll that
+    // direction -- the tab chips get that width back instead of leaving a permanent empty gutter.
+    val startSlotWidth by animateDpAsState(
+        targetValue = if (canScrollBackward) chevronSlotSize else 0.dp,
+        label = "tab_row_start_chevron_width"
+    )
+    val endSlotWidth by animateDpAsState(
+        targetValue = if (canScrollForward) chevronSlotSize else 0.dp,
+        label = "tab_row_end_chevron_width"
+    )
 
-    Box(modifier = modifier.fillMaxWidth()) {
+    Row(modifier = modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        // Slots at the row's true start/end, never overlapping tab content -- a chevron appearing
+        // here can't cover whichever chip happens to have scrolled to that edge, the way an
+        // absolutely-positioned overlay on top of the scrollable content would.
+        Box(
+            modifier = Modifier.size(width = startSlotWidth, height = chevronSlotSize),
+            contentAlignment = Alignment.Center
+        ) {
+            if (canScrollBackward) TabRowOverflowChevron(pointsLeft = true)
+        }
         Box(
             modifier = Modifier
-                .fillMaxWidth()
+                .weight(1f)
                 .horizontalScroll(scrollState)
                 .padding(
                     horizontal = dimensionResource(id = R.dimen.padding_large),
@@ -230,11 +278,11 @@ fun PulseTabRow(
             }
         }
 
-        if (canScrollBackward) {
-            TabRowOverflowChevron(pointsLeft = true, modifier = Modifier.align(Alignment.CenterStart))
-        }
-        if (canScrollForward) {
-            TabRowOverflowChevron(pointsLeft = false, modifier = Modifier.align(Alignment.CenterEnd))
+        Box(
+            modifier = Modifier.size(width = endSlotWidth, height = chevronSlotSize),
+            contentAlignment = Alignment.Center
+        ) {
+            if (canScrollForward) TabRowOverflowChevron(pointsLeft = false)
         }
     }
 }

@@ -1,0 +1,1042 @@
+{
+  "cpi_yoy": {
+    "title": "Consumer Price Index (CPI)",
+    "subtitle": "The headline inflation number — consumer prices, year-over-year.",
+    "cards": [
+      {
+        "title": "What it measures",
+        "body": "The Consumer Price Index (CPI) tracks the average change in prices paid by consumers across a fixed basket of goods and services — housing, food, energy, transportation, medical care, and more. It's released monthly by the Bureau of Labor Statistics, almost always in the second week of the month, covering the prior month's prices. \"CPI year-over-year\" compares this month's basket cost to the same month a year ago — the headline inflation number most widely quoted in the news. It's also one of the most closely watched monthly releases on the economic calendar, since it's a primary input into what the Federal Reserve does next."
+      },
+      {
+        "title": "How to read it",
+        "body": "Hot CPI (running above the Fed's roughly 2% target, and moving further above it) signals inflation pressure is building — historically this has pushed the Fed toward keeping rates higher for longer, which tends to be a headwind for stocks, particularly rate-sensitive growth names. Cooling CPI (trending back toward or below 2%) signals inflation pressure easing — this gives the Fed room to cut rates, which has tended to support risk assets broadly. The market reacts most to the print relative to what was expected (the \"surprise\"), not the raw number in isolation — a 3.2% CPI that was widely expected moves markets far less than an unexpected 3.2% following forecasts of 2.8%."
+      },
+      {
+        "title": "What to watch",
+        "body": "Watch the trend across several months more than any single print — one hot or cool reading can be noise (see Gotchas). Core CPI (which strips out food and energy) often matters more to the Fed than the headline number, since food and energy prices swing on factors like weather and geopolitics rather than underlying demand. Core PCE, a separate release, is the Fed's explicitly stated preferred inflation gauge — when CPI and Core PCE diverge, the market has tended to weight Core PCE's read more heavily for Fed-policy expectations specifically. The 10-year Treasury yield often moves within minutes of a CPI release, as the bond market re-prices its own Fed-rate-path expectations."
+      },
+      {
+        "title": "Scenarios",
+        "body": "1. Hot CPI arriving when the Fed is already in a restrictive, hiking posture: historically the sharper of the two directions this indicator has moved markets in — it can reinforce concern of a longer tightening cycle and pressure both stocks and bonds together.\n2. Cooling CPI arriving alongside a still-strong labor market: this combination — slowing inflation without a weakening economy — has at times been read as a \"soft landing\" signal, historically a supportive backdrop for risk assets.\n3. A single hot print after several cooling months: markets have sometimes treated an isolated reversal as noise rather than a trend change, particularly when driven by a volatile category like energy — though this isn't guaranteed, and a second consecutive hot print tends to be taken more seriously.\n4. CPI printing in line with expectations, in either direction: often produces a smaller market reaction than the headline number alone would suggest, since an anticipated result is already priced in ahead of the release."
+      },
+      {
+        "title": "Gotchas",
+        "body": "Headline CPI includes food and energy prices, which are volatile month to month for reasons that have little to do with the broader economy — a single hot or cool headline print can reverse the following month. CPI is also a lagging measure of past prices, not a forecast of where inflation is heading, so it primarily describes what already happened rather than what a company's near-term costs will look like. Because the market reacts to the surprise relative to consensus, a \"good\" number by historical standards can still move the market negatively if it comes in worse than what was already expected."
+      }
+    ]
+  },
+  "core_pce_yoy": {
+    "title": "Core PCE (Year-over-Year)",
+    "subtitle": "The Fed's own preferred inflation gauge — consumer spending, excluding food and energy.",
+    "cards": [
+      {
+        "title": "What it measures",
+        "body": "Core Personal Consumption Expenditures, year-over-year — inflation across consumer spending excluding food and energy, the Federal Reserve's explicitly stated preferred inflation gauge over headline CPI. Released monthly by the Bureau of Economic Analysis, it typically lands a few weeks after CPI for the same month and often gets a closer read from the Fed than CPI does."
+      },
+      {
+        "title": "How to read it",
+        "body": "A reading trending toward or below the Fed's roughly 2% target signals inflation pressure easing — historically supportive for the Fed's ability to hold or cut rates. A reading trending upward, further from 2%, signals building pressure, which has tended to keep the Fed leaning restrictive. Because it strips out food and energy, Core PCE moves more slowly and with fewer sharp monthly swings than headline CPI."
+      },
+      {
+        "title": "What to watch",
+        "body": "Watch the direction of travel over several months, not one print. Because Core PCE is the Fed's own preferred measure, market reaction to a Core PCE surprise has at times been sharper on the rate-expectations side than an equivalent CPI surprise, even though CPI comes out first. When CPI and Core PCE diverge — e.g. CPI cooling while Core PCE stays hot — the market has tended to weight Core PCE's read more heavily for what the Fed does next."
+      },
+      {
+        "title": "Scenarios",
+        "body": "1. Core PCE cooling steadily toward 2% while growth holds up: has historically been read as the clearest \"soft landing\" signal available.\n2. Core PCE printing hot after CPI already showed cooling: the divergence itself has sometimes mattered more to markets than either number alone, since it reopens the question of whether the Fed's work is really done.\n3. Core PCE flat while the monthly (MoM) figure reaccelerates: the annual figure can look calm while the more forward-looking monthly figure is already flagging a turn."
+      },
+      {
+        "title": "Gotchas",
+        "body": "Core PCE excludes food and energy specifically because they're volatile for reasons unrelated to underlying demand — a deliberate design choice, not a way of hiding \"real\" inflation. It's also a lagging figure, describing the prior month's spending, not a live read of current price pressure."
+      }
+    ]
+  },
+  "core_pce_mom": {
+    "title": "Core PCE (Month-over-Month)",
+    "subtitle": "This month versus last — the earliest read on where inflation is heading.",
+    "cards": [
+      {
+        "title": "What it measures",
+        "body": "The month-over-month change in Core PCE — the same underlying data as Core PCE year-over-year, but comparing this month directly to last month rather than to a year ago. Because it isn't smoothed over twelve months, it reacts to a shift in the inflation trend well before the annual figure does."
+      },
+      {
+        "title": "How to read it",
+        "body": "A reading around 0.2% or below has historically been consistent with the Fed's 2% annual target over time; a reading persistently running hotter than that — even while the annual figure still looks calm — has tended to be an early tell that the annual number is about to turn."
+      },
+      {
+        "title": "What to watch",
+        "body": "This is the earliest inflation signal in the macro dataset. Watch it specifically for reacceleration while the year-over-year figure is still falling, since the annual number is, by construction, a twelve-month average and can lag a genuine trend change by several months."
+      },
+      {
+        "title": "Scenarios",
+        "body": "1. MoM reaccelerating for two or three straight months while YoY keeps falling: has historically been treated as an early warning that disinflation is stalling, before it shows up in the annual number.\n2. MoM holding low and steady month after month: consistent with the disinflation narrative continuing, reinforcing rather than contradicting the annual trend."
+      },
+      {
+        "title": "Gotchas",
+        "body": "A single MoM print is noisy — one month's data point, annualized, can imply a very different inflation rate than what actually persists. The market has tended to treat a MoM surprise more cautiously than an equivalent YoY surprise for this reason."
+      }
+    ]
+  },
+  "unemployment": {
+    "title": "Unemployment Rate",
+    "subtitle": "The share of the labor force jobless and looking for work.",
+    "cards": [
+      {
+        "title": "What it measures",
+        "body": "The percentage of the labor force that is jobless and actively looking for work, released monthly alongside Nonfarm Payrolls as part of the Bureau of Labor Statistics' jobs report. It's one of the Fed's two mandated targets (alongside price stability), so it carries direct weight in rate-setting decisions."
+      },
+      {
+        "title": "How to read it",
+        "body": "A rising rate signals a cooling labor market — historically this has increased the odds of the Fed cutting rates, since labor-market weakness is one half of the Fed's mandate tipping toward easing. A falling or stable-low rate signals continued labor market strength, which has tended to give the Fed more room to stay restrictive if inflation is still a concern."
+      },
+      {
+        "title": "What to watch",
+        "body": "Watch the rate's move off its recent low more than its absolute level — a small move (0.3–0.5 percentage points) off a cycle low has historically been an early slowdown signal worth more attention than the headline level alone suggests, particularly when it persists over several months."
+      },
+      {
+        "title": "Scenarios",
+        "body": "1. Unemployment ticking up from a multi-year low over two or three consecutive reports: has historically been treated as a genuine trend shift, not noise, given how rare small sustained increases are once a labor market starts cooling.\n2. Unemployment holding flat at a low level alongside strong payroll growth: has tended to reinforce a \"labor market still tight\" read.\n3. Unemployment falling further from an already-low level: can be read either as continued strength or, at some point, as a market running hot enough to eventually feed back into inflation."
+      },
+      {
+        "title": "Gotchas",
+        "body": "Unemployment and payrolls come from two different underlying surveys (household vs. establishment) and can occasionally send conflicting signals in the same report — a rising rate alongside strong payroll growth is a real, if uncommon, combination, not a data error."
+      }
+    ]
+  },
+  "nfp": {
+    "title": "Nonfarm Payrolls",
+    "subtitle": "The net change in U.S. jobs last month — the most closely watched release on the calendar.",
+    "cards": [
+      {
+        "title": "What it measures",
+        "body": "The net change in jobs added or lost across the U.S. economy in the prior month, excluding farm workers and a few other categories — the single most closely watched jobs number on the economic calendar, released the first Friday of most months."
+      },
+      {
+        "title": "How to read it",
+        "body": "Payroll growth well above expectations has historically signaled a resilient labor market — generally supportive for growth-sensitive assets, though it can also reduce near-term rate-cut odds if the market was hoping for labor-market weakness to justify easing. Weak or negative growth signals labor-market cooling, which has tended to increase rate-cut expectations while also raising recession concern."
+      },
+      {
+        "title": "What to watch",
+        "body": "Watch for revisions to the prior two months' figures as much as the headline number itself — NFP is frequently revised, sometimes substantially, and a large downward revision to a previously strong report has at times mattered more to markets than the new month's headline figure."
+      },
+      {
+        "title": "Scenarios",
+        "body": "1. A strong headline print alongside large downward revisions to the prior two months: markets have sometimes reacted to the net revised picture rather than the fresh number alone.\n2. A weak print alongside cooling wage growth and a rising unemployment rate: the combination, rather than any single figure, has historically been read as the clearer signal of a genuine labor-market turn.\n3. A strong print during a period the market was hoping for Fed cuts: has at times produced a negative reaction in rate-sensitive assets, since it can push expected cuts further out."
+      },
+      {
+        "title": "Gotchas",
+        "body": "NFP is a survey-based estimate, not a full census, and carries a real margin of error each month — a single month's marginal beat or miss is often within the range of normal noise."
+      }
+    ]
+  },
+  "real_gdp": {
+    "title": "Real GDP",
+    "subtitle": "Inflation-adjusted economic growth — the broadest single measure available.",
+    "cards": [
+      {
+        "title": "What it measures",
+        "body": "The inflation-adjusted value of all goods and services produced in the U.S. economy, released quarterly as an annualized growth rate — the broadest single measure of economic growth available, and the figure recessions are ultimately defined against."
+      },
+      {
+        "title": "How to read it",
+        "body": "Growth running above its long-run trend (historically around 2% annualized) signals an expanding economy — generally supportive for corporate earnings, though very strong growth can also raise inflation concern. Growth below trend, and especially two consecutive quarters of negative growth, signals a contracting or stalling economy."
+      },
+      {
+        "title": "What to watch",
+        "body": "GDP is released with a real lag and revised twice more after the initial estimate — the market has tended to react most to the composition of growth (consumer spending, business investment, government spending, trade) rather than the headline figure alone, since composition often tells a different story than the topline number."
+      },
+      {
+        "title": "Scenarios",
+        "body": "1. Headline growth beating expectations, driven mostly by inventory buildup or government spending rather than consumer spending: has at times been read more cautiously than the same headline driven by strong consumer demand.\n2. Two consecutive quarters of negative growth: a widely used informal recession definition, though the official determination is made separately (by the NBER) using a broader set of indicators.\n3. Growth slowing but still positive, alongside cooling inflation: has historically been the combination most associated with a \"soft landing\" narrative."
+      },
+      {
+        "title": "Gotchas",
+        "body": "Because GDP is quarterly and lagged, more recent monthly data (jobs, retail sales, inflation) may already be telling a different story about where the economy currently stands by the time a GDP reading is published — it describes where the economy was, not necessarily where it is now."
+      }
+    ]
+  },
+  "retail_sales": {
+    "title": "Retail Sales",
+    "subtitle": "Month-over-month consumer spending — roughly two-thirds of the U.S. economy.",
+    "cards": [
+      {
+        "title": "What it measures",
+        "body": "The month-over-month change in total retail spending across stores and online, released monthly — one of the most direct, timely reads on consumer spending, which makes up roughly two-thirds of U.S. economic activity."
+      },
+      {
+        "title": "How to read it",
+        "body": "Sales growing faster than expected signals resilient consumer demand — generally supportive for consumer-facing sectors, though very strong readings can also feed inflation concern. Slowing or negative growth signals a pulling-back consumer, which has tended to raise concern about broader economic momentum."
+      },
+      {
+        "title": "What to watch",
+        "body": "Watch the \"control group\" subcomponent (retail sales excluding autos, gas, and building materials, which are volatile) more than the unadjusted headline, and watch whether spending growth is keeping pace with inflation — nominal growth entirely explained by higher prices, not more units sold, is a materially different signal than real volume growth."
+      },
+      {
+        "title": "Scenarios",
+        "body": "1. Sales beating expectations alongside a strong jobs report: has historically reinforced a broad \"consumer still spending\" narrative.\n2. Sales slowing while wage growth also cools: the combination has at times been read as an early sign of consumer fatigue, ahead of it showing up in company earnings.\n3. A single soft month after several strong ones: has sometimes been treated as noise, particularly around volatile categories like autos and gas."
+      },
+      {
+        "title": "Gotchas",
+        "body": "Headline retail sales figures are not inflation-adjusted — a month showing sales growth can still represent flat or falling real (volume) demand if prices rose by a similar or greater amount."
+      }
+    ]
+  },
+  "fed_funds": {
+    "title": "Federal Funds Rate",
+    "subtitle": "The Fed's own target rate for overnight bank lending.",
+    "cards": [
+      {
+        "title": "What it measures",
+        "body": "The Federal Reserve's target interest rate for overnight lending between banks — the primary lever the Fed uses to influence the economy's cost of borrowing, set at scheduled FOMC meetings roughly every six weeks (see the FOMC Rate Decision article for what happens on a decision day itself)."
+      },
+      {
+        "title": "How to read it",
+        "body": "A rising or high rate signals a restrictive stance aimed at cooling inflation — historically a headwind for stocks, especially longer-duration growth names. A falling or low rate signals an accommodative stance, generally supportive for risk assets, since cheaper borrowing tends to support spending and investment."
+      },
+      {
+        "title": "What to watch",
+        "body": "Markets price in expected future moves well before they happen, via Fed funds futures and the shape of the yield curve — the market's reaction to an actual decision is driven far more by whether it matched expectations and what the Fed signals about future moves than by the rate change itself."
+      },
+      {
+        "title": "Scenarios",
+        "body": "1. The Fed holding rates steady but signaling more hikes ahead than expected: has historically produced a negative reaction similar to an actual surprise hike, since expectations move markets as much as actions.\n2. The Fed cutting in response to clear labor-market weakening: has at times been read cautiously rather than celebrated, since it can also signal the Fed sees more economic trouble ahead than priced.\n3. A rate cut alongside still-strong growth and cooling inflation: closer to the textbook \"good\" cutting scenario, historically the more supportive combination."
+      },
+      {
+        "title": "Gotchas",
+        "body": "The rate itself changes only at scheduled meetings, in discrete steps — it's the market's continuously shifting expectations about future moves, reflected in bond yields, that drive most day-to-day price action, not the rate level itself."
+      }
+    ]
+  },
+  "yield_10y": {
+    "title": "10-Year Treasury Yield",
+    "subtitle": "The benchmark 10-year Treasury yield — set continuously by the bond market.",
+    "cards": [
+      {
+        "title": "What it measures",
+        "body": "The yield on U.S. Treasury bonds maturing in ten years — a benchmark rate that influences mortgage rates, corporate borrowing costs, and equity valuations broadly, set continuously by the bond market rather than at scheduled meetings."
+      },
+      {
+        "title": "How to read it",
+        "body": "A rising yield signals the market pricing higher long-term rates — historically a headwind for stocks, particularly long-duration growth names, since future earnings are discounted more heavily. A falling yield signals lower long-term rates being priced, generally supportive for equity valuations, all else equal."
+      },
+      {
+        "title": "What to watch",
+        "body": "The 10-year yield moves continuously and often reacts within minutes to major data releases, since it reflects the market's real-time view of growth, inflation, and Fed policy at once. Watch it alongside the 2-year yield specifically — the relationship between the two (the yield curve) carries its own distinct signal."
+      },
+      {
+        "title": "Scenarios",
+        "body": "1. Yields rising on a hot inflation print: has historically pressured growth stocks disproportionately, since their valuations are most sensitive to the discount rate.\n2. Yields falling sharply during a market stress event: Treasuries have historically been treated as a safe-haven asset, so falling yields during a broad risk-off move is a well-established pattern.\n3. Yields rising for \"good\" reasons (strong growth) versus \"bad\" reasons (inflation concern): the market has at times reacted very differently to the same yield move depending on which is seen as the driver."
+      },
+      {
+        "title": "Gotchas",
+        "body": "A rising 10-year yield isn't automatically bad for stocks — the reason behind the move matters. Yields rising on stronger-growth expectations is a different signal than yields rising on persistent-inflation fear, even though the yield chart looks identical either way."
+      }
+    ]
+  },
+  "yield_curve": {
+    "title": "Yield Curve (10Y − 2Y)",
+    "subtitle": "The 10-year minus 2-year Treasury spread — a closely watched recession signal.",
+    "cards": [
+      {
+        "title": "What it measures",
+        "body": "The spread between the 10-year and 2-year Treasury yields. Under normal conditions, longer-maturity bonds yield more than shorter-maturity ones, since investors demand more compensation for tying up money longer — a positive, upward-sloping curve. When short-term yields rise above long-term yields, the curve inverts."
+      },
+      {
+        "title": "How to read it",
+        "body": "A widening, positive spread signals a normal, healthy rate environment. A narrowing spread signals the curve flattening — often because the market expects future Fed cuts (pulling long yields down) or is pricing near-term restrictive policy (pushing short yields up). An inverted curve has historically been one of the most closely watched recession-warning signals, preceding most U.S. recessions of the past several decades."
+      },
+      {
+        "title": "What to watch",
+        "body": "Watch how long an inversion persists, not just whether it occurs — a brief, shallow inversion has historically carried less weight than a deep, sustained one. History shows inversions have preceded actual recessions by anywhere from several months to over a year, so an inversion signals an early warning, not an imminent one."
+      },
+      {
+        "title": "Scenarios",
+        "body": "1. The curve inverting while growth and jobs data both remain strong: has historically been read as an early warning still working through its long and variable lag, not a contradiction of the signal.\n2. The curve re-steepening after a period of inversion: has at times been read two ways — either as inversion risk fading, or, in some historical cycles, as a signal a recession is now closer, since re-steepening can reflect the Fed cutting in response to a weakening economy."
+      },
+      {
+        "title": "Gotchas",
+        "body": "The 10Y−2Y spread is the most commonly cited version of the yield curve, but it isn't the only one economists watch (the 10Y−3-month spread is another) — different versions have occasionally sent different signals at the same time."
+      }
+    ]
+  },
+  "credit_spreads": {
+    "title": "Credit Spreads",
+    "subtitle": "The extra yield junk bonds pay over Treasuries — how much default risk bonds price in.",
+    "cards": [
+      {
+        "title": "What it measures",
+        "body": "The extra yield investors demand to hold risky corporate bonds (high-yield, or \"junk,\" bonds) over safe Treasuries of similar maturity — a direct measure of how much default/credit risk the bond market is pricing into the economy."
+      },
+      {
+        "title": "How to read it",
+        "body": "Narrow, tight spreads signal the bond market sees little default risk ahead — generally a calm, risk-on backdrop. Widening spreads signal rising concern about corporate defaults and credit-market stress, which has historically preceded or accompanied broader equity weakness, since credit markets have often moved before stocks in past stress events."
+      },
+      {
+        "title": "What to watch",
+        "body": "Watch direction and speed more than absolute level — spreads widening above roughly 3.0% has historically been a caution zone, and above roughly 4.0% outright stress, though these are this app's own reference bands rather than universal thresholds. A sharp, fast widening has tended to carry more warning weight than a slow drift to the same level."
+      },
+      {
+        "title": "Scenarios",
+        "body": "1. Spreads widening sharply while equity markets are still near highs: has historically been read as credit markets \"seeing\" something stocks haven't priced in yet, a pattern that's shown up ahead of past selloffs.\n2. Spreads staying tight through a period of equity volatility: has at times been read as reassurance the volatility is more sentiment-driven than reflective of genuine credit deterioration."
+      },
+      {
+        "title": "Gotchas",
+        "body": "Credit spreads reflect corporate bond market pricing specifically — they can widen for reasons specific to a few large issuers or a sector under stress, not always a broad, economy-wide signal."
+      }
+    ]
+  },
+  "move_index": {
+    "title": "MOVE Index",
+    "subtitle": "The bond market's own VIX — expected Treasury volatility over the next month.",
+    "cards": [
+      {
+        "title": "What it measures",
+        "body": "A measure of expected volatility in the Treasury bond market over the next month, derived from options pricing — the bond-market equivalent of the VIX, which measures expected equity volatility."
+      },
+      {
+        "title": "How to read it",
+        "body": "A low reading signals the bond market expects calm, stable rate conditions ahead. A high or rising reading signals expected turbulence — often around major data releases, Fed decisions, or genuine policy uncertainty — and elevated bond volatility has at times preceded or accompanied broader risk-asset stress, since bond-market dislocations can spill into equity and credit markets."
+      },
+      {
+        "title": "What to watch",
+        "body": "Watch MOVE alongside the VIX rather than in isolation — the two don't always move together, and a divergence can be an early signal that stress is building in one market before it's visible in the other."
+      },
+      {
+        "title": "Scenarios",
+        "body": "1. MOVE spiking sharply around a Fed decision or surprising data release: a common, often short-lived pattern reflecting genuine uncertainty, historically prone to settling back down once resolved.\n2. MOVE staying persistently elevated for weeks, not just around single events: has historically been a more meaningful signal of sustained market unease than a brief single-day spike."
+      },
+      {
+        "title": "Gotchas",
+        "body": "MOVE is less widely followed outside professional fixed-income circles than the VIX, so a genuinely elevated reading can go unnoticed by markets more broadly focused on equities."
+      }
+    ]
+  },
+  "copper_gold": {
+    "title": "Copper/Gold Ratio",
+    "subtitle": "Copper versus gold — a real-time read on growth optimism versus safety-seeking.",
+    "cards": [
+      {
+        "title": "What it measures",
+        "body": "The ratio of copper prices to gold prices. Copper demand rises with industrial activity and construction (a \"growth\" metal), while gold demand rises with safety-seeking and inflation-hedging behavior (a \"safety\" metal) — the ratio is used as a rough real-time read on whether the market is leaning toward growth optimism or caution."
+      },
+      {
+        "title": "How to read it",
+        "body": "A rising ratio (copper outperforming gold) signals leaning toward growth optimism and risk appetite. A falling ratio (gold outperforming copper) signals leaning toward caution and safety-seeking, often alongside broader risk-off conditions elsewhere."
+      },
+      {
+        "title": "What to watch",
+        "body": "This is a relative-performance signal, not an absolute price level for either metal — watch the trend over weeks, since both metals can move for reasons specific to their own supply and demand that have little to do with broader growth sentiment."
+      },
+      {
+        "title": "Scenarios",
+        "body": "1. The ratio rising alongside strong equity performance and rising yields: a coherent \"risk-on\" read across multiple markets at once.\n2. The ratio falling sharply during a period markets otherwise look calm: can be an early divergence worth noting, sometimes preceding broader risk-off moves elsewhere."
+      },
+      {
+        "title": "Gotchas",
+        "body": "This ratio is a market-derived proxy, not an official economic indicator — its historical relationship with broader risk sentiment, while real, is looser and noisier than more direct measures like credit spreads or the yield curve."
+      }
+    ]
+  },
+  "consumer_rotation": {
+    "title": "Consumer Rotation (XLY/XLP)",
+    "subtitle": "Discretionary versus staples spending — wants versus needs, in one ratio.",
+    "cards": [
+      {
+        "title": "What it measures",
+        "body": "The ratio of the Consumer Discretionary sector ETF (XLY — retailers, travel, autos) to the Consumer Staples sector ETF (XLP — groceries, household goods) — a direct, real-time read on whether investors are favoring discretionary (\"wants\") spending exposure over defensive (\"needs\") exposure."
+      },
+      {
+        "title": "How to read it",
+        "body": "A ratio above roughly 1.7 has been labeled \"Offensive\" in this app's reference bands — investors leaning into discretionary, risk-on exposure. A ratio below roughly 1.25 has been labeled \"Flight to Safety\" — investors rotating toward defensive exposure. Values in between reflect a more balanced or transitional stance."
+      },
+      {
+        "title": "What to watch",
+        "body": "Watch the trend and direction more than the absolute level — a ratio moving from offensive toward flight-to-safety territory, even before crossing the lower band, can signal rotation already underway. This is a two-sector read; a fuller picture of rotation also weighs energy, financials, and other defensives against each other."
+      },
+      {
+        "title": "Scenarios",
+        "body": "1. The ratio falling steadily over several weeks while the broader index is still near highs: has at times been an early signal that leadership is rotating defensively beneath a still-calm-looking headline index.\n2. The ratio rising sharply off a low level: can reflect genuine improving risk appetite, or simply a snapback after an overdone defensive move."
+      },
+      {
+        "title": "Gotchas",
+        "body": "XLY and XLP are broad sector baskets — a move in the ratio can occasionally be driven by one or two very large constituent stocks rather than a genuine broad rotation across the whole sector."
+      }
+    ]
+  },
+  "market_breadth": {
+    "title": "Market Breadth (RSP/SPY)",
+    "subtitle": "Equal-weight versus cap-weight S&P 500 — whether gains are broad or narrow.",
+    "cards": [
+      {
+        "title": "What it measures",
+        "body": "The relative performance of the equal-weight S&P 500 ETF (RSP, where every constituent counts the same) versus the standard cap-weighted S&P 500 ETF (SPY, where the largest companies dominate) — a direct way to see whether index gains are broad-based or concentrated in a handful of mega-cap names."
+      },
+      {
+        "title": "How to read it",
+        "body": "RSP keeping pace with or outperforming SPY signals broad participation, historically read as a healthier backdrop. RSP consistently lagging SPY signals narrowing breadth — the index rising mainly because of its largest constituents, while the average stock does less well or actually falls."
+      },
+      {
+        "title": "What to watch",
+        "body": "Watch for a sustained trend of narrowing, not a single day's reading — narrow breadth has historically been able to persist through long stretches of a bull market before either broadening out or, in some past cycles, preceding a market top."
+      },
+      {
+        "title": "Scenarios",
+        "body": "1. The cap-weighted index making new highs while breadth steadily narrows: a pattern historically flagged as a fragility signal, though narrow breadth alone hasn't reliably marked exact market tops in the past.\n2. Breadth widening after a long narrow stretch, alongside other improving systemic-risk signals: has at times been read as a genuinely healthier, more broad-based advance beginning."
+      },
+      {
+        "title": "Gotchas",
+        "body": "Narrow breadth describes how concentrated an index's gains are, not whether the companies driving those gains deserve their performance — it's a statement about index composition and participation, not a judgment on the leading stocks' fundamentals."
+      }
+    ]
+  },
+  "dxy": {
+    "title": "U.S. Dollar Index (DXY)",
+    "subtitle": "The dollar against a basket of major currencies — a headwind or tailwind for multinationals.",
+    "cards": [
+      {
+        "title": "What it measures",
+        "body": "The value of the U.S. dollar against a basket of major foreign currencies (primarily the euro, yen, pound, and a few others) — a broad measure of dollar strength that affects multinational earnings, commodity prices, and capital flows."
+      },
+      {
+        "title": "How to read it",
+        "body": "A rising dollar signals dollar strength — historically a headwind for U.S. multinationals with significant foreign revenue and often a headwind for commodity prices, which tend to move inversely to the dollar. A falling dollar signals the reverse."
+      },
+      {
+        "title": "What to watch",
+        "body": "The dollar often strengthens during genuine global risk-off periods (a \"flight to safety\"), even when U.S.-specific news isn't the driver — watch whether a move is being driven by U.S. factors versus factors abroad, since the read for U.S. risk assets differs meaningfully between the two."
+      },
+      {
+        "title": "Scenarios",
+        "body": "1. The dollar strengthening sharply during a global risk-off event, with no major U.S.-specific catalyst: consistent with the safe-haven-flow pattern, historically not itself a bearish U.S.-specific signal.\n2. The dollar strengthening because the Fed is signaling a more restrictive path than other major central banks: has historically been read as a genuine headwind specifically for U.S. multinational earnings and commodity-sensitive sectors."
+      },
+      {
+        "title": "Gotchas",
+        "body": "DXY is heavily weighted toward the euro, so the index can be driven as much by what's happening in the eurozone as by anything happening in the U.S."
+      }
+    ]
+  },
+  "oil": {
+    "title": "Crude Oil",
+    "subtitle": "Crude oil price — sitting at the intersection of growth demand and inflation.",
+    "cards": [
+      {
+        "title": "What it measures",
+        "body": "The price of crude oil (West Texas Intermediate, the U.S. benchmark) — a signal that sits at the intersection of global growth demand and inflation, since oil is both a direct input cost across the economy and a barometer of expected industrial activity."
+      },
+      {
+        "title": "How to read it",
+        "body": "Rising prices can signal either strengthening global demand (growth-positive) or a supply shock (cost-push, inflation-negative) — the same chart can carry very different implications depending on which is driving it. Falling prices can similarly reflect either weakening demand or improving supply."
+      },
+      {
+        "title": "What to watch",
+        "body": "Watch what's actually driving a given move — a demand-driven rise reads differently from a supply-driven spike (a geopolitical disruption, an OPEC+ decision), even though both show up as \"oil prices are rising.\""
+      },
+      {
+        "title": "Scenarios",
+        "body": "1. Oil spiking on a sudden geopolitical supply disruption while broader growth data is unremarkable: historically read as a cost-push inflation risk rather than a growth signal.\n2. Oil rising steadily alongside strengthening global growth data and a weaker dollar: a more coherent \"broad demand improving\" read across multiple signals at once.\n3. Oil falling sharply alongside other growth indicators also weakening: has historically been read as confirming, not just accompanying, a broader growth slowdown."
+      },
+      {
+        "title": "Gotchas",
+        "body": "Oil prices are also affected by OPEC+ production decisions and U.S. shale output — supply-side factors that can move price sharply independent of anything happening in the broader economy."
+      }
+    ]
+  },
+  "pe_ratio": {
+    "title": "P/E Ratio (TTM)",
+    "subtitle": "Price divided by trailing earnings for the S&P 500 — how much investors pay per dollar earned.",
+    "cards": [
+      {
+        "title": "What it measures",
+        "body": "The price-to-earnings ratio — price divided by trailing twelve-month earnings per share — for the S&P 500 as a whole in this app's Valuation gauge (a stock's own sector-relative P/E is covered separately, on that stock's own fundamentals screen). It's the most widely used single valuation reference for \"how expensive is the market.\""
+      },
+      {
+        "title": "How to read it",
+        "body": "A higher P/E means the market is paying more per dollar of current earnings — often because it expects faster future growth, or because low rates make future earnings worth more today. A lower P/E can mean the opposite, or that the market has priced in real concerns about earnings holding up."
+      },
+      {
+        "title": "What to watch",
+        "body": "Watch P/E alongside the 10-year Treasury yield specifically — rising yields have historically pressured P/E multiples, since future earnings are discounted more heavily at a higher rate, so a high P/E alongside rising yields has at times been read as a more fragile combination than a high P/E alongside stable or falling yields."
+      },
+      {
+        "title": "Scenarios",
+        "body": "1. P/E elevated (above roughly 22, this app's own reference for \"Expensive\") alongside rising yields: has historically been read as multiple-compression risk.\n2. P/E elevated but yields falling: a combination that has, at times, allowed valuations to stay stretched or even expand further.\n3. P/E low relative to its own history: doesn't automatically signal a bargain — it can also reflect the market pricing in a real, specific concern about future earnings."
+      },
+      {
+        "title": "Gotchas",
+        "body": "A \"high\" or \"low\" P/E only means something relative to a reference point — this app's Valuation gauge compares the S&P 500's current P/E to its own historical range, a different question from whether an individual stock's P/E is cheap or expensive versus its own sector."
+      }
+    ]
+  },
+  "pb_ratio": {
+    "title": "Price-to-Book Ratio",
+    "subtitle": "Price divided by book value — what the market pays versus the index's own net assets.",
+    "cards": [
+      {
+        "title": "What it measures",
+        "body": "Price divided by book value (net assets) per share, for the S&P 500 as a whole. Where P/E compares price to earnings, P/B compares price to the accounting value of what the index actually owns."
+      },
+      {
+        "title": "How to read it",
+        "body": "A higher P/B means the market is paying more relative to underlying net asset value — often reflecting confidence in future growth well beyond what's on the balance sheet today. A lower P/B can mean the opposite, or reflect a market where physical/accounting assets simply matter less to true business value."
+      },
+      {
+        "title": "What to watch",
+        "body": "P/B is a blunter tool for a modern, intangible-heavy index than it was decades ago — a large and growing share of the S&P 500's value sits in intangible assets (brands, software, IP) that traditional book-value accounting doesn't fully capture."
+      },
+      {
+        "title": "Scenarios",
+        "body": "1. P/B and P/E both elevated together: a more unified \"richly priced\" read than either alone.\n2. P/B elevated while P/E looks more moderate: can reflect an index increasingly weighted toward asset-light, intangible-heavy businesses, rather than necessarily a valuation warning on its own."
+      },
+      {
+        "title": "Gotchas",
+        "body": "Because so much of a modern index's value is intangible and off the traditional balance sheet, a \"cheap\" P/B doesn't carry the same reassurance it once did for a more asset-heavy, industrial-era market."
+      }
+    ]
+  },
+  "erp": {
+    "title": "Equity Risk Premium",
+    "subtitle": "Equity earnings yield minus the 10-year Treasury yield — stocks' premium over risk-free bonds.",
+    "cards": [
+      {
+        "title": "What it measures",
+        "body": "The earnings yield of the S&P 500 (essentially the inverse of its P/E) minus the 10-year Treasury yield — a direct comparison of the extra return equities are expected to offer over the \"risk-free\" alternative of holding Treasuries."
+      },
+      {
+        "title": "How to read it",
+        "body": "A wide (high) ERP signals equities offering a substantial premium over Treasuries — generally read as a more attractive valuation backdrop. A narrow (low) ERP — this app references below roughly 2.0% as a \"Dangerous\" zone — signals equities offering little extra compensation over the risk-free rate."
+      },
+      {
+        "title": "What to watch",
+        "body": "ERP moves for two separate reasons that pull in opposite directions — a rising P/E narrows it, and a rising 10-year yield also narrows it. Watch which of the two is doing the work, since a narrowing driven by surging equity prices carries a different read than one driven by a bond selloff."
+      },
+      {
+        "title": "Scenarios",
+        "body": "1. ERP compressing because yields are rising fast while equity prices are roughly flat: signals bonds becoming relatively more attractive, genuine competitive pressure on equity allocation.\n2. ERP compressing because equity prices are surging while yields hold steady: signals the market pricing in significant future earnings growth, with a thinner margin of safety if that growth disappoints."
+      },
+      {
+        "title": "Gotchas",
+        "body": "ERP anchors valuation to the real alternative (Treasuries) rather than to history alone — a P/E that looks historically normal can still represent a genuinely unattractive ERP if yields have risen enough."
+      }
+    ]
+  },
+  "div_yield": {
+    "title": "Dividend Yield",
+    "subtitle": "The S&P 500's trailing dividend payments as a share of its price.",
+    "cards": [
+      {
+        "title": "What it measures",
+        "body": "The S&P 500's aggregate dividend payments over the trailing twelve months, as a percentage of its current price — a direct measure of the income return investors receive from holding the index, separate from price appreciation."
+      },
+      {
+        "title": "How to read it",
+        "body": "A higher yield can reflect either genuinely attractive income relative to price, or a market that's fallen enough in price to mechanically raise the yield. A lower yield can reflect a richly priced market, or simply a modern index increasingly weighted toward growth companies that reinvest earnings rather than pay them out."
+      },
+      {
+        "title": "What to watch",
+        "body": "Watch dividend yield alongside P/E and ERP rather than alone — a low yield combined with a high P/E and a compressed ERP paints a more complete \"richly priced, low income return\" picture than any single figure does by itself."
+      },
+      {
+        "title": "Scenarios",
+        "body": "1. Dividend yield falling steadily over years alongside rising P/E: consistent with a market increasingly driven by price appreciation and growth expectations, a long-running structural shift.\n2. Dividend yield rising sharply during a market decline: often mechanical (price falling faster than dividends are cut), not necessarily a signal the market has become more attractively valued on every measure."
+      },
+      {
+        "title": "Gotchas",
+        "body": "The S&P 500's aggregate dividend yield has fallen structurally over decades as the index has shifted toward growth-oriented, lower-payout sectors like technology — today's \"low\" reading may look unremarkable against the index's own more recent history."
+      }
+    ]
+  },
+  "positioning.aaii_bull_bear_spread": {
+    "title": "AAII Bull-Bear Spread",
+    "subtitle": "A weekly retail-investor mood survey — percent bullish minus percent bearish.",
+    "cards": [
+      {
+        "title": "What it measures",
+        "body": "The American Association of Individual Investors' weekly sentiment survey, expressed as the percentage of self-identified bullish respondents minus the percentage bearish — a direct, if informal, gauge of retail investor mood, updated every week."
+      },
+      {
+        "title": "How to read it",
+        "body": "A strongly positive (bullish) spread signals widespread retail optimism. A strongly negative (bearish) spread signals widespread retail pessimism. As a contrarian indicator, extreme readings in either direction have at times preceded a move in the opposite direction of the crowd — though this survey is famously unreliable as a timing tool, and extremes can persist for extended stretches without a reversal following."
+      },
+      {
+        "title": "What to watch",
+        "body": "Watch for the spread reaching a genuine extreme against its own historical range, not any small week-to-week wiggle. This is a weekly, self-reported survey, describing sentiment as of last week, not a real-time measure."
+      },
+      {
+        "title": "Scenarios",
+        "body": "1. The spread hitting an extreme bearish reading while other indicators (credit spreads, breadth) look calm: has at times been read as retail pessimism running ahead of any real deterioration — a contrarian setup, though not a guaranteed one.\n2. The spread hitting an extreme bullish reading alongside stretched valuation and overbought technicals: has historically been read as a crowded, potentially fragile combination."
+      },
+      {
+        "title": "Gotchas",
+        "body": "This is famously one of the least reliable timing indicators in widespread use — extreme readings have preceded reversals in some historical instances and simply persisted for months without one in others. Treat it as one data point among several, never standalone."
+      }
+    ]
+  },
+  "positioning.cot_nc_net_pct_oi": {
+    "title": "COT Net Positioning",
+    "subtitle": "How large speculators are positioned in equity futures, as a share of open interest.",
+    "cards": [
+      {
+        "title": "What it measures",
+        "body": "How large speculative futures traders (per the CFTC's weekly Commitment of Traders report) are positioned in equity index futures (S&P 500, Nasdaq, Russell 2000), expressed as their net long or short position as a percentage of total open interest — a direct read on professional, leveraged positioning rather than a survey response."
+      },
+      {
+        "title": "How to read it",
+        "body": "A strongly net-long reading signals large speculators positioned for further upside — this can reflect genuine conviction, but a very crowded long also creates the conditions for a sharp unwind if sentiment shifts, since there are fewer remaining buyers and more potential sellers if it reverses. A strongly net-short reading is the mirror case."
+      },
+      {
+        "title": "What to watch",
+        "body": "Watch this alongside its own historical percentile (see COT Percentile) rather than the raw figure alone, since what counts as \"extreme\" varies by contract and period."
+      },
+      {
+        "title": "Scenarios",
+        "body": "1. Net-long positioning reaching a genuine extreme while price is still near highs: a crowded-long setup that has historically raised the risk of a sharper-than-usual pullback if sentiment turns.\n2. Net-short positioning reaching an extreme during a decline: can set up a \"short squeeze\" dynamic if the decline stalls, though far from guaranteed to play out on any particular timeline."
+      },
+      {
+        "title": "Gotchas",
+        "body": "COT data is released Friday but reflects positions as of the prior Tuesday — inherently a few days stale by the time it's published."
+      }
+    ]
+  },
+  "positioning.cot_percentile": {
+    "title": "COT Percentile",
+    "subtitle": "The same futures positioning data, ranked against its own recent history.",
+    "cards": [
+      {
+        "title": "What it measures",
+        "body": "The same CFTC futures positioning data as the net-positioning metric above, expressed as a percentile against that specific contract's own recent history — answering how extreme positioning is relative to where it's typically been."
+      },
+      {
+        "title": "How to read it",
+        "body": "A percentile above roughly 80 signals positioning near the top of its own recent range — genuinely crowded long, by this contract's own standards. A percentile below roughly 20 signals genuinely crowded short. Values in the middle reflect more typical, non-extreme positioning."
+      },
+      {
+        "title": "What to watch",
+        "body": "Watch for genuine extremes rather than moderate moves — a shift from the 50th to 65th percentile is a much smaller signal than a shift from the 50th to the 90th."
+      },
+      {
+        "title": "Scenarios",
+        "body": "1. Percentile above 80 on the S&P 500 contract specifically, while retail sentiment (AAII) is simultaneously bearish: a genuine divergence between professional futures positioning and retail sentiment.\n2. Percentile near 50 across all tracked contracts: reflects unremarkable, non-extreme positioning."
+      },
+      {
+        "title": "Gotchas",
+        "body": "A percentile is relative to that contract's own recent history, not to other contracts tracked alongside it — the S&P 500's percentile and the Russell 2000's aren't directly comparable to each other, only each to its own history."
+      }
+    ]
+  },
+  "positioning.short_interest_days_to_cover": {
+    "title": "Short Interest: Days to Cover",
+    "subtitle": "How many days it would take short sellers to buy back their positions.",
+    "cards": [
+      {
+        "title": "What it measures",
+        "body": "How many trading days it would take, at average volume, for all short sellers in a stock to buy back (cover) their positions — a measure of how \"crowded\" a short position is relative to liquidity, not just how much of it is sold short."
+      },
+      {
+        "title": "How to read it",
+        "body": "A high and rising days-to-cover signals a short position that would take a long time to unwind if forced — the conditions for a \"short squeeze,\" where a price rise forces covering, which itself pushes price higher and can force still more covering. A low days-to-cover signals a position that could unwind quickly with limited price impact."
+      },
+      {
+        "title": "What to watch",
+        "body": "Watch days-to-cover rising while price is also rising — that combination is the classic setup that has historically preceded the sharpest squeeze moves, though a squeeze is far from guaranteed just because the setup is present."
+      },
+      {
+        "title": "Scenarios",
+        "body": "1. Days-to-cover elevated and rising while a stock's price begins a sustained rally: the textbook potential squeeze setup.\n2. High days-to-cover on a thinly-traded stock overall, with no unusual price action: can reflect low liquidity generally rather than genuine squeeze risk — check shares short in isolation too."
+      },
+      {
+        "title": "Gotchas",
+        "body": "Days-to-cover is a function of trading volume as much as short interest itself — a spike can happen simply because volume fell, with no change in the number of shares sold short."
+      }
+    ]
+  },
+  "positioning.short_interest_shares": {
+    "title": "Short Interest (Shares)",
+    "subtitle": "The raw number of shares currently sold short in a stock.",
+    "cards": [
+      {
+        "title": "What it measures",
+        "body": "The raw number of shares currently sold short in a stock, reported twice monthly by FINRA — a direct count of how many shares short sellers are betting against, sourced from this app's own regulatory data pull (raw shares, not short-percent-of-float, since a float figure isn't available from this data source)."
+      },
+      {
+        "title": "How to read it",
+        "body": "A high or rising number signals growing bearish positioning against the stock. A low or falling number signals bearish positioning easing, either through covering or simply less new short selling."
+      },
+      {
+        "title": "What to watch",
+        "body": "Watch the trend over several reporting periods alongside days-to-cover and the month-over-month change specifically — the raw count alone doesn't say how large that position is relative to the stock's total float."
+      },
+      {
+        "title": "Scenarios",
+        "body": "1. Shares short rising steadily alongside a declining price: consistent with growing bearish conviction tracking the price move.\n2. Shares short falling sharply over one reporting period: can reflect either genuine bearish capitulation or profit-taking on a thesis that's already played out."
+      },
+      {
+        "title": "Gotchas",
+        "body": "This app reports raw short shares, not short-percent-of-float, because a reliable float figure isn't available from this data source — context on the stock's own share count matters before judging whether a number is large or small."
+      }
+    ]
+  },
+  "positioning.short_interest_mom_change": {
+    "title": "Short Interest: Month-over-Month Change",
+    "subtitle": "Whether bearish bets against a stock are building or unwinding.",
+    "cards": [
+      {
+        "title": "What it measures",
+        "body": "The percentage change in a stock's short interest from the prior reporting period to the current one — a direct read on whether bearish positioning is building or unwinding, independent of the absolute level."
+      },
+      {
+        "title": "How to read it",
+        "body": "A large positive change signals short sellers meaningfully increasing bets against the stock. A large negative change signals short sellers reducing bets — either taking profits on a thesis that's played out, or capitulating on one that hasn't."
+      },
+      {
+        "title": "What to watch",
+        "body": "Watch alongside the stock's price action over the same period — rising short interest alongside a falling price suggests the thesis is playing out; rising short interest alongside a rising price suggests short sellers increasingly out of step, a setup that has at times preceded a squeeze if it continues."
+      },
+      {
+        "title": "Scenarios",
+        "body": "1. Short interest rising sharply month-over-month while the stock also rises: bearish conviction building directly against price action — worth watching for a potential squeeze if it persists.\n2. Short interest falling sharply after a substantial decline: consistent with a short thesis largely playing out and positions being closed for profit."
+      },
+      {
+        "title": "Gotchas",
+        "body": "FINRA reports short interest only twice monthly, so this figure is inherently a slower-moving, lagged signal."
+      }
+    ]
+  },
+  "posture.naaim_exposure": {
+    "title": "NAAIM Exposure Index",
+    "subtitle": "What active managers are actually doing with client money, not just how they feel.",
+    "cards": [
+      {
+        "title": "What it measures",
+        "body": "The National Association of Active Investment Managers' weekly survey of members' actual average equity exposure — unlike a sentiment survey asking how people feel, this asks professional active managers what they're actually doing with client money, expressed as a percentage (which can exceed 100% with leverage, or go negative if net short)."
+      },
+      {
+        "title": "How to read it",
+        "body": "A high reading (above roughly 100, this app's reference for \"leveraged long\") signals managers heavily, often leveraged, invested — historically read as a sign managers have little remaining dry powder to add exposure. A low or negative reading (below roughly 40, referenced as \"Extreme Fear/Hedged\") signals managers heavily hedged or defensively positioned."
+      },
+      {
+        "title": "What to watch",
+        "body": "Watch NAAIM alongside the Dark Pool Index specifically — a divergence (managers reporting defensive exposure while institutional dark-pool buying is elevated) is one of the more informative reads this data offers."
+      },
+      {
+        "title": "Scenarios",
+        "body": "1. NAAIM reading low (defensive) while DIX simultaneously shows elevated accumulation: a genuine divergence worth noting — professional survey respondents cautious while actual institutional buying continues underneath.\n2. NAAIM reading above 100 alongside a market already near highs: has historically been read as limited remaining buying power from this cohort."
+      },
+      {
+        "title": "Gotchas",
+        "body": "NAAIM is a weekly survey with an inherent lag — it describes manager positioning as of last week, not today."
+      }
+    ]
+  },
+  "posture.dark_pool_index": {
+    "title": "Dark Pool Index (DIX)",
+    "subtitle": "The buy-side share of institutional trading happening off public exchanges.",
+    "cards": [
+      {
+        "title": "What it measures",
+        "body": "SqueezeMetrics' proprietary measure of the buy-side share of institutional trading that occurs off public exchanges, in \"dark pools\" — venues historically used by institutional investors to move large size without moving price against themselves."
+      },
+      {
+        "title": "How to read it",
+        "body": "A high reading (above roughly 45, this app's reference for \"Accumulation\") signals a larger-than-usual buy-side share of this off-exchange volume, read as institutional accumulation happening beneath visible exchange trading. A lower reading signals less buy-side dominance."
+      },
+      {
+        "title": "What to watch",
+        "body": "DIX accumulation doesn't mean institutions are right about their thesis — it means they're buying. Watch it for divergence against NAAIM or against price action, since DIX rising while price is flat or falling can be read as accumulation happening ahead of a move."
+      },
+      {
+        "title": "Scenarios",
+        "body": "1. DIX elevated while price has been flat or drifting lower for a stretch: has at times been read as institutional buying accumulating beneath a surface that doesn't yet reflect it.\n2. DIX and price both rising together: a more straightforward confirming signal."
+      },
+      {
+        "title": "Gotchas",
+        "body": "This is a free, publicly available daily series from a specific third-party provider, parsed from a plain CSV — useful and widely referenced, but not an official regulatory measure the way FINRA short interest is."
+      }
+    ]
+  },
+  "posture.net_liquidity": {
+    "title": "Net Liquidity",
+    "subtitle": "How much cash is actually available in the financial system to flow into risk assets.",
+    "cards": [
+      {
+        "title": "What it measures",
+        "body": "A composite calculated as the Federal Reserve's balance sheet, minus the Treasury General Account, minus the Reverse Repo facility balance — a proxy for how much cash is actually available in the financial system to flow into risk assets."
+      },
+      {
+        "title": "How to read it",
+        "body": "Expanding net liquidity signals more cash effectively available — historically read as a tailwind for risk assets broadly, regardless of what any single sentiment gauge shows. Draining liquidity signals less cash available, historically a headwind, independent of sentiment."
+      },
+      {
+        "title": "What to watch",
+        "body": "Watch the direction and persistence of the trend rather than any single day's move — this app classifies by direction with no dead-band, so a small, likely-noise move can technically flip the label; a sustained multi-week trend carries far more weight."
+      },
+      {
+        "title": "Scenarios",
+        "body": "1. Net liquidity expanding steadily over several weeks while sentiment gauges elsewhere look cautious: has historically been read as a constructive backstory beneath a fearful-looking surface.\n2. Net liquidity draining steadily while equity markets are still near highs: has at times been flagged as a headwind building underneath a market that hasn't yet reflected it in price."
+      },
+      {
+        "title": "Gotchas",
+        "body": "The three components can each move for reasons specific to Treasury issuance schedules or money-market fund behavior — a single-day move in any one component isn't automatically a signal about Fed intentions."
+      }
+    ]
+  },
+  "fear_and_greed": {
+    "title": "Fear & Greed Index",
+    "subtitle": "CNN's composite mood gauge — 0 to 100, from Extreme Fear to Extreme Greed.",
+    "cards": [
+      {
+        "title": "What it measures",
+        "body": "CNN's composite market-mood gauge, scored 0–100, built from several underlying market signals into a single number meant to capture whether the market is broadly fearful or broadly greedy at a given moment."
+      },
+      {
+        "title": "How to read it",
+        "body": "A reading toward the low end (below roughly 25, \"Extreme Fear\") signals broad-based fearful positioning — historically, periods of extreme fear have at times coincided with selling pressure that later proved overdone, though this isn't a reliable timing signal on its own. A reading above roughly 75 (\"Extreme Greed\") signals broad-based bullish, often complacent, positioning."
+      },
+      {
+        "title": "What to watch",
+        "body": "Watch whether an extreme reading sustains across multiple days rather than touching an extreme briefly and reversing. Watch it alongside VIX and Put/Call, since agreement across all three is a stronger read than any one signal alone."
+      },
+      {
+        "title": "Scenarios",
+        "body": "1. Extreme Fear sustained for several consecutive days alongside a sharp decline: consistent with a capitulation-adjacent read, though the index measures the fear level itself, not when it resolves.\n2. Extreme Greed alongside low VIX and low Put/Call: a combination this app's own reference material flags as elevated risk appetite with limited protective positioning underneath."
+      },
+      {
+        "title": "Gotchas",
+        "body": "An extreme reading is not, by itself, a reversal signal — it means the crowd is leaning hard in one direction, which can persist for a long time before, or without, anything actually changing."
+      }
+    ]
+  },
+  "put_call_ratio": {
+    "title": "Put/Call Ratio",
+    "subtitle": "How defensively options traders are positioned, from bets on a rise versus a fall.",
+    "cards": [
+      {
+        "title": "What it measures",
+        "body": "The ratio of put option volume (bets a price will fall, or hedges) to call option volume (bets a price will rise) across the options market — a direct read on how defensively or aggressively options traders are positioned."
+      },
+      {
+        "title": "How to read it",
+        "body": "A low ratio (below roughly 0.6) signals relatively little defensive hedging — traders leaning bullish or complacent. A high ratio signals elevated defensive positioning, often during periods of stress or uncertainty."
+      },
+      {
+        "title": "What to watch",
+        "body": "Watch the ratio's trend alongside VIX and Fear & Greed rather than in isolation — a low ratio alongside a calm VIX paints a coherent \"complacent\" picture; a rising ratio alongside a rising VIX paints a coherent \"fear entering the market\" picture."
+      },
+      {
+        "title": "Scenarios",
+        "body": "1. Put/Call low and VIX calm together, while the market sits near highs: a combination this app's reference material flags as elevated risk appetite with little protective positioning — historically a setup that has, at times, preceded periods of higher volatility.\n2. Put/Call spiking sharply alongside a market decline: consistent with a genuine, broad-based rush to hedge or bet on further declines."
+      },
+      {
+        "title": "Gotchas",
+        "body": "The ratio can be moved by hedging activity unrelated to a directional view — a put bought purely to protect an existing long position looks identical in this data to an outright bearish bet."
+      }
+    ]
+  },
+  "spy_rsi": {
+    "title": "SPY RSI (14-Day)",
+    "subtitle": "How fast and how far SPY has moved over the last 14 trading days.",
+    "cards": [
+      {
+        "title": "What it measures",
+        "body": "The Relative Strength Index for SPY (not to be confused with \"relative strength\" the benchmark-comparison concept, covered in its own Market Concepts article) — a momentum oscillator measuring the speed and size of recent price moves, scored 0–100 based on recent gains versus losses over 14 trading days."
+      },
+      {
+        "title": "How to read it",
+        "body": "A reading above roughly 70 signals the index has moved up fast and far in a short window — \"overbought,\" meaning the move has been rapid, not necessarily that a reversal is imminent. A reading below roughly 30 signals the opposite — a fast, sharp decline, \"oversold.\""
+      },
+      {
+        "title": "What to watch",
+        "body": "Watch RSI alongside SMA Extension and broader trend context — an overbought reading during a strong, established uptrend has historically behaved very differently from one appearing in a choppy, range-bound market."
+      },
+      {
+        "title": "Scenarios",
+        "body": "1. RSI overbought during a strong, sustained uptrend: has historically been able to stay overbought for extended stretches without a pullback following.\n2. RSI overbought alongside VIX beginning to rise from a calm level: this app's own reference material flags this combination — fear entering an already-stretched market — as one that has historically resolved more sharply than an overbought reading in isolation."
+      },
+      {
+        "title": "Gotchas",
+        "body": "RSI above 70 is a description of a condition, not a sell signal on its own — a genuinely strong trend can hold an overbought reading for weeks without reverting."
+      }
+    ]
+  },
+  "sma_extension": {
+    "title": "SMA Extension (200-Day)",
+    "subtitle": "How far SPY has stretched above or below its own 200-day trend line.",
+    "cards": [
+      {
+        "title": "What it measures",
+        "body": "How far SPY's current price sits above or below its own 200-day simple moving average, expressed as a percentage — a direct measure of how \"stretched\" price is relative to its own long-term trend line."
+      },
+      {
+        "title": "How to read it",
+        "body": "A positive extension (price above the average) signals an established uptrend; a large positive extension (above roughly +10%, this app's reference band) signals price running well ahead of trend, historically associated with periods more prone to a pause or pullback. A negative extension signals a downtrend, with a large negative reading (roughly below −5%) signaling a market meaningfully below its long-term trend."
+      },
+      {
+        "title": "What to watch",
+        "body": "The 200-day average itself is one of the most widely watched trend references in markets — a \"golden cross\" (50-day crossing above the 200-day) and \"death cross\" (the reverse) are derived from this same concept, though both can lag the actual turn by weeks."
+      },
+      {
+        "title": "Scenarios",
+        "body": "1. Extension pushing well above +10% during a strong rally: has historically been a condition markets can sustain for a while in a genuine bull run, though it does raise the odds of at least a pause or partial reversion.\n2. Extension falling below its recent range while broader systemic-risk signals are also deteriorating: has at times been read as confirming, not just accompanying, a broader trend deterioration."
+      },
+      {
+        "title": "Gotchas",
+        "body": "A moving-average crossing or a stretched-extension reading describes what price has already done, not what it does next — both lag the underlying move they're named for by design."
+      }
+    ]
+  },
+  "vix": {
+    "title": "VIX (CBOE Volatility Index)",
+    "subtitle": "The options market's own forecast of S&P 500 volatility over the next 30 days.",
+    "cards": [
+      {
+        "title": "What it measures",
+        "body": "The market's expectation of S&P 500 volatility over the next 30 days, derived from S&P 500 index options pricing — the most widely followed single gauge of expected market turbulence."
+      },
+      {
+        "title": "How to read it",
+        "body": "A low VIX (below roughly 20, \"calm\") signals the options market expects a relatively quiet stretch ahead. A VIX between roughly 20 and 29 signals elevated, choppier-than-usual expected conditions. A VIX at 30 or above signals a panic-level, extreme-fear reading."
+      },
+      {
+        "title": "What to watch",
+        "body": "VIX and the S&P 500 have historically moved inversely most of the time. Watch for VIX shifting from calm into elevated territory specifically while other momentum readings (like RSI) are still stretched — this app's own reference material flags that combination as historically preceding sharper pullbacks."
+      },
+      {
+        "title": "Scenarios",
+        "body": "1. VIX rising from calm into elevated territory while RSI is still overbought: flagged by this app's own reference material as a combination that has historically preceded sharper-than-usual pullbacks.\n2. VIX sitting persistently low for an extended stretch: reflects calm, compressed conditions — but sustained low VIX has, at times, preceded reversals, since prolonged complacency can itself build risk."
+      },
+      {
+        "title": "Gotchas",
+        "body": "VIX measures what the options market expects future volatility to be — it does not measure or predict direction. A high VIX says a big move is expected; it says nothing about which way it goes."
+      }
+    ]
+  },
+  "ism_manufacturing_pmi": {
+    "title": "ISM Manufacturing PMI",
+    "subtitle": "A monthly survey of manufacturers — the earliest read on factory-sector health.",
+    "cards": [
+      {
+        "title": "What it measures",
+        "body": "The Institute for Supply Management's monthly survey of purchasing managers at manufacturing companies, asking about new orders, production, and employment, compiled into a single diffusion index where 50 is the dividing line between expansion and contraction. Released on the first business day of each month — one of the earliest, most timely reads on manufacturing-sector health available."
+      },
+      {
+        "title": "How to read it",
+        "body": "A reading above 50 signals the manufacturing sector is expanding; the higher above 50, the more widespread that expansion is judged among respondents. A reading below 50 signals contraction, with the distance below 50 reflecting how broad-based the pullback is."
+      },
+      {
+        "title": "What to watch",
+        "body": "Watch the subcomponents — new orders and employment — alongside the headline. New orders is often described as the most forward-looking piece, since it reflects demand that hasn't yet translated into production or shipped goods."
+      },
+      {
+        "title": "Scenarios",
+        "body": "1. The index crossing from above 50 to below it for the first time in a cycle: has historically been treated as a meaningful signal of manufacturing-sector momentum turning, particularly when new orders led the move.\n2. A weak headline alongside a services PMI still comfortably in expansion: has at times been read as sector-specific manufacturing softness rather than a broader, economy-wide slowdown, since manufacturing is a smaller share of the modern U.S. economy than services."
+      },
+      {
+        "title": "Gotchas",
+        "body": "Manufacturing represents a meaningfully smaller share of U.S. GDP than services today, so a weak manufacturing PMI alone, without corresponding weakness in services or jobs/spending data, hasn't always translated into a broader slowdown historically."
+      }
+    ]
+  },
+  "ism_services_pmi": {
+    "title": "ISM Services PMI",
+    "subtitle": "The same survey for services — the larger, often more market-moving half of the economy.",
+    "cards": [
+      {
+        "title": "What it measures",
+        "body": "The same survey methodology as the Manufacturing PMI, covering the much larger services sector (retail, finance, healthcare, professional services). Given how large services is as a share of the U.S. economy, this release often carries more weight for the broader growth picture than its manufacturing counterpart."
+      },
+      {
+        "title": "How to read it",
+        "body": "Above 50 signals services-sector expansion; below 50 signals contraction, on the same diffusion-index logic. Because services makes up the larger share of economic activity, sustained weakness here has historically been read as a more significant signal for the broader economy than manufacturing weakness alone."
+      },
+      {
+        "title": "What to watch",
+        "body": "Watch the employment and prices-paid subcomponents — the prices-paid figure has, at times, offered an early read on services-sector inflation pressure ahead of it showing up in CPI or PCE."
+      },
+      {
+        "title": "Scenarios",
+        "body": "1. Services PMI holding comfortably in expansion while manufacturing PMI weakens: has historically been read as the broader economy holding up despite a smaller-sector slowdown.\n2. Both manufacturing and services PMIs weakening together: a broader signal of economy-wide slowdown, historically read as more significant than either weakening in isolation."
+      },
+      {
+        "title": "Gotchas",
+        "body": "Like its manufacturing counterpart, this is a survey-based diffusion index, not a hard output measure — it reflects the share of respondents reporting improvement, not the magnitude, so a reading just above 50 can look identical whether driven by many marginal improvements or few large ones."
+      }
+    ]
+  },
+  "ppi": {
+    "title": "Producer Price Index (PPI)",
+    "subtitle": "Wholesale-level inflation — one step earlier in the supply chain than CPI.",
+    "cards": [
+      {
+        "title": "What it measures",
+        "body": "The average change in prices businesses receive for the goods and services they produce — inflation measured at the wholesale/producer level, one step earlier in the supply chain than consumer-facing CPI. Released monthly, typically a day or two before or after CPI for the same month."
+      },
+      {
+        "title": "How to read it",
+        "body": "Rising PPI signals cost pressure building at the production level — at times read as a leading indicator for consumer-level inflation, on the logic that producer costs eventually pass through to consumers, though pass-through isn't automatic or immediate. Falling or cooling PPI signals easing cost pressure further up the supply chain."
+      },
+      {
+        "title": "What to watch",
+        "body": "Watch PPI alongside CPI released around the same time — when they diverge, it's worth checking whether businesses are absorbing cost pressure (PPI up, CPI flat) rather than passing it through, which can matter for corporate margins even before it shows up in consumer prices."
+      },
+      {
+        "title": "Scenarios",
+        "body": "1. PPI rising sharply while CPI stays contained: can signal businesses absorbing cost pressure rather than passing it to consumers — a margin story worth watching for earnings even before a consumer-inflation story emerges.\n2. PPI and CPI cooling together over several months: a more unified disinflation signal across the full supply chain."
+      },
+      {
+        "title": "Gotchas",
+        "body": "The relationship between PPI and future CPI is a well-established historical pattern, not a fixed mechanical rule — pass-through varies by how much pricing power businesses have in their specific market."
+      }
+    ]
+  },
+  "initial_jobless_claims": {
+    "title": "Initial Jobless Claims",
+    "subtitle": "New unemployment filings, released every week — the most frequent labor-market data point.",
+    "cards": [
+      {
+        "title": "What it measures",
+        "body": "The number of people filing for unemployment insurance for the first time in a given week — released every Thursday, making it the most frequent, timely labor-market data point on the calendar (versus monthly NFP and unemployment rate)."
+      },
+      {
+        "title": "How to read it",
+        "body": "Rising claims signal more people newly losing jobs — a weakening labor market. Falling or low claims signal a still-tight labor market with few new layoffs. Because it's weekly, this can react to labor-market shifts faster than any other jobs data point, sometimes weeks ahead of a change showing up in NFP."
+      },
+      {
+        "title": "What to watch",
+        "body": "Watch the 4-week moving average rather than any single week — weekly claims are volatile and can swing for reasons specific to a single week, so the smoothed trend is generally the more reliable read."
+      },
+      {
+        "title": "Scenarios",
+        "body": "1. Claims trending higher for several consecutive weeks, moving the 4-week average clearly higher: has historically been treated as a genuine, early labor-market weakening signal.\n2. A single week's sharp spike that reverses the following week: often attributable to a one-off factor rather than a genuine trend change."
+      },
+      {
+        "title": "Gotchas",
+        "body": "This measures new claims, not the total number of people currently unemployed (a separate figure, continuing claims) — it describes the flow of new layoffs, not the total stock of unemployed people."
+      }
+    ]
+  },
+  "fomc_rate_decision": {
+    "title": "FOMC Rate Decision",
+    "subtitle": "The Fed's own scheduled decision day on the federal funds rate.",
+    "cards": [
+      {
+        "title": "What it measures",
+        "body": "The outcome of a scheduled Federal Reserve meeting (roughly every six weeks) where the Federal Open Market Committee votes to raise, lower, or hold the Federal Funds Rate — the discrete decision day that sets the rate level tracked continuously by this app's own Fed Funds indicator (see that article for what the ongoing rate level means)."
+      },
+      {
+        "title": "How to read it",
+        "body": "A hike signals tightening to cool the economy/inflation — historically a headwind for stocks, especially if larger or more hawkish than expected. A cut signals easing to support growth — historically supportive, especially if paired with a more dovish tone than expected. A hold can itself read as hawkish or dovish depending entirely on the accompanying statement and press conference."
+      },
+      {
+        "title": "What to watch",
+        "body": "The market's reaction is driven far more by the surprise relative to what was priced in, and by forward guidance about future meetings, than by the decision itself — a widely-expected hold with an unexpectedly hawkish or dovish tone has, at times, moved markets more than the actual decision."
+      },
+      {
+        "title": "Scenarios",
+        "body": "1. A widely-expected hold, paired with guidance signaling more caution about future cuts than priced: has historically produced a negative reaction similar to an outright surprise hike.\n2. A rate cut smaller than hoped, paired with clearly dovish forward guidance: has at times been read positively despite the smaller immediate move, since markets often price the full expected path, not just the single decision.\n3. A surprise hold when a cut was widely expected: has historically produced sharp, often negative, reactions given how far markets had priced in the alternative."
+      },
+      {
+        "title": "Gotchas",
+        "body": "The rate decision itself is only half the event — the press conference and the committee's published rate projections (the \"dot plot,\" released quarterly alongside some meetings) often move markets as much as, or more than, the headline decision."
+      }
+    ]
+  }
+}

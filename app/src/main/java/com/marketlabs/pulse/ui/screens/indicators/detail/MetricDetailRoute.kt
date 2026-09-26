@@ -41,6 +41,7 @@ import com.marketlabs.pulse.ui.components.widgets.FavoriteStarToggle
 fun MetricDetailRoute(
     scaffoldPadding: PaddingValues,
     onNavigateUp: () -> Unit,
+    onNavigateToArticle: (String) -> Unit = {},
     viewModel: MetricDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -102,6 +103,7 @@ fun MetricDetailRoute(
                     top = topBarPadding.calculateTopPadding(),
                     bottom = scaffoldPadding.calculateBottomPadding()
                 ),
+                onLearnMore = uiState.articleKey?.let { key -> { onNavigateToArticle(key) } },
                 modifier = Modifier.fillMaxSize()
             )
         } else if (uiState.hasTimedOut) {

@@ -19,14 +19,19 @@ import com.marketlabs.pulse.ui.components.tutorials.DeckPage
 
 /** A Tutorials article shown as the shared centered, equal-height card carousel under a back row. */
 @Composable
-fun CarouselArticleScreen(title: String, pages: List<DeckPage>, onNavigateUp: () -> Unit) {
+fun CarouselArticleScreen(
+    title: String,
+    pages: List<DeckPage>,
+    onNavigateUp: () -> Unit,
+    onNavigateToRoute: (String) -> Unit = {}
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Top + WindowInsetsSides.Bottom))
     ) {
         PulseBackTitleRow(title = title, onNavigateUp = onNavigateUp)
-        CenteredCardCarousel(pages = pages, modifier = Modifier.weight(1f), enlargedText = true)
+        CenteredCardCarousel(pages = pages, modifier = Modifier.weight(1f), enlargedText = true, onNavigateToRoute = onNavigateToRoute)
         Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_extra_large)))
     }
 }

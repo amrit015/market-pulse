@@ -1,15 +1,16 @@
 package com.marketlabs.pulse.ui.screens.tutorials
 
-import androidx.annotation.StringRes
-import com.marketlabs.pulse.R
-
-/** The sub-heading a [ConceptArticle] is listed under, within the Tutorials hub's "Market concepts" section. */
-enum class ConceptSubGroup(@param:StringRes val titleRes: Int) {
-    CYCLES_AND_STRUCTURE(R.string.tutorials_hub_subgroup_cycles_structure),
-    SENTIMENT_AND_BEHAVIOUR(R.string.tutorials_hub_subgroup_sentiment_behaviour),
-    VALUATION_AND_RATES(R.string.tutorials_hub_subgroup_valuation_rates),
-    RISK_AND_PRICE_ACTION(R.string.tutorials_hub_subgroup_risk_price_action),
-    MARKET_FUNDAMENTALS(R.string.tutorials_hub_subgroup_market_fundamentals)
+/** The sub-heading a [ConceptArticle] is listed under, within the Tutorials hub's "Market concepts"
+ * section. [jsonKey] is both `learn_content.json`'s `market_concepts` grouping key (readability
+ * only, see [com.marketlabs.pulse.core.learn.LearnContentJson]'s own doc comment) and the key into
+ * that same file's `market_concepts_subgroups` map, which is where this group's own title/subtitle
+ * actually live -- this enum carries no display copy of its own. */
+enum class ConceptSubGroup(val jsonKey: String) {
+    CYCLES_AND_STRUCTURE("cycles_and_structure"),
+    SENTIMENT_AND_BEHAVIOUR("sentiment_and_behaviour"),
+    VALUATION_AND_RATES("valuation_and_rates"),
+    RISK_AND_PRICE_ACTION("risk_and_price_action"),
+    MARKET_FUNDAMENTALS("market_fundamentals")
 }
 
 /**

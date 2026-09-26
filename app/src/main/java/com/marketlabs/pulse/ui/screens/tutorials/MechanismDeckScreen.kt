@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
@@ -15,32 +14,32 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.components.PulseBackTitleRow
 import com.marketlabs.pulse.ui.components.PulseTabRow
 import com.marketlabs.pulse.ui.components.tutorials.CenteredCardCarousel
 import com.marketlabs.pulse.ui.components.tutorials.Mechanism
 import com.marketlabs.pulse.ui.components.tutorials.mechanismContentPages
-import com.marketlabs.pulse.ui.screens.stocks.detail.ViewMoreRow
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 /**
  * Tutorials -> Market mechanisms -> one mechanism: its 6 content cards in a centered carousel (at
- * most 70% of the screen tall, all cards one height), with a "See all indicators" link underneath
- * (same look as the guide's "Show More"): from the Tutorials hub it lists that one mechanism's
- * indicators, from a screen's "Show More" it lists every indicator of the whole screen. When reached from a screen's "Show More" that spans several
- * mechanisms (Indicators' four pillars, Insights' Posture/Positioning), [group] lists them all and a
- * tab row above the carousel switches between their decks; otherwise it's empty and there are no tabs.
+ * most 70% of the screen tall, all cards one height). "See all indicators" lives inside the "What
+ * this is" card itself (see `mechanismContentPages`) and always lists just [current]'s own
+ * indicators -- never a combined multi-mechanism list, regardless of [group]. When reached from a
+ * screen's "Show More" that spans several mechanisms (Indicators' four pillars, Insights' Posture/
+ * Positioning), [group] still lets a tab row above the carousel switch between their *content* decks
+ * (What this is/Signals/etc.) -- that's a separate concern from "See all indicators," which each
+ * mechanism keeps to itself even while grouped this way; [group] empty means no tabs.
  */
 @Composable
 fun MechanismDeckScreen(
     mechanism: Mechanism,
     group: List<Mechanism>,
     onNavigateUp: () -> Unit,
-    onSeeIndicators: (Mechanism, List<Mechanism>) -> Unit
+    onSeeIndicators: (Mechanism) -> Unit,
+    onNavigateToRoute: (String) -> Unit = {}
 ) {
     val hasTabs = group.size > 1
     var selectedIndex by rememberSaveable { mutableIntStateOf(group.indexOf(mechanism).coerceAtLeast(0)) }
@@ -60,17 +59,13 @@ fun MechanismDeckScreen(
             )
         }
         key(current) {
-            CenteredCardCarousel(pages = mechanismContentPages(current), modifier = Modifier.weight(1f), enlargedText = true)
-        }
-        ViewMoreRow(
-            text = stringResource(id = R.string.deck_link_see_all_indicators),
-            onClick = { onSeeIndicators(current, if (hasTabs) group else emptyList()) },
-            modifier = Modifier.padding(
-                start = dimensionResource(id = R.dimen.padding_extra_large),
-                top = dimensionResource(id = R.dimen.padding_large),
-                bottom = dimensionResource(id = R.dimen.padding_extra_large)
+            CenteredCardCarousel(
+                pages = mechanismContentPages(current, onSeeIndicators = { onSeeIndicators(current) }),
+                modifier = Modifier.weight(1f),
+                enlargedText = true,
+                onNavigateToRoute = onNavigateToRoute
             )
-        )
+        }
     }
 }
 
@@ -82,7 +77,7 @@ fun MechanismDeckScreen(
 @Composable
 private fun PreviewMechanismDeckScreenLight() {
     MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
-        MechanismDeckScreen(mechanism = Mechanism.SYSTEMIC_RISK, group = emptyList(), onNavigateUp = {}, onSeeIndicators = { _, _ -> })
+        MechanismDeckScreen(mechanism = Mechanism.SYSTEMIC_RISK, group = emptyList(), onNavigateUp = {}, onSeeIndicators = {})
     }
 }
 
@@ -94,7 +89,7 @@ private fun PreviewMechanismDeckScreenDark() {
             mechanism = Mechanism.POSTURE,
             group = listOf(Mechanism.POSTURE, Mechanism.POSITIONING),
             onNavigateUp = {},
-            onSeeIndicators = { _, _ -> }
+            onSeeIndicators = {}
         )
     }
 }

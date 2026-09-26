@@ -218,6 +218,7 @@ class MainActivity : ComponentActivity() {
                     currentRoute?.startsWith("${PulseRoutes.TUTORIALS_DECK}/") == true ||
                     currentRoute?.startsWith("${PulseRoutes.TUTORIALS_GLOSSARY}/") == true ||
                     currentRoute?.startsWith("${PulseRoutes.TUTORIALS_CONCEPT}/") == true ||
+                    currentRoute?.startsWith("${PulseRoutes.TUTORIALS_ARTICLE}/") == true ||
                     currentRoute == PulseRoutes.TUTORIALS_DATA_LIMITATIONS ||
                     currentRoute == PulseRoutes.SETTINGS_NOTIFICATIONS ||
                     currentRoute == PulseRoutes.SETTINGS_DATA_SYNC ||
@@ -384,7 +385,8 @@ class MainActivity : ComponentActivity() {
                         onMarketSentimentNavigatedToInsights = { reachedInsightsFromMarketSentiment = true },
                         reachedInsightsFromMarketSentiment = reachedInsightsFromMarketSentiment,
                         onInsightsBackHandled = { reachedInsightsFromMarketSentiment = false },
-                        onSummaryReportTypeLoaded = { summaryReportType = it }
+                        onSummaryReportTypeLoaded = { summaryReportType = it },
+                        isSplashActive = isSplashActive
                     )
                 }
                     if (isSplashActive) {
