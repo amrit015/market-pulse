@@ -169,8 +169,13 @@ enum class MarketPulseTheme(val displayName: String, val isDark: Boolean) {
                 outlineVariant = surface.outline,
                 surfaceBright = surface.surfaceElevated,
                 surfaceContainer = surface.surfaceElevated,
-                surfaceContainerHigh = surface.surfaceElevated,
-                surfaceContainerHighest = surface.surfaceElevated,
+                // 💡 The one pair of "elevated" roles pointed at `surfaceOverlay` rather than
+                // `surfaceElevated` -- the dedicated tier for a layer that needs to stand apart from
+                // both the page AND a DATA card (bottom sheets holding term/data cards), see
+                // `surfaceOverlay`'s own doc comment in `Color.kt`. Every other elevated role above
+                // stays on `surfaceElevated` so `PulseCard`'s own DATA/SYNTHESIS looks are untouched.
+                surfaceContainerHigh = surface.surfaceOverlay,
+                surfaceContainerHighest = surface.surfaceOverlay,
                 surfaceContainerLow = surface.surface,
                 surfaceContainerLowest = background,
                 surfaceDim = background
@@ -203,8 +208,11 @@ enum class MarketPulseTheme(val displayName: String, val isDark: Boolean) {
                 outlineVariant = surface.outline,
                 surfaceBright = surface.surfaceElevated,
                 surfaceContainer = surface.surfaceElevated,
-                surfaceContainerHigh = surface.surfaceElevated,
-                surfaceContainerHighest = surface.surfaceElevated,
+                // 💡 See the dark branch's identical comment above -- `surfaceOverlay` is the
+                // dedicated tier for a layer that needs to stand apart from both the page and a DATA
+                // card (bottom sheets), kept separate from every other elevated role here.
+                surfaceContainerHigh = surface.surfaceOverlay,
+                surfaceContainerHighest = surface.surfaceOverlay,
                 surfaceContainerLow = surface.surface,
                 surfaceContainerLowest = background,
                 surfaceDim = background

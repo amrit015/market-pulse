@@ -41,6 +41,7 @@ import com.marketlabs.pulse.ui.components.widgets.MetricInfoAction
 import com.marketlabs.pulse.ui.components.widgets.buildBulletJoinedText
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
+import com.marketlabs.pulse.utils.extensions.latestTimestampOf
 import com.marketlabs.pulse.utils.extensions.toAnalyzedAsOfString
 import com.marketlabs.pulse.utils.extensions.toTodayOrYesterdayLabel
 import java.text.SimpleDateFormat
@@ -81,7 +82,10 @@ fun WeeklyPlaybookSection(playbook: WeeklyPlaybook) {
             )
         }
 
-        val analyzedAt = (playbook.lastUpdated ?: System.currentTimeMillis()).toAnalyzedAsOfString()
+        val analyzedAt = (
+            latestTimestampOf(playbook.lastUpdated, playbook.synthesis?.generatedAt)
+                ?: System.currentTimeMillis()
+            ).toAnalyzedAsOfString()
 
         Text(
             text = stringResource(id = R.string.analyzed_at, analyzedAt),

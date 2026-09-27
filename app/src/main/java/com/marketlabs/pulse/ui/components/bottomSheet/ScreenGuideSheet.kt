@@ -59,7 +59,11 @@ fun ScreenGuideSheet(
         // sheet's own scrollable/swipeable content. Closing still works via the drag handle, scrim, or back.
         sheetGesturesEnabled = false,
         dragHandle = { BottomSheetDragHandle(onDismiss = onDismiss) },
-        containerColor = MaterialTheme.colorScheme.surface
+        // 💡 surfaceContainerHighest, not the M3 default surfaceContainerLow -- see
+        // MarketGlossaryBottomSheet's identical comment (MarketBottomSheet.kt): this is the
+        // dedicated `surfaceOverlay` tier, distinct from both the page background behind the sheet
+        // and a `PulseCard(DATA)`'s own fill.
+        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
     ) {
         Column {
             Text(

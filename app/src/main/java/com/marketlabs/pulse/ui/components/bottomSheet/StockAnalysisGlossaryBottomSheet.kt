@@ -75,14 +75,12 @@ fun StockAnalysisGlossaryBottomSheet(
         // back.
         sheetGesturesEnabled = false,
         dragHandle = { BottomSheetDragHandle(onDismiss = onDismiss) },
-        // 💡 colorScheme.surface, not surfaceContainerHighest -- this sheet now nests
-        // `PulseCard(DATA)` per entry (see the doc comment above), and this app's simplified
-        // surface ramp resolves `surfaceContainerHighest`/`surfaceVariant` to the literal same
-        // value as `PulseCard`'s own DATA fill -- a card sitting on a `surfaceContainerHighest`
-        // sheet has zero contrast against it. `colorScheme.surface` is the one remaining token
-        // distinct from both `background`
-        // (the screen behind the sheet) and `surfaceVariant` (the card's own fill).
-        containerColor = MaterialTheme.colorScheme.surface
+        // 💡 surfaceContainerHighest -- this sheet nests `PulseCard(DATA)` per entry (see the doc
+        // comment above), and `surfaceContainerHighest` is this app's dedicated `surfaceOverlay`
+        // tier (see `Color.kt`'s `SurfaceRamp`), one step past `PulseCard`'s own DATA fill
+        // (`surfaceVariant`) and past the screen background behind the sheet -- distinct from both,
+        // so a DATA card nested here still has contrast against the sheet.
+        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
     ) {
         LazyColumn(
             modifier = Modifier

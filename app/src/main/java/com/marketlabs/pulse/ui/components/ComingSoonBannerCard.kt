@@ -52,7 +52,7 @@ fun ComingSoonBannerCard(
                 .fillMaxWidth()
                 .padding(
                     start = dimensionResource(id = R.dimen.padding_large),
-                    bottom = dimensionResource(id = R.dimen.padding_medium),
+                    bottom = dimensionResource(id = R.dimen.padding_large),
                     end = dimensionResource(id = R.dimen.padding_medium)
                 ),
             horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_medium)),

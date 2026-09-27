@@ -63,6 +63,14 @@ fun Long.toRelativeTimeString(): String {
 }
 
 /**
+ * The most recent of several possibly-null epoch-millis timestamps, or null if all are null.
+ * Used to derive an "analyzed as of" time from a domain object whose own doc-level timestamp can
+ * lag behind its Gemini `synthesis.generatedAt` -- the synthesis pass sometimes completes after
+ * the rest of the document was written, so the doc timestamp alone understates freshness.
+ */
+fun latestTimestampOf(vararg timestamps: Long?): Long? = timestamps.filterNotNull().maxOrNull()
+
+/**
  * Epoch millis -> "Today, 6:15 PM" / "Yesterday, 6:15 PM" / "Aug 07, 6:15 PM".
  */
 fun Long.toAnalyzedAsOfString(): String {

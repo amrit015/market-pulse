@@ -45,6 +45,18 @@ data class SurfaceRamp(
     val background: Color,
     val surface: Color,
     val surfaceElevated: Color,
+    /**
+     * One step past [surfaceElevated] -- for a layer that needs to stand apart from BOTH the page
+     * ([background]) and a `PulseCard(DATA)` sitting on it ([surfaceElevated] backs
+     * `colorScheme.surfaceVariant`, the DATA fill), e.g. a bottom sheet holding term/data cards.
+     * Nothing else in this ramp is free for that job: every other "elevated" M3 role
+     * (`surfaceContainer`/`High`/`Highest`, `surfaceBright`) already resolves to [surfaceElevated]
+     * itself in `MarketPulseTheme.toColorScheme()`, so a sheet using any of them was
+     * indistinguishable from a DATA card floating on the page. `MarketPulseTheme.toColorScheme()`
+     * wires this in for `surfaceContainerHigh`/`surfaceContainerHighest` specifically, leaving the
+     * rest pointed at [surfaceElevated] as before.
+     */
+    val surfaceOverlay: Color,
     val onBackground: Color,
     val onSurface: Color,
     val onSurfaceMuted: Color,
@@ -101,6 +113,11 @@ object PulseTokens {
             background = Color(0xFFFFFFFF),
             surface = Color(0xFFFBFAF7),
             surfaceElevated = Color(0xFFFFFFFF),
+            // 💡 A step toward `outline` past `surfaceElevated`'s pure white -- light mode's
+            // background and DATA cards both already sit at/near white (see `surfaceElevated`'s own
+            // comment above), so this needs to be a visibly warm-grey step down, not another near-
+            // white value that would just be a third name for the same color.
+            surfaceOverlay = Color(0xFFF2F1EE),
             onBackground = Color(0xFF14161B),
             onSurface = Color(0xFF14161B),
             // 💡 Darkened from the original value (was 0xFF6B6E76) -- this is the one
@@ -118,6 +135,16 @@ object PulseTokens {
             background = Color(0xFF0D0E12),
             surface = Color(0xFF17181D),
             surfaceElevated = Color(0xFF1F2026),
+            // 💡 One more step up the same ramp's own progression (background -> surface ~= +10/ch,
+            // surface -> surfaceElevated ~= +8/ch) -- continues it rather than jumping to an
+            // unrelated hue, so it still reads as "this app's dark surface," just a shade brighter.
+            // Kept deliberately modest (was 0xFF2B2D34, one bump lighter) -- several presets'
+            // `accentSurfaceBorder` (the hairline `PulseTabRow`/outlined-`SignalPill` stroke, e.g.
+            // Rose's 0xFF452838) sit at a similar luminance to that brighter value despite the hue
+            // difference, so a thin 1dp stroke on this surface nearly disappeared. This value stays
+            // close enough to `surfaceElevated` that every `accentSurfaceBorder` reads clearly darker
+            // against it again, while still one distinguishable step above it.
+            surfaceOverlay = Color(0xFF262830),
             onBackground = Color(0xFFF0EEF3),
             onSurface = Color(0xFFF0EEF3),
             // 💡 Lightened from the original value (was 0xFF9A9BA3) -- same reasoning

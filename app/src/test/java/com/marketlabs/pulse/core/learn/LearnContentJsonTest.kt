@@ -60,9 +60,9 @@ class LearnContentJsonTest {
     }
 
     @Test
-    fun hubSectionsHasAllFiveIdsWithNonBlankContent() {
+    fun hubSectionsHasAllSixIdsWithNonBlankContent() {
         val content = loadContent()
-        val expectedIds = setOf("start", "market_concepts", "economic_events", "mechanisms", "data")
+        val expectedIds = setOf("start", "market_concepts", "economic_events", "mechanisms", "data", "tabs")
         assertEquals(expectedIds, content.hubSections.keys)
         content.hubSections.forEach { (id, heading) ->
             assertTrue("$id title blank", heading.title.isNotBlank())

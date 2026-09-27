@@ -41,6 +41,7 @@ import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 import com.marketlabs.pulse.ui.theme.pillColor
 import com.marketlabs.pulse.ui.theme.textColor
 import com.marketlabs.pulse.utils.enums.RiskImpactLevel
+import com.marketlabs.pulse.utils.extensions.latestTimestampOf
 import com.marketlabs.pulse.utils.extensions.toAnalyzedAsOfString
 
 @Composable
@@ -108,7 +109,10 @@ private fun RiskAssessmentHeader(data: MarketRiskAssessment) {
             )
         }
 
-        val analyzedAt = (data.lastUpdated ?: System.currentTimeMillis()).toAnalyzedAsOfString()
+        val analyzedAt = (
+            latestTimestampOf(data.lastUpdated, data.synthesis?.generatedAt)
+                ?: System.currentTimeMillis()
+            ).toAnalyzedAsOfString()
 
         Text(
             text = stringResource(id = R.string.analyzed_at, analyzedAt),

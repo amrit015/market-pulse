@@ -588,6 +588,7 @@ fun PulseNavGraph(
                 onNavigateToGaugeAnatomy = { navController.navigate(PulseRoutes.TUTORIALS_GAUGE_ANATOMY) },
                 onNavigateToConcept = { navController.navigate("${PulseRoutes.TUTORIALS_CONCEPT}/${it.routeKey}") },
                 onNavigateToMechanism = { navController.navigate("${PulseRoutes.TUTORIALS_DECK}/${it.routeKey}") },
+                onNavigateToIndicators = { navController.navigate("${PulseRoutes.TUTORIALS_GLOSSARY}/${it.routeKey}") },
                 onNavigateToDataLimitations = { navController.navigate(PulseRoutes.TUTORIALS_DATA_LIMITATIONS) },
                 onNavigateToArticle = { key -> navController.navigate("${PulseRoutes.TUTORIALS_ARTICLE}/$key") }
             )

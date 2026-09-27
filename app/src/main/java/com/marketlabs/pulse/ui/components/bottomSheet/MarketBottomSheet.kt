@@ -65,25 +65,17 @@ fun MarketGlossaryBottomSheet(
         // own tap-to-dismiss (unaffected by this flag), tapping the scrim, or back.
         sheetGesturesEnabled = false,
         dragHandle = { BottomSheetDragHandle(onDismiss = onDismiss) },
-        // 💡 colorScheme.surface: this app's simplified surface ramp only has 3 genuinely distinct
-        // values (see PulseTokens.Color.kt's `SurfaceRamp`: `background`, `surface`,
-        // `surfaceElevated`), and this sheet needs to sit between two of them at once:
-        //   - `surfaceContainerHighest` resolves to the literal same value as `surfaceVariant`
-        //     (`surfaceElevated`) -- the exact fill `PulseCard`'s borderless DATA style uses, so
-        //     every DATA card nested in this sheet (the "Current Verdict" card, every term card)
-        //     would have zero contrast against the sheet itself.
-        //   - `colorScheme.background` is the literal same value the screen behind the sheet
-        //     already uses, so the sheet would lose its own visual boundary -- hard to tell where
-        //     it starts/ends against the page.
-        // `colorScheme.surface` (`SurfaceRamp.surface`) is the one token genuinely distinct from
-        // both `background` and `surfaceElevated` in this ramp (dark mode: 0xFF17181D sits between
-        // background's 0xFF0D0E12 and surfaceElevated's 0xFF1F2026) -- the sheet reads as its own
-        // layer against the screen AND lets a DATA card read against the sheet, at the same time.
-        // It's deliberately avoided as a `TopAppBar` containerColor elsewhere (see
-        // SettingsScreen.kt's own comment) for reading "noticeably different" from `background` --
-        // that's a bug for a top bar meant to blend seamlessly with the page below it, but it's
-        // exactly the property this sheet needs.
-        containerColor = MaterialTheme.colorScheme.surface
+        // 💡 colorScheme.surfaceContainerHighest: this sheet needs to sit apart from two things at
+        // once -- the screen background behind it, and a `PulseCard(DATA)` nested inside it (the
+        // "Current Verdict" card, every term card). `surfaceContainerHighest` is wired to this app's
+        // dedicated `surfaceOverlay` tier (`Color.kt`'s `SurfaceRamp`), a step past `PulseCard`'s
+        // own DATA fill (`surfaceVariant`, itself a step past `background`) -- so the sheet reads as
+        // its own layer against the screen AND lets a DATA card read against the sheet, at the same
+        // time. Plain `colorScheme.surface` is deliberately avoided here even though it's also
+        // distinct from both -- it's the same token `TopAppBar` needs to blend seamlessly with the
+        // page (see SettingsScreen.kt's own comment), the opposite of what a sheet that should stand
+        // apart from the page wants.
+        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
     ) {
         LazyColumn(
             modifier = Modifier
