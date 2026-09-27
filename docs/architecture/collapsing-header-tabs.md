@@ -21,7 +21,7 @@ this: **Insights doesn't** -- its `PulseTabRow` is simply pinned, unconditionall
 above it that needs to collapse. Reach for this only when a screen actually has scrollable chrome
 above its tabs; a plain pinned tab row (see `compose-conventions.md`) is the default.
 
-Two live examples of the FULL pattern (pinned zone + collapsing chrome + `NestedScrollConnection`),
+Three live examples of the FULL pattern (pinned zone + collapsing chrome + `NestedScrollConnection`),
 different in how much chrome is pinned vs. collapsing:
 
 - **Stock Detail** (`StockDetailRoute.kt`): `DetailHeader` (ticker/price) is the only thing
@@ -31,6 +31,15 @@ different in how much chrome is pinned vs. collapsing:
   is the only thing pinned. Today's Read (the AI executive briefing card, itself expandable in
   place) + the Horizons nav card are the collapsing region; the tab row settles below the
   timestamp.
+- **Tutorials Hub** (`TutorialsHubScreen.kt`, added 2026-09-26): `PulseBackTitleRow` is the only
+  thing pinned -- nothing else on this screen needs to stay visible. Getting Started (the Gauge
+  Anatomy hero card), About the Data (Data Limitations), and the tab group's own header are all one
+  collapsing region; the tab row (Market concepts/Economic events/Market mechanisms) settles
+  directly below the back row once that's scrolled away. Needed bug #5's `scrollable` fix too --
+  both the hero card and the Data Limitations row inside the chrome are clickable `PulseCard`s.
+  Exempt from bug #4's `hasStaticTopBar` fix for the same reason Stock Detail is: it already
+  suppresses the global top bar/bottom nav entirely via `isPushedDestination`, so there's no global
+  `enterAlwaysScrollBehavior` connection to conflict with in the first place.
 
 **Summary** (`SummaryScreen.kt`'s `MarketSummaryScreen`, added 2026-09-07) is a THIRD case, but the
 simpler shape Insights already established, not the full pattern above -- worth naming explicitly

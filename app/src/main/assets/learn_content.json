@@ -19,6 +19,10 @@
     "data": {
       "title": "About the data",
       "subtitle": "What the numbers can and can't tell you."
+    },
+    "tabs": {
+      "title": "Browse the library",
+      "subtitle": "Market concepts, economic events, and how the app's own gauges work."
     }
   },
   "market_concepts": {

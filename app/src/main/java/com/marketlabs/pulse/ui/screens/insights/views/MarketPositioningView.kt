@@ -52,6 +52,7 @@ import com.marketlabs.pulse.utils.enums.CotPositioningStatus
 import com.marketlabs.pulse.utils.enums.DeltaDirection
 import com.marketlabs.pulse.utils.enums.RetailSentimentStatus
 import com.marketlabs.pulse.utils.enums.ShortInterestStatus
+import com.marketlabs.pulse.utils.extensions.latestTimestampOf
 import com.marketlabs.pulse.utils.extensions.toAnalyzedAsOfString
 import com.marketlabs.pulse.utils.toDisplayDate
 import java.util.Locale
@@ -94,7 +95,10 @@ fun MarketPositioningSection(
             )
         }
 
-        val analyzedAt = (positioningData.timestamp ?: System.currentTimeMillis()).toAnalyzedAsOfString()
+        val analyzedAt = (
+            latestTimestampOf(positioningData.timestamp, positioningData.synthesis?.generatedAt)
+                ?: System.currentTimeMillis()
+            ).toAnalyzedAsOfString()
         Text(
             text = stringResource(id = R.string.analyzed_at, analyzedAt),
             style = MaterialTheme.typography.bodySmall,

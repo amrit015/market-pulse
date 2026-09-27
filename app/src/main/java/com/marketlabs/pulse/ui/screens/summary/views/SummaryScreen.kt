@@ -41,6 +41,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -52,6 +53,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.lerp
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.summary.DominoEffect
 import com.marketlabs.pulse.storage.model.summary.MacroItem
@@ -92,6 +94,13 @@ import com.marketlabs.pulse.utils.enums.SignalDirection
 import com.marketlabs.pulse.utils.enums.TechnicalSetup
 import com.marketlabs.pulse.utils.extensions.smartTitleCase
 import com.marketlabs.pulse.utils.toRelativeDayLabel
+import kotlin.math.abs
+
+// A page one full swipe away from center is drawn at this scale/alpha; in between, both follow the
+// drag linearly -- same treatment OnboardingCarouselScreen's slides use, minus the page-indicator
+// dots (the calendar strip above the pager already shows which day is selected).
+private const val PageMinScale = 0.9f
+private const val PageMinAlpha = 0.5f
 
 /**
  * The main screen for displaying the Market Pulse report.
@@ -200,6 +209,10 @@ fun MarketSummaryScreen(
             dayIds = calendarDayIds,
             selectedDateId = selectedDateId,
             onDateSelected = onDateSelected,
+            // Tracks the pager's drag finger-for-finger, same `PulseTabRow` `selectionPosition`
+            // pattern -- the highlight slides continuously as the day page swipes rather than
+            // waiting for it to settle.
+            selectionPosition = { pagerState.currentPage + pagerState.currentPageOffsetFraction },
             modifier = Modifier.padding(top = scaffoldPadding.calculateTopPadding())
         )
 
@@ -224,6 +237,13 @@ fun MarketSummaryScreen(
                     content = contentByDateId[pageDateId] ?: DayContent.Loading,
                     isLatestWithReport = pageDateId == latestAvailableDateId,
                     scaffoldPadding = scaffoldPadding,
+                    // Signed distance of this page from the center of the viewport, in pages --
+                    // same shape as OnboardingCarouselScreen's own `pageOffset`, passed as a lambda
+                    // so it's only read inside `graphicsLayer`, which redraws every drag frame
+                    // without recomposing the page.
+                    pageOffset = {
+                        ((pagerState.currentPage - page) + pagerState.currentPageOffsetFraction).coerceIn(-1f, 1f)
+                    },
                     onNavigateToIndicators = onNavigateToIndicators,
                     onNavigateToPosture = onNavigateToPosture,
                     onRegimeClick = { glossaryTarget = GlossaryTarget.REGIME },
@@ -294,6 +314,9 @@ fun MarketSummaryScreen(
  * @param isLatestWithReport Whether [dateId] is the most recent calendar day with an actual
  * report -- not necessarily today's own dateId (see [MarketSummaryScreen]'s `latestAvailableDateId`
  * for why). Gates the live-only Position/whatChanged/whatsNew sections.
+ * @param pageOffset This page's signed distance from the pager's center, in pages -- 0 when fully
+ * in view, +/-1 once dragged a full page off to either side. Drives the shrink/fade below, same
+ * treatment [OnboardingCarouselScreen]'s slides use, minus its page-indicator dots.
  */
 @Composable
 private fun SummaryDayPage(
@@ -301,6 +324,7 @@ private fun SummaryDayPage(
     content: DayContent,
     isLatestWithReport: Boolean,
     scaffoldPadding: PaddingValues,
+    pageOffset: () -> Float,
     onNavigateToIndicators: () -> Unit,
     onNavigateToPosture: () -> Unit,
     onRegimeClick: () -> Unit,
@@ -314,7 +338,15 @@ private fun SummaryDayPage(
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .graphicsLayer {
+                val distance = abs(pageOffset())
+                val scale = lerp(1f, PageMinScale, distance)
+                scaleX = scale
+                scaleY = scale
+                alpha = lerp(1f, PageMinAlpha, distance)
+            },
         contentPadding = PaddingValues(
             top = paddingLarge,
             bottom = scaffoldPadding.calculateBottomPadding() + paddingLarge,
@@ -428,16 +460,19 @@ private fun SummaryDayPage(
                     }
                 }
 
-                val drivers = validData.drivers
-                if (!drivers.isNullOrEmpty()) {
-                    item {
-                        DriversSection(
-                            drivers = drivers,
-                            onClick = onNavigateToIndicators,
-                            onInfoClick = onDriversInfoClick
-                        )
-                    }
-                }
+                // Commented out until further action -- the drivers list read as an ambiguous
+                // signal in practice rather than a useful one. DriversSection and its plumbing
+                // are left in place in case this gets revisited.
+                // val drivers = validData.drivers
+                // if (!drivers.isNullOrEmpty()) {
+                //     item {
+                //         DriversSection(
+                //             drivers = drivers,
+                //             onClick = onNavigateToIndicators,
+                //             onInfoClick = onDriversInfoClick
+                //         )
+                //     }
+                // }
 
                 // 💡 Position/whatChanged/whatsNew are composed by the backend at request time
                 // regardless of which dateId was requested -- always the CURRENT live values,

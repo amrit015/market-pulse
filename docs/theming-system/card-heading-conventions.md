@@ -148,6 +148,12 @@ is wanted again elsewhere, treat it as a new decision, not a reversion of a mist
 
 ## Drivers — a card with two independent tap targets
 
+**2026-09-27: `DriversSection`'s call site in `SummaryScreen.kt` is commented out** (the drivers
+list read as an ambiguous signal in practice) — it no longer renders on Summary. The composable,
+`DriversInfoBottomSheet`, and the pattern below are left in place as the reference implementation
+for the two-tap-target shape; every cross-reference to Drivers elsewhere in this doc describes
+that still-intact code, not something currently visible on screen.
+
 `DriversSection` (SummaryScreen.kt:489) is the one card on this screen where the header and the
 content below it lead to *different* actions, so it can't just be one whole-card `onClick`:
 

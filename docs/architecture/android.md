@@ -86,8 +86,9 @@ by the destination, specifically so they don't disturb the bottom-nav tab's plai
 identity (a query-param route would break the `currentDestination.route == item.route`
 selected-tab check).
 
-**A contextual jump into another tab's content** (Summary's Drivers section → Indicators tab).
-This isn't a real tab switch (the user didn't tap the bottom bar) but should land on the same
+**A contextual jump into another tab's content** (Summary's Market Position section's "Show
+Indicators" → Indicators tab; Drivers used the same jump before it was disabled — see
+`docs/theming-system/card-heading-conventions.md`). This isn't a real tab switch (the user didn't tap the bottom bar) but should land on the same
 live Indicators instance a real tab switch would, and system back should return to Summary
 specifically. Two things both have to be true:
 

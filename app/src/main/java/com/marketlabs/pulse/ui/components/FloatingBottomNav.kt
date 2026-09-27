@@ -76,7 +76,11 @@ fun FloatingBottomNav(
             .padding(horizontal = horizontalMargin)
             .windowInsetsPadding(WindowInsets.navigationBars),
         shape = RoundedCornerShape(cornerRadius),
-        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+        // 💡 surfaceVariant, not surfaceContainerHighest -- surfaceContainerHighest is now this
+        // app's dedicated `surfaceOverlay` tier for bottom sheets (see Color.kt's `SurfaceRamp`),
+        // one step lighter than this bar's original fill; surfaceVariant keeps this bar's own
+        // color unchanged.
+        color = MaterialTheme.colorScheme.surfaceVariant,
         border = BorderStroke(borderWidth, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)),
         shadowElevation = elevation
     ) {

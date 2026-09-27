@@ -47,6 +47,7 @@ import com.marketlabs.pulse.utils.enums.DeltaDirection
 import com.marketlabs.pulse.utils.enums.DixStatus
 import com.marketlabs.pulse.utils.enums.NaaimStatus
 import com.marketlabs.pulse.utils.enums.NetLiquidityStatus
+import com.marketlabs.pulse.utils.extensions.latestTimestampOf
 import com.marketlabs.pulse.utils.extensions.toAnalyzedAsOfString
 import com.marketlabs.pulse.utils.extensions.toShortDateWithYearString
 import com.marketlabs.pulse.utils.toDisplayDate
@@ -105,7 +106,10 @@ fun InstitutionalPostureSection(
             )
         }
 
-        val analyzedAt = (postureData.timestamp ?: System.currentTimeMillis()).toAnalyzedAsOfString()
+        val analyzedAt = (
+            latestTimestampOf(postureData.timestamp, postureData.synthesis?.generatedAt)
+                ?: System.currentTimeMillis()
+            ).toAnalyzedAsOfString()
 
         Text(
             text = stringResource(id = R.string.analyzed_at, analyzedAt),
