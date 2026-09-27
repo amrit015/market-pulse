@@ -39,6 +39,7 @@ import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.charts.ChartRangePicker
 import com.marketlabs.pulse.ui.components.charts.IndicatorHistoryChart
+import com.marketlabs.pulse.ui.screens.stocks.detail.ViewMoreRow
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 import com.marketlabs.pulse.utils.enums.SignalColor
@@ -76,6 +77,7 @@ fun GlossaryDetailScreen(
     availableChartRanges: List<ChartRange>,
     onRangeSelected: (ChartRange) -> Unit,
     scaffoldPadding: PaddingValues,
+    onLearnMore: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val paddingExtraLarge = dimensionResource(id = R.dimen.padding_extra_large)
@@ -204,6 +206,14 @@ fun GlossaryDetailScreen(
 
             if (!section.gotchas.isNullOrBlank()) {
                 GlossaryGotchaCallout(text = section.gotchas)
+                Spacer(modifier = Modifier.height(paddingMedium))
+            }
+
+            if (section.articleKey != null) {
+                ViewMoreRow(
+                    text = stringResource(id = R.string.indicators_detail_learn_more),
+                    onClick = { onLearnMore(section.articleKey) }
+                )
                 Spacer(modifier = Modifier.height(paddingMedium))
             }
 

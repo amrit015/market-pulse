@@ -21,6 +21,9 @@ import com.marketlabs.pulse.storage.model.indicators.MetricHistoryPoint
  * -- `metric` has no fetch of its own to fail, so an id that will never resolve needs a fixed
  * grace period before it's distinguishable from one still waiting on the Indicators tab's own
  * initial load.
+ *
+ * `articleKey` is [metricId] itself when `indicator_articles.json` has a matching entry, else
+ * null -- the screen shows a "Learn more" link only when it's non-null, rather than every metric.
  */
 data class MetricDetailUiState(
     val metricId: String,
@@ -32,5 +35,6 @@ data class MetricDetailUiState(
     val availableChartRanges: List<ChartRange> = ChartRange.entries - ChartRange.ONE_DAY,
     val hasTimedOut: Boolean = false,
     /** Local-only, per-device -- same `FavoriteMetricsRepository` the Indicators tab's star reads. */
-    val isFavorite: Boolean = false
+    val isFavorite: Boolean = false,
+    val articleKey: String? = null
 )

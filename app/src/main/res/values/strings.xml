@@ -106,6 +106,7 @@
     <string name="indicators_detail_how_to_read">How to read it</string>
     <string name="indicators_detail_watch">Watch</string>
     <string name="indicators_detail_bands">Bands</string>
+    <string name="indicators_detail_learn_more">Learn more</string>
     <string name="indicators_glossary_desc">Glossary</string>
 
     <string name="dashboard_title">Market Dashboard</string>
@@ -559,9 +560,15 @@
     <string name="settings_item_data_sync">Data &amp; Sync</string>
     <string name="settings_item_about">About Market Pulse</string>
     <string name="settings_item_tutorials">Learn</string>
+    <string name="settings_item_coming_up">Coming Up</string>
     <string name="settings_item_share">Share Market Pulse app</string>
     <string name="share_app_message">Check out Market Pulse — market data, macro indicators, and AI-written analysis in one place: %1$s</string>
     <string name="share_app_chooser_title">Share Market Pulse</string>
+    <string name="coming_soon_banner_dismiss_content_description">Dismiss</string>
+    <string name="coming_soon_custom_list_title">Custom lists are coming</string>
+    <string name="coming_soon_custom_list_body">Soon you\'ll be able to build your own list of stocks to analyze — not just the default list.</string>
+    <string name="coming_up_detail_title">What\'s changing</string>
+    <string name="coming_up_detail_body">Analysis currently covers a fixed set of default stocks. The next update lets you choose your own, so the tabs and daily digests here reflect the companies you actually track. Your existing Favorites carry over unchanged; this adds a new list alongside the default one, it doesn\'t replace it.</string>
 
     <string name="about_section_1_title">What this is</string>
     <string name="about_section_1_body">Market Pulse is a research tool for investors who want to understand what the market is doing — not be told what to do about it. It aggregates real market data, macro indicators, and company fundamentals, runs them through deterministic analysis, and surfaces the results alongside AI-written interpretation.\n\nWe name what the market is doing. What you do about it is yours.</string>
@@ -657,15 +664,7 @@
     <string name="privacy_section_9_body">marketpulse.labs@gmail.com</string>
 
     <string name="tutorials_hub_screen_title">Learn</string>
-    <string name="tutorials_item_data_limitations">Data Limitations</string>
-    <string name="tutorials_item_gauge_anatomy">How to Read Any Gauge</string>
 
-    <string name="tutorials_gauge_anatomy_steps_title">How to read any gauge</string>
-    <string name="tutorials_gauge_anatomy_steps_body">Every gauge in Market Pulse turns a raw number into a colored reading through the same three steps — knowing them makes any gauge legible.\n\n1. The raw value — a real measured number: an index level, a ratio, a yield, a percent. This is data, computed in code. The AI never sets it.\n\n2. The band — the app sorts that raw value into a labeled zone (e.g. \"Overbought,\" \"Inverted,\" \"Extreme Greed\") using fixed cutoffs. These cutoffs are written into the code, not decided per-run. Some are standard market conventions (RSI ≥ 70 = overbought); others are the app\'s own reasonable lines (P/E ≥ 22 = expensive) — the glossary tells you which is which.\n\n3. The color — the band maps to green / amber / red as a quick visual cue. Green is not \"buy\" and red is not \"sell\" — they mark where a reading sits on its own scale, nothing more. A red \"Restrictive\" on the Fed Funds rate just means rates are rising; whether that\'s good or bad for a given stock is yours to judge.</string>
-    <string name="tutorials_gauge_anatomy_exceptions_title">Three things worth knowing</string>
-    <string name="tutorials_gauge_anatomy_exceptions_body">• Not every gauge reads its raw level: Market Breadth, Net Liquidity, and several macro gauges (payrolls, retail sales, Fed Funds, the 10-year) are classified by their direction of change instead. \"Expanding\" or \"Rising\" means the number moved that way recently — a different question than whether it\'s high or low.\n• A couple are polarity-inverted: for the Fed Funds rate and the 10-year yield, a rising number shows red (\"Restrictive\") and a falling one green, because higher rates tighten conditions. Don\'t read the color as \"the number went down.\"\n• Some gauges have no color at all on certain fields (raw share counts, for instance) — those are pure data with no band, shown as a number to read directly.\n\nThe gauge names the condition. What it means for your decisions is the part only you can supply.</string>
-    <string name="tutorials_gauge_anatomy_naming_title">Two words this app uses twice</string>
-    <string name="tutorials_gauge_anatomy_naming_body">\"Positioning\" — Market Pulse uses this word for two unrelated things. On the Insights → Positioning tab, it means how three crowds are leaning (retail sentiment, futures speculators, short sellers). As an Indicators metric, \"positioning\" refers to where SPY sits in its 52-week range. Same word, different data, no relationship between them.\n\n\"Market regime\" — One is a deterministic, code-computed label (risk-on / risk-off / neutral) built from trend, breadth, volatility, and rates. The other is a phrase the AI Macro Hub may use in its own written verdict. The code-computed one is the app\'s factual classification; the AI one is narrative. They can differ, and that\'s expected.</string>
 
     <string name="tutorial_diagram_yield_curve_caption">Short-term yields above long-term = inverted — historically an early recession warning.</string>
     <string name="tutorial_diagram_yield_curve_normal_label">Normal</string>
@@ -685,13 +684,147 @@
     <string name="tutorial_gauge_put_call_explanation">Reads the same way, in reverse: a high ratio means heavy put-buying (fear), a low ratio means heavy call-buying (greed). Just as capable of sitting at an extreme for weeks without anything changing.</string>
     <string name="tutorial_gauge_cot_percentile_explanation">Most useful ranked against its own recent history, not as a raw number alone — extremes in either direction have historically preceded a reversal as crowded positioning unwinds.</string>
     <string name="tutorial_gauge_aaii_explanation">A widely watched but famously unreliable contrarian indicator on its own: extreme readings are sometimes read as a sign a consensus view has gotten crowded, not as confirmation that the consensus is right.</string>
-    <string name="tutorial_diagram_gauge_anatomy_raw_value_label">RSI = 72</string>
-    <string name="tutorial_diagram_gauge_anatomy_band_label">Band: Overbought</string>
-    <string name="tutorial_diagram_gauge_anatomy_color_label">Color: Amber</string>
-    <string name="tutorial_diagram_gauge_anatomy_meaning_label">Overbought — momentum may be due for a pause, not a reversal call.</string>
+    <string name="tutorial_diagram_illustrative_note">Illustrative — not real data.</string>
+    <string name="tutorial_diagram_content_description_yield_curve">Illustration comparing a normal upward-sloping yield curve with an inverted one.</string>
+    <string name="tutorial_diagram_content_description_sma_extension">Illustration of price moving above and below its 200-day average, with zones for stretched, normal, and below-trend readings.</string>
+    <string name="tutorial_diagram_content_description_sentiment_gauges">Illustration of three sentiment gauges — Fear &amp; Greed, Put/Call, and VIX — showing their reading zones.</string>
+    <string name="tutorial_diagram_content_description_gauge_anatomy">Diagram of how a gauge works: a raw value is sorted into a labeled band, which maps to a color.</string>
+    <string name="tutorial_diagram_content_description_sentiment_gauges_live">Example Fear &amp; Greed and Put/Call gauges with illustrative values.</string>
+    <string name="tutorial_diagram_content_description_vix_card_preview">Example VIX card showing a calm reading, with illustrative values.</string>
+    <string name="tutorial_diagram_content_description_posture_rings_preview">Example NAAIM and Dark Pool Index ring gauges: managers defensively positioned while dark-pool buying is elevated. Illustrative values.</string>
+    <string name="tutorial_diagram_content_description_positioning_bars_preview">Example positioning gauges: futures positioning near the low end of its range and retail sentiment mostly bearish. Illustrative values.</string>
+    <string name="tutorial_diagram_content_description_rate_sensitivity">Illustration of a spectrum from short-duration assets like cash to long-duration assets like growth stocks and long bonds, ordered by how much they react to rate changes.</string>
+    <string name="tutorial_diagram_content_description_growth_vs_value">Illustration of a spectrum from value-heavy sectors like utilities and financials to growth-heavy sectors like technology.</string>
+    <string name="tutorial_diagram_content_description_valuation_basics">Illustration comparing this stock\'s valuation against the overall market and against its own sector peers.</string>
+    <string name="tutorial_diagram_content_description_pe_expansion">Illustration of a P/E expansion: earnings roughly flat, the P/E multiple rising, and price rising as a result.</string>
+    <string name="tutorial_diagram_content_description_pe_contraction">Illustration of a P/E contraction: earnings roughly flat, the P/E multiple falling, and price falling as a result.</string>
+
+    <string name="diagram_caption_rate_sensitivity">Longer-duration assets react more to rate changes than shorter-duration ones.</string>
+    <string name="diagram_caption_growth_vs_value">Growth and value rotate with the rate cycle — both trends can persist for years.</string>
+    <string name="diagram_caption_valuation_basics">A stock can look cheap against the market yet rich against its own sector peers.</string>
+    <string name="diagram_caption_pe_expansion">Rising willingness to pay lifts price even when earnings hold flat.</string>
+    <string name="diagram_caption_pe_contraction">A shrinking multiple can pull price down even when earnings hold.</string>
+
+    <string name="diagram_spectrum_rate_sensitivity_start">Short duration</string>
+    <string name="diagram_spectrum_rate_sensitivity_end">Long duration</string>
+    <string name="diagram_spectrum_rate_sensitivity_item_cash">Cash</string>
+    <string name="diagram_spectrum_rate_sensitivity_item_financials">Financials</string>
+    <string name="diagram_spectrum_rate_sensitivity_item_dividend">Dividends</string>
+    <string name="diagram_spectrum_rate_sensitivity_item_bonds">Long bonds</string>
+    <string name="diagram_spectrum_rate_sensitivity_item_growth">Growth stocks</string>
+
+    <string name="diagram_spectrum_growth_value_start">Value</string>
+    <string name="diagram_spectrum_growth_value_end">Growth</string>
+    <string name="diagram_spectrum_growth_value_item_utilities">Utilities</string>
+    <string name="diagram_spectrum_growth_value_item_financials">Financials</string>
+    <string name="diagram_spectrum_growth_value_item_energy">Energy</string>
+    <string name="diagram_spectrum_growth_value_item_discretionary">Consumer Disc.</string>
+    <string name="diagram_spectrum_growth_value_item_tech">Technology</string>
+
+    <string name="diagram_spectrum_valuation_basics_start">Cheap</string>
+    <string name="diagram_spectrum_valuation_basics_end">Expensive</string>
+    <string name="diagram_spectrum_valuation_basics_item_market">Market avg.</string>
+    <string name="diagram_spectrum_valuation_basics_item_this_stock">This stock</string>
+    <string name="diagram_spectrum_valuation_basics_item_peers">Sector peers</string>
+
+    <string name="diagram_decomposition_earnings_label">Earnings</string>
+    <string name="diagram_decomposition_multiple_label">Multiple (P/E)</string>
+    <string name="diagram_decomposition_price_label">Price</string>
+    <string name="diagram_decomposition_flat_label">≈ flat</string>
+
+    <string name="diagram_divergence_breadth_primary">Cap-weighted (SPY)</string>
+    <string name="diagram_divergence_breadth_secondary">Equal-weight (RSP)</string>
+    <string name="diagram_divergence_breadth_gap">Gap</string>
+    <string name="diagram_divergence_relative_strength_primary">Sector</string>
+    <string name="diagram_divergence_relative_strength_secondary">S&amp;P 500</string>
+
+    <string name="tutorial_diagram_content_description_breadth">Illustration of a cap-weighted index line pulling away from an equal-weight line, with the widening gap between them highlighted.</string>
+    <string name="tutorial_diagram_content_description_relative_strength">Illustration comparing a sector\'s price against the S&amp;P 500, with the ratio between them plotted below to show relative strength.</string>
+    <string name="diagram_caption_breadth">The index can keep rising even as fewer stocks underneath it participate.</string>
+    <string name="diagram_caption_relative_strength">A rising ratio line means the sector is outperforming the index, even if its own price is flat or falling.</string>
+
+    <string name="diagram_wheel_market_phases_accumulation">Accumulation</string>
+    <string name="diagram_wheel_market_phases_accumulation_sig">Breadth improving</string>
+    <string name="diagram_wheel_market_phases_markup">Markup</string>
+    <string name="diagram_wheel_market_phases_markup_sig">Broad participation</string>
+    <string name="diagram_wheel_market_phases_distribution">Distribution</string>
+    <string name="diagram_wheel_market_phases_distribution_sig">Narrowing leadership</string>
+    <string name="diagram_wheel_market_phases_markdown">Markdown</string>
+    <string name="diagram_wheel_market_phases_markdown_sig">Breadth collapsing</string>
+
+    <string name="diagram_wheel_sector_rotation_early">Early Expansion</string>
+    <string name="diagram_wheel_sector_rotation_early_sig">Cyclicals, Financials</string>
+    <string name="diagram_wheel_sector_rotation_late">Late Expansion</string>
+    <string name="diagram_wheel_sector_rotation_late_sig">Energy, Materials</string>
+    <string name="diagram_wheel_sector_rotation_slowdown">Slowdown</string>
+    <string name="diagram_wheel_sector_rotation_slowdown_sig">Healthcare, Staples</string>
+    <string name="diagram_wheel_sector_rotation_recession">Recession</string>
+    <string name="diagram_wheel_sector_rotation_recession_sig">Utilities, Staples</string>
+
+    <string name="tutorial_diagram_content_description_market_phases">Diagram of a 4-stage market cycle read clockwise: Accumulation, Markup, Distribution, and Markdown, each with its own breadth and participation signature.</string>
+    <string name="tutorial_diagram_content_description_sector_rotation">Diagram of the same 4-stage cycle with an outer ring showing which sectors have typically led in each stage: cyclicals and financials early, energy and materials late, healthcare and staples in a slowdown, utilities and staples in a recession.</string>
+    <string name="diagram_caption_market_phases">Phases overlap and don\'t run on a fixed clock — the labels describe a configuration, not a forecast.</string>
+    <string name="diagram_caption_sector_rotation">Sector leadership tends to follow the cycle, but not on a fixed schedule.</string>
+
+    <string name="diagram_flow_macro_inflation">Inflation</string>
+    <string name="diagram_flow_macro_jobs">Jobs</string>
+    <string name="diagram_flow_macro_growth">GDP &amp; Retail Sales</string>
+    <string name="diagram_flow_macro_yield">10-Year Yield</string>
+    <string name="diagram_flow_stock_setup">Setup</string>
+    <string name="diagram_flow_stock_levels">Key Levels</string>
+    <string name="diagram_flow_stock_forward">Forward Calls</string>
+
+    <string name="tutorial_diagram_content_description_macro_vitals">Diagram of inflation, jobs, and growth data all feeding into the 10-year Treasury yield, the market\'s real-time read on where the cycle is heading.</string>
+    <string name="tutorial_diagram_content_description_stock_analysis">Diagram of the stock analysis read-order: setup classification first, then key levels, then forward calls.</string>
+    <string name="diagram_caption_macro_vitals">Inflation, jobs, and growth data all feed into where yields go next.</string>
+    <string name="diagram_caption_stock_analysis">Setup frames everything else — levels and forward calls follow from it.</string>
+
+    <string name="diagram_waterfall_rates">Rates</string>
+    <string name="diagram_waterfall_credit">Credit</string>
+    <string name="diagram_waterfall_risk_appetite">Risk Appetite</string>
+    <string name="diagram_waterfall_net">Net</string>
+
+    <string name="tutorial_diagram_content_description_role_of_liquidity">Illustration of falling rates, roughly steady credit conditions, and a risk-appetite headwind combining into a net liquidity backdrop.</string>
+    <string name="diagram_caption_role_of_liquidity">Rates, credit, and risk appetite combine into one liquidity backdrop — not a forecast of what markets do with it.</string>
+
+    <string name="diagram_cadence_legend_measured">Measured</string>
+    <string name="diagram_cadence_legend_published">Published</string>
+    <string name="diagram_cadence_legend_time">time →</string>
+    <string name="diagram_cadence_aaii">AAII · Weekly</string>
+    <string name="diagram_cadence_cot">COT · Weekly (lagged)</string>
+    <string name="diagram_cadence_short_interest">Short Interest · Twice-monthly</string>
+
+    <string name="tutorial_diagram_content_description_positioning_cadence">Diagram comparing how long AAII, CFTC COT, and FINRA short interest each lag between when a value is measured and when it\'s published, on one shared time scale.</string>
+    <string name="diagram_caption_positioning_cadence">Each source lags differently between when it\'s measured and when it\'s published.</string>
+
+    <string name="diagram_correlation_legend_together">Together</string>
+    <string name="diagram_correlation_legend_independent">Independent</string>
+    <string name="diagram_correlation_asset_stocks">Stocks</string>
+    <string name="diagram_correlation_asset_bonds">Bonds</string>
+    <string name="diagram_correlation_asset_credit">Credit</string>
+    <string name="diagram_correlation_asset_gold">Gold</string>
+    <string name="diagram_correlation_normal_title">Normal</string>
+    <string name="diagram_correlation_stress_title">Stress</string>
+
+    <string name="tutorial_diagram_content_description_correlation_breakdown">Diagram comparing two small grids: under normal conditions stocks, bonds, credit, and gold move mostly independently; under stress, stocks and credit move together while bonds and gold stay independent.</string>
+    <string name="diagram_caption_correlation_breakdown">Under stress, previously independent assets can start moving together — though not all of them.</string>
+
+    <string name="gauge_pattern_step_raw_value">1 · Raw value</string>
+    <string name="gauge_pattern_raw_value">50</string>
+    <string name="gauge_pattern_step_band">2 · Band</string>
+    <string name="gauge_pattern_band_bullish">Bullish</string>
+    <string name="gauge_pattern_band_neutral">Neutral</string>
+    <string name="gauge_pattern_band_bearish">Bearish</string>
+    <string name="gauge_pattern_step_color">3 · Color</string>
+    <string name="gauge_pattern_status_neutral">NEUTRAL</string>
 
 
-    <string name="tutorials_gauges_intro">Every gauge and indicator across Market Pulse follows the same idea: a raw value gets bucketed into a plain-language read (e.g. \"Extreme Fear,\" \"Overbought,\" \"Neutral\") using thresholds defined elsewhere, not judged case by case. The definitions below come from the same glossary data the rest of the app uses — tap any gauge in the app itself for the fuller breakdown, including its current band and any gotchas specific to that metric.\n\nSome of these you can check yourself: the yield curve, RSI, and a stock\'s P/E versus its sector are standard measures you\'ll find on any financial site — use them to test what the app is showing you. Others, like the Fear &amp; Greed Index or this app\'s own Copper/Gold ratio, are composite reads you can\'t easily rebuild from raw data — treat those as one lens, not gospel. Either way, the app names the condition; the conclusion is yours to draw.</string>
+    <string name="tutorials_gauges_intro_tactical_momentum">Every gauge here answers the same question a different way: how fast is the market moving right now, and how nervous or euphoric are the people trading it? A raw reading like the VIX or the Put/Call Ratio gets bucketed into a plain-language read (e.g. \"Extreme Fear,\" \"Overbought\") using thresholds defined elsewhere, not judged case by case. Tap any gauge below for the full breakdown — how to read it, what to watch, and real scenarios.</string>
+    <string name="tutorials_gauges_intro_systemic_risk">Every gauge here is a different lens on the same worry: is stress building up somewhere in the system before it shows up in stock prices? Credit spreads, the yield curve, and market breadth each watch a different corner — bonds, currencies, or how broad a rally really is. Tap any gauge below for the full breakdown — how to read it, what to watch, and real scenarios.</string>
+    <string name="tutorials_gauges_intro_valuation">Every gauge here asks some version of the same question: how much is the market paying for what it\'s actually getting? P/E, P/B, the Equity Risk Premium, and dividend yield each price the market against a different reference point — past earnings, book value, or the safe alternative of Treasuries. Tap any gauge below for the full breakdown — how to read it, what to watch, and real scenarios.</string>
+    <string name="tutorials_gauges_intro_macro_vitals">Every gauge here tracks a different vital sign of the broader economy — inflation, jobs, growth, and the Fed\'s own policy rate — the releases that move markets because they change what the Fed does next. Tap any gauge below for the full breakdown — how to read it, what to watch, and real scenarios.</string>
+    <string name="tutorials_gauges_intro_positioning">Every gauge here answers the same question from a different data source: how crowded is a bet, and who\'s making it? Retail sentiment, futures positioning, and short interest each reveal a different slice of who\'s leaning which way. Tap any gauge below for the full breakdown — how to read it, what to watch, and real scenarios.</string>
+    <string name="tutorials_gauges_intro_posture">Every gauge here is a read on institutional behavior beneath the surface — what active managers are actually doing with client money, where dark-pool buying is concentrated, and how much cash is really available to flow into risk assets. Tap any gauge below for the full breakdown — how to read it, what to watch, and real scenarios.</string>
     <string name="tutorials_gauges_category_tactical_momentum">Tactical Momentum</string>
     <string name="tutorials_gauges_category_systemic_risk">Systemic Risk</string>
     <string name="tutorials_gauges_category_valuation">Valuation</string>
@@ -736,8 +869,6 @@
 
 
 
-    <string name="tutorials_data_limitations_title">A Few Things Worth Knowing About the Data Itself</string>
-    <string name="tutorials_data_limitations_body">• Market holidays and half-days: some indicators may show a stale \"last close\" value rather than a fresh one.\n• After-hours vs. regular-hours pricing: a price shown outside market hours may reflect after-hours trading, which is typically lower-volume and more volatile than regular-hours pricing.\n• Halted or delisted symbols: data for a halted or delisted symbol may be missing or frozen at its last known value.\n• Delayed data: most market data is not real-time; treat displayed prices as approximate, not tradeable quotes.</string>
 
     <string name="ai_generated_badge_label">AI-generated · Not advice</string>
     <string name="settings_preset_selected_content_description">Selected</string>
@@ -890,102 +1021,18 @@
     <string name="deck_card_title_watch">What to watch</string>
     <string name="deck_card_title_misreads">Common misreads</string>
     <string name="deck_card_title_wild">In the wild</string>
+    <string name="deck_card_tab_together">Read together</string>
+    <string name="deck_card_tab_misreads">Misreads</string>
     <string name="deck_link_see_all_indicators">See all indicators</string>
     <string name="deck_page_indicator_content_description">Card %1$d of %2$d</string>
     <string name="tutorials_mechanism_stock_analysis">Stock Analysis</string>
-    <string name="tutorials_glossary_all_title">All indicators</string>
     <string name="tutorials_glossary_screen_title">%1$s indicators</string>
     <string name="tutorials_stock_setups_glossary_title">Stock setups</string>
-    <string name="tutorials_hub_section_start">Getting started</string>
-    <string name="tutorials_hub_section_concepts">Standard market concepts</string>
-    <string name="tutorials_hub_section_mechanisms">Market mechanisms</string>
-    <string name="tutorials_hub_section_data">About the data</string>
     <string name="concept_article_in_market_pulse">In Market Pulse</string>
     <string name="concept_article_doesnt_tell_you">What it doesn\'t tell you</string>
-    <string name="deck_tactical_momentum_card1_body">Tactical Momentum measures the short-term pulse of market sentiment and price momentum — how fast things are moving, and whether investors are fearful or complacent.</string>
-    <string name="deck_tactical_momentum_card2_body">• Fear &amp; Greed (CNN) — composite market mood, 0–100\n• Put/Call Ratio — how defensively options traders are positioned\n• SPY RSI 14-day — speed and size of recent price moves\n• SMA Extension 200-day — how far SPY sits above/below its long-term trend\n• VIX — expected 30-day market volatility</string>
-    <string name="deck_tactical_momentum_card3_body">These five signals are most useful when they agree. RSI overbought (&gt;70) alongside low Put/Call (&lt;0.6) and calm VIX (&lt;20) describes a complacent market with little hedging — a different picture than RSI overbought with VIX spiking above 30 (fear entering a stretched market, which tends to resolve more sharply).\n\nAgreement across signals is a stronger read than any single gauge.</string>
-    <string name="deck_tactical_momentum_card4_body" formatted="false">• Whether Fear &amp; Greed sustains an extreme (&gt;75 or &lt;25) across multiple days — brief touches mean less than a stretch\n• SMA Extension crossing +10%: price is running well ahead of its 200-day trend line\n• VIX moving from calm (&lt;20) to elevated (&gt;20) while RSI is still high — the combination that has historically preceded sharper pullbacks</string>
-    <string name="deck_tactical_momentum_card5_body">RSI above 70 is a condition, not a sell signal — strong trends can stay overbought for weeks. Fear &amp; Greed at an extreme doesn\'t mean a reversal is imminent; it means the crowd is leaning hard one way. VIX measures expected volatility, not direction — a high VIX says movement is expected, not which way it goes.</string>
-    <string name="deck_tactical_momentum_card6_body" formatted="false">Scenario: Fear &amp; Greed at 81, Put/Call at 0.55, VIX at 14, RSI at 74, SMA Extension at +12%.\n\nAll five pointing the same direction — elevated risk appetite, low hedging, price stretched above trend. Historically this kind of broad agreement has marked periods where the market was pricing in a lot of good news already. Whether that matters for what you\'re watching is yours to judge.</string>
-    <string name="deck_systemic_risk_card1_body">Systemic Risk tracks the structural stress signals beneath price — credit markets, volatility in bonds, currency strength, commodity signals, and whether the rally has broad participation.</string>
-    <string name="deck_systemic_risk_card2_body">• Yield Curve (10Y−2Y) — gap between long and short Treasury rates\n• Credit Spreads — extra yield demanded for risky corporate bonds\n• MOVE Index — bond-market volatility\n• Copper/Gold Ratio — growth appetite vs. safety demand\n• Consumer Rotation (XLY/XLP) — risk appetite in spending behavior\n• Market Breadth (RSP/SPY) — equal vs. cap-weight S&amp;P performance\n• US Dollar (DXY) — dollar strength, global conditions proxy\n• Crude Oil — inflation/demand signal</string>
-    <string name="deck_systemic_risk_card3_body" formatted="false">Systemic risk tends to show up in credit and bonds before it shows in stocks. Widening credit spreads (&gt;3.0%), elevated MOVE (&gt;100), and an inverted yield curve together describe a market where professionals are already pricing in stress — even when the stock price level hasn\'t moved yet.\n\nBreadth adds another layer: a narrow market (RSP lagging SPY) alongside rising credit spreads means the stress is visible in multiple dimensions simultaneously. The Copper/Gold ratio and Consumer Rotation confirm whether the broader economy is leaning toward growth or defense.</string>
-    <string name="deck_systemic_risk_card4_body" formatted="false">• The yield curve crossing zero (inversion) — historically the most watched recession warning\n• Credit spreads moving above 3.0% (Caution) or 4.0% (Stress) — the bond market repricing default risk\n• Breadth narrowing (RSP consistently lagging SPY) while indices are flat or rising — a rally carried by fewer and fewer stocks</string>
-    <string name="deck_systemic_risk_card5_body">An inverted yield curve predicts a slowdown, not its timing — the gap between inversion and any economic impact has varied from months to over a year. The Copper/Gold and Consumer Rotation ratios are this app\'s own composite lenses, not named Wall Street indicators — treat them as directional, not precise. A strong dollar is a headwind, not a verdict.</string>
-    <string name="deck_systemic_risk_card6_body" formatted="false">Scenario: yield curve at −0.4% (Inverted), credit spreads at 3.8% (approaching Stress), MOVE at 115 (Elevated), breadth Narrowing.\n\nFour different signals from different parts of the market pointing toward stress simultaneously. None guarantees an outcome — but when credit, rates, volatility, and breadth all move the same direction, the market is pricing in something. What you make of it is yours.</string>
-    <string name="deck_valuation_card1_body">Valuation asks whether the price being paid for the market is reasonable relative to what it earns, owns, and yields — and compared to the alternative of holding risk-free Treasuries.</string>
-    <string name="deck_valuation_card2_body">• P/E Ratio (TTM) — price per dollar of trailing earnings\n• Price-to-Book — price relative to net asset value\n• Equity Risk Premium — earnings yield vs. the 10-year Treasury\n• Dividend Yield — income return on the index</string>
-    <string name="deck_valuation_card3_body" formatted="false">These four measures tell the same story from different angles — read them for agreement, not individually. A high P/E alongside a low dividend yield and a shrinking ERP (below 2.0%) describes a market where equities offer little premium over Treasuries and price a lot of future growth already. When P/B also sits in Premium territory (&gt;4.5x), all four are confirming the same \"richly priced\" read.\n\nThe ERP is the most useful single number here — it anchors valuation to the real alternative (Treasuries) rather than to history alone.</string>
-    <string name="deck_valuation_card4_body" formatted="false">• ERP falling below 2.0% — the Dangerous zone where equities offer very little premium over the risk-free rate\n• P/E above 22 alongside rising 10-year yields — multiple compression risk (valuations come under pressure when rates rise)\n• All four gauges in their stretched zones simultaneously — rare, but a strong read when it happens</string>
-    <string name="deck_valuation_card5_body">A low P/E is not automatically cheap — it frequently means the market has already priced in a real concern. Valuation tells you what\'s priced in; it says nothing about when or whether price corrects. These are SPY-level figures, not individual stock valuations. The P/B and dividend yield are blunter tools for a modern index than historically (much S&amp;P value is now intangible).</string>
-    <string name="deck_valuation_card6_body" formatted="false">Scenario: P/E at 24 (Expensive), ERP at 1.6% (Dangerous), dividend yield at 1.3% (Low), 10-year yield rising.\n\nAll four pointing rich — and rates rising means the ERP is compressing further in real time. This describes a market pricing in significant future earnings growth with little margin of safety versus Treasuries. What you conclude from that picture is yours.</string>
-    <string name="deck_macro_vitals_card1_body">Macro Vitals tracks the economy\'s underlying health — inflation, jobs, growth, and the policy rate that sits above all of it. These are the numbers that drive what the Fed does next, which in turn drives everything else.</string>
-    <string name="deck_macro_vitals_card2_body">• CPI YoY — headline inflation vs. a year ago\n• Core PCE YoY + MoM — the Fed\'s preferred inflation gauge, annual + monthly\n• Unemployment Rate — jobless rate trend\n• Nonfarm Payrolls — monthly net jobs added/lost\n• Real GDP — inflation-adjusted economic growth (quarterly)\n• Retail Sales MoM — consumer spending pulse\n• Federal Funds Rate — the Fed\'s policy lever (polarity inverted: rising = red)\n• 10-Year Treasury Yield — market-set benchmark rate (polarity inverted)</string>
-    <string name="deck_macro_vitals_card3_body">The macro picture is a sequence, not a snapshot. Start with inflation (CPI + core PCE) — it sets what the Fed is likely to do. Then jobs (unemployment + payrolls) — a strong labor market lets the Fed stay tighter longer; a weakening one raises the odds of cuts. GDP and retail sales confirm whether the real economy is absorbing the rate environment.\n\nThe 10-year yield is the market\'s real-time vote on where all of this is heading — it moves before the Fed does. Watch for divergence: if payrolls are strong but retail sales are falling, the consumer may be weakening before it shows in job numbers.</string>
-    <string name="deck_macro_vitals_card4_body" formatted="false">• Core PCE MoM accelerating while YoY is still falling — the monthly rate turns before the annual one, earliest inflation signal\n• Unemployment rising from a low base — even a 0.3–0.5% move off a trough has historically been an early slowdown tell\n• 10-year yield moving in the opposite direction to Fed Funds — the market pricing a policy shift before it happens</string>
-    <string name="deck_macro_vitals_card5_body">These are monthly and quarterly figures — a flat line in the app is the release cadence, not stale data. GDP is quarterly; payrolls and CPI are monthly; the 10-year moves continuously. The Fed Funds and 10-year yield colors are polarity-inverted: red means rising (more restrictive), green means falling — don\'t read the color as \"the number went down.\" One strong payrolls print doesn\'t reverse a trend.</string>
-    <string name="deck_macro_vitals_card6_body">Scenario: Core PCE MoM reaccelerating (Hot), unemployment ticking up two months in a row, 10-year yield falling while Fed Funds holds flat.\n\nInflation reaccelerating while the labor market softens and the bond market starts pricing cuts — three signals pointing in different directions. The market is betting the Fed pivots before inflation is fully solved. Whether that bet is right is the question worth watching.</string>
-    <string name="deck_posture_card1_body">Posture reads how professional and institutional money is positioned beneath the surface of price — not what the market is doing, but what the people running large pools of capital are doing about it.</string>
-    <string name="deck_posture_card2_body">• NAAIM Exposure Index — active fund managers\' actual equity exposure\n• Dark Pool Index (DIX) — buy-side share of institutional off-exchange volume\n• Net Liquidity (Fed balance sheet − TGA − Reverse Repo) — system-wide cash</string>
-    <string name="deck_posture_card3_body">Posture is deliberately not price-based — that\'s what makes it useful. The most informative read is divergence: when NAAIM is low (managers defensively positioned) but DIX is rising (institutions quietly buying off-exchange), the surface narrative and the actual behavior are pointing in different directions.\n\nNet Liquidity provides the macro plumbing context — expanding liquidity has historically been a tailwind for risk assets regardless of sentiment. All three agreeing (managers cautious + DIX accumulating + liquidity expanding) describes a setup where the professional positioning backstory is more constructive than the headlines.</string>
-    <string name="deck_posture_card4_body">• NAAIM below 40 (Extreme Fear/Hedged) with DIX above 45 (Accumulation) — the clearest manager-vs-institutional divergence signal\n• Net Liquidity direction flipping from Expanding to Draining — a slow-moving signal but meaningful when it persists\n• NAAIM above 100 (leveraged long) — managers have no dry powder left to push higher from here</string>
-    <string name="deck_posture_card5_body">NAAIM is a weekly survey with a lag — it describes positioning as of last week, not today. Net Liquidity classifies by direction with no dead-band — a tiny move still reads Expanding or Draining, so a single flip means less than a sustained trend. DIX accumulation doesn\'t mean institutions are right; it means they\'re buying. The band cutoffs on all three are this app\'s own (not-backtested) — treat them as directional, not precise thresholds.</string>
-    <string name="deck_posture_card6_body">Scenario: NAAIM at 38 (Extreme Fear), DIX at 47 (Accumulation), Net Liquidity Expanding.\n\nActive managers are heavily hedged while dark-pool institutional buying is elevated and system liquidity is growing. Three signals pointing toward a constructive backstory beneath a fearful surface. Whether that divergence resolves the way it has historically is the question — the app shows you the gap; the conclusion is yours.</string>
-    <string name="deck_positioning_card1_body">Positioning tracks where three distinct crowds stand — retail investors, large futures speculators, and short sellers — each on their own timescale. The value is in seeing where they agree or diverge.\n\nNote: this is different from the \"positioning\" metric in Indicators (which tracks SPY\'s 52-week range). Same word, different data.</string>
-    <string name="deck_positioning_card2_body" formatted="false">• AAII Bull-Bear Spread — weekly retail investor sentiment survey\n• CFTC COT Net %OI + Percentile — large speculator futures positioning (S&amp;P, Nasdaq, Russell), raw and vs. recent history\n• FINRA Short Interest — shares sold short, days to cover, MoM change</string>
-    <string name="deck_positioning_card3_body">The three crowds move on different timescales and with different motivations — retail (AAII) is weekly and emotional, futures speculators (COT) are professional and leveraged, short sellers (FINRA) are committing capital to a specific directional bet.\n\nThe most informative reads are extremes and divergences: retail at peak bearishness (read contrarian) while the COT percentile shows speculator longs near historic highs describes two crowds pulling in opposite directions. When all three are crowded the same way, the risk of an unwind grows — a crowded trade is a fragile one.</string>
-    <string name="deck_positioning_card4_body">• AAII at an extreme (very high bullish or very bearish spread) — historically a contrarian signal, though it can persist\n• COT percentile above 80 or below 20 — speculator positioning at an extreme relative to its own recent history\n• Short interest days-to-cover rising while price is also rising — potential squeeze setup building</string>
-    <string name="deck_positioning_card5_body" formatted="false">AAII is famously unreliable as a timing tool — extreme readings have preceded reversals, but the lag varies enormously. COT data is released Friday for Tuesday\'s positions — it\'s inherently lagged. FINRA short interest is twice-monthly; treat it as a slow-moving backdrop, not a real-time read. The app reports raw short shares and month-over-month change, not short-%-of-float (that data isn\'t available from this source).</string>
-    <string name="deck_positioning_card6_body" formatted="false">Scenario: AAII spread at −35% (very bearish retail), COT percentile at 22 (speculators near historically light longs), short interest days-to-cover rising.\n\nAll three crowds leaning the same direction — defensively. Historically, this kind of broad crowd agreement on the bearish side has been a contrarian data point worth noting. Whether it is here is yours to judge.</string>
-    <string name="deck_stock_analysis_card1_body">Stock Analysis synthesizes price trend, technical setup, valuation, and macro context for individual stocks into a plain-language read updated after each trading session and a deeper dive every two weeks.</string>
-    <string name="deck_stock_analysis_card2_body">• Setup classification (Momentum / Mean Reversion / Ranging / Warning)\n• SMA trend (50-day and 200-day relative to price)\n• Key levels (support/resistance from recent price history)\n• Valuation (P/E vs. sector median — sector-relative, not market-wide)\n• Macro alignment (whether the stock\'s setup aligns with the macro regime)\n• Forward calls (how previous setups actually resolved over 5 sessions)\n• Daily digest (end-of-day AI summary, news + price action)\n• Deep dive (biweekly extended analysis across trend, valuation, scenarios)</string>
-    <string name="deck_stock_analysis_card3_body">Start with the setup classification — it frames everything else. A Momentum setup in a risk-on macro regime, with price above both moving averages and sector-relative P/E not at an extreme, is a coherent picture. The same Momentum setup in a risk-off regime with stretched valuation introduces tension — the setup and the backdrop are pulling in different directions.\n\nKey levels give you the specific price context; forward calls give you the honest record of how similar setups have resolved in this stock before.</string>
-    <string name="deck_stock_analysis_card4_body">• Whether the setup classification and the macro regime agree or conflict — alignment is cleaner; conflict raises the question of which one is right\n• How previous forward calls resolved — a stock with a strong completion rate on Momentum calls is a different proposition than one where those calls have historically faded\n• Sector-relative P/E diverging sharply from the absolute P/E — the stock can look cheap vs. the market and expensive vs. its peers</string>
-    <string name="deck_stock_analysis_card5_body">The setup classification names a condition in price behavior — it is not a prediction of what comes next. \"Momentum\" means the stock has been trending; it says nothing about whether the trend continues. The deep dive is AI-written from the available data — it can miss context, misread a conflicting signal, or overstate confidence. Cross-check anything in the deep dive against the underlying numbers on the same screen.</string>
-    <string name="deck_stock_analysis_card6_body" formatted="false">Scenario: a stock classified Momentum, price above both SMAs, P/E 10% below sector median, macro regime risk-on, last three forward calls all completed positive.\n\nAll the signals a Momentum read would want to see are present. The forward-call history shows this specific stock has followed through before in similar conditions. Whether it does again is the question — the app shows you the setup, the conclusion is yours.</string>
-    <string name="concept_support_resistance_title">Support &amp; Resistance</string>
-    <string name="concept_support_resistance_s0_body">Price levels where buying or selling has repeatedly shown up — the idea being that enough market participants remember those levels that behavior tends to repeat near them. The 200-day SMA is the single most-watched support level on any major stock or index. \"Holding\" a level means price approached it and buyers stepped in. \"Breaking\" it means the level failed and the next one becomes relevant. Neither is permanent — levels get broken regularly.</string>
-    <string name="concept_support_resistance_s1_body">The SMA Extension gauge shows how far SPY sits above or below its 200-day. The Key Levels section on each stock shows where recent support and resistance have formed from price history — computed from data, not drawn by hand.</string>
-    <string name="concept_support_resistance_s2_body">A support level is a price where something happened before, not a guarantee it happens again.</string>
-    <string name="concept_mean_reversion_momentum_title">Mean Reversion vs. Momentum</string>
-    <string name="concept_mean_reversion_momentum_s0_body">Two opposing forces in markets. Momentum says what\'s moving tends to keep moving — trending stocks attract more buyers, and trends can persist longer than expected. Mean reversion says extreme moves tend to snap back toward an average — a stock or index that has moved very far very fast has historically been more likely to pause or reverse than to keep accelerating at the same rate.\n\nNeither is universally true. The regime matters: momentum strategies have worked better in trending macro environments; mean reversion has worked better in range-bound ones.</string>
-    <string name="concept_mean_reversion_momentum_s1_body">Every stock is classified as Momentum, Mean Reversion, Ranging, or Warning based on its current price behavior. Forward calls track how those classifications have resolved for that specific stock — the honest record of what happened next.</string>
-    <string name="concept_mean_reversion_momentum_s2_body">Which force is dominant right now. The classification names the current condition; the resolution is unknown.</string>
-    <string name="concept_earnings_impact_title">Earnings Impact on Price</string>
-    <string name="concept_earnings_impact_s0_body">Markets are forward-looking — a stock\'s price reflects what investors expect about future earnings, not just current ones. This creates a \"buy the rumor, sell the news\" dynamic: if a company reports strong earnings but the result was already expected, the stock may not move — or may fall. What moves a stock is the gap between the reported number and what was expected (\"the surprise\").\n\nStocks often move in the days before an earnings report as traders position around expectations, and then sharply at the report itself.</string>
-    <string name="concept_earnings_impact_s1_body">The fundamentals section shows the next earnings date and whether it\'s pre-market or after-close. The daily digest after a report summarizes the result and initial reaction.</string>
-    <string name="concept_earnings_impact_s2_body">How big the post-earnings move will be. Implied moves from options are one way the market prices that uncertainty — the app doesn\'t currently show this.</string>
-    <string name="concept_sector_rotation_title">Sector Rotation</string>
-    <string name="concept_sector_rotation_s0_body">As the economic cycle shifts, different sectors tend to lead and lag. Early expansion: cyclicals and financials. Late expansion: energy and materials. Slowdown: healthcare and staples. Recession: utilities and consumer staples. This isn\'t a rule — it\'s a tendency, and the cycle rarely follows a clean script.\n\nThe XLY/XLP ratio (Consumer Discretionary vs. Consumer Staples) is one of the cleanest real-time reads on which direction the rotation is leaning — are investors buying wants or needs?</string>
-    <string name="concept_sector_rotation_s1_body">Consumer Rotation in the Systemic Risk gauge tracks this directly. A ratio above 1.7 (Offensive) suggests risk appetite in consumer spending; below 1.25 (Flight to Safety) suggests defense.</string>
-    <string name="concept_sector_rotation_s2_body">Where in the cycle we are — that requires combining this signal with macro, credit, and earnings data.</string>
-    <string name="concept_rate_sensitivity_title">Rate Sensitivity by Asset Class</string>
-    <string name="concept_rate_sensitivity_s0_body" formatted="false">Not all stocks respond to rising rates the same way. Growth stocks (whose value depends heavily on future earnings) are mathematically more sensitive to rising rates — higher rates discount those future earnings more heavily, compressing their valuations. Value stocks, financials, and dividend payers tend to be less rate-sensitive or even rate-benefiting in some cases. Bonds fall in price when rates rise (a fixed coupon is worth less when new bonds pay more).\n\nThe Equity Risk Premium is the cleanest single measure of how rate moves are affecting the relative attractiveness of stocks vs. Treasuries — when it falls below 2%, bonds are offering nearly as much yield as equities, with less risk.</string>
-    <string name="concept_rate_sensitivity_s1_body">Fed Funds and the 10-year are in Macro Vitals (polarity inverted — rising = red). ERP is in the Valuation gauge.</string>
-    <string name="concept_rate_sensitivity_s2_body">Which specific stocks in your watchlist are most exposed — that requires knowing their earnings duration and leverage, which the app doesn\'t compute.</string>
-    <string name="concept_breadth_divergence_title">Breadth Divergence</string>
-    <string name="concept_breadth_divergence_s0_body">A market index can rise while most of its constituent stocks fall — if a handful of very large companies go up enough, they pull the cap-weighted index with them. This is breadth divergence: the index is up, but the average stock isn\'t. It\'s historically been read as a sign that a rally is becoming fragile — fewer stocks are participating, which means fewer buyers sustaining it.\n\nThe equal-weight vs. cap-weight comparison (RSP vs. SPY) makes this visible directly: if RSP is lagging SPY, the mega-caps are doing the work alone.</string>
-    <string name="concept_breadth_divergence_s1_body">Market Breadth tracks the 1-day change in RSP/SPY. A sustained Narrowing reading (RSP consistently lagging) is more meaningful than a single day.</string>
-    <string name="concept_breadth_divergence_s2_body">How long a narrow rally can persist — it can go on for months. Breadth is a condition, not a timer.</string>
     <string name="screen_guide_show_more">Show More</string>
+    <string name="screen_guide_learn_about_market">Learn about Market</string>
     <string name="carousel_next_card">Next card</string>
     <string name="carousel_previous_card">Previous card</string>
     <string name="concept_card_title_key_ideas">Key ideas</string>
-    <string name="concept_sentiment_positioning_title">Sentiment &amp; Positioning</string>
-    <string name="concept_sentiment_positioning_s0_body">Markets move on more than fundamentals — how investors feel about risk shifts prices too, sometimes faster than the underlying data changes. A handful of indicators try to measure that feeling directly, mostly by looking at what investors are actually doing with their money rather than what they say.</string>
-    <string name="concept_sentiment_positioning_s1_body">• Fear &amp; Greed and the Put/Call ratio (CNN): gauge short-term market mood. Extreme fear has historically coincided with periods where selling pressure was overdone, extreme greed with periods of elevated risk-taking — neither is a timing signal on its own, and both can stay at an extreme for a long time.\n• NAAIM Exposure Index: tracks how invested active fund managers actually are, week to week — a direct measure of professional positioning rather than a survey response.\n• AAII Sentiment Survey: measures individual investor sentiment (bullish/neutral/bearish) — a widely watched but famously unreliable contrarian indicator. Extreme readings in either direction are sometimes read as a sign a consensus view has gotten crowded, not as confirmation the consensus is right.\n• CFTC Commitment of Traders (COT) report and FINRA short interest data: show what large futures traders and short sellers are positioned for — institutional-level positioning that moves on a different timescale than retail sentiment.</string>
-    <string name="concept_sentiment_positioning_s2_body">This family appears in Tactical Momentum (Fear &amp; Greed, Put/Call) and in the Posture and Positioning gauges. Posture combines NAAIM, SqueezeMetrics\' Dark Index (DIX), and net liquidity signals; Positioning combines AAII, COT futures data, and FINRA short interest. Each is one input among several — none is used alone anywhere in the app.</string>
-    <string name="concept_macro_rates_title">Macro &amp; Interest Rates</string>
-    <string name="concept_macro_rates_s0_body">Interest rates set the \"cost of money\" for the entire economy, so changes to them ripple into nearly everything else. When the Federal Reserve raises rates, borrowing gets more expensive for companies and consumers alike — which can slow spending and earnings growth, and tends to make already-established cash flows (like bonds, or stocks priced heavily on future growth) relatively more attractive than before. Rate cuts generally work in the opposite direction. Neither effect is instant or guaranteed — markets often move on the expectation of a rate change well before the change itself happens.</string>
-    <string name="concept_macro_rates_s1_body">• 10-year and 2-year Treasury yields: the spread between them is widely watched because an inverted yield curve (short-term yields above long-term) has historically preceded economic slowdowns — though the timing and reliability of that relationship varies a lot across cycles.\n• Inflation data (CPI, core PCE): a primary input into what the Fed does next — hotter-than-expected readings tend to raise the odds of tighter policy, and vice versa.</string>
-    <string name="concept_macro_rates_s2_body">This appears in Macro Vitals (the Fed funds rate, the 10-year yield, CPI and core PCE inflation, unemployment) and, for the yield curve, in Systemic Risk — all built from FRED data, the same source the Fed itself publishes.</string>
-    <string name="concept_technical_concepts_title">Technical Concepts</string>
-    <string name="concept_technical_concepts_s0_body">Technical analysis looks at price and volume patterns themselves, on the theory that price action reflects everything the market currently knows or believes, even before that shows up elsewhere.</string>
-    <string name="concept_technical_concepts_s1_body">• Moving averages: smooth out day-to-day noise to show the underlying trend — the 50-day and 200-day are the most widely watched. Price above its 200-day average is commonly read as a sign the longer-term trend is up, below it the opposite. A \"golden cross\" (50-day crossing above the 200-day) and \"death cross\" (the reverse) are watched as longer-term trend-change signals, though both can lag the actual turn by weeks.\n• Support and resistance: price levels where a stock has repeatedly stopped falling or stopped rising in the past — the idea being that enough market participants remember those levels that they influence behavior again next time price approaches them. Neither is a hard floor or ceiling; both get broken regularly.</string>
-    <string name="concept_technical_concepts_s2_body">This is the SMA card and the momentum/trend classification on each stock\'s detail screen — computed directly from price history, not from an AI\'s read of a chart. The forward calls feature tracks how a classified setup (e.g. a momentum or mean-reversion read) actually played out over the following trading sessions — a historical record of the app\'s own calls, not a prediction of what comes next.</string>
-    <string name="concept_valuation_basics_title">Valuation Basics</string>
-    <string name="concept_valuation_basics_s0_body">Valuation asks a different question than sentiment or technicals: is the price being paid reasonable relative to what the company actually earns? The P/E ratio (price divided by earnings per share) is the most common starting point — a \"high\" P/E means the market is paying more per dollar of current earnings, often because it expects faster future growth; a \"low\" P/E can mean the opposite, or that the market has real concerns the price hasn\'t priced out.</string>
-    <string name="concept_valuation_basics_s1_body">• Sector-relative P/E: comparing a stock\'s P/E to its own sector, rather than to the market as a whole, controls for the fact that some industries structurally trade at higher multiples than others (growth software vs. utilities, for example) — a stock that looks \"cheap\" against the whole market can be expensive against its actual peers, and vice versa.\n• Low valuation isn\'t automatically a bargain: it\'s frequently a sign the market has already priced in a real risk. Valuation is one lens among several, not a standalone verdict.</string>
-    <string name="concept_valuation_basics_s2_body">This is the sector-relative P/E metric on each stock\'s fundamentals — the stock\'s own P/E measured against its sector\'s median, computed from the same underlying data as the headline P/E figure, not a separate estimate.</string>
 </resources>

@@ -118,6 +118,10 @@ fun SettingsScreen(
                     onClick = { onMoreItemClick(SettingsMoreItem.ABOUT) }
                 )
                 SettingsMoreRow(
+                    label = stringResource(id = R.string.settings_item_coming_up),
+                    onClick = { onMoreItemClick(SettingsMoreItem.COMING_UP) }
+                )
+                SettingsMoreRow(
                     label = stringResource(id = R.string.settings_item_share),
                     onClick = { onMoreItemClick(SettingsMoreItem.SHARE) },
                     trailingIconRes = R.drawable.ic_share
@@ -129,13 +133,13 @@ fun SettingsScreen(
 }
 
 /**
- * All six "More" rows are real, navigable destinations -- Data & Sync and About are static content
- * screens; Notifications is the push-preferences screen. Share isn't
+ * All "More" rows but Share are real, navigable destinations -- Data & Sync, About, and Coming Up
+ * are static content screens; Notifications is the push-preferences screen. Share isn't
  * a destination: it opens the system share sheet. Terms & Conditions and Privacy Policy are their
  * own top-level rows (no intermediate "Legal" hub screen) linking to the same two documents shown
  * once during onboarding; Tutorials is its own screen.
  */
-enum class SettingsMoreItem { NOTIFICATIONS, TUTORIALS, TERMS_CONDITIONS, PRIVACY_POLICY, DATA_SYNC, ABOUT, SHARE }
+enum class SettingsMoreItem { NOTIFICATIONS, TUTORIALS, TERMS_CONDITIONS, PRIVACY_POLICY, DATA_SYNC, ABOUT, COMING_UP, SHARE }
 
 @Composable
 private fun SettingsMoreRow(

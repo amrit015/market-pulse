@@ -25,22 +25,28 @@ import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.components.PulseBackTitleRow
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
+import com.marketlabs.pulse.ui.components.tutorials.TutorialsHubGrid
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 /**
- * Per-mechanism indicator list (the target of a mechanism deck's last card) -- stateless; `TutorialsGaugesRoute` resolves
- * `uiState` from `MetricGlossaryProvider` via the ViewModel. Definitions render exactly as bundled
- * (`what_it_is` only, not the fuller what-it-is/how-to-read/bands/gotchas shape the real per-metric
- * detail pages show) -- this is a browse/reference list, not a replacement for tapping into a gauge's
- * own detail page for the full breakdown. No `Scaffold`/`TopAppBar`, same as every other screen
- * reached from Settings (see `DocumentSectionsScreen`'s doc comment).
+ * Per-mechanism indicator list (the target of a mechanism deck's last card, "See all indicators")
+ * -- stateless; `TutorialsGaugesRoute` resolves `uiState` from `IndicatorArticlesProvider` via the
+ * ViewModel. Each gauge is now a [TutorialsHubGrid] tile (title + one-line subtitle, same tile the
+ * Learn hub uses elsewhere) that pushes the gauge's own full `indicator_articles.json` article via
+ * [onNavigateToArticle] -- this screen used to render a short `metric_glossary.json` blurb inline
+ * with nowhere further to tap; it's now a directory into the fuller articles instead. The intro
+ * card above the grid is per-category ([TutorialsGaugeCategoryUi.introRes]), not one fixed string
+ * repeated for every pillar, so it can name that pillar's own gauges rather than generic examples.
+ * No `Scaffold`/`TopAppBar`, same as every other screen reached from Settings (see
+ * `DocumentSectionsScreen`'s doc comment).
  */
 @Composable
 fun TutorialsGaugesScreen(
     title: String,
     uiState: TutorialsGaugesUiState,
-    onNavigateUp: () -> Unit
+    onNavigateUp: () -> Unit,
+    onNavigateToArticle: (String) -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -50,18 +56,18 @@ fun TutorialsGaugesScreen(
     ) {
         PulseBackTitleRow(title = title, onNavigateUp = onNavigateUp)
         Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
-            // 💡 PulseCard(DATA) -- this app's card system, matching the "one card per list entry"
-            // shape every other glossary/reference list in the app uses.
-            PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = stringResource(id = R.string.tutorials_gauges_intro),
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))
-                )
-            }
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_xlarge)))
-
             uiState.categories.forEach { category ->
+                // 💡 PulseCard(DATA) -- this app's card system, matching the "one card per intro"
+                // shape every other glossary/reference list in the app uses.
+                PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = stringResource(id = category.introRes),
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))
+                    )
+                }
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_xlarge)))
+
                 // One mechanism per screen now, so the category heading would just repeat the title.
                 if (uiState.categories.size > 1) {
                     Text(
@@ -72,27 +78,15 @@ fun TutorialsGaugesScreen(
                     Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
                 }
 
-                category.gauges.forEach { gauge ->
-                    PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
-                        Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
-                            Text(
-                                text = stringResource(id = gauge.titleRes),
-                                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
-                            )
-                            Text(
-                                text = gauge.whatItIs,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = LocalPulseColors.current.onSurfaceMuted,
-                                modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_tiny))
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
-                }
+                TutorialsHubGrid(
+                    items = category.gauges,
+                    title = { stringResource(id = it.titleRes) },
+                    subtitle = { it.subtitle },
+                    onClick = { onNavigateToArticle(it.metricId) }
+                )
 
-                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_xlarge)))
             }
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_xlarge)))
         }
     }
 }
@@ -105,10 +99,12 @@ private val previewUiState = TutorialsGaugesUiState(
     categories = listOf(
         TutorialsGaugeCategoryUi(
             titleRes = R.string.tutorials_gauges_category_tactical_momentum,
+            introRes = R.string.tutorials_gauges_intro_tactical_momentum,
             gauges = listOf(
                 TutorialsGaugeUi(
+                    metricId = "fear_and_greed",
                     titleRes = R.string.tutorials_gauge_title_fear_and_greed,
-                    whatItIs = "CNN's blend of 7 indicators into a single 0-100 score of immediate market psychology."
+                    subtitle = "CNN's composite mood gauge — 0 to 100, from Extreme Fear to Extreme Greed."
                 )
             )
         )

@@ -27,6 +27,7 @@ fun SettingsRoute(
     onNavigateToTerms: () -> Unit,
     onNavigateToPrivacyPolicy: () -> Unit,
     onNavigateToTutorials: () -> Unit,
+    onNavigateToComingUp: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -44,6 +45,7 @@ fun SettingsRoute(
                 SettingsMoreItem.TERMS_CONDITIONS -> onNavigateToTerms()
                 SettingsMoreItem.PRIVACY_POLICY -> onNavigateToPrivacyPolicy()
                 SettingsMoreItem.TUTORIALS -> onNavigateToTutorials()
+                SettingsMoreItem.COMING_UP -> onNavigateToComingUp()
                 SettingsMoreItem.SHARE -> shareApp(context)
             }
         }

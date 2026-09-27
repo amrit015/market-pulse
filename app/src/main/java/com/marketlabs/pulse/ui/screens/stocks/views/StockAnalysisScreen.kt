@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
@@ -18,7 +17,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
@@ -30,6 +28,7 @@ import com.marketlabs.pulse.storage.model.stocks.StockPreview
 import com.marketlabs.pulse.ui.common.UiError
 import com.marketlabs.pulse.ui.components.DisclaimerFooter
 import com.marketlabs.pulse.ui.components.PulseLoadingIndicator
+import com.marketlabs.pulse.ui.components.rememberPerTabLazyListStates
 import com.marketlabs.pulse.ui.screens.stocks.components.StockPreviewCard
 import com.marketlabs.pulse.ui.screens.stocks.isIndexOrEtf
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
@@ -90,7 +89,7 @@ fun StockAnalysisScreen(
         start = paddingLarge,
         end = paddingLarge
     )
-    val lazyListStates = remember { List(StockAnalysisTab.entries.size) { LazyListState() } }
+    val lazyListStates = rememberPerTabLazyListStates(StockAnalysisTab.entries.size)
 
     Box(
         modifier = modifier

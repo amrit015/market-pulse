@@ -1,116 +1,55 @@
 package com.marketlabs.pulse.ui.screens.tutorials
 
-import androidx.annotation.StringRes
-import com.marketlabs.pulse.R
-
-/** An inline diagram a concept card can carry. */
-enum class ConceptDiagram { SMA_EXTENSION, YIELD_CURVE }
-
-/** One card of a concept article: a heading, its body text, and an optional diagram. */
-data class ConceptCard(
-    @param:StringRes val titleRes: Int,
-    @param:StringRes val bodyRes: Int,
-    val diagram: ConceptDiagram? = null
-)
+/** The sub-heading a [ConceptArticle] is listed under, within the Tutorials hub's "Market concepts"
+ * section. [jsonKey] is both `learn_content.json`'s `market_concepts` grouping key (readability
+ * only, see [com.marketlabs.pulse.core.learn.LearnContentJson]'s own doc comment) and the key into
+ * that same file's `market_concepts_subgroups` map, which is where this group's own title/subtitle
+ * actually live -- this enum carries no display copy of its own. */
+enum class ConceptSubGroup(val jsonKey: String) {
+    CYCLES_AND_STRUCTURE("cycles_and_structure"),
+    SENTIMENT_AND_BEHAVIOUR("sentiment_and_behaviour"),
+    VALUATION_AND_RATES("valuation_and_rates"),
+    RISK_AND_PRICE_ACTION("risk_and_price_action"),
+    MARKET_FUNDAMENTALS("market_fundamentals")
+}
 
 /**
- * The standard market concept articles (Tutorials -> Standard market concepts), each shown as a
- * card carousel. [routeKey] is the stable navigation-argument value.
+ * The concept articles shown in the Tutorials hub's "Market concepts" section, each as a card
+ * carousel. [routeKey] is the stable navigation-argument value, and the key into
+ * `learn_content.json`'s `market_concepts` entries (via `LearnContentProvider` -- see
+ * `TutorialsConceptScreen` for where the title/cards actually get resolved). [subGroup] picks which
+ * sub-heading lists it in the hub -- keep this in sync by hand with whichever group the JSON file
+ * nests the same [routeKey] under; see `LearnContentJson`'s own doc comment for why the file
+ * duplicates this grouping instead of deriving it from here.
  *
- * Two shapes: the broad topic overviews (sentiment, macro, technicals, valuation) are "What this
- * is" / "Key ideas" / "In Market Pulse"; the focused concept articles are "What this is" /
- * "In Market Pulse" / "What it doesn't tell you".
+ * Every article shares one card shape -- "What this is" / "Key ideas" / "In Market Pulse" /
+ * "What it doesn't tell you" -- so there's nothing else to carry per entry.
  */
-enum class ConceptArticle(
-    val routeKey: String,
-    @param:StringRes val titleRes: Int,
-    val cards: List<ConceptCard>
-) {
-    SENTIMENT_POSITIONING("sentiment_positioning", R.string.concept_sentiment_positioning_title, overview("sentiment_positioning")),
-    MACRO_RATES("macro_rates", R.string.concept_macro_rates_title, overview("macro_rates", ConceptDiagram.YIELD_CURVE)),
-    TECHNICAL_CONCEPTS("technical_concepts", R.string.concept_technical_concepts_title, overview("technical_concepts", ConceptDiagram.SMA_EXTENSION)),
-    VALUATION_BASICS("valuation_basics", R.string.concept_valuation_basics_title, overview("valuation_basics")),
-    SUPPORT_RESISTANCE(
-        "support_resistance", R.string.concept_support_resistance_title,
-        focused(
-            R.string.concept_support_resistance_s0_body, R.string.concept_support_resistance_s1_body,
-            R.string.concept_support_resistance_s2_body, ConceptDiagram.SMA_EXTENSION
-        )
-    ),
-    MEAN_REVERSION_MOMENTUM(
-        "mean_reversion_momentum", R.string.concept_mean_reversion_momentum_title,
-        focused(
-            R.string.concept_mean_reversion_momentum_s0_body, R.string.concept_mean_reversion_momentum_s1_body,
-            R.string.concept_mean_reversion_momentum_s2_body
-        )
-    ),
-    EARNINGS_IMPACT(
-        "earnings_impact", R.string.concept_earnings_impact_title,
-        focused(
-            R.string.concept_earnings_impact_s0_body, R.string.concept_earnings_impact_s1_body,
-            R.string.concept_earnings_impact_s2_body
-        )
-    ),
-    SECTOR_ROTATION(
-        "sector_rotation", R.string.concept_sector_rotation_title,
-        focused(
-            R.string.concept_sector_rotation_s0_body, R.string.concept_sector_rotation_s1_body,
-            R.string.concept_sector_rotation_s2_body
-        )
-    ),
-    RATE_SENSITIVITY(
-        "rate_sensitivity", R.string.concept_rate_sensitivity_title,
-        focused(
-            R.string.concept_rate_sensitivity_s0_body, R.string.concept_rate_sensitivity_s1_body,
-            R.string.concept_rate_sensitivity_s2_body
-        )
-    ),
-    BREADTH_DIVERGENCE(
-        "breadth_divergence", R.string.concept_breadth_divergence_title,
-        focused(
-            R.string.concept_breadth_divergence_s0_body, R.string.concept_breadth_divergence_s1_body,
-            R.string.concept_breadth_divergence_s2_body
-        )
-    );
+enum class ConceptArticle(val routeKey: String, val subGroup: ConceptSubGroup) {
+    BULL_BEAR_MARKETS("bull_bear_markets", ConceptSubGroup.CYCLES_AND_STRUCTURE),
+    MARKET_TOPS("market_tops", ConceptSubGroup.CYCLES_AND_STRUCTURE),
+    MARKET_BOTTOMS_CAPITULATION("market_bottoms_capitulation", ConceptSubGroup.CYCLES_AND_STRUCTURE),
+    MARKET_PHASES("market_phases", ConceptSubGroup.CYCLES_AND_STRUCTURE),
+    CONTRARIAN_INVESTING("contrarian_investing", ConceptSubGroup.SENTIMENT_AND_BEHAVIOUR),
+    ROLE_OF_LIQUIDITY("role_of_liquidity", ConceptSubGroup.SENTIMENT_AND_BEHAVIOUR),
+    SENTIMENT_POSITIONING("sentiment_positioning", ConceptSubGroup.SENTIMENT_AND_BEHAVIOUR),
+    PE_EXPANSION_CONTRACTION("pe_expansion_contraction", ConceptSubGroup.VALUATION_AND_RATES),
+    GROWTH_VS_VALUE("growth_vs_value", ConceptSubGroup.VALUATION_AND_RATES),
+    FED_POLICY_CYCLES("fed_policy_cycles", ConceptSubGroup.VALUATION_AND_RATES),
+    VALUATION_BASICS("valuation_basics", ConceptSubGroup.VALUATION_AND_RATES),
+    VOLATILITY_REGIMES("volatility_regimes", ConceptSubGroup.RISK_AND_PRICE_ACTION),
+    RELATIVE_STRENGTH("relative_strength", ConceptSubGroup.RISK_AND_PRICE_ACTION),
+    CORRELATION_BREAKDOWN("correlation_breakdown", ConceptSubGroup.RISK_AND_PRICE_ACTION),
+    MACRO_RATES("macro_rates", ConceptSubGroup.MARKET_FUNDAMENTALS),
+    TECHNICAL_CONCEPTS("technical_concepts", ConceptSubGroup.MARKET_FUNDAMENTALS),
+    SUPPORT_RESISTANCE("support_resistance", ConceptSubGroup.MARKET_FUNDAMENTALS),
+    MEAN_REVERSION_MOMENTUM("mean_reversion_momentum", ConceptSubGroup.MARKET_FUNDAMENTALS),
+    EARNINGS_IMPACT("earnings_impact", ConceptSubGroup.MARKET_FUNDAMENTALS),
+    SECTOR_ROTATION("sector_rotation", ConceptSubGroup.MARKET_FUNDAMENTALS),
+    RATE_SENSITIVITY("rate_sensitivity", ConceptSubGroup.MARKET_FUNDAMENTALS),
+    BREADTH_DIVERGENCE("breadth_divergence", ConceptSubGroup.MARKET_FUNDAMENTALS);
 
     companion object {
         fun fromRouteKey(key: String?): ConceptArticle? = entries.firstOrNull { it.routeKey == key }
     }
 }
-
-private fun focused(
-    @StringRes intro: Int,
-    @StringRes inMarketPulse: Int,
-    @StringRes doesntTell: Int,
-    inMarketPulseDiagram: ConceptDiagram? = null
-) = listOf(
-    ConceptCard(R.string.deck_card_title_what_this_is, intro),
-    ConceptCard(R.string.concept_article_in_market_pulse, inMarketPulse, inMarketPulseDiagram),
-    ConceptCard(R.string.concept_article_doesnt_tell_you, doesntTell)
-)
-
-/** The overview shape; bodies are looked up by name because each topic's three strings share a prefix. */
-private fun overview(key: String, keyIdeasDiagram: ConceptDiagram? = null) = listOf(
-    ConceptCard(R.string.deck_card_title_what_this_is, overviewBody(key, 0)),
-    ConceptCard(R.string.concept_card_title_key_ideas, overviewBody(key, 1), keyIdeasDiagram),
-    ConceptCard(R.string.concept_article_in_market_pulse, overviewBody(key, 2))
-)
-
-@StringRes
-private fun overviewBody(key: String, index: Int): Int = when (key) {
-    "sentiment_positioning" -> listOf(
-        R.string.concept_sentiment_positioning_s0_body, R.string.concept_sentiment_positioning_s1_body,
-        R.string.concept_sentiment_positioning_s2_body
-    )
-    "macro_rates" -> listOf(
-        R.string.concept_macro_rates_s0_body, R.string.concept_macro_rates_s1_body, R.string.concept_macro_rates_s2_body
-    )
-    "technical_concepts" -> listOf(
-        R.string.concept_technical_concepts_s0_body, R.string.concept_technical_concepts_s1_body,
-        R.string.concept_technical_concepts_s2_body
-    )
-    else -> listOf(
-        R.string.concept_valuation_basics_s0_body, R.string.concept_valuation_basics_s1_body,
-        R.string.concept_valuation_basics_s2_body
-    )
-}[index]

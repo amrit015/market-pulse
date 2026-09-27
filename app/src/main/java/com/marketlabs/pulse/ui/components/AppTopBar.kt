@@ -71,7 +71,10 @@ fun AppTopBar(
     // MainActivity hasn't supplied guide copy for yet, in which case this bar shows the gear icon
     // only.
     guideContent: ScreenGuideContent? = null,
+    showGuide: Boolean = false,
+    onGuideVisibilityChange: (Boolean) -> Unit = {},
     onGuideShowMore: (List<Mechanism>) -> Unit = {},
+    onGuideLearnAboutMarket: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     // 💡 `colorScheme.background`, the same color every screen's own content sits on, so the bar
@@ -100,7 +103,13 @@ fun AppTopBar(
             },
             actions = {
                 if (guideContent != null) {
-                    ScreenGuideAction(content = guideContent, onShowMore = onGuideShowMore)
+                    ScreenGuideAction(
+                        content = guideContent,
+                        showGuide = showGuide,
+                        onShowGuideChange = onGuideVisibilityChange,
+                        onShowMore = onGuideShowMore,
+                        onLearnAboutMarket = onGuideLearnAboutMarket
+                    )
                 }
                 IconButton(onClick = onSettingsClick) {
                     Icon(

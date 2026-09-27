@@ -38,6 +38,7 @@ import com.marketlabs.pulse.ui.components.DisclaimerFooter
 import com.marketlabs.pulse.ui.components.charts.ChartRangePicker
 import com.marketlabs.pulse.ui.components.charts.IntradayPeriodChart
 import com.marketlabs.pulse.ui.components.charts.PeriodChart
+import com.marketlabs.pulse.ui.components.rememberPerTabLazyListStates
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.Consider
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.DeepStudy
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.DigestCard
@@ -134,7 +135,7 @@ fun StockDetailScreen(
         start = paddingLarge,
         end = paddingLarge
     )
-    val lazyListStates = remember { List(DetailTab.entries.size) { LazyListState() } }
+    val lazyListStates = rememberPerTabLazyListStates(DetailTab.entries.size)
 
     // 💡 Disables the pager's own swipe-between-tabs for as long as a press/drag-to-scrub gesture
     // is active on the period chart (Technicals tab) -- both are horizontal gestures, so without

@@ -6,6 +6,7 @@
     <dimen name="padding_large">16dp</dimen>
     <dimen name="padding_xlarge">20dp</dimen>
     <dimen name="padding_xxlarge">24dp</dimen>
+    <dimen name="padding_xxxlarge">32dp</dimen>
     <dimen name="corner_radius_chip">6dp</dimen>
     <dimen name="border_thin">1dp</dimen>
     <dimen name="border_thinner">2dp</dimen>
@@ -44,6 +45,7 @@
 
     <dimen name="gauge_size_large">160dp</dimen>
     <dimen name="tab_indicator_width">40dp</dimen>
+    <dimen name="tab_row_scroll_peek_margin">48dp</dimen>
     <dimen name="tab_indicator_height">4dp</dimen>
     <dimen name="tab_indicator_corner">4dp</dimen>
 
@@ -101,4 +103,29 @@
     <dimen name="tutorial_diagram_height">160dp</dimen>
     <dimen name="tutorial_diagram_height_tall">220dp</dimen>
     <dimen name="tutorial_diagram_gauge_bar_height">20dp</dimen>
+
+    <!-- Learn diagram preset library (ui/components/diagrams) - shared geometry reused across
+         the 9 primitives so an individual preset file only carries its own layout decisions. -->
+    <dimen name="diagram_stroke_primary">2dp</dimen>
+    <dimen name="diagram_stroke_secondary">1dp</dimen>
+    <dimen name="diagram_stroke_emphasis">2.5dp</dimen>
+    <dimen name="diagram_dot_radius">3dp</dimen>
+    <dimen name="diagram_dot_radius_emphasis">5dp</dimen>
+    <dimen name="diagram_chevron_size">6dp</dimen>
+    <dimen name="diagram_tick_length">8dp</dimen>
+    <dimen name="diagram_axis_inset">20dp</dimen>
+    <dimen name="diagram_axis_strip_height">56dp</dimen>
+    <dimen name="diagram_bar_corner_radius">4dp</dimen>
+    <dimen name="diagram_operator_disc_size">20dp</dimen>
+    <dimen name="diagram_wheel_label_max_width">96dp</dimen>
+    <dimen name="diagram_flow_connector_width">32dp</dimen>
+    <dimen name="diagram_flow_staircase_indent">24dp</dimen>
+    <dimen name="diagram_flow_number_badge_size">20dp</dimen>
+    <dimen name="diagram_cadence_track_height">24dp</dimen>
+    <dimen name="diagram_correlation_row_label_width">64dp</dimen>
+    <dimen name="diagram_correlation_column_label_height">32dp</dimen>
+
+    <!-- Onboarding carousel page-indicator pill. -->
+    <dimen name="onboarding_dot_size">8dp</dimen>
+    <dimen name="onboarding_dot_active_width">24dp</dimen>
 </resources>

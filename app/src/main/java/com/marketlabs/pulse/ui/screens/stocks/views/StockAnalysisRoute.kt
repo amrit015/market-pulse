@@ -29,6 +29,8 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.data.notifications.NotificationPreference
+import com.marketlabs.pulse.ui.components.ComingSoonBannerCard
+import com.marketlabs.pulse.ui.components.ComingSoonBannerViewModel
 import com.marketlabs.pulse.ui.components.NotificationEnableBanner
 import com.marketlabs.pulse.ui.components.PulseLoadingIndicator
 import com.marketlabs.pulse.ui.components.PulseTabRow
@@ -53,9 +55,14 @@ import java.util.Locale
 fun StockAnalysisRoute(
     scaffoldPadding: PaddingValues,
     onNavigateToDetail: (String) -> Unit,
-    viewModel: StockAnalysisViewModel = hiltViewModel()
+    viewModel: StockAnalysisViewModel = hiltViewModel(),
+    comingSoonViewModel: ComingSoonBannerViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    // 💡 Sequential, not stacked: the custom-list announcement shows first; once dismissed (for
+    // good -- `ComingSoonBannerViewModel`'s dismissal never re-triggers), the notification-enable
+    // banner takes its place. Never both at once.
+    val isComingSoonBannerDismissed by comingSoonViewModel.isDismissed.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val pullRefreshState = rememberPullToRefreshState()
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -120,7 +127,15 @@ fun StockAnalysisRoute(
             selectionPosition = { pagerState.currentPage + pagerState.currentPageOffsetFraction }
         )
 
-        NotificationEnableBanner(preference = NotificationPreference.STOCK_ANALYSIS)
+        if (!isComingSoonBannerDismissed) {
+            ComingSoonBannerCard(
+                title = stringResource(id = R.string.coming_soon_custom_list_title),
+                body = stringResource(id = R.string.coming_soon_custom_list_body),
+                onDismiss = comingSoonViewModel::dismiss
+            )
+        } else {
+            NotificationEnableBanner(preference = NotificationPreference.STOCK_ANALYSIS)
+        }
 
         Box(modifier = Modifier.fillMaxSize()) {
             PullToRefreshBox(

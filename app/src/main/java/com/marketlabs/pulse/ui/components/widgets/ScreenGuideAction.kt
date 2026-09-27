@@ -5,10 +5,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
@@ -34,24 +30,32 @@ data class ScreenGuideContent(
  * Once-per-screen "?" -- opens a bottom sheet with one card for "Overview" and one for "How to
  * Interpret It", and a "Show More" link under them into the matching Tutorials deck when the screen
  * has one. A screen-level guide, distinct from a single value's own explainer or a single AI card's
- * disclosure. Self-contained sheet-visibility state, same pattern [MetricInfoAction] already
- * uses, so a call site just drops this into its top bar with no external state to thread.
+ * disclosure.
  *
  * `IconButton` + `icon_size_large` (24dp), not a raw `Modifier.clickable` Icon at `icon_size_medium`
  * (20dp) -- this sits directly beside `AppTopBar`'s Settings gear (a plain, unsized `Icon` inside
  * `IconButton`, which renders at its drawable's own intrinsic 24dp), so it needs the exact same
  * icon size AND the same `IconButton` touch-target/ripple treatment to read as two equally-weighted
  * actions in the same bar, not one bigger with a real touch target and one smaller as an afterthought.
+ *
+ * `showGuide` is hoisted (unlike [MetricInfoAction]'s self-contained sheet-visibility state) because
+ * this composable sits inside the global top bar, which isn't composed at all while a pushed
+ * destination -- the Tutorials hub, Settings, a stock detail screen -- is on top; a `remember` owned
+ * in here would forget the sheet was open and it wouldn't reappear once the user navigates back to
+ * this screen. Hoisting it up to where it's never disposed (`MainActivity`) fixes that. `onShowMore`/
+ * `onLearnAboutMarket` don't close the sheet themselves before navigating, for the same reason --
+ * only the sheet's own dismiss affordances call [onShowGuideChange] with `false`.
  */
 @Composable
 fun ScreenGuideAction(
     content: ScreenGuideContent,
+    showGuide: Boolean,
+    onShowGuideChange: (Boolean) -> Unit,
     onShowMore: (List<Mechanism>) -> Unit,
+    onLearnAboutMarket: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var showGuide by remember { mutableStateOf(false) }
-
-    IconButton(onClick = { showGuide = true }, modifier = modifier) {
+    IconButton(onClick = { onShowGuideChange(true) }, modifier = modifier) {
         Icon(
             painter = painterResource(id = R.drawable.ic_help),
             contentDescription = stringResource(id = R.string.screen_guide_content_description, content.screenTitle),
@@ -68,11 +72,9 @@ fun ScreenGuideAction(
                 DeckPage(title = stringResource(id = R.string.screen_guide_how_to_interpret_heading), body = content.howToInterpret)
             ),
             showMoreLabel = if (content.mechanisms.isEmpty()) null else stringResource(id = R.string.screen_guide_show_more),
-            onShowMore = {
-                showGuide = false
-                onShowMore(content.mechanisms)
-            },
-            onDismiss = { showGuide = false }
+            onShowMore = { onShowMore(content.mechanisms) },
+            onLearnAboutMarket = onLearnAboutMarket,
+            onDismiss = { onShowGuideChange(false) }
         )
     }
 }

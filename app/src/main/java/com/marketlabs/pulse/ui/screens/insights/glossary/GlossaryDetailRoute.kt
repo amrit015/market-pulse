@@ -35,6 +35,7 @@ import com.marketlabs.pulse.R
 fun GlossaryDetailRoute(
     scaffoldPadding: PaddingValues,
     onNavigateUp: () -> Unit,
+    onNavigateToArticle: (String) -> Unit = {},
     viewModel: GlossaryDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -86,6 +87,7 @@ fun GlossaryDetailRoute(
                 top = topBarPadding.calculateTopPadding(),
                 bottom = scaffoldPadding.calculateBottomPadding()
             ),
+            onLearnMore = onNavigateToArticle,
             modifier = Modifier.fillMaxSize()
         )
     }

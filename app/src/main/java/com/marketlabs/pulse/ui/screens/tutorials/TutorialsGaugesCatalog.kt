@@ -19,6 +19,7 @@ import com.marketlabs.pulse.ui.components.tutorials.Mechanism
  */
 data class TutorialsGaugeCategory(
     @param:StringRes val titleRes: Int,
+    @param:StringRes val introRes: Int,
     val mechanism: Mechanism,
     val metricIds: List<String>
 )
@@ -28,11 +29,13 @@ object TutorialsGaugesCatalog {
     val categories: List<TutorialsGaugeCategory> = listOf(
         TutorialsGaugeCategory(
             titleRes = R.string.tutorials_gauges_category_tactical_momentum,
+            introRes = R.string.tutorials_gauges_intro_tactical_momentum,
             mechanism = Mechanism.TACTICAL_MOMENTUM,
             metricIds = listOf("fear_and_greed", "put_call_ratio", "spy_rsi", "sma_extension", "vix")
         ),
         TutorialsGaugeCategory(
             titleRes = R.string.tutorials_gauges_category_systemic_risk,
+            introRes = R.string.tutorials_gauges_intro_systemic_risk,
             mechanism = Mechanism.SYSTEMIC_RISK,
             metricIds = listOf(
                 "yield_curve", "credit_spreads", "move_index",
@@ -41,11 +44,13 @@ object TutorialsGaugesCatalog {
         ),
         TutorialsGaugeCategory(
             titleRes = R.string.tutorials_gauges_category_valuation,
+            introRes = R.string.tutorials_gauges_intro_valuation,
             mechanism = Mechanism.VALUATION,
             metricIds = listOf("pe_ratio", "pb_ratio", "erp", "div_yield")
         ),
         TutorialsGaugeCategory(
             titleRes = R.string.tutorials_gauges_category_macro_vitals,
+            introRes = R.string.tutorials_gauges_intro_macro_vitals,
             mechanism = Mechanism.MACRO_VITALS,
             metricIds = listOf(
                 "cpi_yoy", "core_pce_yoy", "core_pce_mom", "unemployment",
@@ -54,6 +59,7 @@ object TutorialsGaugesCatalog {
         ),
         TutorialsGaugeCategory(
             titleRes = R.string.tutorials_gauges_category_positioning,
+            introRes = R.string.tutorials_gauges_intro_positioning,
             mechanism = Mechanism.POSITIONING,
             metricIds = listOf(
                 "positioning.aaii_bull_bear_spread", "positioning.cot_nc_net_pct_oi", "positioning.cot_percentile",
@@ -63,6 +69,7 @@ object TutorialsGaugesCatalog {
         ),
         TutorialsGaugeCategory(
             titleRes = R.string.tutorials_gauges_category_posture,
+            introRes = R.string.tutorials_gauges_intro_posture,
             mechanism = Mechanism.POSTURE,
             metricIds = listOf("posture.naaim_exposure", "posture.dark_pool_index", "posture.net_liquidity")
         )

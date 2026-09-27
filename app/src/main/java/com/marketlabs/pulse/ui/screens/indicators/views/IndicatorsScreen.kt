@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.HorizontalDivider
@@ -31,9 +30,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -67,6 +66,7 @@ import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.PulseTabRow
 import com.marketlabs.pulse.ui.components.UniversalMetricCard
+import com.marketlabs.pulse.ui.components.rememberPerTabLazyListStates
 import com.marketlabs.pulse.ui.components.widgets.AiGeneratedLabel
 import com.marketlabs.pulse.ui.components.widgets.CardEyebrowLabel
 import com.marketlabs.pulse.ui.components.widgets.MetricInfoAction
@@ -176,11 +176,9 @@ private fun IndicatorsMainFeed(
     val pagerState = rememberPagerState(initialPage = selectedTabIndex) { IndicatorsTab.entries.size }
     // 💡 One `LazyListState` per tab, hoisted above the pager like every other `PulseTabRow` +
     // `HorizontalPager` screen in this app (`StockAnalysisScreen`, `StockDetailScreen`,
-    // `InsightsScreen`), so scroll position survives swiping/tapping away and back. A fresh
-    // `rememberLazyListState()` scoped to each page's own composition would be lost when
-    // `HorizontalPager` (a lazy layout) disposes a page scrolled far enough off-screen, silently
-    // resetting scroll to the top on returning to the tab.
-    val lazyListStates = remember { List(IndicatorsTab.entries.size) { LazyListState() } }
+    // `InsightsScreen`) -- see `rememberPerTabLazyListStates`'s own doc comment for why this needs
+    // to be `rememberSaveable`, not a plain `remember`.
+    val lazyListStates = rememberPerTabLazyListStates(IndicatorsTab.entries.size)
 
     LaunchedEffect(selectedTabIndex) {
         if (pagerState.currentPage != selectedTabIndex) {
@@ -203,8 +201,14 @@ private fun IndicatorsMainFeed(
     // another. Identical shape to `StockDetailRoute.kt`'s Deep Dive banner state -- see that file
     // for the full reasoning on why `chromeHeightPx` is measured via the `Modifier.layout`
     // override below rather than a plain `onGloballyPositioned`.
-    var chromeHeightPx by remember { mutableFloatStateOf(0f) }
-    var collapseOffsetPx by remember { mutableFloatStateOf(0f) }
+    //
+    // 💡 `rememberSaveable`, not a plain `remember`, for the same reason as `lazyListStates` above --
+    // otherwise a reader who scrolled this chrome away, then tapped into a metric's detail screen
+    // and back, would find it fully re-expanded (both values reset to 0f), pushing the tab content
+    // they were reading down to a different position than where they left it even though the tab's
+    // own scroll offset was correctly restored.
+    var chromeHeightPx by rememberSaveable { mutableStateOf(0f) }
+    var collapseOffsetPx by rememberSaveable { mutableStateOf(0f) }
 
     val chromeNestedScrollConnection = remember {
         object : NestedScrollConnection {

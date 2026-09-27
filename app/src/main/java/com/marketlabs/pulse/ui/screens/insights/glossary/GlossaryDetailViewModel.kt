@@ -11,6 +11,7 @@ import com.marketlabs.pulse.core.charts.resolveEffectiveRange
 import com.marketlabs.pulse.core.glossary.MetricGlossaryBand
 import com.marketlabs.pulse.core.glossary.MetricGlossaryProvider
 import com.marketlabs.pulse.core.insights.InsightsHistoryRepository
+import com.marketlabs.pulse.core.learn.IndicatorArticlesProvider
 import com.marketlabs.pulse.storage.model.charts.ChartRange
 import com.marketlabs.pulse.ui.screens.insights.glossary.GlossaryDetailViewModel.Companion.ARG_CHART_METRIC_ID
 import com.marketlabs.pulse.ui.screens.insights.glossary.GlossaryDetailViewModel.Companion.ARG_DESCRIPTION
@@ -75,6 +76,7 @@ class GlossaryDetailViewModel @Inject constructor(
         description = (savedStateHandle.get<String>(ARG_DESCRIPTION)).takeUnless { it.isNullOrBlank() }
         val status: String? = (savedStateHandle.get<String>(ARG_STATUS)).takeUnless { it.isNullOrBlank() }
 
+        val indicatorArticles = IndicatorArticlesProvider.get(context)
         sections = metricIds.mapNotNull { metricId ->
             val entry = glossaryProvider.get(metricId) ?: return@mapNotNull null
             GlossarySection(
@@ -82,7 +84,8 @@ class GlossaryDetailViewModel @Inject constructor(
                 whatItIs = entry.whatItIs,
                 howToRead = entry.howToRead,
                 watch = entry.watch,
-                gotchas = entry.gotchas
+                gotchas = entry.gotchas,
+                articleKey = metricId.takeIf { indicatorArticles.containsKey(it) }
             )
         }
 
