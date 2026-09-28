@@ -3,6 +3,7 @@ package com.marketlabs.pulse.ui.screens.insights
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.marketlabs.pulse.core.marketRisk.MarketRiskRepository
+import com.marketlabs.pulse.core.pastReleases.PastReleasesRepository
 import com.marketlabs.pulse.core.positioning.MarketPositioningRepository
 import com.marketlabs.pulse.core.posture.MarketPostureRepository
 import com.marketlabs.pulse.core.sync.SyncManager
@@ -23,6 +24,7 @@ import javax.inject.Inject
 class InsightsViewModel @Inject constructor(
     private val riskRepository: MarketRiskRepository,
     private val playbookRepository: WeeklyPlaybookRepository,
+    private val pastReleasesRepository: PastReleasesRepository,
     private val postureRepository: MarketPostureRepository,
     private val positioningRepository: MarketPositioningRepository,
     private val insightsUiStateRepository: InsightsUiStateRepository,
@@ -33,7 +35,7 @@ class InsightsViewModel @Inject constructor(
     private val _errorMessage = MutableStateFlow<String?>(null)
     private val _selectedTabIndex = MutableStateFlow(0)
 
-    // 💡 Array<Any?>-based combine() overload -- now 9 streams, well past the max arity (5) of
+    // 💡 Array<Any?>-based combine() overload -- now 10 streams, well past the max arity (5) of
     // Kotlin's named-parameter combine() overload. Each value is cast back to its real type by
     // index rather than by name.
     val uiState: StateFlow<InsightsUiState> = combine(
@@ -45,11 +47,13 @@ class InsightsViewModel @Inject constructor(
         insightsUiStateRepository.isPostureIntroDismissed, // 💡 NEW stream
         _isLoading,
         _errorMessage,
-        _selectedTabIndex // 💡 NEW stream -- drives the pinned PulseTabRow
+        _selectedTabIndex, // 💡 NEW stream -- drives the pinned PulseTabRow
+        pastReleasesRepository.getPastReleasesStream() // 💡 NEW stream -- Events tab's Past Releases section
     ) { values ->
         InsightsUiState(
             isLoading = values[6] as Boolean,
             weeklyPlaybook = values[1] as com.marketlabs.pulse.storage.model.weeklyPlaybook.WeeklyPlaybook?,
+            pastReleases = values[9] as com.marketlabs.pulse.storage.model.pastReleases.PastReleases?, // 💡 NEW data mapping
             tailRisks = values[0] as com.marketlabs.pulse.storage.model.marketRisk.MarketRiskAssessment?,
             marketPosture = values[2] as com.marketlabs.pulse.storage.model.posture.DomainMarketPosture?,
             marketPositioning = values[3] as com.marketlabs.pulse.storage.model.positioning.DomainMarketPositioning?,
@@ -95,12 +99,14 @@ class InsightsViewModel @Inject constructor(
             // Fetch all concurrently
             val tailRisksDeferred = async { riskRepository.refreshTailRisks(force) }
             val playbookDeferred = async { playbookRepository.refreshPlaybook(force) }
+            val pastReleasesDeferred = async { pastReleasesRepository.refreshPastReleases(force) }
             val postureDeferred = async { postureRepository.refreshPosture(force) }
             val positioningDeferred = async { positioningRepository.refreshPositioning(force) }
 
             val results = listOf(
                 tailRisksDeferred.await(),
                 playbookDeferred.await(),
+                pastReleasesDeferred.await(),
                 postureDeferred.await(),
                 positioningDeferred.await()
             )

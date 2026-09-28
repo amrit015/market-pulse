@@ -48,6 +48,7 @@ fun InsightsRoute(
     // re-fire the tab jump on every recomposition (e.g. after a config change).
     initialTab: InsightsTab? = null,
     onInitialTabConsumed: () -> Unit = {},
+    onNavigateToPastReleases: () -> Unit,
     viewModel: InsightsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -168,7 +169,8 @@ fun InsightsRoute(
                             scaffoldPadding = PaddingValues(bottom = scaffoldPadding.calculateBottomPadding()),
                             onNavigateToGlossaryDetail = onNavigateToGlossaryDetail,
                             onDismissPositioningIntro = viewModel::dismissPositioningIntro,
-                            onDismissPostureIntro = viewModel::dismissPostureIntro
+                            onDismissPostureIntro = viewModel::dismissPostureIntro,
+                            onNavigateToPastReleases = onNavigateToPastReleases
                         )
                     }
 

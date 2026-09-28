@@ -155,3 +155,12 @@ What actually shipped, in the order it was tuned:
 Net effect on the two-style framing this doc's earlier chapters describe: it's now three styles
 (`DATA`/`SYNTHESIS`/`DATA_SPARKLINE`), and the "flat, shadow-less by convention" rule is retired —
 see `@docs/theming-system/theming-spec.md` §6 for the current, settled state.
+
+## 2026-09-27 — Teal and Aqua disabled in the theme picker
+
+Design call to reduce the picker to 8 choices, not a bug or deprecation. `SettingsUiState`'s
+default `availablePresets` now excludes `MarketPulseTheme.TEAL` and `.AQUA`, which is the only
+enumeration point the picker chain (`ThemePickerRoute` → `ThemePickerScreen` →
+`PresetSwatchGrid`/`PresetSwatchCard`) reads from, so no other UI code needed to change. Both
+presets stay fully defined in `MarketPulseTheme`/`PulseTokens.Accent` — a user already persisted
+on either one keeps seeing it applied, just can't select it again once they switch away.

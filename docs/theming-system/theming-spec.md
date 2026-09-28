@@ -13,10 +13,14 @@ to find out what to call today.
 
 ## 1. Theme architecture — 10 presets, three token layers
 
-The app supports **10 baked-mode presets** — 5 light (Plum, Navy, Fuchsia, Graphite, Teal), 5
-dark (Lilac, Sky, Sand, Rose, Aqua). Picking a preset **is** the appearance setting — there's no
-separate "follow system" toggle, and `isSystemInDarkTheme()` is never consulted for color
-decisions. Selection persists via DataStore (`ThemeRepository`), default is `LILAC`.
+The app defines **10 baked-mode presets** — 5 light (Plum, Navy, Fuchsia, Graphite, Teal), 5
+dark (Lilac, Sky, Sand, Rose, Aqua). Of these, **8 are user-selectable in the theme picker**; Teal
+(light) and Aqua (dark) are disabled there — hidden from `SettingsUiState.availablePresets`
+(`ui/settings/SettingsUiState.kt`) but still fully defined in `MarketPulseTheme` and `PulseTokens`,
+so a user already persisted on one of them still renders correctly. Picking a preset **is** the
+appearance setting — there's no separate "follow system" toggle, and `isSystemInDarkTheme()` is
+never consulted for color decisions. Selection persists via DataStore (`ThemeRepository`), default
+is `LILAC`.
 
 Every preset resolves from the same three data sources in `PulseTokens` (`ui/theme/Color.kt`):
 
@@ -69,20 +73,21 @@ plain flat token, untouched.
 ## 4. Accent tokens — all 10 presets
 
 `PulseTokens.Accent` in `Color.kt`. `tinted` is the *literal* per-preset value — §5 covers what
-price cards actually render (a runtime blend, not this raw hex).
+price cards actually render (a runtime blend, not this raw hex). "Selectable" reflects the theme
+picker only (§1) — a disabled preset's tokens are all still live and resolvable.
 
-| Preset | Mode | `primary` | `on` | `surface` | `surfaceBorder` | `tinted` (raw) |
-|---|---|---|---|---|---|---|
-| Plum | Light | `#5B2A82` | `#FFFFFF` | `#EBDFF3` | `#D8C3E4` | `#F2F0F4` |
-| Navy | Light | `#14315E` | `#FFFFFF` | `#E3E9F3` | `#C7D3E5` | `#EFF0F3` |
-| Fuchsia | Light | `#9C1A6B` | `#FFFFFF` | `#F5E1EE` | `#ECC7DE` | `#F3EDF0` |
-| Graphite | Light | `#2B303A` | `#FFFFFF` | `#E9E9EB` | `#DDDCD8` | `#EEEDEB` |
-| Teal | Light | `#05555C` | `#FFFFFF` | `#DDECED` | `#C1DEDE` | `#ECEFEF` |
-| Lilac | Dark | `#C7A9FF` | `#1A0F2E` | `#2C2338` | `#3B2E4B` | `#201E24` |
-| Sky | Dark | `#7BC0FF` | `#08192E` | `#1E2A3B` | `#2A3B54` | `#1A1D22` |
-| Sand | Dark | `#C9B49A` | `#1F1A11` | `#2B261E` | `#3C3325` | `#1C1B19` |
-| Rose | Dark | `#E9A2D8` | `#2B0F22` | `#331F2C` | `#452838` | `#1D1B1D` |
-| Aqua | Dark | `#7ED9D6` | `#062120` | `#1B2E2D` | `#294241` | `#161B1B` |
+| Preset | Mode | Selectable | `primary` | `on` | `surface` | `surfaceBorder` | `tinted` (raw) |
+|---|---|---|---|---|---|---|---|
+| Plum | Light | Yes | `#5B2A82` | `#FFFFFF` | `#EBDFF3` | `#D8C3E4` | `#F2F0F4` |
+| Navy | Light | Yes | `#14315E` | `#FFFFFF` | `#E3E9F3` | `#C7D3E5` | `#EFF0F3` |
+| Fuchsia | Light | Yes | `#9C1A6B` | `#FFFFFF` | `#F5E1EE` | `#ECC7DE` | `#F3EDF0` |
+| Graphite | Light | Yes | `#2B303A` | `#FFFFFF` | `#E9E9EB` | `#DDDCD8` | `#EEEDEB` |
+| Teal | Light | **No** | `#05555C` | `#FFFFFF` | `#DDECED` | `#C1DEDE` | `#ECEFEF` |
+| Lilac | Dark | Yes | `#C7A9FF` | `#1A0F2E` | `#2C2338` | `#3B2E4B` | `#201E24` |
+| Sky | Dark | Yes | `#7BC0FF` | `#08192E` | `#1E2A3B` | `#2A3B54` | `#1A1D22` |
+| Sand | Dark | Yes | `#C9B49A` | `#1F1A11` | `#2B261E` | `#3C3325` | `#1C1B19` |
+| Rose | Dark | Yes | `#E9A2D8` | `#2B0F22` | `#331F2C` | `#452838` | `#1D1B1D` |
+| Aqua | Dark | **No** | `#7ED9D6` | `#062120` | `#1B2E2D` | `#294241` | `#161B1B` |
 
 ## 5. Derived tokens — computed, not stored as constants
 

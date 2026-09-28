@@ -1,6 +1,7 @@
 package com.marketlabs.pulse.ui.screens.insights
 
 import com.marketlabs.pulse.storage.model.marketRisk.MarketRiskAssessment
+import com.marketlabs.pulse.storage.model.pastReleases.PastReleases
 import com.marketlabs.pulse.storage.model.positioning.DomainMarketPositioning
 import com.marketlabs.pulse.storage.model.posture.DomainMarketPosture
 import com.marketlabs.pulse.storage.model.weeklyPlaybook.WeeklyPlaybook
@@ -8,6 +9,7 @@ import com.marketlabs.pulse.storage.model.weeklyPlaybook.WeeklyPlaybook
 data class InsightsUiState(
     val isLoading: Boolean = false,
     val weeklyPlaybook: WeeklyPlaybook? = null,
+    val pastReleases: PastReleases? = null,
     val tailRisks: MarketRiskAssessment? = null,
     val marketPosture: DomainMarketPosture? = null,
     val marketPositioning: DomainMarketPositioning? = null,

@@ -9,6 +9,7 @@ import com.marketlabs.pulse.network.api.MarketPostureApi
 import com.marketlabs.pulse.network.api.MarketPulseApi
 import com.marketlabs.pulse.network.api.MarketRiskApi
 import com.marketlabs.pulse.network.api.NewsApi
+import com.marketlabs.pulse.network.api.PastReleasesApi
 import com.marketlabs.pulse.network.api.StocksApi
 import com.marketlabs.pulse.network.api.WeeklyPlaybookApi
 import com.marketlabs.pulse.network.interceptor.AppCheckInterceptor
@@ -124,6 +125,14 @@ object NetworkApiModule {
         @Named("MarketPulseRetrofit") retrofit: Retrofit
     ): WeeklyPlaybookApi {
         return retrofit.create(WeeklyPlaybookApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun providePastReleasesApi(
+        @Named("MarketPulseRetrofit") retrofit: Retrofit
+    ): PastReleasesApi {
+        return retrofit.create(PastReleasesApi::class.java)
     }
 
     @Provides

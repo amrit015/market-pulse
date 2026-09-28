@@ -37,6 +37,7 @@ import com.marketlabs.pulse.storage.model.weeklyPlaybook.WeeklyPlaybook
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.SynthesisHeroCard
+import com.marketlabs.pulse.ui.components.widgets.CardEyebrowLabel
 import com.marketlabs.pulse.ui.components.widgets.MetricInfoAction
 import com.marketlabs.pulse.ui.components.widgets.buildBulletJoinedText
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
@@ -48,7 +49,11 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 
 @Composable
-fun WeeklyPlaybookSection(playbook: WeeklyPlaybook) {
+fun WeeklyPlaybookSection(
+    playbook: WeeklyPlaybook,
+    hasPastReleases: Boolean,
+    onNavigateToPastReleases: () -> Unit
+) {
     if (playbook.events.isNullOrEmpty()) return
 
     Column(
@@ -105,6 +110,15 @@ fun WeeklyPlaybookSection(playbook: WeeklyPlaybook) {
                 detail = synthesis.detail,
                 isUnavailable = synthesis.state == "unavailable"
             )
+            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
+        }
+
+        // 💡 Entry point to the standalone Past Releases page (PulseRoutes.PAST_RELEASES) --
+        // placed right after the Digest, same "pushed destination, own page" pattern Indicators'
+        // Horizons uses (see IndicatorHorizonsRoute.kt / HorizonNavigationCard in
+        // IndicatorsScreen.kt, which this card mirrors).
+        if (hasPastReleases) {
+            PastReleasesNavigationCard(onClick = onNavigateToPastReleases)
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_large)))
         }
 
@@ -255,6 +269,47 @@ fun WeeklyEventCard(event: WeeklyEvent) {
     }
 }
 
+// 💡 Mirrors HorizonNavigationCard (IndicatorsScreen.kt) exactly -- same SYNTHESIS-style entry
+// point to a pushed, standalone page: eyebrow + subtitle on the left, trailing chevron.
+@Composable
+private fun PastReleasesNavigationCard(onClick: () -> Unit) {
+    PulseCard(
+        style = PulseCardStyle.SYNTHESIS,
+        modifier = Modifier.fillMaxWidth(),
+        onClick = onClick
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(dimensionResource(id = R.dimen.padding_large)),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                CardEyebrowLabel(
+                    text = stringResource(id = R.string.section_past_releases),
+                    color = LocalPulseColors.current.accentPrimary,
+                    iconRes = R.drawable.ic_ai_sparkle_filled,
+                    iconContentDescription = "Analysis Engine"
+                )
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                Text(
+                    text = stringResource(id = R.string.past_releases_nav_subtitle),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    lineHeight = MaterialTheme.typography.bodyMedium.lineHeight
+                )
+            }
+            Icon(
+                painter = painterResource(id = R.drawable.ic_chevron_forward),
+                contentDescription = null,
+                tint = LocalPulseColors.current.accentPrimary,
+                modifier = Modifier.size(dimensionResource(id = R.dimen.padding_large))
+            )
+        }
+    }
+}
+
 @Composable
 private fun EventDataColumn(label: String, value: String, isActual: Boolean = false) {
     Column {
@@ -280,13 +335,15 @@ private data class FormattedEventDate(val datePart: String, val timePart: String
 private fun formatEventDateSafe(rawDate: String): FormattedEventDate {
     return try {
         val isIsoWithTime = rawDate.contains("T")
-        val parser = if (isIsoWithTime) {
-            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US)
+        val parsed = if (isIsoWithTime) {
+            try {
+                SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US).parse(rawDate)
+            } catch (e: Exception) {
+                SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US).parse(rawDate)
+            }
         } else {
-            SimpleDateFormat("yyyy-MM-dd", Locale.US)
+            SimpleDateFormat("yyyy-MM-dd", Locale.US).parse(rawDate)
         }
-
-        val parsed = parser.parse(rawDate)
 
         if (parsed != null) {
             val datePart = parsed.toTodayOrYesterdayLabel()
@@ -337,7 +394,11 @@ fun PreviewWeeklyPlaybookSection() {
         )
 
         Column(modifier = Modifier.padding(16.dp)) {
-            WeeklyPlaybookSection(playbook = mockPlaybook)
+            WeeklyPlaybookSection(
+                playbook = mockPlaybook,
+                hasPastReleases = true,
+                onNavigateToPastReleases = {}
+            )
         }
     }
 }

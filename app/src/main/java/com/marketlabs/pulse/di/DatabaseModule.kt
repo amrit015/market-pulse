@@ -12,6 +12,7 @@ import com.marketlabs.pulse.storage.database.dao.MarketRiskDao
 import com.marketlabs.pulse.storage.database.dao.InsightsHistoryDao
 import com.marketlabs.pulse.storage.database.dao.MetricHistoryDao
 import com.marketlabs.pulse.storage.database.dao.NewsDao
+import com.marketlabs.pulse.storage.database.dao.PastReleasesDao
 import com.marketlabs.pulse.storage.database.dao.StocksDao
 import com.marketlabs.pulse.storage.database.dao.SummaryDao
 import com.marketlabs.pulse.storage.database.dao.WeeklyPlaybookDao
@@ -114,5 +115,12 @@ object DatabaseModule {
     @Singleton
     fun provideInsightsHistoryDao(database: AppDatabase): InsightsHistoryDao {
         return database.insightsHistoryDao()
+    }
+
+    /** Provides the DAO for the `past_releases` table backing the Events tab's Past Releases section. */
+    @Provides
+    @Singleton
+    fun providePastReleasesDao(database: AppDatabase): PastReleasesDao {
+        return database.pastReleasesDao()
     }
 }
