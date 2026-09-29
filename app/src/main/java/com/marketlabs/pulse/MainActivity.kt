@@ -201,6 +201,7 @@ class MainActivity : ComponentActivity() {
                 val isPushedDestination = currentRoute == PulseRoutes.MARKET_NEWS ||
                     currentRoute == PulseRoutes.SETTINGS ||
                     currentRoute == PulseRoutes.INDICATOR_HORIZONS ||
+                    currentRoute == PulseRoutes.PAST_RELEASES ||
                     currentRoute?.startsWith("webview/") == true ||
                     currentRoute?.startsWith("${PulseRoutes.STOCK_ANALYSIS_DETAIL}/") == true ||
                     currentRoute?.startsWith("${PulseRoutes.DEEP_DIVE_DETAIL}/") == true ||

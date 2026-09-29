@@ -50,7 +50,8 @@ fun InsightsScreen(
     scaffoldPadding: PaddingValues,
     onNavigateToGlossaryDetail: (metricIds: List<String>, chartMetricId: String, title: String, description: String?, status: String?) -> Unit,
     onDismissPositioningIntro: () -> Unit,
-    onDismissPostureIntro: () -> Unit
+    onDismissPostureIntro: () -> Unit,
+    onNavigateToPastReleases: () -> Unit
 ) {
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
     // 💡 `top` is just breathing room under the pinned PulseTabRow now, not `scaffoldPadding`'s top
@@ -88,7 +89,14 @@ fun InsightsScreen(
                     item {
                         val playbook = uiState.weeklyPlaybook
                         if (playbook != null && !playbook.events.isNullOrEmpty()) {
-                            WeeklyPlaybookSection(playbook = playbook)
+                            WeeklyPlaybookSection(
+                                playbook = playbook,
+                                // 💡 The Past Releases entry card renders right after the Digest,
+                                // inside WeeklyPlaybookSection itself -- see that composable's own
+                                // doc comment. It's simply omitted when there's nothing cached yet.
+                                hasPastReleases = !uiState.pastReleases?.releases.isNullOrEmpty(),
+                                onNavigateToPastReleases = onNavigateToPastReleases
+                            )
                         } else {
                             InsightsTabEmptyState()
                         }
@@ -191,7 +199,8 @@ private fun PreviewInsightsScreenEmpty() {
             scaffoldPadding = PaddingValues(),
             onNavigateToGlossaryDetail = { _, _, _, _, _ -> },
             onDismissPositioningIntro = {},
-            onDismissPostureIntro = {}
+            onDismissPostureIntro = {},
+            onNavigateToPastReleases = {}
         )
     }
 }

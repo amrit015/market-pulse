@@ -6,6 +6,7 @@ import com.google.firebase.firestore.ListenerRegistration
 import com.marketlabs.pulse.core.indicators.IndicatorsRepository
 import com.marketlabs.pulse.core.marketRisk.MarketRiskRepository
 import com.marketlabs.pulse.core.news.NewsRepository
+import com.marketlabs.pulse.core.pastReleases.PastReleasesRepository
 import com.marketlabs.pulse.core.positioning.MarketPositioningRepository
 import com.marketlabs.pulse.core.posture.MarketPostureRepository
 import com.marketlabs.pulse.core.stocks.StockAnalysisRepository
@@ -30,7 +31,8 @@ class SyncManager @Inject constructor(
     private val summaryRepository: SummaryRepository,
     private val postureRepository: MarketPostureRepository,
     private val positioningRepository: MarketPositioningRepository,
-    private val stockAnalysisRepository: StockAnalysisRepository
+    private val stockAnalysisRepository: StockAnalysisRepository,
+    private val pastReleasesRepository: PastReleasesRepository
 ) {
     private var listenerRegistration: ListenerRegistration? = null
     private val scope = CoroutineScope(Dispatchers.IO)
@@ -170,6 +172,18 @@ class SyncManager @Inject constructor(
                             Log.d("SyncManager", "New Stock Analysis detected! Fetching...")
                             stockAnalysisRepository.refreshPreviews(force = true)
                             stockAnalysisRepository.updateLastSyncedTimestamp(newStocksTime)
+                        }
+
+                        // ==========================================
+                        // 9. PAST RELEASES SYNC (NEW) -- Events tab, updates weekly (Sunday build)
+                        // ==========================================
+                        val newPastReleasesTime = snapshot.getLong("past_releases_updated") ?: 0L
+                        val localPastReleasesTime = pastReleasesRepository.getLastSyncedTimestamp() ?: 0L
+
+                        if (newPastReleasesTime > localPastReleasesTime) {
+                            Log.d("SyncManager", "New Past Releases detected! Fetching...")
+                            pastReleasesRepository.refreshPastReleases(force = true)
+                            pastReleasesRepository.updateLastSyncedTimestamp(newPastReleasesTime)
                         }
                     }
                 }

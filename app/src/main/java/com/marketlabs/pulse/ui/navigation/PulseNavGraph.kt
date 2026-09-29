@@ -28,6 +28,7 @@ import com.marketlabs.pulse.ui.screens.indicators.views.IndicatorsRoute
 import com.marketlabs.pulse.ui.screens.insights.glossary.GlossaryDetailRoute
 import com.marketlabs.pulse.ui.screens.insights.views.InsightsRoute
 import com.marketlabs.pulse.ui.screens.insights.views.InsightsTab
+import com.marketlabs.pulse.ui.screens.insights.views.PastReleasesRoute
 import com.marketlabs.pulse.ui.screens.legal.LegalAcceptanceRoute
 import com.marketlabs.pulse.ui.screens.legal.PrivacyPolicyScreen
 import com.marketlabs.pulse.ui.screens.legal.TermsConditionsScreen
@@ -98,6 +99,11 @@ object PulseRoutes {
     // treatment as Settings/News/Stock Detail -- its own header, no global top bar or floating
     // nav stacked underneath it.
     const val INDICATOR_HORIZONS = "indicator_horizons"
+
+    // Pushed from the Events tab's Past Releases entry card, placed right after the Weekly
+    // Playbook's Digest. Same pushed-screen treatment as INDICATOR_HORIZONS above -- its own
+    // header, no global top bar or floating nav stacked underneath it.
+    const val PAST_RELEASES = "past_releases"
 
     // Pushed from a dashboard tile tap (indices/sectors/crypto/commodities/VIX/sentiment) on the
     // Overview tab. "symbol" is a required nav argument, not a query param, same shape as
@@ -456,8 +462,13 @@ fun PulseNavGraph(
                     navController.navigate(
                         "${PulseRoutes.GLOSSARY_DETAIL}/$encodedTitle/${metricIds.joinToString(",")}/$chartMetricId/$encodedDescription/$encodedStatus"
                     )
-                }
+                },
+                onNavigateToPastReleases = { navController.navigate(PulseRoutes.PAST_RELEASES) }
             )
+        }
+        // Pushed from the Events tab's Past Releases entry card -- see PulseRoutes.PAST_RELEASES.
+        composable(PulseRoutes.PAST_RELEASES) {
+            PastReleasesRoute(onNavigateUp = { navController.popBackStack() })
         }
         // Pushed from a whole-card tap on Positioning/Posture -- see PulseRoutes.GLOSSARY_DETAIL.
         composable("${PulseRoutes.GLOSSARY_DETAIL}/{title}/{metricIds}/{chartMetricId}/{description}/{status}") {
