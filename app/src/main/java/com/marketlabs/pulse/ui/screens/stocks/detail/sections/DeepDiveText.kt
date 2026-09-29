@@ -71,18 +71,23 @@ fun deepDiveDisplayParts(deepAnalysisDate: String?, nextDeepDiveTriggerDate: Str
  * "available, ... • next: ..." combined line lives. Dates render with the full month name
  * (`toLongDateString()`, "September 4") rather than the abbreviated form `deepDiveDisplayParts`
  * uses elsewhere -- this is the one Deep Dive touchpoint reached from a dense list row rather than
- * a full card/screen, so it reads less like shorthand.
+ * a full card/screen, so it reads less like shorthand. A brand-new symbol with neither date set yet
+ * (the nightly job hasn't touched it at all) falls back to "DEEP DIVE COMING SOON" rather than null,
+ * so the row still shows something instead of silently dropping the touchpoint -- same wording as
+ * the `ComingSoonBannerCard` shown for this state on Stock Detail and the full Deep Dive screen.
  */
 @Composable
-fun deepDivePreviewText(deepAnalysisDate: String?, nextDeepDiveTriggerDate: String?): String? = when {
+fun deepDivePreviewText(deepAnalysisDate: String?, nextDeepDiveTriggerDate: String?): String = when {
     deepAnalysisDate != null -> stringResource(id = R.string.stock_detail_deep_dive_dated, deepAnalysisDate.toLongDateString())
     nextDeepDiveTriggerDate != null -> stringResource(id = R.string.stock_detail_deep_dive_next_standalone, nextDeepDiveTriggerDate.toLongDateString())
-    else -> null
+    else -> stringResource(id = R.string.stock_detail_deep_dive_coming_soon)
 }
 
 /**
  * Small icon + bold-accent label — the compact Deep Dive touchpoint used on the preview list card.
- * When [isFlashing] is true, renders a continuous noticeable flashing/pulsing highlight until clicked.
+ * Always renders (never blank, even for a brand-new symbol -- see [deepDivePreviewText]'s "coming
+ * soon" fallback). When [isFlashing] is true, renders a continuous noticeable flashing/pulsing
+ * highlight until clicked.
  */
 @Composable
 fun DeepDiveLabel(
@@ -92,7 +97,7 @@ fun DeepDiveLabel(
     isFlashing: Boolean = false,
     onClick: (() -> Unit)? = null
 ) {
-    val text = deepDivePreviewText(deepAnalysisDate, nextDeepDiveTriggerDate) ?: return
+    val text = deepDivePreviewText(deepAnalysisDate, nextDeepDiveTriggerDate)
     val pulseColors = LocalPulseColors.current
 
     val flashAlpha = if (isFlashing) {
@@ -138,10 +143,18 @@ private fun PreviewDeepDiveLabelAvailable() {
     }
 }
 
-@Preview(name = "Cold start", showBackground = true)
+@Preview(name = "Next only (cold start)", showBackground = true)
 @Composable
 private fun PreviewDeepDiveLabelColdStart() {
     MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
         DeepDiveLabel(deepAnalysisDate = null, nextDeepDiveTriggerDate = "2026-09-18")
+    }
+}
+
+@Preview(name = "Coming soon (brand-new symbol)", showBackground = true)
+@Composable
+private fun PreviewDeepDiveLabelComingSoon() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
+        DeepDiveLabel(deepAnalysisDate = null, nextDeepDiveTriggerDate = null)
     }
 }

@@ -21,6 +21,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.ui.components.ComingSoonBannerCard
 import com.marketlabs.pulse.ui.components.GlowOrigin
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
@@ -32,6 +33,9 @@ import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 /**
  * Chrome-level `PulseCard(SYNTHESIS)` on Stock Detail: an icon + date line, a fixed description, and a CTA.
  * When [isFlashing] is true, renders a continuous glow that fills the card outward from the top-left corner toward the bottom-right.
+ * A brand-new symbol with no deep dive and no scheduled next run yet (both dates null -- before the
+ * nightly job has touched it even once) renders a non-tappable [ComingSoonBannerCard] instead, since
+ * there's nothing to navigate to.
  */
 @Composable
 fun DeepDiveCard(
@@ -42,7 +46,18 @@ fun DeepDiveCard(
     isFlashing: Boolean = false
 ) {
     val parts = deepDiveDisplayParts(deepAnalysisDate, nextDeepDiveTriggerDate)
-    if (parts.isEmpty()) return
+    if (parts.isEmpty()) {
+        // 💡 No modifier forwarded here -- ComingSoonBannerCard already supplies its own
+        // fillMaxWidth() + 16dp margin (see its doc comment), and the caller's own modifier
+        // (fillMaxWidth + horizontal/vertical padding sized for the populated card below) would
+        // stack on top of that and double the horizontal inset. Matches how every other
+        // ComingSoonBannerCard call site in the app passes no modifier.
+        ComingSoonBannerCard(
+            title = stringResource(id = R.string.deep_dive_coming_soon_title),
+            body = stringResource(id = R.string.deep_dive_coming_soon_body)
+        )
+        return
+    }
     val hasDeepDive = deepAnalysisDate != null
     val pulseColors = LocalPulseColors.current
 
@@ -113,6 +128,14 @@ private fun PreviewDeepDiveCardBoth() {
 private fun PreviewDeepDiveCardNextOnly() {
     MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
         DeepDiveCard(deepAnalysisDate = null, nextDeepDiveTriggerDate = "2026-09-18", onClick = {})
+    }
+}
+
+@Preview(name = "Coming soon (brand-new symbol)", showBackground = true)
+@Composable
+private fun PreviewDeepDiveCardComingSoon() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
+        DeepDiveCard(deepAnalysisDate = null, nextDeepDiveTriggerDate = null, onClick = {})
     }
 }
 

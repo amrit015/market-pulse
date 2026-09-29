@@ -6,28 +6,27 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.ui.components.ComingSoonBannerCard
 import com.marketlabs.pulse.ui.components.DisclaimerFooter
 import com.marketlabs.pulse.storage.model.stocks.DomainDeepDiveHeadlineStat
 import com.marketlabs.pulse.storage.model.stocks.DomainDeepDiveHighlight
 import com.marketlabs.pulse.storage.model.stocks.DomainDeepDiveSection
 import com.marketlabs.pulse.storage.model.stocks.DomainFundamentalsDelta
-import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 /**
  * Stateless. One [DeepDiveSectionCard] per entry in `sections` -- NOT one card holding all of
  * them; "Deep Dive" itself is a page-level title rendered outside any card by `DeepDiveRoute`. The
- * cold-start empty state (a symbol that's never had a deep dive -- a 404, not an error) is a plain
- * static text, not a skeleton or the generic error screen: an honest empty state, since nothing failed.
+ * cold-start empty state (a symbol that's never had a deep dive -- a 404, not an error) renders the
+ * same non-dismissible [ComingSoonBannerCard] the Stock Detail preview card falls back to, not a
+ * skeleton or the generic error screen: an honest empty state, since nothing failed. No dismiss
+ * affordance here either -- the reader already navigated to this screen on purpose.
  *
  * `fundamentalsDelta` is only ever passed to the WHATS_CHANGED section's card -- the deltas are
  * what that section's prose narrates, so they're anchored there rather than a separate top-level
@@ -43,11 +42,10 @@ fun DeepDiveScreen(
     modifier: Modifier = Modifier
 ) {
     if (isEmpty) {
-        Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(
-                text = stringResource(id = R.string.deep_dive_empty_state),
-                style = MaterialTheme.typography.bodyMedium,
-                color = LocalPulseColors.current.onSurfaceMuted
+        Box(modifier = modifier.fillMaxSize()) {
+            ComingSoonBannerCard(
+                title = stringResource(id = R.string.deep_dive_coming_soon_title),
+                body = stringResource(id = R.string.deep_dive_coming_soon_body)
             )
         }
         return
