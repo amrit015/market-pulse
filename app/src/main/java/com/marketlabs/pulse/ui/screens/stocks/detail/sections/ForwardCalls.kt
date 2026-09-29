@@ -62,7 +62,10 @@ fun ForwardCalls(calls: DomainCallRecord?, onViewMoreResolved: () -> Unit = {}, 
     Column(modifier = modifier.fillMaxWidth()) {
         if (open.isNotEmpty()) {
             val stats = calls?.stats
-            val subtitle = if (stats?.held != null && stats.totalResolved != null) {
+            // 💡 totalResolved == 0 means the analysis just started (open calls exist, nothing has
+            // resolved yet) -- "0 of 0 recent calls held" reads as broken rather than informative,
+            // so the subtitle is skipped entirely until there's an actual record to report.
+            val subtitle = if (stats?.held != null && stats.totalResolved != null && stats.totalResolved > 0) {
                 buildString {
                     append(stringResource(id = R.string.stock_detail_calls_held_of_total, stats.held, stats.totalResolved))
                     // 💡 The space before each suffix is added here, not baked into the XML string
@@ -353,6 +356,22 @@ private val mockCalls = DomainCallRecord(
     stats = com.marketlabs.pulse.storage.model.stocks.DomainCallStats(totalResolved = 2, held = 2, hitRatePct = 100)
 )
 
+// 💡 Fresh analysis: an open call exists but nothing has resolved yet, so stats come back
+// 0/0 -- the subtitle should be absent here, not "0 of 0 recent calls held".
+private val mockCallsFreshAnalysis = DomainCallRecord(
+    open = listOf(
+        DomainForwardCall(
+            predicate = "HOLDS_ABOVE",
+            level = 255.19,
+            statement = "Amazon holds above support of \$255.19 over the next five sessions despite the current low-volume pullback.",
+            madeOn = "2026-08-04",
+            resolveDate = "2026-08-11"
+        )
+    ),
+    resolved = emptyList(),
+    stats = com.marketlabs.pulse.storage.model.stocks.DomainCallStats(totalResolved = 0, held = 0)
+)
+
 @Preview(name = "Light", showBackground = true)
 @Composable
 private fun PreviewForwardCallsLight() {
@@ -366,5 +385,13 @@ private fun PreviewForwardCallsLight() {
 private fun PreviewForwardCallsDark() {
     MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
         ForwardCalls(calls = mockCalls)
+    }
+}
+
+@Preview(name = "Fresh analysis (no subtitle)", showBackground = true)
+@Composable
+private fun PreviewForwardCallsFreshAnalysis() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
+        ForwardCalls(calls = mockCallsFreshAnalysis)
     }
 }

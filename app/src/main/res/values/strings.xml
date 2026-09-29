@@ -478,9 +478,11 @@
     <string name="stock_detail_deep_dive_dated">DEEP DIVE AVAILABLE, %1$s</string>
     <string name="stock_detail_deep_dive_next">NEXT: %1$s</string>
     <string name="stock_detail_deep_dive_next_standalone">NEXT DEEP DIVE: %1$s</string>
+    <string name="stock_detail_deep_dive_coming_soon">DEEP DIVE COMING SOON</string>
     <string name="stock_detail_deep_dive_updated_as_of">Updated as of %1$s</string>
     <string name="stock_analysis_deep_dive_label">Deep Dive: %1$s</string>
-    <string name="deep_dive_empty_state">No deep dive available yet for this symbol.</string>
+    <string name="deep_dive_coming_soon_title">Deep Dive Coming Soon</string>
+    <string name="deep_dive_coming_soon_body">We haven\'t run a deep dive on this stock yet — check back soon for a full structural read.</string>
     <string name="deep_dive_card_description">Structural read: profile, standing, risks, outlook, consensus, so on.</string>
     <string name="deep_dive_open_full_cta">Open full Deep Dive</string>
     <string name="fundamentals_delta_field_pe_trailing">Trailing P/E</string>

@@ -249,9 +249,9 @@ fun StockPreviewCard(
 
             // 💡 Always rendered (not just when a deep-dive date exists) -- the star needs a
             // consistent home on every card, bottom-right, and this footer row is it. `DeepDiveLabel`
-            // renders nothing on a cold-start symbol (neither date set yet), but its `weight(1f)` box
-            // still claims the row's leading space either way, so the star lands in the same spot
-            // regardless of whether deep-dive text is showing next to it.
+            // itself always shows some text too (falls back to "coming soon" for a brand-new
+            // symbol), but the `weight(1f)` box here is what keeps the star pinned to the same spot
+            // regardless of how long that text runs.
             Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_standard)))
             HorizontalDivider(
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
