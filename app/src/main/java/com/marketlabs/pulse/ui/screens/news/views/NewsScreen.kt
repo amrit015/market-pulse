@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -35,6 +36,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 import com.google.android.gms.ads.nativead.NativeAd
@@ -417,10 +419,17 @@ fun NewsArticleCard(
                 // TAGS
                 if (!article.tags.isNullOrEmpty()) {
                     Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
-                    Row(horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_small))) {
+                    // FlowRow + single-line ellipsis: a long tag (some are full phrases) must wrap to
+                    // the next line rather than squeeze its siblings into a one-character column.
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_small)),
+                        verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_tiny))
+                    ) {
                         article.tags.take(3).forEach { tag ->
                             Text(
                                 text = tag,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = pulseColors.accentPrimary.copy(alpha = 0.8f),
                                 fontWeight = FontWeight.Medium
