@@ -26,6 +26,9 @@ docs/
                                       order and how to verify a change (no local emulator for
                                       delivery, so this means a real console send)
 
+  FEATURE_INDEX.md                 — one row per `core/<domain>` folder (feature vs. infra): purpose,
+                                    primary screen/route, backend dependency, which doc covers it
+
   guidelines/                      — prescriptive: how to write new code in this repo
     kotlin-style.md                  DI (Hilt @Provides-in-object), null handling, naming
     compose-conventions.md           PulseTabRow, glossary system, resource conventions
@@ -98,3 +101,17 @@ also appear, the backtick-wrapping is doing its job.
   check catches.)
 - **Treat backtick-removal on an `@` pointer as a real decision, not a typo fix.** It flips a file
   from lazy to eager for every future session.
+
+## Per-feature READMEs (live beside the code, not under `docs/`)
+
+Each feature folder under `app/src/main/java/com/marketlabs/pulse/core/` has a short `README.md`
+(purpose, screen/ViewModel/repository files, backend dependency). `FEATURE_INDEX.md` links to all
+of them. Infra folders (`sync`, `ads`, `charts`, `intraday`, `notifications`, `glossary`) have none
+and stay covered by `docs/architecture/`.
+
+```
+core/dashboard/README.md       core/indicators/README.md      core/news/README.md
+core/summary/README.md         core/stocks/README.md          core/learn/README.md
+core/marketRisk/README.md      core/posture/README.md         core/positioning/README.md
+core/weeklyPlaybook/README.md  core/pastReleases/README.md
+```

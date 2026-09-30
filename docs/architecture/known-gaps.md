@@ -34,7 +34,8 @@ sign-off.
   that module.
 - **`NewsModule` / `MarketRiskModule` parameter naming.** Both name their repository impl
   parameter `marketSummaryRepositoryImpl` — copy-paste leftover from `SummaryModule`. Cosmetic.
-- **`DashboardApi.kt` is dead code.** Dashboard uses direct Firestore SDK, not REST. Do not "wire
+- **`DashboardApi.kt` (`dashboard/overview`) is defined but unused.** `core/dashboard`'s
+  repository reads Firestore directly (`market_overview` snapshot listener) instead. Do not "wire
   it up" — it's not a gap to fill, it's a leftover to eventually delete.
 
 ## Design-token audit items (from the 2026-08-16 Stock Analysis token pass)

@@ -32,6 +32,8 @@ are run manually, not gated by anything automated yet.
 ## Where things live
 
 - Module/package map, tech stack, the backend boundary → `@docs/architecture/overview.md`
+- One row per `core/<domain>` folder (feature vs. infra, primary screen, backend dependency, which
+  doc covers it) — start here to find a feature's per-folder README → `@docs/FEATURE_INDEX.md`
 - ViewModel/UiState shape, Route/Screen split, navigation graph → `@docs/architecture/android.md`
 - Transport strategies, Room caching, `SyncManager`, a worked example → `@docs/architecture/data-flow.md`
 - Backend field/flag-name contracts (the invisible cross-repo dependencies) → `@docs/architecture/cross-repo-contracts.md`
