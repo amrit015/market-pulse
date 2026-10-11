@@ -2,6 +2,8 @@ package com.marketlabs.pulse.ui.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.marketlabs.pulse.core.analytics.AnalyticsEvent
+import com.marketlabs.pulse.core.analytics.AnalyticsTracker
 import com.marketlabs.pulse.data.theme.ThemeRepository
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,7 +23,8 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    private val themeRepository: ThemeRepository
+    private val themeRepository: ThemeRepository,
+    private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
 
     val uiState: StateFlow<SettingsUiState> = themeRepository.selectedTheme
@@ -36,6 +39,7 @@ class SettingsViewModel @Inject constructor(
     fun selectTheme(theme: MarketPulseTheme) {
         viewModelScope.launch {
             themeRepository.setTheme(theme)
+            analyticsTracker.log(AnalyticsEvent.ThemeChange(theme.name.lowercase(java.util.Locale.ROOT)))
         }
     }
 }

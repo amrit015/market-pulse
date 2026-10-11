@@ -58,6 +58,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.util.lerp
+import com.marketlabs.pulse.core.analytics.AnalyticsEvent
+import com.marketlabs.pulse.core.analytics.LocalAnalyticsTracker
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
@@ -99,6 +101,7 @@ fun OnboardingCarouselScreen(
 ) {
     val pagerState = rememberPagerState(pageCount = { OnboardingSlideCount })
     val coroutineScope = rememberCoroutineScope()
+    val tracker = LocalAnalyticsTracker.current
     val isLastSlide = pagerState.currentPage == OnboardingSlideCount - 1
     // Slides whose text has already started typing. Kept here rather than in each slide because
     // the pager drops a slide once it's off screen, which would forget that it already typed.
@@ -144,9 +147,12 @@ fun OnboardingCarouselScreen(
             ) {
                 Button(
                     onClick = {
+                        val step = (pagerState.currentPage + 1).toLong()
                         if (isLastSlide) {
+                            tracker.log(AnalyticsEvent.OnboardingStep(step, AnalyticsEvent.OnboardingAction.DONE))
                             onContinue()
                         } else {
+                            tracker.log(AnalyticsEvent.OnboardingStep(step, AnalyticsEvent.OnboardingAction.NEXT))
                             coroutineScope.launch {
                                 pagerState.animateScrollToPage(pagerState.currentPage + 1)
                             }

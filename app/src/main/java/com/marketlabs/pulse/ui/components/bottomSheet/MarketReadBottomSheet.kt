@@ -19,6 +19,8 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import com.marketlabs.pulse.core.analytics.AnalyticsEvent
+import com.marketlabs.pulse.ui.common.TrackSheetOpen
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.summary.MarketVerdict
 import com.marketlabs.pulse.ui.components.widgets.CardEyebrowLabel
@@ -39,6 +41,7 @@ import com.marketlabs.pulse.utils.extensions.smartTitleCase
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MarketReadBottomSheet(verdict: MarketVerdict, onDismiss: () -> Unit) {
+    TrackSheetOpen(AnalyticsEvent.Sheet.MARKET_READ)
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val paddingExtraLarge = dimensionResource(id = R.dimen.padding_extra_large)
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)

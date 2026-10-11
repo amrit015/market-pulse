@@ -30,6 +30,8 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import com.marketlabs.pulse.core.analytics.AnalyticsEvent
+import com.marketlabs.pulse.ui.common.TrackSheetOpen
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.core.glossary.GlossaryTerm
 import com.marketlabs.pulse.core.glossary.MarketGlossaryProvider
@@ -52,6 +54,7 @@ fun MarketGlossaryBottomSheet(
     title: String = stringResource(id = R.string.market_status_and_glossary),
     onDismiss: () -> Unit
 ) {
+    TrackSheetOpen(AnalyticsEvent.Sheet.MARKET)
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val glossary = MarketGlossaryProvider.get(LocalContext.current)
 

@@ -41,6 +41,13 @@ class AdManagerImpl @Inject constructor(
     override fun initialize(context: Context) {
         if (_isInitialized.value) return
 
+        // Restricted data processing for US state privacy laws: AdMob reads `gad_rdp` from the
+        // app's default SharedPreferences (the "<package>_preferences" file) at SDK init, so it has
+        // to be written first. Ads are then non-personalized and no "Do Not Sell or Share" prompt is
+        // needed.
+        context.getSharedPreferences("${context.packageName}_preferences", Context.MODE_PRIVATE)
+            .edit().putInt("gad_rdp", 1).apply()
+
         try {
             MobileAds.initialize(context) { initializationStatus ->
                 _isInitialized.value = true

@@ -13,12 +13,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.core.analytics.AnalyticsEvent
+import com.marketlabs.pulse.core.analytics.LocalAnalyticsTracker
+import com.marketlabs.pulse.core.analytics.ScreenName
+import com.marketlabs.pulse.core.analytics.publisherHost
+import com.marketlabs.pulse.core.analytics.target
+import com.marketlabs.pulse.ui.common.TrackScreen
+import com.marketlabs.pulse.ui.common.TrackTutorialBegin
+import com.marketlabs.pulse.ui.common.rememberTutorialCompleteLogger
 import com.marketlabs.pulse.ui.components.PulseWebViewScreen
 import com.marketlabs.pulse.ui.screens.dashboard.detail.AssetDetailRoute
 import com.marketlabs.pulse.ui.screens.dashboard.views.DashboardRoute
@@ -52,7 +61,7 @@ import com.marketlabs.pulse.ui.screens.tutorials.TutorialsGaugesRoute
 import com.marketlabs.pulse.ui.screens.tutorials.TutorialsHubScreen
 import com.marketlabs.pulse.ui.settings.AboutRoute
 import com.marketlabs.pulse.ui.settings.ComingUpScreen
-import com.marketlabs.pulse.ui.settings.DataSyncScreen
+import com.marketlabs.pulse.ui.settings.DataSyncRoute
 import com.marketlabs.pulse.ui.settings.NotificationsRoute
 import com.marketlabs.pulse.ui.settings.SettingsRoute
 import com.marketlabs.pulse.ui.settings.ThemePickerRoute
@@ -269,6 +278,11 @@ fun PulseNavGraph(
     // FloatingBottomNav's route-equality tab-selected check) stays untouched.
     var initialInsightsTab by remember { mutableStateOf<InsightsTab?>(null) }
 
+    val tracker = LocalAnalyticsTracker.current
+    val trackOpen = { type: AnalyticsEvent.ContentType, id: String, source: AnalyticsEvent.Source ->
+        tracker.log(AnalyticsEvent.ContentOpen(type, id, source))
+    }
+
     NavHost(
         navController = navController,
         startDestination = startDestination,
@@ -284,6 +298,7 @@ fun PulseNavGraph(
         // Only ever reached as the graph's own startDestination on a not-yet-accepted cold start
         // (see the startDestination param above), never pushed onto an existing back stack.
         composable(PulseRoutes.ONBOARDING_CAROUSEL) {
+            TrackScreen(ScreenName.ONBOARDING.target())
             OnboardingCarouselScreen(
                 onContinue = { navController.navigate(PulseRoutes.LEGAL_ACCEPTANCE) },
                 isObscured = isSplashActive
@@ -293,6 +308,7 @@ fun PulseNavGraph(
         // the user can never navigate back into it, and so a later cold start reads
         // MARKET_OVERVIEW as the start destination instead.
         composable(PulseRoutes.LEGAL_ACCEPTANCE) {
+            TrackScreen(ScreenName.LEGAL_ACCEPTANCE.target())
             LegalAcceptanceRoute(
                 onAccepted = {
                     navController.navigate(PulseRoutes.MARKET_OVERVIEW) {
@@ -309,12 +325,15 @@ fun PulseNavGraph(
         // Reached both from the acceptance screen's own links (above) and from Settings -> Legal
         // (below) -- same two destinations either way, no acceptance action from this path.
         composable(PulseRoutes.TERMS_CONDITIONS) {
+            TrackScreen(ScreenName.TERMS.target())
             TermsConditionsScreen(onNavigateUp = { navController.popBackStack() })
         }
         composable(PulseRoutes.PRIVACY_POLICY) {
+            TrackScreen(ScreenName.PRIVACY_POLICY.target())
             PrivacyPolicyScreen(onNavigateUp = { navController.popBackStack() })
         }
         composable(PulseRoutes.MARKET_SUMMARY) {
+            TrackScreen(ScreenName.SUMMARY.target())
             MarketSummaryRoute(
                 scaffoldPadding = scaffoldPadding,
                 onReportTypeLoaded = onSummaryReportTypeLoaded,
@@ -357,6 +376,7 @@ fun PulseNavGraph(
             )
         }
         composable(PulseRoutes.MARKET_OVERVIEW) {
+            TrackScreen(ScreenName.OVERVIEW.target())
             DashboardRoute(
                 scaffoldPadding = scaffoldPadding,
                 // News is a plain push destination
@@ -377,6 +397,7 @@ fun PulseNavGraph(
                 // same class of problem `webview/{encodedUrl}` below already works around; encoded
                 // here, decoded back in `AssetDetailViewModel`'s `SavedStateHandle` read.
                 onNavigateToAssetDetail = { symbol ->
+                    trackOpen(AnalyticsEvent.ContentType.ASSET, symbol.uppercase(), AnalyticsEvent.Source.LIST)
                     val encodedSymbol = URLEncoder.encode(symbol, StandardCharsets.UTF_8.toString())
                     navController.navigate("${PulseRoutes.ASSET_DETAIL}/$encodedSymbol")
                 }
@@ -384,7 +405,11 @@ fun PulseNavGraph(
         }
         // Pushed from a dashboard tile tap. "symbol" is read
         // out of SavedStateHandle by AssetDetailViewModel itself, same as Stock Detail below.
-        composable("${PulseRoutes.ASSET_DETAIL}/{symbol}") {
+        composable("${PulseRoutes.ASSET_DETAIL}/{symbol}") { backStackEntry ->
+            TrackScreen(
+                ScreenName.ASSET_DETAIL.target(),
+                params = backStackEntry.stringParam("symbol", "symbol", uppercase = true)
+            )
             AssetDetailRoute(
                 scaffoldPadding = scaffoldPadding,
                 onNavigateUp = { navController.popBackStack() }
@@ -418,15 +443,23 @@ fun PulseNavGraph(
         }
         // Pushed from the Indicators tab's "Horizons" entry card -- see PulseRoutes.INDICATOR_HORIZONS.
         composable(PulseRoutes.INDICATOR_HORIZONS) {
+            TrackScreen(ScreenName.INDICATOR_HORIZONS.target())
             IndicatorHorizonsRoute(onNavigateUp = { navController.popBackStack() })
         }
         // Pushed from an indicator card tap. "metricId" is read
         // out of SavedStateHandle by MetricDetailViewModel itself, same as Asset Detail above.
-        composable("${PulseRoutes.METRIC_DETAIL}/{metricId}") {
+        composable("${PulseRoutes.METRIC_DETAIL}/{metricId}") { backStackEntry ->
+            TrackScreen(
+                ScreenName.METRIC_DETAIL.target(),
+                params = backStackEntry.stringParam("metricId", "metric_id", uppercase = false)
+            )
             MetricDetailRoute(
                 scaffoldPadding = scaffoldPadding,
                 onNavigateUp = { navController.popBackStack() },
-                onNavigateToArticle = { key -> navController.navigate("${PulseRoutes.TUTORIALS_ARTICLE}/$key") }
+                onNavigateToArticle = { key ->
+                    trackOpen(AnalyticsEvent.ContentType.TUTORIAL, key, AnalyticsEvent.Source.CROSS_LINK)
+                    navController.navigate("${PulseRoutes.TUTORIALS_ARTICLE}/$key")
+                }
             )
         }
         composable(PulseRoutes.MARKET_INSIGHTS) {
@@ -449,6 +482,7 @@ fun PulseNavGraph(
                 initialTab = initialInsightsTab,
                 onInitialTabConsumed = { initialInsightsTab = null },
                 onNavigateToGlossaryDetail = { metricIds, chartMetricId, title, description, status ->
+                    trackOpen(AnalyticsEvent.ContentType.GLOSSARY_TERM, chartMetricId, AnalyticsEvent.Source.LIST)
                     // 💡 Uri.encode(), not URLEncoder.encode() -- see GlossaryDetailViewModel's
                     // doc comment for why the form-encoding pairing (spaces -> "+") crashed
                     // against Navigation's own automatic percent-decode of path segments.
@@ -463,19 +497,31 @@ fun PulseNavGraph(
                         "${PulseRoutes.GLOSSARY_DETAIL}/$encodedTitle/${metricIds.joinToString(",")}/$chartMetricId/$encodedDescription/$encodedStatus"
                     )
                 },
-                onNavigateToPastReleases = { navController.navigate(PulseRoutes.PAST_RELEASES) }
+                onNavigateToPastReleases = {
+                    trackOpen(AnalyticsEvent.ContentType.PAST_RELEASE, ScreenName.PAST_RELEASES.value, AnalyticsEvent.Source.LIST)
+                    navController.navigate(PulseRoutes.PAST_RELEASES)
+                }
             )
         }
         // Pushed from the Events tab's Past Releases entry card -- see PulseRoutes.PAST_RELEASES.
         composable(PulseRoutes.PAST_RELEASES) {
+            TrackScreen(ScreenName.PAST_RELEASES.target())
             PastReleasesRoute(onNavigateUp = { navController.popBackStack() })
         }
         // Pushed from a whole-card tap on Positioning/Posture -- see PulseRoutes.GLOSSARY_DETAIL.
-        composable("${PulseRoutes.GLOSSARY_DETAIL}/{title}/{metricIds}/{chartMetricId}/{description}/{status}") {
+        composable("${PulseRoutes.GLOSSARY_DETAIL}/{title}/{metricIds}/{chartMetricId}/{description}/{status}") { backStackEntry ->
+            // Only the chart metric id: the title, description and status segments are free text.
+            TrackScreen(
+                ScreenName.GLOSSARY_DETAIL.target(),
+                params = backStackEntry.stringParam("chartMetricId", "metric_id")
+            )
             GlossaryDetailRoute(
                 scaffoldPadding = scaffoldPadding,
                 onNavigateUp = { navController.popBackStack() },
-                onNavigateToArticle = { key -> navController.navigate("${PulseRoutes.TUTORIALS_ARTICLE}/$key") }
+                onNavigateToArticle = { key ->
+                    trackOpen(AnalyticsEvent.ContentType.TUTORIAL, key, AnalyticsEvent.Source.CROSS_LINK)
+                    navController.navigate("${PulseRoutes.TUTORIALS_ARTICLE}/$key")
+                }
             )
         }
         composable(PulseRoutes.MARKET_ANALYSIS) {
@@ -500,6 +546,7 @@ fun PulseNavGraph(
                     navController.navigate("webview/$encodedUrl")
                 },
                 onNavigateToDeepDive = { symbol ->
+                    trackOpen(AnalyticsEvent.ContentType.DEEP_DIVE, symbol.uppercase(), AnalyticsEvent.Source.CROSS_LINK)
                     navController.navigate("${PulseRoutes.DEEP_DIVE_DETAIL}/$symbol")
                 },
                 onNavigateToResolvedCalls = { symbol ->
@@ -513,7 +560,11 @@ fun PulseNavGraph(
         // Pushed from a DeepDiveBanner tap on Stock Detail. "symbol" is read out of
         // SavedStateHandle by DeepDiveViewModel itself (see DeepDiveViewModel.ARG_SYMBOL), same
         // shape as STOCK_ANALYSIS_DETAIL above.
-        composable("${PulseRoutes.DEEP_DIVE_DETAIL}/{symbol}") {
+        composable("${PulseRoutes.DEEP_DIVE_DETAIL}/{symbol}") { backStackEntry ->
+            TrackScreen(
+                ScreenName.DEEP_DIVE.target(),
+                params = backStackEntry.stringParam("symbol", "symbol", uppercase = true)
+            )
             DeepDiveRoute(
                 scaffoldPadding = scaffoldPadding,
                 onNavigateUp = { navController.popBackStack() }
@@ -522,13 +573,21 @@ fun PulseNavGraph(
         // Pushed from the "View More" row on Stock Detail's Resolved Calls / Technical Timeline
         // cards. "symbol" is read out of SavedStateHandle by each screen's own ViewModel, same
         // shape as DEEP_DIVE_DETAIL above.
-        composable("${PulseRoutes.RESOLVED_CALLS_LIST}/{symbol}") {
+        composable("${PulseRoutes.RESOLVED_CALLS_LIST}/{symbol}") { backStackEntry ->
+            TrackScreen(
+                ScreenName.RESOLVED_CALLS.target(),
+                params = backStackEntry.stringParam("symbol", "symbol", uppercase = true)
+            )
             ResolvedCallsListRoute(
                 scaffoldPadding = scaffoldPadding,
                 onNavigateUp = { navController.popBackStack() }
             )
         }
-        composable("${PulseRoutes.TECHNICAL_TIMELINE_LIST}/{symbol}") {
+        composable("${PulseRoutes.TECHNICAL_TIMELINE_LIST}/{symbol}") { backStackEntry ->
+            TrackScreen(
+                ScreenName.TECHNICAL_TIMELINE.target(),
+                params = backStackEntry.stringParam("symbol", "symbol", uppercase = true)
+            )
             TechnicalTimelineListRoute(
                 scaffoldPadding = scaffoldPadding,
                 onNavigateUp = { navController.popBackStack() }
@@ -537,6 +596,7 @@ fun PulseNavGraph(
         // Pushed only from the Dashboard's "Latest News" chevron or a specific preview card -- not
         // a bottom-bar tab.
         composable(PulseRoutes.MARKET_NEWS) {
+            TrackScreen(ScreenName.NEWS.target())
             NewsRoute(
                 scaffoldPadding = scaffoldPadding,
                 onNavigateUp = { navController.popBackStack() },
@@ -553,6 +613,12 @@ fun PulseNavGraph(
             val encodedUrl = backStackEntry.arguments?.getString("encodedUrl") ?: ""
             val decodedUrl = URLDecoder.decode(encodedUrl, StandardCharsets.UTF_8.toString())
 
+            // Host only: the full URL can carry tokens or tracking params.
+            TrackScreen(
+                ScreenName.NEWS_WEBVIEW.target(),
+                params = publisherHost(decodedUrl)?.let { mapOf<String, Any>("publisher" to it) }.orEmpty()
+            )
+
             PulseWebViewScreen(
                 url = decodedUrl,
                 bottomNavPadding = scaffoldPadding,
@@ -562,6 +628,7 @@ fun PulseNavGraph(
 
         // Reached from the gear icon on the global top bar.
         composable(PulseRoutes.SETTINGS) {
+            TrackScreen(ScreenName.SETTINGS.target())
             SettingsRoute(
                 onNavigateUp = { navController.popBackStack() },
                 onNavigateToThemePicker = { navController.navigate(PulseRoutes.SETTINGS_THEME_PICKER) },
@@ -575,12 +642,18 @@ fun PulseNavGraph(
             )
         }
         composable(PulseRoutes.SETTINGS_NOTIFICATIONS) {
+            TrackScreen(ScreenName.SETTINGS_NOTIFICATIONS.target())
             NotificationsRoute(onNavigateUp = { navController.popBackStack() })
         }
         composable(PulseRoutes.SETTINGS_DATA_SYNC) {
-            DataSyncScreen(onNavigateUp = { navController.popBackStack() })
+            TrackScreen(ScreenName.SETTINGS_DATA_SYNC.target())
+            DataSyncRoute(
+                onNavigateUp = { navController.popBackStack() },
+                onNavigateToPrivacyPolicy = { navController.navigate(PulseRoutes.PRIVACY_POLICY) }
+            )
         }
         composable(PulseRoutes.SETTINGS_ABOUT) {
+            TrackScreen(ScreenName.SETTINGS_ABOUT.target())
             AboutRoute(
                 onNavigateUp = { navController.popBackStack() },
                 onNavigateToPrivacyPolicy = { navController.navigate(PulseRoutes.PRIVACY_POLICY) },
@@ -588,27 +661,49 @@ fun PulseNavGraph(
             )
         }
         composable(PulseRoutes.SETTINGS_COMING_UP) {
+            TrackScreen(ScreenName.SETTINGS_COMING_UP.target())
             ComingUpScreen(onNavigateUp = { navController.popBackStack() })
         }
         composable(PulseRoutes.SETTINGS_THEME_PICKER) {
+            TrackScreen(ScreenName.SETTINGS_THEME_PICKER.target())
             ThemePickerRoute(onNavigateUp = { navController.popBackStack() })
         }
         composable(PulseRoutes.TUTORIALS_HUB) {
+            TrackScreen(ScreenName.TUTORIALS_HUB.target())
             TutorialsHubScreen(
                 onNavigateUp = { navController.popBackStack() },
                 onNavigateToGaugeAnatomy = { navController.navigate(PulseRoutes.TUTORIALS_GAUGE_ANATOMY) },
-                onNavigateToConcept = { navController.navigate("${PulseRoutes.TUTORIALS_CONCEPT}/${it.routeKey}") },
-                onNavigateToMechanism = { navController.navigate("${PulseRoutes.TUTORIALS_DECK}/${it.routeKey}") },
-                onNavigateToIndicators = { navController.navigate("${PulseRoutes.TUTORIALS_GLOSSARY}/${it.routeKey}") },
+                onNavigateToConcept = {
+                    trackOpen(AnalyticsEvent.ContentType.TUTORIAL, it.routeKey, AnalyticsEvent.Source.LIST)
+                    navController.navigate("${PulseRoutes.TUTORIALS_CONCEPT}/${it.routeKey}")
+                },
+                onNavigateToMechanism = {
+                    trackOpen(AnalyticsEvent.ContentType.TUTORIAL, it.routeKey, AnalyticsEvent.Source.LIST)
+                    navController.navigate("${PulseRoutes.TUTORIALS_DECK}/${it.routeKey}")
+                },
+                onNavigateToIndicators = {
+                    trackOpen(AnalyticsEvent.ContentType.TUTORIAL, it.routeKey, AnalyticsEvent.Source.LIST)
+                    navController.navigate("${PulseRoutes.TUTORIALS_GLOSSARY}/${it.routeKey}")
+                },
                 onNavigateToDataLimitations = { navController.navigate(PulseRoutes.TUTORIALS_DATA_LIMITATIONS) },
-                onNavigateToArticle = { key -> navController.navigate("${PulseRoutes.TUTORIALS_ARTICLE}/$key") }
+                onNavigateToArticle = { key ->
+                    trackOpen(AnalyticsEvent.ContentType.TUTORIAL, key, AnalyticsEvent.Source.LIST)
+                    navController.navigate("${PulseRoutes.TUTORIALS_ARTICLE}/$key")
+                }
             )
         }
         composable("${PulseRoutes.TUTORIALS_CONCEPT}/{article}") { backStackEntry ->
             val article = ConceptArticle.fromRouteKey(backStackEntry.arguments?.getString("article"))
             if (article != null) {
+                TrackScreen(
+                    ScreenName.TUTORIAL_CONCEPT.target(),
+                    params = mapOf("article_key" to article.routeKey)
+                )
+                val tutorialKey = AnalyticsEvent.TutorialKey.Article(article.routeKey)
+                TrackTutorialBegin(tutorialKey)
                 TutorialsConceptScreen(
                     article = article,
+                    onLastCardReached = rememberTutorialCompleteLogger(tutorialKey),
                     onNavigateUp = { navController.popBackStack() },
                     onNavigateToRoute = { routeName ->
                         PulseRoutes.tabRouteByConstantName(routeName)?.let { navController.navigateToTab(it) }
@@ -628,13 +723,21 @@ fun PulseNavGraph(
                 ?.mapNotNull { Mechanism.fromRouteKey(it) }
                 .orEmpty()
             if (mechanism != null) {
+                TrackScreen(
+                    ScreenName.TUTORIAL_DECK.target(),
+                    params = mapOf("mechanism" to mechanism.routeKey, "group" to (group.takeIf { it.isNotEmpty() }?.joinToString(",") { it.routeKey } ?: mechanism.routeKey))
+                )
+                val tutorialKey = AnalyticsEvent.TutorialKey.Deck(mechanism.routeKey)
+                TrackTutorialBegin(tutorialKey)
                 MechanismDeckScreen(
                     mechanism = mechanism,
+                    onLastCardReached = rememberTutorialCompleteLogger(tutorialKey),
                     group = group,
                     onNavigateUp = { navController.popBackStack() },
                     // Always this one mechanism's own indicators -- never the whole group's, even
                     // when [group] itself lets the deck's content tabs switch between mechanisms.
                     onSeeIndicators = { current ->
+                        trackOpen(AnalyticsEvent.ContentType.TUTORIAL, current.routeKey, AnalyticsEvent.Source.TUTORIAL)
                         navController.navigate("${PulseRoutes.TUTORIALS_GLOSSARY}/${current.routeKey}")
                     },
                     onNavigateToRoute = { routeName ->
@@ -645,26 +748,57 @@ fun PulseNavGraph(
         }
         composable(route = "${PulseRoutes.TUTORIALS_GLOSSARY}/{mechanism}") { backStackEntry ->
             val mechanism = Mechanism.fromRouteKey(backStackEntry.arguments?.getString("mechanism"))
+            if (mechanism != null) {
+                TrackScreen(
+                    ScreenName.TUTORIAL_GLOSSARY.target(),
+                    params = mapOf("mechanism" to mechanism.routeKey)
+                )
+            }
             if (mechanism == Mechanism.STOCK_ANALYSIS) {
                 StockSetupsGlossaryScreen(onNavigateUp = { navController.popBackStack() })
             } else if (mechanism != null) {
                 TutorialsGaugesRoute(
                     onNavigateUp = { navController.popBackStack() },
-                    onNavigateToArticle = { key -> navController.navigate("${PulseRoutes.TUTORIALS_ARTICLE}/$key") }
+                    onNavigateToArticle = { key ->
+                        trackOpen(AnalyticsEvent.ContentType.TUTORIAL, key, AnalyticsEvent.Source.TUTORIAL)
+                        navController.navigate("${PulseRoutes.TUTORIALS_ARTICLE}/$key")
+                    }
                 )
             }
         }
         composable(PulseRoutes.TUTORIALS_GAUGE_ANATOMY) {
+            TrackScreen(ScreenName.TUTORIAL_GAUGE_ANATOMY.target())
             TutorialsGaugeAnatomyScreen(onNavigateUp = { navController.popBackStack() })
         }
         composable(PulseRoutes.TUTORIALS_DATA_LIMITATIONS) {
+            TrackScreen(ScreenName.TUTORIAL_DATA_LIMITATIONS.target())
             TutorialsDataLimitationsScreen(onNavigateUp = { navController.popBackStack() })
         }
         composable("${PulseRoutes.TUTORIALS_ARTICLE}/{key}") { backStackEntry ->
             val key = backStackEntry.arguments?.getString("key")
             if (key != null) {
-                TutorialsArticleScreen(articleKey = key, onNavigateUp = { navController.popBackStack() })
+                TrackScreen(ScreenName.TUTORIAL_ARTICLE.target(), params = mapOf("article_key" to key))
+                val tutorialKey = AnalyticsEvent.TutorialKey.Article(key)
+                TrackTutorialBegin(tutorialKey)
+                TutorialsArticleScreen(
+                    articleKey = key,
+                    onNavigateUp = { navController.popBackStack() },
+                    onLastCardReached = rememberTutorialCompleteLogger(tutorialKey)
+                )
             }
         }
     }
+}
+
+/**
+ * A string path argument as a single-entry analytics param, or no param when it's missing. Path
+ * arguments arrive already percent-decoded; [uppercase] matches how symbol routes are keyed.
+ */
+private fun NavBackStackEntry.stringParam(
+    argument: String,
+    param: String = argument,
+    uppercase: Boolean = false
+): Map<String, Any> {
+    val value = arguments?.getString(argument)?.takeIf { it.isNotEmpty() } ?: return emptyMap()
+    return mapOf(param to if (uppercase) value.uppercase() else value)
 }

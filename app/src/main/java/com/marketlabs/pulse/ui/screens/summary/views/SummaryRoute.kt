@@ -31,6 +31,9 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.marketlabs.pulse.core.analytics.AnalyticsEvent
+import com.marketlabs.pulse.core.analytics.LocalAnalyticsTracker
+import com.marketlabs.pulse.core.analytics.ScreenName
 import com.marketlabs.pulse.data.notifications.NotificationPreference
 import com.marketlabs.pulse.ui.components.NotificationEnableBanner
 import com.marketlabs.pulse.ui.components.PulseLoadingIndicator
@@ -73,6 +76,7 @@ fun MarketSummaryRoute(
     // to the background, saving battery and resources.
     val uiState by viewModel.summaryUiState.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+    val tracker = LocalAnalyticsTracker.current
 
     // 2. SIDE EFFECTS (Snackbars)
     // We need a host state to display Snackbars on top of the content.
@@ -114,7 +118,10 @@ fun MarketSummaryRoute(
         // it triggers viewModel.refreshData(force = true).
         PullToRefreshBox(
             isRefreshing = isRefreshing,
-            onRefresh = { viewModel.refreshData(force = true) },
+            onRefresh = {
+                tracker.log(AnalyticsEvent.PullToRefresh(ScreenName.SUMMARY.value))
+                viewModel.refreshData(force = true)
+            },
             state = pullRefreshState, // Pass the state
             indicator = {
                 // Override the indicator to add top padding!

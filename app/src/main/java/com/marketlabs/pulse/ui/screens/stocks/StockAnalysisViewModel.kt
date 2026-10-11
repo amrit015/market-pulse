@@ -2,6 +2,8 @@ package com.marketlabs.pulse.ui.screens.stocks
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.marketlabs.pulse.core.analytics.AnalyticsEvent
+import com.marketlabs.pulse.core.analytics.AnalyticsTracker
 import com.marketlabs.pulse.core.dashboard.DashboardRepository
 import com.marketlabs.pulse.core.intraday.IntradayRepository
 import com.marketlabs.pulse.core.stocks.StockAnalysisRepository
@@ -46,7 +48,8 @@ class StockAnalysisViewModel @Inject constructor(
     private val syncManager: SyncManager,
     private val intradayRepository: IntradayRepository,
     private val dashboardRepository: DashboardRepository,
-    private val favoriteStocksRepository: FavoriteStocksRepository
+    private val favoriteStocksRepository: FavoriteStocksRepository,
+    private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
 
     private val _isLoading = MutableStateFlow(false)
@@ -170,7 +173,11 @@ class StockAnalysisViewModel @Inject constructor(
 
     /** Called when the reader taps a `StockPreviewCard`'s star -- persists immediately, local-only. */
     fun toggleFavorite(symbol: String) {
-        viewModelScope.launch { favoriteStocksRepository.toggleFavorite(symbol) }
+        viewModelScope.launch {
+            val wasFavorite = symbol in favoriteStocksRepository.favoriteSymbols.first()
+            favoriteStocksRepository.toggleFavorite(symbol)
+            analyticsTracker.log(AnalyticsEvent.FavoriteToggle(AnalyticsEvent.FavoriteKind.STOCK, symbol.uppercase(), on = !wasFavorite))
+        }
     }
 
     /** Called when the reader taps a Deep Dive touchpoint for a symbol -- marks it as clicked. */

@@ -3,6 +3,10 @@ package com.marketlabs.pulse.ui.screens.stocks
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.marketlabs.pulse.core.analytics.AnalyticsEvent
+import com.marketlabs.pulse.core.analytics.AnalyticsTracker
+import com.marketlabs.pulse.core.analytics.ScreenName
+import kotlinx.coroutines.flow.first
 import com.marketlabs.pulse.core.charts.ChartSyncGroup
 import com.marketlabs.pulse.core.charts.ChartsRepository
 import com.marketlabs.pulse.core.dashboard.DashboardRepository
@@ -66,6 +70,7 @@ class StockDetailViewModel @Inject constructor(
     private val intradayRepository: IntradayRepository,
     private val dashboardRepository: DashboardRepository,
     private val favoriteStocksRepository: FavoriteStocksRepository,
+    private val analyticsTracker: AnalyticsTracker,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -224,7 +229,11 @@ class StockDetailViewModel @Inject constructor(
 
     /** Called when the reader taps the header's favorite star -- persists immediately, local-only. */
     fun toggleFavorite() {
-        viewModelScope.launch { favoriteStocksRepository.toggleFavorite(symbol) }
+        viewModelScope.launch {
+            val wasFavorite = symbol in favoriteStocksRepository.favoriteSymbols.first()
+            favoriteStocksRepository.toggleFavorite(symbol)
+            analyticsTracker.log(AnalyticsEvent.FavoriteToggle(AnalyticsEvent.FavoriteKind.STOCK, symbol.uppercase(), on = !wasFavorite))
+        }
     }
 
     /** Called when the reader taps the Deep Dive card or navigates to Deep Dive. */
@@ -235,6 +244,7 @@ class StockDetailViewModel @Inject constructor(
     /** Called when the user taps a range button on the period chart's `ChartRangePicker`. */
     fun selectChartRange(range: ChartRange) {
         _selectedChartRange.value = range
+        analyticsTracker.log(AnalyticsEvent.ChartRangeChange(range.name, ScreenName.STOCK_DETAIL.value))
         // ONE_DAY has no `/charts/:symbol` fetch to do -- the intraday poll started in onStart()
         // is already live regardless of which range is selected.
         if (range != ChartRange.ONE_DAY) {

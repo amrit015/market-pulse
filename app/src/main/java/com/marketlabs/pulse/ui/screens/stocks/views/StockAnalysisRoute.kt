@@ -27,6 +27,11 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.marketlabs.pulse.core.analytics.AnalyticsEvent
+import com.marketlabs.pulse.core.analytics.LocalAnalyticsTracker
+import com.marketlabs.pulse.core.analytics.ScreenName
+import com.marketlabs.pulse.core.analytics.forTab
+import com.marketlabs.pulse.ui.common.TrackScreen
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.data.notifications.NotificationPreference
 import com.marketlabs.pulse.ui.components.ComingSoonBannerCard
@@ -59,6 +64,11 @@ fun StockAnalysisRoute(
     comingSoonViewModel: ComingSoonBannerViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val tracker = LocalAnalyticsTracker.current
+    TrackScreen(
+        ScreenName.ANALYSIS.forTab(StockAnalysisTab.entries[uiState.selectedTabIndex]),
+        uiState.selectedTabIndex
+    )
     // 💡 Sequential, not stacked: the custom-list announcement shows first; once dismissed (for
     // good -- `ComingSoonBannerViewModel`'s dismissal never re-triggers), the notification-enable
     // banner takes its place. Never both at once.
@@ -161,7 +171,15 @@ fun StockAnalysisRoute(
                             pagerState = pagerState,
                             favoriteSymbols = uiState.favoriteSymbols,
                             clickedDeepDiveSymbols = uiState.clickedDeepDiveSymbols,
-                            onCardClick = onNavigateToDetail,
+                            onCardClick = { symbol ->
+                                val source = if (uiState.selectedTabIndex == StockAnalysisTab.FAVORITES.ordinal) {
+                                    AnalyticsEvent.Source.FAVORITES
+                                } else {
+                                    AnalyticsEvent.Source.LIST
+                                }
+                                tracker.log(AnalyticsEvent.ContentOpen(AnalyticsEvent.ContentType.STOCK, symbol.uppercase(), source))
+                                onNavigateToDetail(symbol)
+                            },
                             onToggleFavorite = viewModel::toggleFavorite,
                             onDeepDiveClick = viewModel::onDeepDiveClicked,
                             onTechnicalSetupClick = { setup -> glossaryStockSetup = setup },

@@ -7,8 +7,10 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.appcheck.FirebaseAppCheck
 import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory
 import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.marketlabs.pulse.BuildConfig
 import com.marketlabs.pulse.core.ads.AdManager
+import com.marketlabs.pulse.core.analytics.AnalyticsStateSync
 import com.marketlabs.pulse.core.notifications.NotificationChannels
 import com.marketlabs.pulse.core.notifications.PushTopicManager
 import dagger.hilt.android.HiltAndroidApp
@@ -32,17 +34,24 @@ class PulseApplication : Application() {
     @Inject
     lateinit var pushTopicManager: PushTopicManager
 
+    @Inject
+    lateinit var analyticsStateSync: AnalyticsStateSync
+
     // Process-lifetime scope for the one-shot subscription reconcile below.
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     override fun onCreate() {
         super.onCreate()
         initializeFirebaseAppCheck()
+        // Debug builds never send crash reports, so local crashes don't land in the real dashboard.
+        // Crash reporting is deliberately independent of the user's analytics choice.
+        FirebaseCrashlytics.getInstance().isCrashlyticsCollectionEnabled = !BuildConfig.DEBUG
         adManager.initialize(this)
         // Channels first: a push can wake this process before any Activity exists, and it must
         // find its channel already created.
         NotificationChannels.createAll(this)
         applicationScope.launch { pushTopicManager.reconcile() }
+        analyticsStateSync.start(applicationScope)
     }
 
     private fun initializeFirebaseAppCheck() {

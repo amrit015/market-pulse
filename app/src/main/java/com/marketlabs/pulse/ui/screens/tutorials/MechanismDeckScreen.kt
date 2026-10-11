@@ -39,7 +39,8 @@ fun MechanismDeckScreen(
     group: List<Mechanism>,
     onNavigateUp: () -> Unit,
     onSeeIndicators: (Mechanism) -> Unit,
-    onNavigateToRoute: (String) -> Unit = {}
+    onNavigateToRoute: (String) -> Unit = {},
+    onLastCardReached: () -> Unit = {}
 ) {
     val hasTabs = group.size > 1
     var selectedIndex by rememberSaveable { mutableIntStateOf(group.indexOf(mechanism).coerceAtLeast(0)) }
@@ -63,7 +64,8 @@ fun MechanismDeckScreen(
                 pages = mechanismContentPages(current, onSeeIndicators = { onSeeIndicators(current) }),
                 modifier = Modifier.weight(1f),
                 enlargedText = true,
-                onNavigateToRoute = onNavigateToRoute
+                onNavigateToRoute = onNavigateToRoute,
+                onLastCardReached = onLastCardReached
             )
         }
     }

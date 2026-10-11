@@ -3,6 +3,9 @@ package com.marketlabs.pulse.ui.screens.dashboard.detail
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.marketlabs.pulse.core.analytics.AnalyticsEvent
+import com.marketlabs.pulse.core.analytics.AnalyticsTracker
+import com.marketlabs.pulse.core.analytics.ScreenName
 import com.marketlabs.pulse.core.charts.ChartSyncGroup
 import com.marketlabs.pulse.core.charts.ChartsRepository
 import com.marketlabs.pulse.core.dashboard.DashboardRepository
@@ -47,6 +50,7 @@ class AssetDetailViewModel @Inject constructor(
     private val dashboardRepository: DashboardRepository,
     private val chartsRepository: ChartsRepository,
     private val intradayRepository: IntradayRepository,
+    private val analyticsTracker: AnalyticsTracker,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -165,6 +169,7 @@ class AssetDetailViewModel @Inject constructor(
     /** Called when the user taps a range button on the page's `ChartRangePicker`. */
     fun selectChartRange(range: ChartRange) {
         _selectedChartRange.value = range
+        analyticsTracker.log(AnalyticsEvent.ChartRangeChange(range.name, ScreenName.ASSET_DETAIL.value))
         // ONE_DAY has no `/charts/:symbol` fetch to do -- the intraday poll started in onStart()
         // (when eligible) is already live regardless of which range is selected.
         if (range != ChartRange.ONE_DAY) {

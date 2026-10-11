@@ -14,6 +14,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,6 +29,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.marketlabs.pulse.core.analytics.AnalyticsEvent
+import com.marketlabs.pulse.core.analytics.AnalyticsTracker
+import com.marketlabs.pulse.core.analytics.LocalAnalyticsTracker
 import com.marketlabs.pulse.data.legal.LegalRepository
 import com.marketlabs.pulse.data.theme.ThemeRepository
 import com.marketlabs.pulse.ui.components.AppTopBar
@@ -88,6 +92,9 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var legalRepository: LegalRepository
 
+    @Inject
+    lateinit var analyticsTracker: AnalyticsTracker
+
     // Destination from a tapped push, waiting for the NavHost to exist (cold start) or to be
     // navigated (warm start). Compose state so the consumer effect in setContent sees it change.
     private var pendingPushRoute by mutableStateOf<String?>(null)
@@ -125,13 +132,17 @@ class MainActivity : ComponentActivity() {
 
         // A recreation (rotation, theme change) re-delivers the original launch intent; the push it
         // carried was already handled by the first instance and must not re-navigate.
-        if (savedInstanceState == null) pendingPushRoute = PushNavigation.routeFor(intent)
+        if (savedInstanceState == null) {
+            pendingPushRoute = PushNavigation.routeFor(intent)
+            logPushOpen(intent, AnalyticsEvent.Launch.COLD)
+        }
 
         setContent {
             val selectedTheme by themeRepository.selectedTheme.collectAsStateWithLifecycle(
                 initialValue = initialTheme
             )
 
+            CompositionLocalProvider(LocalAnalyticsTracker provides analyticsTracker) {
             MarketPulseTheme(theme = selectedTheme) {
                 // Fixed 3s brand splash, independent of how fast data loads -- the Android system
                 // splash that precedes it remains a static icon by platform design (no OS-level
@@ -395,6 +406,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+            }
         }
     }
 
@@ -402,6 +414,19 @@ class MainActivity : ComponentActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         pendingPushRoute = PushNavigation.routeFor(intent)
+        logPushOpen(intent, AnalyticsEvent.Launch.WARM)
+    }
+
+    private fun logPushOpen(intent: Intent?, launch: AnalyticsEvent.Launch) {
+        val info = PushNavigation.pushInfoFor(intent) ?: return
+        analyticsTracker.log(
+            AnalyticsEvent.PushOpen(
+                pushType = info.type,
+                pushKey = info.key,
+                targetScreen = PushNavigation.routeForScreen(info.screen),
+                launch = launch
+            )
+        )
     }
 }
 

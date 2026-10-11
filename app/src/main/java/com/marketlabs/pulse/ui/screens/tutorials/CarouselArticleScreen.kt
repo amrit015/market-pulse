@@ -23,7 +23,8 @@ fun CarouselArticleScreen(
     title: String,
     pages: List<DeckPage>,
     onNavigateUp: () -> Unit,
-    onNavigateToRoute: (String) -> Unit = {}
+    onNavigateToRoute: (String) -> Unit = {},
+    onLastCardReached: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -31,7 +32,13 @@ fun CarouselArticleScreen(
             .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Top + WindowInsetsSides.Bottom))
     ) {
         PulseBackTitleRow(title = title, onNavigateUp = onNavigateUp)
-        CenteredCardCarousel(pages = pages, modifier = Modifier.weight(1f), enlargedText = true, onNavigateToRoute = onNavigateToRoute)
+        CenteredCardCarousel(
+            pages = pages,
+            modifier = Modifier.weight(1f),
+            enlargedText = true,
+            onNavigateToRoute = onNavigateToRoute,
+            onLastCardReached = onLastCardReached
+        )
         Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_extra_large)))
     }
 }

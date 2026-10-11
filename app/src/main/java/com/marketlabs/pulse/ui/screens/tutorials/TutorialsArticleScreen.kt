@@ -17,11 +17,11 @@ import com.marketlabs.pulse.ui.theme.MarketPulseTheme
  * `TutorialsGaugesViewModel` and friends already use for an unresolved route argument.
  */
 @Composable
-fun TutorialsArticleScreen(articleKey: String, onNavigateUp: () -> Unit) {
+fun TutorialsArticleScreen(articleKey: String, onNavigateUp: () -> Unit, onLastCardReached: () -> Unit = {}) {
     val article = IndicatorArticlesProvider.get(LocalContext.current)[articleKey] ?: return
     val pages = article.cards.map { card -> DeckPage(title = card.title, body = card.body) }
 
-    CarouselArticleScreen(title = article.title, pages = pages, onNavigateUp = onNavigateUp)
+    CarouselArticleScreen(title = article.title, pages = pages, onNavigateUp = onNavigateUp, onLastCardReached = onLastCardReached)
 }
 
 // ============================================================================

@@ -3,6 +3,7 @@ import java.util.Properties
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.google.services)
+    alias(libs.plugins.firebase.crashlytics)
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
     alias(libs.plugins.compose.compiler)
@@ -31,7 +32,13 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Debug builds send nothing to Analytics unless this is flipped locally for a DebugView
+            // session; never commit `true`, or every dev run pollutes production numbers.
+            buildConfigField("boolean", "ANALYTICS_IN_DEBUG", "false")
+        }
         release {
+            buildConfigField("boolean", "ANALYTICS_IN_DEBUG", "false")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -81,12 +88,14 @@ dependencies {
     implementation(libs.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.messaging)
+    implementation(libs.firebase.crashlytics)
     implementation(libs.hilt.android)
     debugImplementation(libs.androidx.ui.tooling)
     ksp(libs.hilt.compiler)

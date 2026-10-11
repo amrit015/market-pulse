@@ -4,6 +4,9 @@ import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.marketlabs.pulse.core.analytics.AnalyticsEvent
+import com.marketlabs.pulse.core.analytics.AnalyticsTracker
+import com.marketlabs.pulse.core.analytics.ScreenName
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.core.charts.computeAvailableChartRanges
 import com.marketlabs.pulse.core.charts.filteredForRange
@@ -50,6 +53,7 @@ class GlossaryDetailViewModel @Inject constructor(
     @ApplicationContext context: Context,
     glossaryProvider: MetricGlossaryProvider,
     private val insightsHistoryRepository: InsightsHistoryRepository,
+    private val analyticsTracker: AnalyticsTracker,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -156,6 +160,7 @@ class GlossaryDetailViewModel @Inject constructor(
     /** Called by the range picker -- a local re-slice of the already-fetched series, no network call. */
     fun onRangeSelected(range: ChartRange) {
         _selectedChartRange.value = range
+        analyticsTracker.log(AnalyticsEvent.ChartRangeChange(range.name, ScreenName.GLOSSARY_DETAIL.value))
     }
 
     companion object {
