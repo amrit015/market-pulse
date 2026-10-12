@@ -586,12 +586,15 @@
     <string name="about_app_version">Version %1$s · Build %2$s</string>
     <string name="about_contact_email">[CONTACT EMAIL]</string>
 
+    <string name="data_sync_share_usage_title">Share anonymous usage data</string>
+    <string name="data_sync_share_usage_description">Helps us see which screens and features are used. Tied to an anonymous app-install ID, never to you. Crash reports are separate and always on.</string>
+    <string name="data_sync_share_usage_privacy_link">Read the Privacy Policy</string>
     <string name="data_sync_section_1_title">What we collect</string>
     <string name="data_sync_section_1_body">Market Pulse collects two kinds of data:\n\nHow you use the app — which screens you visit, what you tap, how you engage. This is standard app-analytics data (via Firebase Analytics), tied to an anonymous app-install ID, not to you as a person. No name, no email, no account.\n\nCrash reports — if the app crashes, a technical report is sent automatically including device model and OS version, used only to fix defects (via Firebase Crashlytics).</string>
     <string name="data_sync_section_2_title">What we don\'t collect</string>
     <string name="data_sync_section_2_body">• No account or sign-in exists — we have no way to identify you.\n• No financial account, brokerage, or payment information.\n• No location data.\n• No data from the market sources you view — those are fetched by our servers, never by your device directly.</string>
     <string name="data_sync_section_3_title">Your preferences, stored locally</string>
-    <string name="data_sync_section_3_body">Your theme, favorited stocks and metrics, and app settings are stored only on your device. They leave your device only if you back up your device yourself. Uninstalling the app removes them.</string>
+    <string name="data_sync_section_3_body">Your theme, favorited stocks and metrics, and app settings are stored on your device. If you share usage data, an anonymous event notes which favorite was added or removed. Uninstalling the app removes your local preferences.</string>
     <string name="data_sync_section_4_title">Data sources</string>
     <string name="data_sync_section_4_body">The market data you see comes from third-party providers (Finnhub, Yahoo Finance, FRED, and others). Those providers never receive information about you or your device — all data fetching happens server-side.</string>
     <string name="data_sync_section_5_title">Notifications</string>
@@ -653,15 +656,15 @@
     <string name="privacy_section_1_title">1. Overview</string>
     <string name="privacy_section_1_body">Market Pulse does not require account creation or sign-in. This policy explains what limited data the App collects and how it\'s used.</string>
     <string name="privacy_section_2_title">2. Information We Collect</string>
-    <string name="privacy_section_2_body">• App preferences (e.g. selected theme, favorite stocks/metrics, legal-acceptance status) — stored locally on your device only, never transmitted to us.\n• Usage analytics (via Firebase Analytics) — anonymized app-usage data such as screens viewed and general engagement, tied to an app-instance identifier, not to you personally.</string>
+    <string name="privacy_section_2_body">• App preferences (theme, favorite stocks/metrics, legal-acceptance status) are stored on your device. When you add or remove a favorite, an anonymous usage event noting which item changed is sent to our analytics provider.\n• Usage analytics (Firebase Analytics): screens and tabs viewed, which stocks, indicators, and articles are opened, time spent, and notification opens — tied to an app-instance identifier, not to you personally. You can turn this off in Settings → Data &amp; Sync.\n• Crash diagnostics (Firebase Crashlytics): device model, OS version, app version, the screen in use, and the technical details of a crash.</string>
     <string name="privacy_section_3_title">3. Information We Do Not Collect</string>
     <string name="privacy_section_3_body">• No account information, email, or phone number (no sign-in exists in the App).\n• No financial account, brokerage, or payment information.\n• No precise location data.</string>
     <string name="privacy_section_4_title">4. Third-Party Services</string>
-    <string name="privacy_section_4_body">• Firebase (Google) — analytics, content delivery, and app security (App Check). Governed by Google\'s own privacy policy.\n• Market data providers — accessed entirely server-side by Market Pulse\'s backend; these providers never receive information about you or your device.</string>
+    <string name="privacy_section_4_body">• Firebase (Google) — analytics, content delivery, and app security (App Check). Governed by Google\'s own privacy policy.\n• Firebase Crashlytics (Google) — crash reporting.\n• Google AdMob — displays ads. Ads are non-personalized; AdMob may process device and usage information to serve and measure them, under Google\'s privacy policy.\n• Market data providers — accessed entirely server-side by Market Pulse\'s backend; these providers never receive information about you or your device.</string>
     <string name="privacy_section_5_title">5. Data Retention</string>
-    <string name="privacy_section_5_body">Locally stored preferences remain on your device until you clear app data or uninstall. Analytics data retention follows Firebase\'s standard retention settings.</string>
+    <string name="privacy_section_5_body">Locally stored preferences remain on your device until you clear app data or uninstall. Analytics and crash data are kept per Firebase\'s retention settings (analytics: the property\'s configured retention period; Crashlytics: 90 days).</string>
     <string name="privacy_section_6_title">6. Your Rights</string>
-    <string name="privacy_section_6_body">Because no account or personal profile exists, most data-subject requests (access, deletion, portability) are satisfied by clearing the App\'s local storage or uninstalling the App. For analytics-level requests, contact us at marketpulse.labs@gmail.com.</string>
+    <string name="privacy_section_6_body">You can stop usage analytics at any time in Settings → Data &amp; Sync. Because no account or personal profile exists, most data-subject requests (access, deletion, portability) are satisfied by clearing the App\'s local storage or uninstalling the App. For analytics-level requests, contact us at marketpulse.labs@gmail.com.</string>
     <string name="privacy_section_7_title">7. Children\'s Privacy</string>
     <string name="privacy_section_7_body">Market Pulse is not directed at children under 13 (or the relevant age threshold in your jurisdiction) and does not knowingly collect data from them.</string>
     <string name="privacy_section_8_title">8. Changes to This Policy</string>

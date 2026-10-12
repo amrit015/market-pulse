@@ -51,6 +51,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.util.lerp as lerpFloat
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberUpdatedState
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.components.FormattedBodyText
 import com.marketlabs.pulse.ui.components.PulseCard
@@ -77,9 +79,15 @@ fun CardCarousel(
     maxCardHeight: Dp,
     modifier: Modifier = Modifier,
     enlargedText: Boolean = false,
-    onNavigateToRoute: (String) -> Unit = {}
+    onNavigateToRoute: (String) -> Unit = {},
+    // Called each time the reader settles on the last card of a multi-card deck; the caller dedupes.
+    onLastCardReached: () -> Unit = {}
 ) {
     val pagerState = rememberPagerState { pages.size }
+    val currentOnLastCardReached by rememberUpdatedState(onLastCardReached)
+    LaunchedEffect(pagerState.settledPage, pages.size) {
+        if (pages.size > 1 && pagerState.settledPage == pages.lastIndex) currentOnLastCardReached()
+    }
     val scope = rememberCoroutineScope()
     val currentPage = pagerState.currentPage
     val arrowInset = dimensionResource(id = R.dimen.padding_small)
@@ -310,12 +318,19 @@ fun CenteredCardCarousel(
     pages: List<DeckPage>,
     modifier: Modifier = Modifier,
     enlargedText: Boolean = false,
-    onNavigateToRoute: (String) -> Unit = {}
+    onNavigateToRoute: (String) -> Unit = {},
+    onLastCardReached: () -> Unit = {}
 ) {
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     BoxWithConstraints(modifier = modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
         val maxCardHeight = (screenHeight * 0.7f).coerceAtMost(maxHeight - 48.dp)
-        CardCarousel(pages = pages, maxCardHeight = maxCardHeight, enlargedText = enlargedText, onNavigateToRoute = onNavigateToRoute)
+        CardCarousel(
+            pages = pages,
+            maxCardHeight = maxCardHeight,
+            enlargedText = enlargedText,
+            onNavigateToRoute = onNavigateToRoute,
+            onLastCardReached = onLastCardReached
+        )
     }
 }
 

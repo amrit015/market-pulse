@@ -43,6 +43,9 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.marketlabs.pulse.core.analytics.ScreenName
+import com.marketlabs.pulse.core.analytics.forTab
+import com.marketlabs.pulse.ui.common.TrackScreen
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.components.PulseLoadingIndicator
 import com.marketlabs.pulse.ui.components.PulseTabRow
@@ -85,6 +88,11 @@ fun StockDetailRoute(
     viewModel: StockDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    TrackScreen(
+        ScreenName.STOCK_DETAIL.forTab(DetailTab.entries[uiState.selectedTabIndex]),
+        uiState.selectedTabIndex,
+        params = mapOf("symbol" to uiState.symbol.uppercase())
+    )
     val snackbarHostState = remember { SnackbarHostState() }
     val pullRefreshState = rememberPullToRefreshState()
     val lifecycleOwner = LocalLifecycleOwner.current

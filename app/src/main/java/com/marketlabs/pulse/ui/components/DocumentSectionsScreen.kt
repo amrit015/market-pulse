@@ -56,7 +56,10 @@ fun DocumentSectionsScreen(
     diagrams: Map<Int, @Composable () -> Unit> = emptyMap(),
     // Extra content rendered after the last section card (e.g. About's app-info block and its
     // links) -- optional so every existing call site keeps compiling unchanged.
-    trailingContent: @Composable (() -> Unit)? = null
+    trailingContent: @Composable (() -> Unit)? = null,
+    // Extra content rendered above the first section card (e.g. a settings switch) -- optional so
+    // every existing call site keeps compiling unchanged.
+    leadingContent: @Composable (() -> Unit)? = null
 ) {
     Column(
         modifier = Modifier
@@ -72,6 +75,11 @@ fun DocumentSectionsScreen(
                     style = MaterialTheme.typography.bodySmall,
                     color = LocalPulseColors.current.onSurfaceMuted
                 )
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_xlarge)))
+            }
+
+            if (leadingContent != null) {
+                leadingContent()
                 Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_xlarge)))
             }
 

@@ -32,6 +32,11 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.marketlabs.pulse.core.analytics.AnalyticsEvent
+import com.marketlabs.pulse.core.analytics.LocalAnalyticsTracker
+import com.marketlabs.pulse.core.analytics.ScreenName
+import com.marketlabs.pulse.core.analytics.forTab
+import com.marketlabs.pulse.ui.common.TrackScreen
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.components.PulseLoadingIndicator
 import com.marketlabs.pulse.ui.screens.indicators.IndicatorsViewModel
@@ -45,6 +50,11 @@ fun IndicatorsRoute(
     viewModel: IndicatorsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val tracker = LocalAnalyticsTracker.current
+    TrackScreen(
+        ScreenName.INDICATORS.forTab(IndicatorsTab.entries[uiState.selectedTabIndex]),
+        uiState.selectedTabIndex
+    )
     val snackbarHostState = remember { SnackbarHostState() }
     val pullRefreshState = rememberPullToRefreshState()
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -75,7 +85,10 @@ fun IndicatorsRoute(
     Box(modifier = Modifier.fillMaxSize()) {
         PullToRefreshBox(
             isRefreshing = uiState.isRefreshing,
-            onRefresh = { viewModel.refreshIndicators() },
+            onRefresh = {
+                tracker.log(AnalyticsEvent.PullToRefresh(ScreenName.INDICATORS.value))
+                viewModel.refreshIndicators()
+            },
             state = pullRefreshState,
             indicator = {
                 Indicator(
@@ -98,7 +111,15 @@ fun IndicatorsRoute(
                         favoriteMetricIds = uiState.favoriteMetricIds,
                         onToggleFavoriteMetric = viewModel::toggleFavoriteMetric,
                         onNavigateToHorizons = onNavigateToHorizons,
-                        onNavigateToMetricDetail = onNavigateToMetricDetail
+                        onNavigateToMetricDetail = { metricId ->
+                            val source = if (uiState.selectedTabIndex == IndicatorsTab.FAVORITES.ordinal) {
+                                AnalyticsEvent.Source.FAVORITES
+                            } else {
+                                AnalyticsEvent.Source.LIST
+                            }
+                            tracker.log(AnalyticsEvent.ContentOpen(AnalyticsEvent.ContentType.METRIC, metricId, source))
+                            onNavigateToMetricDetail(metricId)
+                        }
                     )
                 }
 

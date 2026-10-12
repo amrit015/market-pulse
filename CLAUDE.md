@@ -51,6 +51,8 @@ are run manually, not gated by anything automated yet.
   the sync-flag freshness mechanism (`ChartSyncGroup`), intraday market-hours gating + per-cadence
   polling — LIVING doc, several dead ends already tried and reverted, read before touching this
   system again → `@docs/architecture/price-charts.md`.
+- Analytics + Crashlytics (`AnalyticsTracker`, `TrackScreen`, event catalog rules, opt-out, debug
+  builds) → `@docs/architecture/analytics.md`
 - Hilt DI conventions, null handling, naming → `@docs/guidelines/kotlin-style.md`
 - `PulseTabRow` (including the swipeable-pager + tab-sync pattern), the glossary system, resource
   conventions → `@docs/guidelines/compose-conventions.md`

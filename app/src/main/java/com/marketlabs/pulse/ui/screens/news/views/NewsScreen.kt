@@ -73,7 +73,8 @@ private fun sentimentColors(pulseColors: PulseColors, sentiment: String): Pair<a
 fun NewsScreen(
     data: MarketNews,
     scaffoldPadding: PaddingValues,
-    onArticleClick: (String) -> Unit,
+    // Url and the story's index in the whole feed (today's stories, then earlier ones).
+    onArticleClick: (url: String, position: Int) -> Unit,
     highlightedArticleUrl: String? = null,
     nativeAd: NativeAd? = null,
     isAdFree: Boolean = false,
@@ -145,7 +146,7 @@ fun NewsScreen(
                 item(key = "today_${index}_${article.url.orEmpty()}") {
                     NewsArticleCard(
                         article = article,
-                        onClick = { url -> onArticleClick(url) },
+                        onClick = { url -> onArticleClick(url, index) },
                         isHighlighted = article.url != null && article.url == highlightedArticleUrl,
                         modifier = Modifier.animateItem()
                     )
@@ -189,7 +190,7 @@ fun NewsScreen(
                     item(key = "earlier_${index}_${article.url.orEmpty()}") {
                         NewsArticleCard(
                             article = article,
-                            onClick = { url -> onArticleClick(url) },
+                            onClick = { url -> onArticleClick(url, todayStories.size + index) },
                             isHighlighted = article.url != null && article.url == highlightedArticleUrl,
                             modifier = Modifier.animateItem()
                         )

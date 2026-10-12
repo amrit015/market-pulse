@@ -21,6 +21,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import com.marketlabs.pulse.core.analytics.AnalyticsEvent
+import com.marketlabs.pulse.ui.common.TrackSheetOpen
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.core.glossary.StockAnalysisGlossaryProvider
 import com.marketlabs.pulse.ui.components.PulseCard
@@ -60,6 +62,7 @@ fun StockAnalysisGlossaryBottomSheet(
     entries: List<GlossaryEntry>,
     onDismiss: () -> Unit
 ) {
+    TrackSheetOpen(AnalyticsEvent.Sheet.STOCK_GLOSSARY)
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val paddingExtraLarge = dimensionResource(id = R.dimen.padding_extra_large)
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)

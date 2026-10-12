@@ -2,6 +2,8 @@ package com.marketlabs.pulse.ui.screens.indicators
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.marketlabs.pulse.core.analytics.AnalyticsEvent
+import com.marketlabs.pulse.core.analytics.AnalyticsTracker
 import com.marketlabs.pulse.core.indicators.IndicatorsRepository
 import com.marketlabs.pulse.core.sync.SyncManager
 import com.marketlabs.pulse.data.favorites.FavoriteMetricsRepository
@@ -21,7 +23,8 @@ import javax.inject.Inject
 class IndicatorsViewModel @Inject constructor(
     private val repository: IndicatorsRepository,
     private val syncManager: SyncManager,
-    private val favoriteMetricsRepository: FavoriteMetricsRepository
+    private val favoriteMetricsRepository: FavoriteMetricsRepository,
+    private val analyticsTracker: AnalyticsTracker
 ) : ViewModel() {
 
     private val _isLoading = MutableStateFlow(false)
@@ -114,7 +117,11 @@ class IndicatorsViewModel @Inject constructor(
 
     /** Called when the reader taps a metric card's star -- persists immediately, local-only. */
     fun toggleFavoriteMetric(metricId: String) {
-        viewModelScope.launch { favoriteMetricsRepository.toggleFavorite(metricId) }
+        viewModelScope.launch {
+            val wasFavorite = metricId in favoriteMetricsRepository.favoriteMetricIds.first()
+            favoriteMetricsRepository.toggleFavorite(metricId)
+            analyticsTracker.log(AnalyticsEvent.FavoriteToggle(AnalyticsEvent.FavoriteKind.METRIC, metricId, on = !wasFavorite))
+        }
     }
 
     private fun fetchIndicators(force: Boolean) {

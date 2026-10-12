@@ -4,6 +4,9 @@ import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.marketlabs.pulse.core.analytics.AnalyticsEvent
+import com.marketlabs.pulse.core.analytics.AnalyticsTracker
+import com.marketlabs.pulse.core.analytics.ScreenName
 import com.marketlabs.pulse.core.charts.computeAvailableChartRanges
 import com.marketlabs.pulse.core.charts.filteredForRange
 import com.marketlabs.pulse.core.charts.resolveEffectiveRange
@@ -62,6 +65,7 @@ class MetricDetailViewModel @Inject constructor(
     private val glossaryProvider: MetricGlossaryProvider,
     private val metricHistoryRepository: MetricHistoryRepository,
     private val favoriteMetricsRepository: FavoriteMetricsRepository,
+    private val analyticsTracker: AnalyticsTracker,
     @ApplicationContext context: Context,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -159,11 +163,16 @@ class MetricDetailViewModel @Inject constructor(
     /** Called by the range picker -- a local re-slice of the already-fetched series, no network call. */
     fun onRangeSelected(range: ChartRange) {
         _selectedChartRange.value = range
+        analyticsTracker.log(AnalyticsEvent.ChartRangeChange(range.name, ScreenName.METRIC_DETAIL.value))
     }
 
     /** Called when the reader taps the app bar's favorite star -- persists immediately, local-only. */
     fun toggleFavorite() {
-        viewModelScope.launch { favoriteMetricsRepository.toggleFavorite(metricId) }
+        viewModelScope.launch {
+            val wasFavorite = metricId in favoriteMetricsRepository.favoriteMetricIds.first()
+            favoriteMetricsRepository.toggleFavorite(metricId)
+            analyticsTracker.log(AnalyticsEvent.FavoriteToggle(AnalyticsEvent.FavoriteKind.METRIC, metricId, on = !wasFavorite))
+        }
     }
 
     companion object {

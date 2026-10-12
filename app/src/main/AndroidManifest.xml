@@ -55,6 +55,28 @@
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="@string/admob_app_id" />
+
+        <!-- Screens are reported explicitly (see TrackScreen). With automatic reporting on, every
+             screen would be logged as the single hosting Activity, hiding what the user actually
+             viewed. -->
+        <meta-data
+            android:name="google_analytics_automatic_screen_reporting_enabled"
+            android:value="false" />
+
+        <!-- Off until the app has read the user's choice and enabled it, so an opted-out user's very
+             first events can't slip out in the gap before that preference loads. -->
+        <meta-data
+            android:name="firebase_analytics_collection_enabled"
+            android:value="false" />
+
+        <!-- Analytics is product measurement only: no ad personalization, and no advertising ID,
+             which would also widen the Play Data safety declaration for no benefit. -->
+        <meta-data
+            android:name="google_analytics_default_allow_ad_personalization_signals"
+            android:value="false" />
+        <meta-data
+            android:name="google_analytics_adid_collection_enabled"
+            android:value="false" />
     </application>
 
 </manifest>

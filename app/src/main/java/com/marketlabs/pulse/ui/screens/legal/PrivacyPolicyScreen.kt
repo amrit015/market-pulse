@@ -9,10 +9,10 @@ import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 /**
  * Boilerplate — NOT LEGAL ADVICE, needs
- * real legal review before shipping. Assumes Firebase Analytics, Firestore, and App Check
- * (Play Integrity) are the active Firebase products (dependencies confirmed in this app);
- * Crashlytics is deliberately NOT mentioned — confirmed not a dependency in this app. `[TODO: ...]`
- * markers stand in for a contact email not yet supplied.
+ * real legal review before shipping. Assumes Firebase Analytics, Crashlytics, Firestore, and App
+ * Check (Play Integrity) are the active Firebase products, plus Google AdMob for ads (all are
+ * dependencies of this app and all are disclosed in the Third-Party Services section). `[TODO: ...]`
+ * markers stand in for details not yet supplied, such as the release date.
  */
 @Composable
 fun PrivacyPolicyScreen(onNavigateUp: () -> Unit) {

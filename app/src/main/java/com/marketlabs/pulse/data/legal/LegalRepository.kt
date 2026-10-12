@@ -20,6 +20,6 @@ interface LegalRepository {
          * Bump this to force re-acceptance (e.g. a material Terms/Privacy change) — `MainActivity`
          * gates its start destination on `acceptedVersion < CURRENT_LEGAL_VERSION`.
          */
-        const val CURRENT_LEGAL_VERSION = 1
+        const val CURRENT_LEGAL_VERSION = 2
     }
 }

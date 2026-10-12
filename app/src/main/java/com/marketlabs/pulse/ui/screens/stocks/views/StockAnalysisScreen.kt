@@ -22,6 +22,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import com.marketlabs.pulse.core.analytics.AnalyticsEvent
+import com.marketlabs.pulse.ui.common.TrackDataState
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.intraday.IntradaySeries
 import com.marketlabs.pulse.storage.model.stocks.StockPreview
@@ -195,6 +197,7 @@ private fun errorMessageFor(error: UiError): String = when (error) {
 
 @Composable
 fun StockAnalysisErrorState(error: UiError, onRetry: () -> Unit, modifier: Modifier = Modifier) {
+    TrackDataState(AnalyticsEvent.DataState.ERROR)
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -218,6 +221,7 @@ fun StockAnalysisErrorState(error: UiError, onRetry: () -> Unit, modifier: Modif
 
 @Composable
 fun StockAnalysisEmptyState(modifier: Modifier = Modifier) {
+    TrackDataState(AnalyticsEvent.DataState.EMPTY)
     Box(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center

@@ -23,6 +23,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.marketlabs.pulse.core.analytics.AnalyticsEvent
+import com.marketlabs.pulse.ui.common.TrackSheetOpen
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.components.tutorials.CardCarousel
 import com.marketlabs.pulse.ui.components.tutorials.DeckPage
@@ -47,6 +49,7 @@ fun ScreenGuideSheet(
     onLearnAboutMarket: () -> Unit,
     onDismiss: () -> Unit
 ) {
+    TrackSheetOpen(AnalyticsEvent.Sheet.SCREEN_GUIDE)
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
     val maxCardHeight = (LocalConfiguration.current.screenHeightDp * CardHeightFraction).dp
