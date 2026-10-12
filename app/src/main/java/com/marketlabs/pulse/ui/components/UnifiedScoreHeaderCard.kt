@@ -152,7 +152,7 @@ fun UnifiedScoreHeaderCard(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
                         .weight(1f)
-                        .animateContentSize(),
+                        .animateContentSize(CardExpandAnimationSpec),
                     onTextLayout = { textLayoutResult ->
                         if (!expanded) {
                             hasOverflow = textLayoutResult.hasVisualOverflow

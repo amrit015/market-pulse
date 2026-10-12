@@ -38,6 +38,28 @@ sign-off.
   repository reads Firestore directly (`market_overview` snapshot listener) instead. Do not "wire
   it up" — it's not a gap to fill, it's a leftover to eventually delete.
 
+## Analytics coverage gaps
+
+- **No `content_open` for `news_story`.** The news model carries no confirmed stable story id, so
+  news is covered by `news_outbound` only. Add the id to both once the backend guarantees one.
+- **`news_outbound` fires from the News feed only.** Stock Detail's news tab opens the same web view
+  but has no feed position to report, so it logs nothing.
+- **`onboarding_step` never reports `skip`.** The carousel has no skip control; only `next` and
+  `done` occur.
+- **No ViewModel test for `favorite_toggle`.** The four favorites ViewModels have heavy
+  constructors; the once-per-toggle behaviour is untested.
+- **`push_key` is absent until the backend sends `data.key`.**
+
+## Auth and network gaps
+
+- **`AppCheckInterceptor` is not installed on the Retrofit client.** It is commented out in
+  `NetworkApiModule` ("turn off app check for now"), so requests carry no `X-Firebase-AppCheck`
+  header and `Authorization` (the anonymous ID token) is the only credential header sent. Re-enable
+  it before relying on App Check enforcement server-side.
+- **The anonymous user is created silently and retried in the background.** If the Anonymous
+  provider is disabled in the Firebase console, `AnonymousSignInManager` keeps retrying quietly and
+  the About screen simply shows no App ID row; nothing surfaces the failure to the user.
+
 ## Design-token audit items (from the 2026-08-16 Stock Analysis token pass)
 
 Carried forward from `STYLE_SPEC.md §14`'s open items — not re-audited during this restructure,

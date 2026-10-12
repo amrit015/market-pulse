@@ -34,6 +34,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.marketlabs.pulse.core.analytics.AnalyticsEvent
 import com.marketlabs.pulse.core.analytics.LocalAnalyticsTracker
 import com.marketlabs.pulse.core.analytics.ScreenName
+import com.marketlabs.pulse.core.analytics.forTab
+import com.marketlabs.pulse.ui.common.TrackScreen
 import com.marketlabs.pulse.data.notifications.NotificationPreference
 import com.marketlabs.pulse.ui.components.NotificationEnableBanner
 import com.marketlabs.pulse.ui.components.PulseLoadingIndicator
@@ -77,6 +79,13 @@ fun MarketSummaryRoute(
     val uiState by viewModel.summaryUiState.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val tracker = LocalAnalyticsTracker.current
+
+    // One screen_view per tab (`summary_pulse` / `summary_drivers` / `summary_outlook`), re-fired
+    // when the tab changes. A day change does not touch the key, so it is not a new view.
+    val selectedTab = (uiState as? SummaryUiState.Success)
+        ?.let { SummaryTab.entries.getOrNull(it.selectedTabIndex) }
+        ?: SummaryTab.PULSE
+    TrackScreen(ScreenName.SUMMARY.forTab(selectedTab), selectedTab)
 
     // 2. SIDE EFFECTS (Snackbars)
     // We need a host state to display Snackbars on top of the content.
@@ -165,9 +174,30 @@ fun MarketSummaryRoute(
                         contentByDateId = state.contentByDateId,
                         calendarDayIds = state.calendarDayIds,
                         selectedDateId = state.selectedDateId,
-                        onDateSelected = viewModel::selectDate,
+                        onDateSelected = { dateId ->
+                            tracker.log(AnalyticsEvent.DaySelect(state.dayOffsetOf(dateId).toLong()))
+                            viewModel.selectDate(dateId)
+                        },
                         scaffoldPadding = scaffoldPadding,
                         onNavigateToIndicators = onNavigateToIndicators,
+                        selectedTabIndex = state.selectedTabIndex,
+                        onTabSelected = viewModel::selectTab,
+                        expandItemsByDefault = state.expandItemsByDefault,
+                        onExpandItemsByDefaultChange = { expanded ->
+                            tracker.log(AnalyticsEvent.SummaryExpandMode(expanded))
+                            viewModel.setExpandItemsByDefault(expanded)
+                        },
+                        isPro = state.isPro,
+                        onSectionExpand = { section, position ->
+                            tracker.log(
+                                AnalyticsEvent.SectionExpand(
+                                    section = section.analytics,
+                                    screenName = ScreenName.SUMMARY.forTab(selectedTab).name,
+                                    position = position.toLong(),
+                                    dayOffset = state.dayOffsetOf(state.selectedDateId).toLong()
+                                )
+                            )
+                        },
                         onNavigateToPosture = onNavigateToPosture,
                         onRetryDate = viewModel::retryPastDate,
                         banner = { NotificationEnableBanner(preference = NotificationPreference.DAILY_SUMMARY) }

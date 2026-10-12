@@ -1,6 +1,7 @@
 package com.marketlabs.pulse.ui.screens.stocks.detail.sections
 
 import androidx.compose.animation.animateContentSize
+import com.marketlabs.pulse.ui.components.CardExpandAnimationSpec
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -90,7 +91,7 @@ private fun NewsCard(item: DomainStockNewsItem, isExpanded: Boolean, onToggle: (
         // 💡 Two padded blocks around the headline divider (Scenarios'/DeepStudy's merged-card
         // shape), so the headline/body divider stretches the card's full width rather than being
         // inset by `padding_large` on both sides.
-        Column(modifier = Modifier.animateContentSize()) {
+        Column(modifier = Modifier.animateContentSize(CardExpandAnimationSpec)) {
             Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     item.impactMagnitude?.let {

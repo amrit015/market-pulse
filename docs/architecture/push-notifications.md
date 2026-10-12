@@ -54,15 +54,18 @@ preference or re-deriving why something is shaped the way it is:
    `MainActivity`'s `launchMode="singleTop"` to fire at all). Maps to a bottom-nav tab via the
    shared `navigateToTab` helper; unknown/missing `screen` opens Overview. A push tapped while
    still on the onboarding/legal-acceptance gate is dropped rather than queued, so it can't jump
-   the user past terms acceptance.
+   the user past terms acceptance. The same two entry points log `push_open` through
+   `PushNavigation.pushInfoFor(intent)` (`data.type`, `data.screen`, and `data.key` when present),
+   cold start only when `savedInstanceState == null` so a rotation doesn't count again.
 
 ## Backend contract
 
 Topic names, channel ids, and the exact payload shape are documented once, in
 `@docs/architecture/cross-repo-contracts.md`, since that's where every other Android↔backend field
 name already lives — not duplicated here. The one rule worth restating: **routing reads
-`data.screen` only; `data.type` is for logging, and `notification.title`/`.body` are never parsed
-or asserted on** (the backend varies title text by weekday/asset count on its own schedule).
+`data.screen` only; `data.type` and `data.key` are reported to analytics as `push_type` /
+`push_key` and never drive navigation, and `notification.title`/`.body` are never parsed or
+asserted on** (the backend varies title text by weekday/asset count on its own schedule).
 
 ## Decisions made, for context
 
@@ -85,7 +88,7 @@ There's no local emulator for FCM delivery — checking this system means sendin
    permission prompt.
 3. From the Firebase console: Messaging → New campaign → Notifications → target the `_test` topic
    → under Additional options set the Android notification channel (`daily_summary` /
-   `stock_updates`) and custom data (`type`, `screen`) to match the real contract → Publish. Don't
+   `stock_updates`) and custom data (`type`, `screen`, and `key` to exercise `push_key`) to match the real contract → Publish. Don't
    use "Send test message" — that targets a device token, not a topic.
 4. Background the app (a foregrounded app suppresses the push per the decision above) before
    sending, to see the actual tray notification.

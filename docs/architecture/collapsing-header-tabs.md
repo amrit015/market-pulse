@@ -8,7 +8,7 @@
 > `PulseTabRow` section (which covers the base tab-bar pattern every tabbed screen uses, with or
 > without this heavier mechanism) -- this file is specifically about the collapsing-chrome
 > mechanics, not styling. Verified against source on 2026-09-06; Summary's simpler pinned-zone
-> variant (added 2026-09-07, by a separate session) folded in without a fresh full re-verification
+> variant (added 2026-09-07, by a separate session; reshaped to tab-pager 2026-10-12) folded in without a fresh full re-verification
 > of the rest of this file -- re-check line numbers/specifics before citing them if read much later.
 
 ## What this pattern is for
@@ -41,16 +41,25 @@ different in how much chrome is pinned vs. collapsing:
   suppresses the global top bar/bottom nav entirely via `isPushedDestination`, so there's no global
   `enterAlwaysScrollBehavior` connection to conflict with in the first place.
 
-**Summary** (`SummaryScreen.kt`'s `MarketSummaryScreen`, added 2026-09-07) is a THIRD case, but the
-simpler shape Insights already established, not the full pattern above -- worth naming explicitly
-so a reader doesn't assume it needs pieces #2/#3 below just because it's listed here. Its pinned
-zone (`SummaryCalendarStrip`, the 7-day date pills) never collapses at all -- there's no
-collapsing-chrome `Box`/`Modifier.layout` override and no `NestedScrollConnection`, because nothing
-above the pager needs to scroll away. What it DOES reuse: the `weight(1f)` `Box` + `HorizontalPager`
-shape (piece #4) and the full "Pager ↔ ViewModel sync" sub-pattern below (a swipe between calendar
-days is exactly a tab swipe, just keyed by `dateId` instead of a tab index) -- and, per Bug #4
-below, the same `MainActivity.kt` global-top-bar fix Indicators/Insights needed, for the identical
-reason.
+**Summary** (`SummaryScreen.kt`'s `MarketSummaryScreen`, added 2026-09-07; restructured
+2026-10-12 to the tab-pager shape) is a THIRD case, but the simpler shape Insights already
+established, not the full pattern above -- worth naming explicitly so a reader doesn't assume it
+needs pieces #2/#3 below just because it's listed here. Its pinned zone (`SummaryCalendarStrip`,
+the 7-day date pills, plus a `PulseTabRow` for Pulse / Drivers / Outlook) never collapses at all --
+there's no collapsing-chrome `Box`/`Modifier.layout` override and no `NestedScrollConnection`,
+because nothing above the pager needs to scroll away. What it DOES reuse: the `weight(1f)` `Box` +
+`HorizontalPager` shape (piece #4) and the full "Pager ↔ ViewModel sync" sub-pattern below, keyed
+by `selectedTabIndex` like every other tabbed screen.
+
+What differs from the other tabbed screens: **the day is selected by tapping the calendar strip
+only** -- the horizontal swipe belongs to the tab pager, so there is no day pager and the strip
+takes no `selectionPosition`. The selected day's content is rendered inside each tab page under
+`key(dateId)`, the tab index lives in the ViewModel and survives a day change, each tab's
+`LazyListState` is scrolled back to the top when the day changes (guarded with a `rememberSaveable`
+so a rotation isn't mistaken for a day change), and the per-day expansion state
+(`SummaryExpansionState`) is recreated on every day change, which is what collapses everything
+again. Per Bug #4 below, it needed the same `MainActivity.kt` global-top-bar fix
+Indicators/Insights needed, for the identical reason.
 
 ## The four pieces
 
@@ -108,8 +117,8 @@ to the pager than `PullToRefreshBox`'s own internal connection means:
 ## Pager ↔ ViewModel sync
 
 Exactly the same two-effect shape `InsightsRoute.kt` established first, reused verbatim by
-`StockDetailRoute.kt`, `IndicatorsScreen.kt`, and `SummaryScreen.kt` (keyed by `dateId` instead of
-a tab index -- see that file's own doc comment on `MarketSummaryScreen`):
+`StockDetailRoute.kt`, `IndicatorsScreen.kt`, and `SummaryScreen.kt` (see that file's own doc comment on
+`MarketSummaryScreen` for how a tap-only day strip sits alongside it):
 
 ```kotlin
 val pagerState = rememberPagerState(initialPage = uiState.selectedTabIndex) { XTab.entries.size }

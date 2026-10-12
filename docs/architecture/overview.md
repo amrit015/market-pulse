@@ -9,7 +9,9 @@ against source during the move.
 ## Tech stack
 
 Kotlin, Jetpack Compose (Material 3), Dagger Hilt, Room, Retrofit + Moshi, Firebase Firestore
-(client SDK for some domains, backing store for all of them), Compose Navigation, Vico (charts),
+(client SDK for some domains, backing store for all of them), Firebase Analytics + Crashlytics
+(behind `core/analytics/AnalyticsTracker`; see `@docs/architecture/analytics.md`), Firebase
+Authentication (anonymous only; see `@docs/architecture/auth.md`), Compose Navigation, Vico (charts),
 Compose-Markdown. Single Gradle module (`app/`) — no multi-module split. `minSdk = 26`,
 `compileSdk`/`targetSdk = 36`, Kotlin/Java 17.
 

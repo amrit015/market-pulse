@@ -1,39 +1,31 @@
 package com.marketlabs.pulse.ui.screens.legal
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.data.legal.LegalDocumentProvider
+import com.marketlabs.pulse.data.legal.toBodyText
 import com.marketlabs.pulse.ui.components.DocumentSectionsScreen
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 /**
  * Boilerplate based on common patterns
- * for financial-data apps — NOT LEGAL ADVICE, needs real legal review before shipping. `[TODO: ...]`
- * markers in the section bodies stand in for entity name / jurisdiction / contact email not yet
- * supplied.
+ * for financial-data apps — NOT LEGAL ADVICE, needs real legal review before shipping. The text lives in
+ * `assets/legal_terms.json`, which is also the copy the public web page serves; its `[TODO: ...]`
+ * markers stand in for entity name / jurisdiction not yet supplied.
  */
 @Composable
 fun TermsConditionsScreen(onNavigateUp: () -> Unit) {
-    val sections = listOf(
-        stringResource(id = R.string.terms_section_1_title) to stringResource(id = R.string.terms_section_1_body),
-        stringResource(id = R.string.terms_section_2_title) to stringResource(id = R.string.terms_section_2_body),
-        stringResource(id = R.string.terms_section_3_title) to stringResource(id = R.string.terms_section_3_body),
-        stringResource(id = R.string.terms_section_4_title) to stringResource(id = R.string.terms_section_4_body),
-        stringResource(id = R.string.terms_section_5_title) to stringResource(id = R.string.terms_section_5_body),
-        stringResource(id = R.string.terms_section_6_title) to stringResource(id = R.string.terms_section_6_body),
-        stringResource(id = R.string.terms_section_7_title) to stringResource(id = R.string.terms_section_7_body),
-        stringResource(id = R.string.terms_section_8_title) to stringResource(id = R.string.terms_section_8_body),
-        stringResource(id = R.string.terms_section_9_title) to stringResource(id = R.string.terms_section_9_body),
-        stringResource(id = R.string.terms_section_10_title) to stringResource(id = R.string.terms_section_10_body),
-        stringResource(id = R.string.terms_section_11_title) to stringResource(id = R.string.terms_section_11_body),
-        stringResource(id = R.string.terms_section_12_title) to stringResource(id = R.string.terms_section_12_body),
-        stringResource(id = R.string.terms_section_13_title) to stringResource(id = R.string.terms_section_13_body)
-    )
+    val context = LocalContext.current
+    val document = remember { LegalDocumentProvider.terms(context) }
+    val sections = document.sections.map { it.heading to it.toBodyText() }
 
     DocumentSectionsScreen(
         title = stringResource(id = R.string.terms_conditions_screen_title),
-        lastUpdatedLabel = stringResource(id = R.string.legal_last_updated_todo),
+        lastUpdatedLabel = legalLastUpdatedLabel(document.lastUpdated),
         sections = sections,
         onNavigateUp = onNavigateUp
     )

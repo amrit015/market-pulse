@@ -1,5 +1,7 @@
 package com.marketlabs.pulse.di
 
+import com.marketlabs.pulse.core.summary.SummaryPreferencesRepository
+import com.marketlabs.pulse.core.summary.SummaryPreferencesRepositoryImpl
 import com.marketlabs.pulse.core.summary.SummaryRepository
 import com.marketlabs.pulse.core.summary.SummaryRepositoryImpl
 import com.marketlabs.pulse.network.store.summary.RemoteSummaryDataSource
@@ -34,4 +36,9 @@ object SummaryModule {
         marketSummaryRepositoryImpl: SummaryRepositoryImpl
     ): SummaryRepository = marketSummaryRepositoryImpl
 
+    @Provides
+    @Singleton
+    fun provideSummaryPreferencesRepository(
+        impl: SummaryPreferencesRepositoryImpl
+    ): SummaryPreferencesRepository = impl
 }

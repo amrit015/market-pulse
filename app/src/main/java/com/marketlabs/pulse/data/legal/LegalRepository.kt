@@ -19,7 +19,12 @@ interface LegalRepository {
         /**
          * Bump this to force re-acceptance (e.g. a material Terms/Privacy change) — `MainActivity`
          * gates its start destination on `acceptedVersion < CURRENT_LEGAL_VERSION`.
+         *
+         * Must equal the `version` in `assets/legal_privacy.json` and `assets/legal_terms.json`;
+         * `LegalDocumentJsonTest` fails the build if they drift. The constant stays in code (rather
+         * than being read from the JSON) because the start destination is decided before any asset
+         * is parsed and a `const` is usable from annotations and tests.
          */
-        const val CURRENT_LEGAL_VERSION = 2
+        const val CURRENT_LEGAL_VERSION = 3
     }
 }

@@ -82,6 +82,44 @@ sealed class AnalyticsEvent(val name: String, val params: Map<String, Any>) {
         mapOf("legal_version" to legalVersion)
     )
 
+    /**
+     * Fires when a hidden part of a Summary card is expanded (never on collapse). [position] is the
+     * item's index within its section (0 for single-item sections) and [dayOffset] is how many
+     * days behind the latest report the viewed day is (0 = latest). Headline text is never sent.
+     */
+    class SectionExpand(
+        section: ExpandedSection,
+        screenName: String,
+        position: Long,
+        dayOffset: Long
+    ) : AnalyticsEvent(
+        "section_expand",
+        mapOf(
+            "screen_name" to screenName,
+            "section" to section.value,
+            "item_position" to position,
+            "day_offset" to dayOffset
+        )
+    )
+
+    /** Fires when the user flips the Summary screen's expanded/collapsed default. */
+    class SummaryExpandMode(expanded: Boolean) : AnalyticsEvent(
+        "summary_expand_mode",
+        mapOf("mode" to if (expanded) "expanded" else "collapsed")
+    )
+
+    /** Fires when a day is tapped in the Summary calendar strip; 0 = latest report. */
+    class DaySelect(dayOffset: Long) : AnalyticsEvent(
+        "day_select",
+        mapOf("day_offset" to dayOffset)
+    )
+
+    enum class ExpandedSection(val value: String) {
+        MARKET_MOVERS("market_movers"), MACRO_MIX("macro_mix"),
+        MARKET_SENTIMENT("market_sentiment"), MARKET_READ("market_read"),
+        WHAT_CHANGED("what_changed")
+    }
+
     enum class ContentType(val value: String) {
         STOCK("stock"), ASSET("asset"), METRIC("metric"), NEWS_STORY("news_story"),
         TUTORIAL("tutorial"), GLOSSARY_TERM("glossary_term"), DEEP_DIVE("deep_dive"),
@@ -94,8 +132,7 @@ sealed class AnalyticsEvent(val name: String, val params: Map<String, Any>) {
     }
 
     enum class Sheet(val value: String) {
-        DRIVERS_INFO("drivers_info"), MARKET("market"), MARKET_READ("market_read"),
-        RISK("risk"), SCREEN_GUIDE("screen_guide"), STOCK_GLOSSARY("stock_glossary")
+        DRIVERS_INFO("drivers_info"), MARKET("market"), RISK("risk"), SCREEN_GUIDE("screen_guide"), STOCK_GLOSSARY("stock_glossary")
     }
 
     enum class Launch(val value: String) { COLD("cold"), WARM("warm") }

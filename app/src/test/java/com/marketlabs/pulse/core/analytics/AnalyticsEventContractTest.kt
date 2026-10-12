@@ -22,7 +22,10 @@ class AnalyticsEventContractTest {
         AnalyticsEvent.FavoriteToggle(AnalyticsEvent.FavoriteKind.STOCK, "AAPL", on = true),
         AnalyticsEvent.ThemeChange("navy"),
         AnalyticsEvent.OnboardingStep(2L, AnalyticsEvent.OnboardingAction.NEXT),
-        AnalyticsEvent.LegalAccept(2L)
+        AnalyticsEvent.LegalAccept(2L),
+        AnalyticsEvent.SectionExpand(AnalyticsEvent.ExpandedSection.MARKET_MOVERS, "summary_drivers", 2L, 0L),
+        AnalyticsEvent.SummaryExpandMode(expanded = true),
+        AnalyticsEvent.DaySelect(3L)
     )
 
     private val nameRegex = Regex("^[a-z][a-z0-9_]{0,39}$")
@@ -59,6 +62,29 @@ class AnalyticsEventContractTest {
     fun absentPushKeyIsOmittedNotEmpty() {
         val params = AnalyticsEvent.PushOpen("summary", null, "market_summary", AnalyticsEvent.Launch.COLD).params
         assertTrue("push_key" !in params)
+    }
+
+    @Test
+    fun summaryExpandEventsCarryOnlyEnumeratedValuesAndOffsets() {
+        val expand = AnalyticsEvent.SectionExpand(AnalyticsEvent.ExpandedSection.MACRO_MIX, "summary_drivers", 1L, 2L)
+        assertEquals("section_expand", expand.name)
+        assertEquals(
+            mapOf<String, Any>(
+                "screen_name" to "summary_drivers",
+                "section" to "macro_mix",
+                "item_position" to 1L,
+                "day_offset" to 2L
+            ),
+            expand.params
+        )
+        assertEquals("expanded", AnalyticsEvent.SummaryExpandMode(true).params["mode"])
+        assertEquals("collapsed", AnalyticsEvent.SummaryExpandMode(false).params["mode"])
+        assertEquals(mapOf<String, Any>("day_offset" to 0L), AnalyticsEvent.DaySelect(0L).params)
+    }
+
+    @Test
+    fun marketReadIsNoLongerASheet() {
+        assertTrue(AnalyticsEvent.Sheet.entries.none { it.value == "market_read" })
     }
 
     @Test

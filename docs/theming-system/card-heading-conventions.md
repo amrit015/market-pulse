@@ -64,7 +64,7 @@ Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)
 ```
 
 **Used by:** `SignalSection` ("Market Signal", :301), `MarketSentimentCard` ("Market Sentiment",
-:1059), `TheReadSection` ("Market Read", :921, and "Where Capital's Moving", :952),
+:1059), the Market Read block inside `SignalSection` (`MarketReadContent`),
 `MarketPositionSection`'s "What Changed" sub-block (:680). All `PulseCardStyle.SYNTHESIS`, or a
 SYNTHESIS-flavored moment inside an otherwise-DATA card (What Changed).
 
@@ -588,15 +588,10 @@ built — not a font-size or `maxLines` fix, purely giving the layout a valid pl
   `DriversSection`/`ScoreGauge` use) but that was dropped the next day (2026-09-07) — redundant once
   the pill text already says "RISK ON"/"RISK OFF"/"MIXED", and the MIXED glyph in particular read as
   a stray dot rather than a meaningful mark.
-- **The flash headline (`signalLine`) is now tappable.** The whole headline row (text + trailing
-  chevron, not just the chevron icon — fixed 2026-09-07, the icon-only tap target was too small)
-  opens a new `MarketReadBottomSheet` (`ui/components/bottomSheet/MarketReadBottomSheet.kt`) showing
-  the headline plus the same `analysis`/`posture` prose `TheReadSection` renders at the bottom of the
-  page — a shortcut for the reader who wants the "why" without scrolling past drivers/position/
-  stories/macro/domino/watch/risks to reach it. `TheReadSection` itself is unchanged and still
-  renders in its usual place; this is an additional entry point, not a replacement. The sheet's own
-  headline recap runs through `smartTitleCase()` too (fixed same day — it hadn't, so the same
-  `signalLine` value showed title-cased on the card and raw-cased in the sheet it opens).
+- **The Signal card expands the Market Read inline (2026-10-12).** This replaced the earlier
+  `MarketReadBottomSheet` shortcut and the standalone closing read card: tapping the card (the
+  headline row carries the same up/down arrow Market Sentiment uses) opens the `analysis`/`posture`
+  prose under the conviction meter, inside the same card, separated by full-width dividers.
 - **Conviction meter is now a continuous bar, not 3 discrete segments.** Matches
   `CardStyleShowcase.kt`'s "11. SYNTHESIS — Headline + divider + meter" sample (which is what this
   redesign was modeled on, in the reverse direction from usual): the "CONVICTION" label sits on its
@@ -684,7 +679,7 @@ tried and rejected before landing on the right one:
 
 Only `MarketGlossaryBottomSheet` was changed — it's the one bottom sheet in the app that nests
 `PulseCard` content (see Twelfth step); `DriversInfoBottomSheet`/`RiskBottomSheet`/
-`StockAnalysisGlossaryBottomSheet`/`MarketReadBottomSheet` render plain text only, so
+`StockAnalysisGlossaryBottomSheet` render plain text only, so
 `surfaceContainerHighest` still works fine for them (no card fill to collide with) and none were
 touched.
 

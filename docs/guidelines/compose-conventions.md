@@ -56,6 +56,18 @@ for worked examples):
 no scrolling), a different layout shape for a different job (picking a chart's time range, not
 switching between sibling page sections).
 
+## Settings switch rows
+
+A card-wrapped title + description + `Switch` where the whole row is the tap target (the `Switch`
+itself is display-only so TalkBack reads one control) is `ui/settings/components/SettingsToggleRow`.
+Notifications and Data & Sync both use it; reuse it rather than hand-rolling another.
+
+## Analytics hooks
+
+Every new `composable(...)` destination needs a `TrackScreen(...)` and a `ScreenName` entry
+(`ScreenCatalogTest` fails otherwise). Events fire from tap callbacks, ViewModel actions, or
+`LaunchedEffect` — never from plain composition. Full rules in `@docs/architecture/analytics.md`.
+
 ## Loading and error states
 
 **`ui/components/PulseLoadingIndicator.kt` is the one loading treatment for every screen** — never
@@ -118,6 +130,13 @@ same `core/glossary/` files/loader, not a separate system: `asset_descriptions.j
 entirely) is a `symbol -> description` map for the Dashboard asset-detail screen's per-asset blurb,
 not a term/definition glossary — reuses `loadFlatGlossaryJson` because the shape is identical, not
 because it's conceptually a glossary term.
+
+Not a glossary, but the same "bundled `assets/*.json` + lazily-cached `object` provider" shape:
+the legal documents (`legal_privacy.json`/`legal_terms.json`, `data/legal/LegalDocumentProvider`).
+Their body text is structured blocks (paragraph / list), not strings with embedded bullets, because
+the public web page serves the same files; `LegalSection.toBodyText()` turns a section back into
+the plain-string convention `FormattedBodyText` renders. Don't re-add `privacy_section_*` /
+`terms_section_*` string resources.
 
 Provider access pattern differs by consumer, and this is deliberate, not inconsistent:
 `MetricGlossaryProvider` is a Hilt `@Singleton @Inject constructor(@ApplicationContext context: Context)`

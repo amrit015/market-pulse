@@ -11,6 +11,7 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.marketlabs.pulse.BuildConfig
 import com.marketlabs.pulse.core.ads.AdManager
 import com.marketlabs.pulse.core.analytics.AnalyticsStateSync
+import com.marketlabs.pulse.core.auth.AnonymousSignInManager
 import com.marketlabs.pulse.core.notifications.NotificationChannels
 import com.marketlabs.pulse.core.notifications.PushTopicManager
 import dagger.hilt.android.HiltAndroidApp
@@ -37,6 +38,9 @@ class PulseApplication : Application() {
     @Inject
     lateinit var analyticsStateSync: AnalyticsStateSync
 
+    @Inject
+    lateinit var anonymousSignInManager: AnonymousSignInManager
+
     // Process-lifetime scope for the one-shot subscription reconcile below.
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
@@ -52,6 +56,8 @@ class PulseApplication : Application() {
         NotificationChannels.createAll(this)
         applicationScope.launch { pushTopicManager.reconcile() }
         analyticsStateSync.start(applicationScope)
+        // Waits for legal acceptance internally, so starting it here never signs in early.
+        anonymousSignInManager.start(applicationScope)
     }
 
     private fun initializeFirebaseAppCheck() {

@@ -1,0 +1,136 @@
+{
+  "version": 3,
+  "lastUpdated": "2026-10-12",
+  "title": "Terms & Conditions",
+  "sections": [
+    {
+      "heading": "1. Acceptance of Terms",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "By downloading, installing, or using Market Pulse (\"the App\"), you agree to be bound by these Terms & Conditions. If you do not agree, do not use the App."
+        }
+      ]
+    },
+    {
+      "heading": "2. Description of Service",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "Market Pulse aggregates publicly available market data — equity prices, macroeconomic indicators, and related statistics — and presents it alongside computed metrics and AI-generated interpretive content. The App is a research and information tool."
+        }
+      ]
+    },
+    {
+      "heading": "3. Not Financial Advice",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "Nothing in the App constitutes financial, investment, trading, tax, or legal advice. The App does not know your financial situation, goals, or risk tolerance, and nothing it presents is a recommendation to buy, sell, or hold any security or asset. Market Pulse and its developer are not a registered investment adviser, broker-dealer, or financial planner. Consult a licensed, qualified professional before making financial decisions."
+        }
+      ]
+    },
+    {
+      "heading": "4. AI-Generated Content",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "Portions of the App's content — including but not limited to narrative summaries, daily digests, and interpretive text accompanying charts and indicators — are generated using artificial intelligence / machine learning models. This content:"
+        },
+        {
+          "type": "list",
+          "items": [
+            "has not been individually reviewed or verified by a human before being shown to you;",
+            "may be incomplete, inaccurate, outdated, or misleading;",
+            "may occasionally state something incorrectly with apparent confidence."
+          ]
+        },
+        {
+          "type": "paragraph",
+          "text": "Always cross-check AI-generated content against the underlying data and independent sources before relying on it in any way."
+        }
+      ]
+    },
+    {
+      "heading": "5. Third-Party Data",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "Market data displayed in the App is sourced from third-party data providers. Market Pulse does not independently verify the accuracy, completeness, or timeliness of this data and disclaims all warranties regarding it. Data may be delayed relative to real-time market conditions and may be unavailable during outages, market holidays, or provider disruptions."
+        }
+      ]
+    },
+    {
+      "heading": "6. No Warranty",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "The App is provided \"as is\" and \"as available,\" without warranties of any kind, express or implied, including but not limited to warranties of accuracy, merchantability, fitness for a particular purpose, or non-infringement."
+        }
+      ]
+    },
+    {
+      "heading": "7. Limitation of Liability",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "To the maximum extent permitted by law, Market Pulse and its developer shall not be liable for any direct, indirect, incidental, consequential, or special damages — including financial losses — arising from your use of, or reliance on, the App or its content."
+        }
+      ]
+    },
+    {
+      "heading": "8. User Responsibilities",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "You are solely responsible for your own investment and financial decisions. You agree not to rely on the App as your sole source of information for any financial decision."
+        }
+      ]
+    },
+    {
+      "heading": "9. Intellectual Property",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "The App's design, code, and original content are the property of [TODO: developer/company name]. Market data remains the property of its respective third-party providers."
+        }
+      ]
+    },
+    {
+      "heading": "10. Changes to These Terms",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "These Terms may be updated from time to time. Material changes will require re-acceptance before continued use of the App."
+        }
+      ]
+    },
+    {
+      "heading": "11. Termination",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "[TODO: developer/company name] may suspend or discontinue the App, or your access to it, at any time."
+        }
+      ]
+    },
+    {
+      "heading": "12. Governing Law",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "[TODO: governing jurisdiction — confirm before finalizing]"
+        }
+      ]
+    },
+    {
+      "heading": "13. Contact",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "marketpulse.labs@gmail.com"
+        }
+      ]
+    }
+  ]
+}

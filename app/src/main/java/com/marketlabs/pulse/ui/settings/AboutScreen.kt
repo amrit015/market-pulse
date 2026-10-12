@@ -7,9 +7,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,7 +37,9 @@ fun AboutScreen(
     versionCode: String,
     onNavigateUp: () -> Unit,
     onNavigateToPrivacyPolicy: () -> Unit,
-    onNavigateToTerms: () -> Unit
+    onNavigateToTerms: () -> Unit,
+    appId: String? = null,
+    onCopyAppId: (String) -> Unit = {}
 ) {
     val sections = listOf(
         stringResource(id = R.string.about_section_1_title) to stringResource(id = R.string.about_section_1_body),
@@ -51,6 +55,8 @@ fun AboutScreen(
             AboutAppInfo(
                 versionName = versionName,
                 versionCode = versionCode,
+                appId = appId,
+                onCopyAppId = onCopyAppId,
                 onNavigateToPrivacyPolicy = onNavigateToPrivacyPolicy,
                 onNavigateToTerms = onNavigateToTerms
             )
@@ -62,6 +68,8 @@ fun AboutScreen(
 private fun AboutAppInfo(
     versionName: String,
     versionCode: String,
+    appId: String?,
+    onCopyAppId: (String) -> Unit,
     onNavigateToPrivacyPolicy: () -> Unit,
     onNavigateToTerms: () -> Unit
 ) {
@@ -85,6 +93,34 @@ private fun AboutAppInfo(
                 style = MaterialTheme.typography.bodyMedium,
                 color = LocalPulseColors.current.onSurfaceMuted
             )
+            // Users quote this ID for deletion and support requests, so it is selectable on its
+            // own row and copyable in one tap. Hidden until sign-in has produced one.
+            if (appId != null) {
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(id = R.string.about_app_id_label),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = LocalPulseColors.current.onSurfaceMuted
+                        )
+                        SelectionContainer {
+                            Text(
+                                text = appId,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+                    TextButton(onClick = { onCopyAppId(appId) }) {
+                        Text(text = stringResource(id = R.string.about_app_id_copy))
+                    }
+                }
+            }
         }
     }
     Spacer(modifier = Modifier.height(rowSpacing))
@@ -131,7 +167,8 @@ private fun PreviewAboutScreenLight() {
             versionCode = "1",
             onNavigateUp = {},
             onNavigateToPrivacyPolicy = {},
-            onNavigateToTerms = {}
+            onNavigateToTerms = {},
+            appId = "q7Zk2mPxR9aVbN3sTe0LhYc41wD2"
         )
     }
 }

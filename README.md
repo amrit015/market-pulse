@@ -6,7 +6,7 @@ curated news, and AI-generated market briefings, brought together into a single 
 ## Stack
 
 Kotlin · Jetpack Compose (Material 3) · Dagger Hilt · Room · Retrofit + Moshi · Firebase Firestore
-· Compose Navigation. Backend is Firebase Cloud Functions v2 (separate repo).
+· Firebase Analytics + Crashlytics + anonymous Authentication · Compose Navigation. Backend is Firebase Cloud Functions v2 (separate repo).
 
 ## Getting started
 

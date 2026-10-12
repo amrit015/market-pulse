@@ -420,9 +420,14 @@ Functions v2 HTTP endpoint (see each screen's "Source" line below for the exact 
 - **Rows**: Notifications, Data & Sync, About, Terms & Conditions, Privacy Policy, Tutorials (all
   real destinations). Now card-wrapped (§ prior work this session).
 - **Gap**: no Screen Guide "?" wired — arguably doesn't need one (no data to interpret).
+- **Data & Sync**: opens with a "Share anonymous usage data" switch (default on, persisted via
+  `AnalyticsConsentRepository`) and a link to the Privacy Policy, above the static copy.
 
 ### Legal Acceptance / Terms & Conditions / Privacy Policy
-- **Source**: none — static legal copy (`LegalAcceptanceScreen.kt`, `DocumentSectionsScreen.kt`).
+- **Source**: Terms & Conditions and Privacy Policy are bundled JSON (`assets/legal_terms.json`,
+  `assets/legal_privacy.json`, loaded by `LegalDocumentProvider`, rendered by
+  `DocumentSectionsScreen.kt`); the acceptance screen's own paragraphs stay string resources
+  (`LegalAcceptanceScreen.kt`).
 - **Gap**: no Screen Guide "?" wired.
 
 ---

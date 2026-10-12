@@ -39,7 +39,7 @@ are run manually, not gated by anything automated yet.
 - Backend field/flag-name contracts (the invisible cross-repo dependencies) → `@docs/architecture/cross-repo-contracts.md`
 - Confirmed stale/inconsistent spots in the current code (verify before trusting) → `@docs/architecture/known-gaps.md`
 - The collapsing-chrome + sticky-tab-row + swipeable-pager pattern (Stock Detail, Indicators; plus
-  Summary's simpler pinned-zone-only variant) — LIVING doc, real bugs hit and fixed, read before
+  Summary's simpler tap-only-day-strip + tab-pager variant) — LIVING doc, real bugs hit and fixed, read before
   reusing on a new screen → `@docs/architecture/collapsing-header-tabs.md`.
 - Per-metric history charts (Indicators' `MetricDetailScreen`, Posture/Positioning's
   `GlossaryDetailScreen`) — shared chart component + range-picker engine, per-domain id/cadence
@@ -51,6 +51,8 @@ are run manually, not gated by anything automated yet.
   the sync-flag freshness mechanism (`ChartSyncGroup`), intraday market-hours gating + per-cadence
   polling — LIVING doc, several dead ends already tried and reverted, read before touching this
   system again → `@docs/architecture/price-charts.md`.
+- Anonymous auth (Firebase user created after legal acceptance, `Authorization` header, App ID in
+  About, the `isPro` entitlement check) → `@docs/architecture/auth.md`
 - Analytics + Crashlytics (`AnalyticsTracker`, `TrackScreen`, event catalog rules, opt-out, debug
   builds) → `@docs/architecture/analytics.md`
 - Hilt DI conventions, null handling, naming → `@docs/guidelines/kotlin-style.md`

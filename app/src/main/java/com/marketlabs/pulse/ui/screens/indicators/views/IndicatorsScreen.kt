@@ -1,6 +1,8 @@
 package com.marketlabs.pulse.ui.screens.indicators.views
 
 import androidx.compose.animation.animateContentSize
+import com.marketlabs.pulse.ui.components.CardExpandAnimationSpec
+import com.marketlabs.pulse.ui.components.cardExpandPulse
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.rememberScrollableState
@@ -566,10 +568,10 @@ private fun AiExecutiveBriefingHero(
     // rounded shadow.
     PulseCard(
         style = PulseCardStyle.SYNTHESIS,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().cardExpandPulse(isExpanded),
         onClick = { isExpanded = !isExpanded }
     ) {
-        Column(modifier = Modifier.padding(paddingLarge).animateContentSize()) {
+        Column(modifier = Modifier.padding(paddingLarge).animateContentSize(CardExpandAnimationSpec)) {
             // 💡 This eyebrow (icon + label) marks the card as AI-sourced, the same role
             // Dashboard's Technical Briefing eyebrow plays -- accentPrimary, same shared
             // CardEyebrowLabel tier "Market Read"/"Where Capital's Moving" (Summary) and
