@@ -60,6 +60,20 @@ sign-off.
   provider is disabled in the Firebase console, `AnonymousSignInManager` keeps retrying quietly and
   the About screen simply shows no App ID row; nothing surfaces the failure to the user.
 
+## Sentiment classifier alignment (backend work pending)
+
+- **Overview and Indicators classify Put/Call and Fear & Greed with different thresholds.** The
+  dashboard engine uses its own Put/Call cutoffs (Greed at or below 0.80, Extreme Greed at or
+  below 0.70) and passes CNN's `rating` through for Fear & Greed, while `classifierLogic.ts` (and
+  the bundled glossary text) use 0.75 / 0.60 and 25/45/55/75. A reading near a boundary can read
+  differently on the two screens. The agreed fix is for the dashboard engine to call the same
+  classifier; until it ships, the Overview detail page's highlighted band follows the backend's
+  status while its band text follows the glossary.
+- **VIX is intentionally different** (five fear/greed levels on Overview, Calm/Elevated/Panic on
+  Indicators), and the Indicators VIX change pill follows Indicators' own convention (rising reads
+  red) while Overview's is contrarian (rising reads green). See `SentimentChange` in
+  `compose-conventions.md`.
+
 ## Design-token audit items (from the 2026-08-16 Stock Analysis token pass)
 
 Carried forward from `STYLE_SPEC.md §14`'s open items — not re-audited during this restructure,

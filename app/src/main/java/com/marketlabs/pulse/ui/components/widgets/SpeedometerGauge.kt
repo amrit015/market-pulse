@@ -33,6 +33,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.ui.components.SentimentChange
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 import kotlin.math.abs
@@ -178,31 +179,16 @@ fun SpeedometerGauge(score: Double, previousScore: Double?, status: String?) {
                     style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onSurface
                 )
-                if (previousScore != null) {
-                    val delta = score - previousScore
-                    val isFlat = delta == 0.0
-                    val isRising = delta > 0
-                    val changeDirection = when {
-                        isFlat -> ChangeDirection.FLAT
-                        isRising -> ChangeDirection.UP
-                        else -> ChangeDirection.DOWN
-                    }
-                    // 💡 Contrarian, matching the bands/status label below: rising (toward
-                    // Greed) reads bearish, falling (toward Fear) reads bullish -- the
-                    // triangle still follows the raw numeric sign.
+                // 💡 Contrarian, decided in one shared place (SentimentChange) so this card and
+                // every other surface showing Fear & Greed agree: rising (toward Greed) reads
+                // bearish, falling (toward Fear) reads bullish -- the triangle still follows the
+                // raw numeric sign.
+                SentimentChange.fearGreed(score, previousScore, pulseColors)?.let { change ->
                     DirectionalChangePill(
-                        changeText = abs(delta).toInt().toString(),
-                        direction = changeDirection,
-                        pillColor = when {
-                            isFlat -> pulseColors.signalNeutralPill
-                            isRising -> pulseColors.signalBearishPill
-                            else -> pulseColors.signalBullishPill
-                        },
-                        contentColor = when {
-                            isFlat -> textNeutral
-                            isRising -> textBearish
-                            else -> textBullish
-                        }
+                        changeText = change.text,
+                        direction = change.direction,
+                        pillColor = change.pillColor,
+                        contentColor = change.contentColor
                     )
                 }
             }

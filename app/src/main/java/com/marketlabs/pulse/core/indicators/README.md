@@ -7,3 +7,8 @@
 - **Backend dependency:** Retrofit `indicators/synthesis`, `indicators/tactical`, `risk/latest`, `indicators/valuation`, `indicators/vitals`, and the matching `*/history` endpoints.
 
 `RemoteIndicatorsDataSourceImpl` fetches the synthesis and pillar endpoints in parallel and combines them into one `MarketIndicators`, which is cached in Room and refreshed by `SyncManager` (`master_ingestion_updated`, `indicator_synthesis_updated`). `MetricHistoryRepository` is separate and on-demand per `metricId`; it is gated on the `indicator_charts_updated` flag held in `SyncManager.chartSyncTimestamps`. Chart behaviour is documented in `docs/architecture/history-charts.md` and the screen layout in `collapsing-header-tabs.md`.
+
+## Notes
+
+- The Fear & Greed, VIX and Put/Call cards get their change pill from `SentimentChange` (`ui/screens/indicators/views/SentimentMetricChange.kt`), matching Overview's rules. VIX is the one deliberate exception: its pill reads rising = red here, because Indicators classifies VIX as Calm/Elevated/Panic with Panic red.
+- Expanded Today's Read shows each indicator shift on its own subtle panel. The three Horizons cards are `DATA` cards; the Horizons entry card and Today's Read stay `SYNTHESIS`.

@@ -42,6 +42,7 @@ import com.marketlabs.pulse.core.indicators.MetricHistoryPillar
 import com.marketlabs.pulse.storage.model.charts.ChartRange
 import com.marketlabs.pulse.storage.model.indicators.DomainUnifiedMetric
 import com.marketlabs.pulse.storage.model.indicators.MetricHistoryPoint
+import com.marketlabs.pulse.ui.components.BandRow
 import com.marketlabs.pulse.ui.components.DisclaimerFooter
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
@@ -234,60 +235,6 @@ fun MetricDetailScreen(
 
         Spacer(modifier = Modifier.height(paddingExtraLarge))
         DisclaimerFooter()
-    }
-}
-
-@Composable
-private fun BandRow(band: MetricGlossaryBand, isCurrent: Boolean) {
-    val paddingLarge = dimensionResource(id = R.dimen.padding_large)
-    val paddingSmall = dimensionResource(id = R.dimen.padding_small)
-    val accent = LocalPulseColors.current.accentPrimary
-
-    // 💡 DATA style, same standardized "raw reading" card look every other data card in the app
-    // uses -- the current-band row adds its own accent border on top of the card's own hairline
-    // one (via `Modifier.border`, since `PulseCard` locks its own border color) rather than
-    // replacing it, so it reads as one emphasized ring, not two stacked borders.
-    val cardModifier = Modifier
-        .fillMaxWidth()
-        .let {
-            if (isCurrent) {
-                it.border(BorderStroke(1.dp, accent), RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_card_large)))
-            } else {
-                it
-            }
-        }
-
-    PulseCard(style = PulseCardStyle.DATA, modifier = cardModifier) {
-        Column(modifier = Modifier.padding(paddingLarge)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // 💡 `weight(1f)` so a long label wraps inside its own share of the row instead of
-                // squeezing the "CURRENT" pill into a one-letter-wide column.
-                Text(
-                    text = band.label,
-                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.weight(1f)
-                )
-                if (isCurrent) {
-                    Spacer(modifier = Modifier.width(paddingSmall))
-                    SignalPill(
-                        text = stringResource(id = R.string.status_current),
-                        pillColor = accent.copy(alpha = 0.16f),
-                        contentColor = accent
-                    )
-                }
-            }
-            Text(
-                text = band.meaning,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = paddingSmall)
-            )
-        }
     }
 }
 

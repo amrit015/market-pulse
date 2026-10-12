@@ -24,7 +24,7 @@ import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 /**
- * `PulseCard(SYNTHESIS)` from `scenarios[]` -- Bull then Bear, matched by `direction` rather than
+ * `PulseCard(DATA)` from `scenarios[]` -- Bull then Bear, matched by `direction` rather than
  * array order, so a backend that ever emits them Bear-first still renders Bull on top. A scenario
  * with an unrecognized direction is silently dropped rather than shown
  * under the wrong case label.
@@ -48,7 +48,7 @@ fun Scenarios(scenarios: List<DomainScenario>?, modifier: Modifier = Modifier) {
         bear?.let { CaseEntry(stringResource(id = R.string.stock_detail_bear_case), pulseColors.signalBearishText, pulseColors.signalBearishPill, it) }
     )
 
-    PulseCard(style = PulseCardStyle.SYNTHESIS, modifier = modifier.fillMaxWidth()) {
+    PulseCard(style = PulseCardStyle.DATA, modifier = modifier.fillMaxWidth()) {
         Column {
             Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
                 SynthesisCardHeader(title = stringResource(id = R.string.stock_detail_scenarios_title))

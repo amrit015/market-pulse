@@ -30,6 +30,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.ui.components.SentimentChange
 import com.marketlabs.pulse.storage.model.dashboard.AssetOverview
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
@@ -136,26 +137,12 @@ fun VixFullWidthCard(asset: AssetOverview, onClick: () -> Unit) {
                         // 💡 Gap from the price value bumped from `padding_small` to `padding_medium`
                         // -- the pill sitting almost flush against the price read cramped once it grew.
                         Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_medium)))
-                        val isFlat = change == 0.0
-                        val isVixRising = change > 0
-                        val changeDirection = when {
-                            isFlat -> ChangeDirection.FLAT
-                            isVixRising -> ChangeDirection.UP
-                            else -> ChangeDirection.DOWN
-                        }
+                        val display = SentimentChange.percent(change, pulseColors)
                         DirectionalChangePill(
-                            changeText = "${String.format("%.2f", abs(change))}%",
-                            direction = changeDirection,
-                            pillColor = when {
-                                isFlat -> pulseColors.signalNeutralPill
-                                isVixRising -> pulseColors.signalBullishPill
-                                else -> pulseColors.signalBearishPill
-                            },
-                            contentColor = when {
-                                isFlat -> colorNeutral
-                                isVixRising -> textBullish
-                                else -> textBearish
-                            },
+                            changeText = display.text,
+                            direction = display.direction,
+                            pillColor = display.pillColor,
+                            contentColor = display.contentColor,
                             modifier = Modifier.padding(bottom = dimensionResource(id = R.dimen.padding_tiny))
                         )
                     }

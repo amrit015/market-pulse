@@ -18,7 +18,7 @@ The day is chosen only by tapping the calendar strip; horizontal swipes move bet
 | Drivers | Market Movers, Macro Mix |
 | Outlook | Domino Effect, What to Watch, Risks to Market |
 
-- **Market Signal:** pills, signal line and conviction always visible; tapping the card expands the Market Read (analysis + posture) inside it. There is no separate Read card or sheet.
+- **Market Signal:** pills, signal line and conviction always visible; tapping the card expands the Market Read (analysis) and Where Capital's Moving (posture) inside it, between the headline and the conviction meter, which stays last. Conviction shows only the LOW / MODERATE / HIGH level beside its label (the backend's `conviction_reason` sentence is not displayed). There is no separate Read card or sheet.
 - **Market Sentiment:** three-line preview, tap to expand (unchanged).
 - **Market Movers / Macro Mix:** collapsed is the headline (and tag, for Macro Mix) only, no preview lines, so a paid tier can lock the summaries without the card changing shape. Each row's tap overrides the screen-level **Expand all / Collapse all** default (shown only on the Drivers tab), which is persisted (`SummaryPreferencesRepository`, default collapsed). That default does not touch the Market Read or Market Sentiment.
 - **Position and What's New** render only for the latest day with a report, because the backend composes them live.

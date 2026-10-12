@@ -50,12 +50,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.marketlabs.pulse.R
@@ -73,6 +70,7 @@ import com.marketlabs.pulse.storage.model.summary.WatchItem
 import com.marketlabs.pulse.storage.model.summary.WhatsNewItem
 import com.marketlabs.pulse.ui.components.AnalyzedAtHeader
 import com.marketlabs.pulse.ui.components.DisclaimerFooter
+import com.marketlabs.pulse.ui.components.ExpandCollapseAllToggle
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.PulseErrorState
@@ -397,7 +395,7 @@ private fun SummaryTabPage(
                         }
                     }
                     if (content is DayContent.Available && showExpandSetting && tab == SummaryTab.DRIVERS) {
-                        ExpandDefaultToggle(
+                        ExpandCollapseAllToggle(
                             expanded = expandItemsByDefault,
                             onToggle = { onExpandItemsByDefaultChange(!expandItemsByDefault) }
                         )
@@ -617,38 +615,6 @@ private fun SummaryTabPage(
     }
 }
 
-/**
- * The screen-level expanded/collapsed default for Market Movers and Macro Mix rows. Labelled with
- * the action a tap performs ("Expand all" while collapsed) rather than the current state, so it
- * reads as a button.
- */
-@Composable
-private fun ExpandDefaultToggle(expanded: Boolean, onToggle: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .clip(RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_small)))
-            .clickable(onClick = onToggle)
-            .padding(
-                horizontal = dimensionResource(id = R.dimen.padding_small),
-                vertical = dimensionResource(id = R.dimen.padding_tiny)
-            ),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = stringResource(id = if (expanded) R.string.summary_collapse_all else R.string.summary_expand_all),
-            style = MaterialTheme.typography.labelLarge,
-            color = LocalPulseColors.current.accentPrimary
-        )
-        Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_tiny)))
-        Icon(
-            painter = painterResource(id = if (expanded) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down),
-            contentDescription = null,
-            tint = LocalPulseColors.current.accentPrimary,
-            modifier = Modifier.size(dimensionResource(id = R.dimen.icon_size_small))
-        )
-    }
-}
-
 private enum class GlossaryTarget { REGIME, DIRECTION, SETUP, CYCLE_ZONE }
 
 // ---------------------------------------------------------
@@ -664,10 +630,9 @@ private enum class GlossaryTarget { REGIME, DIRECTION, SETUP, CYCLE_ZONE }
  * glossary sheet scoped to just that term -- so direction's own value reads as text, not only as
  * a tint. `signal_line` (the flash headline) is the largest prose on the card; tapping the card
  * expands the fuller analysis + posture read ([MarketReadContent]) inside it, for a reader who
- * wants the "why". `conviction` + `convictionReason` render together, always inline, never
+ * wants the "why". `conviction` renders as a label/level row over a meter, always inline, never
  * behind a tap -- this is the field that makes the verdict earned confidence instead of a
- * black-box "trust me," and seeing e.g. "2 of 4" signals aligned is what makes the mixed drivers
- * underneath read as a contested call rather than a contradiction. `setup` lives on the Market
+ * black-box "trust me." `setup` lives on the Market
  * Position card.
  */
 @Composable
@@ -750,6 +715,14 @@ fun SignalSection(
                 }
             }
 
+            if (readExpanded && hasRead) {
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                    thickness = dimensionResource(id = R.dimen.border_thin)
+                )
+                MarketReadContent(verdict = verdict)
+            }
+
             HorizontalDivider(
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
                 thickness = dimensionResource(id = R.dimen.border_thin)
@@ -757,14 +730,28 @@ fun SignalSection(
 
             Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
                 if (verdict.conviction != null) {
-                    // 💡 Label-above-bar, matching CardStyleShowcase.kt's SYNTHESIS "headline +
-                    // divider + meter" sample -- a full-width continuous fill reads strength at a
-                    // glance better than discrete segments would.
-                    Text(
-                        text = stringResource(id = R.string.label_conviction),
-                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                        color = pulseColors.onSurfaceMuted
-                    )
+                    // 💡 Last in the card: collapsed it follows the headline directly; expanded it
+                    // closes the card after the Market Read and Where Capital's Moving blocks.
+                    // Label and level share one row (level pinned to the card's far edge), with
+                    // the bar underneath -- a full-width continuous fill reads strength at a glance
+                    // better than discrete segments would. The level word is the whole explanation;
+                    // the backend's "N of 4 signals aligned" sentence is deliberately not shown.
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.label_conviction),
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                            color = pulseColors.onSurfaceMuted,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Text(
+                            text = verdict.conviction.name,
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                            color = directionColor.textColor
+                        )
+                    }
                     Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
                     // 💡 .textColor, not .pillColor -- pillColor is tuned to be a soft background a
                     // bolder text color sits on top of, so it read as a near-invisible fill when
@@ -774,51 +761,11 @@ fun SignalSection(
                         conviction = verdict.conviction,
                         filledColor = directionColor.textColor
                     )
-
-                    val reason = verdict.convictionReason?.stripRegimeToken()
-                    Text(
-                        text = buildAnnotatedString {
-                            withStyle(
-                                SpanStyle(
-                                    fontWeight = FontWeight.Bold,
-                                    color = directionColor.textColor
-                                )
-                            ) {
-                                append(verdict.conviction.name)
-                            }
-                            if (!reason.isNullOrBlank()) {
-                                append(" · ")
-                                append(reason)
-                            }
-                        },
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_tiny))
-                    )
                 }
-            }
-
-            if (readExpanded && hasRead) {
-                HorizontalDivider(
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                    thickness = dimensionResource(id = R.dimen.border_thin)
-                )
-                MarketReadContent(verdict = verdict)
             }
         }
     }
 }
-
-// verdict.convictionReason is code-generated (pulseSignal.ts's deriveConviction():
-// "${agree} of 4 signals aligned ${regimeDoc.regime}...") -- regimeDoc.regime is system/
-// market_regime's own internal snake_case token ("risk_on"/"risk_off"/"neutral"). Stripped here
-// rather than shown or prettified: the regime word is redundant with the chip directly above this
-// text, and "2 of 4 signals aligned" reads as a complete thought on its own without it.
-private fun String.stripRegimeToken(): String = this
-    .replace(Regex("\\s*(risk_on|risk_off|neutral)\\s*", RegexOption.IGNORE_CASE), " ")
-    .replace(Regex("\\s+([.,)])"), "$1")
-    .replace(Regex("\\s{2,}"), " ")
-    .trim()
 
 private fun SignalDirection?.toSignalColor(): SignalColor = when (this) {
     SignalDirection.RISK_ON -> SignalColor.GREEN

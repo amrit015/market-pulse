@@ -84,6 +84,7 @@ fun AssetDetailRoute(
                 isChartLoading = uiState.isChartLoading,
                 intradaySeries = uiState.intradaySeries,
                 availableChartRanges = uiState.availableChartRanges,
+                glossaryEntry = uiState.glossaryEntry,
                 onChartRangeSelected = viewModel::selectChartRange,
                 scaffoldPadding = PaddingValues(
                     top = topBarPadding.calculateTopPadding(),

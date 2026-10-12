@@ -237,3 +237,26 @@ title-casing it would be a regression, not a fix.
   go through `LocalPulseColors.current`, never `MaterialTheme.colorScheme`, for anything the
   token system defines separately. Cards go through `ui/components/PulseCard.kt`, never a
   hand-rolled `Card(colors = ..., border = ...)`.
+
+## Sentiment change pills (Fear & Greed, VIX, Put/Call)
+
+These three readings appear on Overview, on the asset detail page opened from Overview, and as
+Tactical Momentum cards on Indicators. Their change pill is decided in one place,
+`ui/components/SentimentChange.kt`, and every surface calls it: the triangle follows the raw sign of
+the move, the pill color is the contrarian market read (Fear & Greed: rising = bearish; VIX and
+Put/Call: rising = bullish), the text is unsigned (Fear & Greed integer points; VIX/Put-Call
+percent to two decimals), and an exact zero is a neutral flat bar. One deliberate exception: Indicators' VIX card passes `risingIsBullish = false`, because Indicators
+classifies VIX as Calm/Elevated/Panic with Panic red, so a rising VIX has to read red there to agree
+with the card's own status pill. Don't re-derive these colors in a widget or screen -- a new
+surface for one of these readings should call `SentimentChange`.
+
+The asset detail page for these three readings also lists their bands (the same `BandRow`
+Indicators' metric detail uses, in `ui/components/BandRow.kt`), with the current band highlighted by
+matching the backend's `rsi_status` against each band label (`SentimentBandResolver.kt`), with no
+client-side thresholds. Fear & Greed and Put/Call read `metric_glossary.json` -- the backend
+classifies them identically on Overview and Indicators. VIX does not: Indicators' VIX is Calm /
+Elevated / Panic, Overview's is a five-level Fear/Greed status, so Overview's page reads its own
+list from `assets/overview_sentiment_bands.json` (`OverviewSentimentBandsProvider`), with labels
+written to equal that status. All three lists are shown Extreme Greed -> Extreme Fear on that page
+(sorted in `AssetDetailViewModel`, since Fear & Greed's glossary runs the other way and that order is
+what Indicators' own detail shows).

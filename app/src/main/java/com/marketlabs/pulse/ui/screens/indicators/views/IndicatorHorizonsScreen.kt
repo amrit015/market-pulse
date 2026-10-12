@@ -95,9 +95,11 @@ private fun HorizonCard(horizon: DomainHorizonBlock) {
     val paddingMedium = dimensionResource(id = R.dimen.padding_medium)
     val paddingSmall = dimensionResource(id = R.dimen.padding_small)
 
-    // 💡 SYNTHESIS style -- same AI-sourced card family as the executive briefing hero and the
-    // pillar scorecard cards, so every AI-authored surface in this domain reads consistently.
-    PulseCard(style = PulseCardStyle.SYNTHESIS, modifier = Modifier.fillMaxWidth()) {
+    // 💡 DATA style, the same flat card the rest of this app's list/detail cards use. These are
+    // AI-authored but they are a plain list of three horizons, not a single verdict, so they read
+    // as data cards; only the executive briefing hero up on the Indicators screen keeps the darker
+    // SYNTHESIS treatment.
+    PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(paddingLarge)) {
             CardEyebrowLabel(
                 text = horizon.timeWindow,

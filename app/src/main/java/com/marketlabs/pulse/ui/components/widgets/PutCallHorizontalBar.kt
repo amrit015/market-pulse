@@ -30,6 +30,7 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.ui.components.SentimentChange
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 import kotlin.math.abs
@@ -102,26 +103,12 @@ fun PutCallHorizontalBar(ratio: Double, change: Double?, status: String?) {
                         // -- the pill sitting almost flush against the value read cramped once it grew.
                         Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_medium)))
 
-                        val isFlat = change == 0.0
-                        val isRatioRising = change > 0
-                        val changeDirection = when {
-                            isFlat -> ChangeDirection.FLAT
-                            isRatioRising -> ChangeDirection.UP
-                            else -> ChangeDirection.DOWN
-                        }
+                        val display = SentimentChange.percent(change, pulseColors)
                         DirectionalChangePill(
-                            changeText = "${String.format("%.2f", abs(change))}%",
-                            direction = changeDirection,
-                            pillColor = when {
-                                isFlat -> pulseColors.signalNeutralPill
-                                isRatioRising -> pulseColors.signalBullishPill
-                                else -> pulseColors.signalBearishPill
-                            },
-                            contentColor = when {
-                                isFlat -> textNeutral
-                                isRatioRising -> textBullish
-                                else -> textBearish
-                            }
+                            changeText = display.text,
+                            direction = display.direction,
+                            pillColor = display.pillColor,
+                            contentColor = display.contentColor
                         )
                     }
                 }

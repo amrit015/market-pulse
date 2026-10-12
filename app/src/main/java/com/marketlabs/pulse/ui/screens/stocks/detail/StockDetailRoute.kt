@@ -53,7 +53,7 @@ import com.marketlabs.pulse.ui.components.bottomSheet.MarketGlossaryBottomSheet
 import com.marketlabs.pulse.ui.screens.stocks.StockDetailViewModel
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.DeepDiveCard
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.DetailHeader
-import com.marketlabs.pulse.ui.screens.stocks.detail.sections.TechnicalRead
+import com.marketlabs.pulse.ui.screens.stocks.detail.sections.PlainRead
 import com.marketlabs.pulse.ui.screens.stocks.views.StockAnalysisErrorState
 import java.util.Locale
 import kotlin.math.roundToInt
@@ -205,17 +205,15 @@ fun StockDetailRoute(
             modifier = Modifier.fillMaxWidth()
         )
 
-        val technicalRead = uiState.detail?.technicalRead
-        val watchList = uiState.detail?.watchList
-        val hasHighAlert = watchList.orEmpty().any { it.urgency?.uppercase() == "HIGH" }
+        val plainRead = uiState.detail?.plainRead
 
         // 💡 Height driven entirely by `bannerHeightPx + collapseOffsetPx` (0 when fully
         // collapsed), not by this Column's own measured size -- see the `Modifier.layout`
         // override below for why it always measures at its true natural height regardless of how
         // far this Box has shrunk. `clipToBounds()` hides whatever portion has scrolled above this
-        // Box's (shrinking) top edge. Deep Dive banner, `TechnicalRead`, and the HIGH-urgency alert
-        // all live in this one Column -- one shared collapsing region, not three
-        // independent ones, so they scroll away and reappear together as a single unit.
+        // Box's (shrinking) top edge. Deep Dive banner and `PlainRead`
+        // live in this one Column -- one shared collapsing region, not two independent ones, so
+        // they scroll away and reappear together as a single unit.
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -242,7 +240,8 @@ fun StockDetailRoute(
                         }
                     }
             ) {
-                val isDeepDiveFlashing = uiState.isFavorite && (uiState.preview?.deepAnalysisDate != null) && (uiState.symbol !in uiState.clickedDeepDiveSymbols)
+                val isDeepDiveOpened = uiState.symbol in uiState.clickedDeepDiveSymbols
+                val isDeepDiveFlashing = uiState.isFavorite && (uiState.preview?.deepAnalysisDate != null) && !isDeepDiveOpened
                 DeepDiveCard(
                     deepAnalysisDate = uiState.preview?.deepAnalysisDate,
                     nextDeepDiveTriggerDate = uiState.preview?.nextDeepDiveTriggerDate,
@@ -251,6 +250,7 @@ fun StockDetailRoute(
                         onNavigateToDeepDive(uiState.symbol)
                     },
                     isFlashing = isDeepDiveFlashing,
+                    isOpened = isDeepDiveOpened,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(
@@ -264,19 +264,13 @@ fun StockDetailRoute(
                 // 💡 General context shown once, chrome-level, with the same collapse-then-stick
                 // behavior as the Deep Dive banner above it, rather than duplicated identically
                 // into every tab.
-                if (technicalRead != null || hasHighAlert) {
+                if (plainRead != null) {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = dimensionResource(id = R.dimen.padding_large))
                     ) {
-                        technicalRead?.let { TechnicalRead(technicalRead = it) }
-                        if (technicalRead != null && hasHighAlert) {
-                            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
-                        }
-                        if (hasHighAlert) {
-                            HighUrgencyAlertRow(watchList = watchList)
-                        }
+                        PlainRead(plainRead = plainRead)
                         Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_standard)))
                     }
                 }
@@ -291,7 +285,7 @@ fun StockDetailRoute(
         )
 
         // 💡 `weight(1f)`, not just `fillMaxSize()` -- without it, if the collapsing chrome above
-        // (Deep Dive banner + TechnicalRead + HIGH alert) ever measured taller than the remaining
+        // (Deep Dive banner + PlainRead) ever measured taller than the remaining
         // screen height, a plain Column doesn't shrink earlier children to fit; it lets everything
         // overflow, pushing this Box (and the only scrollable content in it) off-screen with no way
         // to reach it to scroll back. `weight(1f)` guarantees this always gets whatever space is

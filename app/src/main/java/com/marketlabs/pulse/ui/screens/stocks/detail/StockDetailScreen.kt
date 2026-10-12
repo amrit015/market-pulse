@@ -42,6 +42,7 @@ import com.marketlabs.pulse.ui.components.rememberPerTabLazyListStates
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.Consider
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.DeepStudy
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.DigestCard
+import com.marketlabs.pulse.ui.screens.stocks.detail.sections.TechnicalRead
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.DirectNews
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.EventLog
 import com.marketlabs.pulse.ui.screens.stocks.detail.sections.ForwardCalls
@@ -62,7 +63,7 @@ import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 /**
  * The 6 tabs the Detail screen's sections are grouped into. `DetailHeader`, the Deep Dive banner,
- * `TechnicalRead`, the HIGH-urgency alert, and the pill tab bar are all chrome now, rendered once
+ * the plain read and the pill tab bar are all chrome now, rendered once
  * by `StockDetailRoute` above every tab -- none of them are per-tab content. `DirectNews` is its
  * own tab, sorted newest-first.
  *
@@ -72,7 +73,7 @@ import com.marketlabs.pulse.ui.theme.MarketPulseTheme
  * renders standalone (see [DigestTabContent]) rather than through [DetailTabContent]'s shared
  * shell -- it's a distinct AI narrative surface with its own "Daily Digest" header, and its tab
  * content specifically shouldn't mix in unrelated technical section content the way the other 5
- * tabs' own sections would (the chrome above it -- header, banner, TechnicalRead, alert, tab row --
+ * tabs' own sections would (the chrome above it -- header, banner, PlainRead, tab row --
  * still shows above Digest exactly as it does above every other tab).
  */
 enum class DetailTab(val labelRes: Int) {
@@ -86,8 +87,8 @@ enum class DetailTab(val labelRes: Int) {
 
 /**
  * The Detail screen's tab content -- everything below the pinned/collapsing chrome zone (all
- * rendered by `StockDetailRoute`: `DetailHeader`, the Deep Dive banner, `TechnicalRead`, the
- * HIGH-urgency alert, and the tab row). Each tab is its own `LazyColumn` with its own
+ * rendered by `StockDetailRoute`: `DetailHeader`, the Deep Dive banner, `PlainRead`, and the
+ * tab row). Each tab is its own `LazyColumn` with its own
  * `LazyListState`, created once here and kept alive across tab switches (this composable itself
  * never leaves composition when the pager's page changes -- only which page is visible does), so
  * scrolling into a tab, switching away, and switching back lands right where that tab was left.
@@ -276,7 +277,8 @@ private fun TechnicalsTabContent(
     val hasSma = detail?.technicalIndicators?.let { it.sma20 != null || it.sma50 != null || it.sma200 != null } == true
     val hasKeyLevels = detail?.levels != null
     val hasWatchList = !detail?.watchList.isNullOrEmpty()
-    val hasTabContent = hasSetupReasoning || hasHeadlineMetrics || hasKeyLevels || hasWatchList
+    val hasTechnicalRead = detail?.technicalRead != null
+    val hasTabContent = hasSetupReasoning || hasHeadlineMetrics || hasKeyLevels || hasWatchList || hasTechnicalRead
 
     DetailTabContent(hasTabContent, lazyListState, contentPadding, sectionSpacing) {
         if (hasSetupReasoning) {
@@ -333,6 +335,11 @@ private fun TechnicalsTabContent(
         }
         if (detail?.technicalIndicators?.returns != null) {
             item { Returns(returns = detail.technicalIndicators.returns) }
+        }
+        // Directly below Returns: the dense, figure-heavy read, which used to sit in the chrome
+        // above the tabs (the chrome now carries the jargon-free plain read instead).
+        if (hasTechnicalRead) {
+            item { TechnicalRead(technicalRead = detail?.technicalRead) }
         }
         if (hasKeyLevels) {
             item { KeyLevels(levels = detail?.levels, price = preview?.price) }
@@ -469,7 +476,7 @@ private fun NewsTabContent(
 }
 
 /**
- * Shared shell every tab uses. `TechnicalRead` and the HIGH-urgency alert aren't part of it:
+ * Shared shell every tab uses. `PlainRead` isn't part of it:
  * they're general context, not per-tab content, so they render once at chrome level
  * (`StockDetailRoute`, alongside the Deep Dive banner, same collapse-then-stick behavior).
  * Falls back to a centered muted "Nothing yet" line when a tab truly has none of its own

@@ -50,6 +50,7 @@ fun UniversalMetricCard(
     title: String,
     value: String?,
     changeString: String? = null,
+    changeDisplay: MetricChangeDisplay? = null,
     signalText: String? = null,
     signalColor: SignalColor? = null,
     dateString: String? = null,
@@ -132,7 +133,15 @@ fun UniversalMetricCard(
                         // 0% reading gets the neutral signal tone and a flat-bar icon instead of
                         // either triangle -- it did not move, so it should not visually claim it went
                         // up or down.
-                        if (!changeString.isNullOrBlank()) {
+                        if (changeDisplay != null) {
+                            Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_medium)))
+                            DirectionalChangePill(
+                                changeText = changeDisplay.text,
+                                direction = changeDisplay.direction,
+                                pillColor = changeDisplay.pillColor,
+                                contentColor = changeDisplay.contentColor
+                            )
+                        } else if (!changeString.isNullOrBlank()) {
                             val trimmedChange = changeString.trim()
                             val isNegative = trimmedChange.startsWith("-")
                             val displayChange = trimmedChange.removePrefix("+").removePrefix("-")

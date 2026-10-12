@@ -25,7 +25,7 @@ Three live examples of the FULL pattern (pinned zone + collapsing chrome + `Nest
 different in how much chrome is pinned vs. collapsing:
 
 - **Stock Detail** (`StockDetailRoute.kt`): `DetailHeader` (ticker/price) is the only thing
-  genuinely pinned. The Deep Dive banner + `TechnicalRead` + the HIGH-urgency alert are all one
+  genuinely pinned. The Deep Dive banner (a one-line pill once opened) + `PlainRead` are one
   collapsing region; the tab row settles directly below `DetailHeader` once that's scrolled away.
 - **Indicators** (`IndicatorsScreen.kt`'s `IndicatorsMainFeed`): `AnalyzedAtHeader` (the timestamp)
   is the only thing pinned. Today's Read (the AI executive briefing card, itself expandable in

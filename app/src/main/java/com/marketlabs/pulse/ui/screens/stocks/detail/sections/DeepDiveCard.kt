@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -43,7 +44,8 @@ fun DeepDiveCard(
     nextDeepDiveTriggerDate: String?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    isFlashing: Boolean = false
+    isFlashing: Boolean = false,
+    isOpened: Boolean = false
 ) {
     val parts = deepDiveDisplayParts(deepAnalysisDate, nextDeepDiveTriggerDate)
     if (parts.isEmpty()) {
@@ -60,6 +62,54 @@ fun DeepDiveCard(
     }
     val hasDeepDive = deepAnalysisDate != null
     val pulseColors = LocalPulseColors.current
+
+    // Once the reader has opened the deep dive the full banner has done its job: it collapses to a
+    // single-line pill (the banner's own first line, then a chevron) in the same spot, so it is
+    // still one tap away without taking the room of the full description and CTA.
+    if (hasDeepDive && isOpened) {
+        // Left-aligned inside the caller's full-width slot, sized like the setup/regime
+        // `SignalPill`s in the header (same padding and label size) rather than stretched across.
+        Row(modifier = modifier.fillMaxWidth()) {
+            PulseCard(
+                style = PulseCardStyle.SYNTHESIS,
+                shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_pill)),
+                onClick = onClick
+            ) {
+                Row(
+                    modifier = Modifier.padding(
+                        horizontal = dimensionResource(id = R.dimen.padding_medium),
+                        vertical = dimensionResource(id = R.dimen.padding_small)
+                    ),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_deep_dive),
+                        contentDescription = stringResource(id = R.string.stock_analysis_ai_glyph_content_description),
+                        tint = pulseColors.accentPrimary,
+                        modifier = Modifier.size(dimensionResource(id = R.dimen.icon_size_small))
+                    )
+                    Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+                    Text(
+                        text = buildBulletJoinedText(
+                            parts = parts,
+                            bullet = stringResource(id = R.string.bullet_separator),
+                            baseFontSize = MaterialTheme.typography.labelMedium.fontSize
+                        ),
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                        color = pulseColors.accentPrimary
+                    )
+                    Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_tiny)))
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_chevron_forward),
+                        contentDescription = null,
+                        tint = pulseColors.accentPrimary,
+                        modifier = Modifier.size(dimensionResource(id = R.dimen.icon_size_small))
+                    )
+                }
+            }
+        }
+        return
+    }
 
     // 💡 The accent-colored glow reads clearly on a dark card but not on light mode's tinted card,
     // so light mode gets a plain white, stronger glow instead. It has to be pure white: that card's
@@ -120,6 +170,14 @@ fun DeepDiveCard(
 private fun PreviewDeepDiveCardBoth() {
     MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
         DeepDiveCard(deepAnalysisDate = "2026-09-04", nextDeepDiveTriggerDate = "2026-09-18", onClick = {})
+    }
+}
+
+@Preview(name = "Opened (pill)", showBackground = true)
+@Composable
+private fun PreviewDeepDiveCardOpened() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
+        DeepDiveCard(deepAnalysisDate = "2026-09-04", nextDeepDiveTriggerDate = "2026-09-18", onClick = {}, isOpened = true)
     }
 }
 

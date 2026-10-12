@@ -21,7 +21,7 @@ import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 /**
- * `PulseCard(SYNTHESIS)` from `deep_study.what_the_numbers_say` / `.valuation_context` /
+ * `PulseCard(DATA)` from `deep_study.what_the_numbers_say` / `.valuation_context` /
  * `.macro_transmission` -- backed by `StockDetail.executiveThesis` (`DomainExecutiveThesis`),
  * which is the same object under a different class name (a naming holdover, not a data mismatch).
  * Each of the 3 subsections renders independently and is skipped if its own text is null, so a
@@ -41,7 +41,7 @@ fun DeepStudy(thesis: DomainExecutiveThesis?, modifier: Modifier = Modifier) {
     )
     if (subsections.isEmpty()) return
 
-    PulseCard(style = PulseCardStyle.SYNTHESIS, modifier = modifier.fillMaxWidth()) {
+    PulseCard(style = PulseCardStyle.DATA, modifier = modifier.fillMaxWidth()) {
         Column {
             Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
                 SynthesisCardHeader(title = stringResource(id = R.string.stock_detail_deep_study_title))

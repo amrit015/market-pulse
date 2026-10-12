@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -517,6 +518,7 @@ private fun FavoritesSection(
                         title = metric.name,
                         value = metric.valueDisplay,
                         changeString = formattedChange,
+                        changeDisplay = sentimentChangeFor(metric, LocalPulseColors.current),
                         signalText = metric.signalText,
                         signalColor = metric.signalColor,
                         // 💡 Same macro-only gating `PillarSection` applies via `config.isMacro` --
@@ -673,23 +675,27 @@ private fun AiExecutiveBriefingHero(
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
                         thickness = dimensionResource(id = R.dimen.border_thin)
                     )
-                    // 💡 No inner card/tinted Surface per shift -- same "no cards nested inside
-                    // cards" fix already applied to WatchList/ForwardCalls/Scenarios: each shift is
-                    // a plain block, separated from its neighbor by a full-width divider inside
-                    // this one Today's Read card, not its own boxed row.
-                    Column {
-                        executive.shifts.forEachIndexed { index, shift ->
+                    Spacer(modifier = Modifier.height(paddingMedium))
+                    // 💡 Each shift sits on its own translucent `onSurface` panel instead of being
+                    // a bare block split by dividers: this card's SYNTHESIS background is an
+                    // accent-tinted surface, and a plain row on it read as part of the surrounding
+                    // card rather than as a separate item. A translucent overlay of the foreground
+                    // color (not `surfaceVariant`, which sits too close to the card's own tint in
+                    // dark mode) keeps contrast against whatever preset is active, with no border
+                    // or shadow, so it still isn't a card-within-a-card.
+                    Column(verticalArrangement = Arrangement.spacedBy(paddingSmall)) {
+                        executive.shifts.forEach { shift ->
                             ShiftRow(
                                 shift = shift,
                                 metricName = metricNames[shift.metricId] ?: shift.metricId,
-                                modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                                        shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_small))
+                                    )
+                                    .padding(paddingMedium)
                             )
-                            if (index != executive.shifts.lastIndex) {
-                                HorizontalDivider(
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                                    thickness = dimensionResource(id = R.dimen.border_thin)
-                                )
-                            }
                         }
                     }
                 }
@@ -870,6 +876,7 @@ private fun PillarSection(
                             title = metric.name,
                             value = metric.valueDisplay,
                             changeString = formattedChange,
+                            changeDisplay = sentimentChangeFor(metric, LocalPulseColors.current),
                             signalText = metric.signalText,
                             signalColor = metric.signalColor,
                             // 💡 HIDDEN: Evaluates macro flag to strip dates from pure technicals

@@ -45,6 +45,7 @@ data class StockDetailEntity(
     val watchList: List<DomainWatchItem>? = null,
     val fundamentals: DomainFundamentals? = null,
     val macro: DomainMacro? = null,
+    val plainRead: String? = null,
     val technicalRead: String? = null,
     val notCovered: String? = null,
     val scenarios: List<DomainScenario>? = null,

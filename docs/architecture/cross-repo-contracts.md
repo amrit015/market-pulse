@@ -122,3 +122,24 @@ Topic-based, no auth and no token storage. The client's only obligations are the
   never parse or assert on them.
 - **Tap delivery** — the tray's tap intent carries `data` as launch-intent extras;
   `MainActivity` is `singleTop` so a running instance gets them in `onNewIntent`.
+
+## `plain_read` moved from the stock preview to the stock detail
+
+`GET /stocks/:symbol` (preview, `market_stocks/{symbol}`) no longer carries `plain_read`; the list
+card's lead line is `daily_digest.headline`. `GET /stocks/:symbol/detail` carries `plain_read` (a
+jargon-free sentence, up to 170 chars, always with a figure) alongside the unchanged
+`technical_read`. Each symbol switches shape on its next analysis run, so **both are nullable** and
+a stale doc may still have the old shape. `GET /stocks/:symbol/history` still returns `plain_read`
+per day. The client's preview `plainRead` is retained only so an old cached row deserializes; the
+UI never reads it. Detail adds a nullable `plainRead` column (Room v33).
+
+## Sentiment `rsi_status` on the dashboard assets
+
+`market_overview` rows for `FEAR_GREED`, `PUT_CALL` and `^VIX` carry `rsi_status`, which Overview
+shows as the status word and the Overview detail page matches against its band labels. Fear &
+Greed and Put/Call are meant to use the same classifier as Indicators (`classifierLogic.ts`),
+returned uppercase (`EXTREME FEAR` / `FEAR` / `NEUTRAL` / `GREED` / `EXTREME GREED`) so the client
+can match them to the glossary bands by label. VIX is deliberately different: a five-level
+Fear/Greed status on Overview (the same five strings), while Indicators classifies it Calm /
+Elevated / Panic. The client holds no thresholds for any of these; see
+`@docs/architecture/known-gaps.md` for the backend alignment still outstanding.
