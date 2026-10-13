@@ -333,7 +333,7 @@ fun PulseNavGraph(
             PrivacyPolicyScreen(onNavigateUp = { navController.popBackStack() })
         }
         composable(PulseRoutes.MARKET_SUMMARY) {
-            TrackScreen(ScreenName.SUMMARY.target())
+            // The screen_view is reported by MarketSummaryRoute itself, one per tab.
             MarketSummaryRoute(
                 scaffoldPadding = scaffoldPadding,
                 onReportTypeLoaded = onSummaryReportTypeLoaded,

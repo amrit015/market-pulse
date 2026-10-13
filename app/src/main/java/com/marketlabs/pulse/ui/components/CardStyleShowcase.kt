@@ -589,12 +589,12 @@ private fun SynthesisExpandableHeroSample() {
     PulseCard(
         style = PulseCardStyle.SYNTHESIS,
         onClick = { expanded = !expanded },
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth().cardExpandPulse(expanded)
     ) {
         Column(
             modifier = Modifier
                 .padding(dimensionResource(id = R.dimen.padding_large))
-                .animateContentSize()
+                .animateContentSize(CardExpandAnimationSpec)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -1012,7 +1012,7 @@ private fun PreviewSectionTitleHeader() {
 
 // ============================================================================
 // 18. Eyebrow header via CardEyebrowLabel, padding_medium gap to content
-// Modeled on: summary/views/SummaryScreen.kt's SignalSection/MarketSentimentCard/TheReadSection --
+// Modeled on: summary/views/SummaryScreen.kt's SignalSection/MarketSentimentCard --
 // the OTHER header family (as opposed to section-title, #18 above), for cards whose job is to say
 // one AI-authored thing: `CardEyebrowLabel` (labelSmall, bold, auto-uppercased -- no manual
 // `.uppercase()` needed) directly followed by `Spacer(padding_medium)`, then the actual headline

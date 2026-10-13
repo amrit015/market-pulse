@@ -38,6 +38,7 @@ data class NetworkStockPreview(
     @Json(name = "change_percent")
     val changePercent: Double? = null,
 
+    /** Removed from the preview by the backend (now on the detail doc); only present on a doc not yet re-analysed. Not read by the UI. */
     @Json(name = "plain_read")
     val plainRead: String? = null,
 

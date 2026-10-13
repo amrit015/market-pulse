@@ -9,6 +9,9 @@ import com.marketlabs.pulse.core.analytics.ScreenName
 import com.marketlabs.pulse.core.charts.ChartSyncGroup
 import com.marketlabs.pulse.core.charts.ChartsRepository
 import com.marketlabs.pulse.core.dashboard.DashboardRepository
+import com.marketlabs.pulse.core.glossary.MetricGlossaryEntry
+import com.marketlabs.pulse.core.glossary.MetricGlossaryProvider
+import com.marketlabs.pulse.core.glossary.OverviewSentimentBandsProvider
 import com.marketlabs.pulse.core.intraday.DashboardIntradayEligibility
 import com.marketlabs.pulse.core.intraday.IntradayRepository
 import com.marketlabs.pulse.storage.model.charts.ChartRange
@@ -18,7 +21,9 @@ import com.marketlabs.pulse.storage.model.dashboard.AssetOverview
 import com.marketlabs.pulse.storage.model.intraday.IntradaySeries
 import com.marketlabs.pulse.ui.screens.dashboard.detail.AssetDetailViewModel.Companion.ARG_SYMBOL
 import com.marketlabs.pulse.utils.enums.AssetType
+import android.content.Context
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -51,6 +56,8 @@ class AssetDetailViewModel @Inject constructor(
     private val chartsRepository: ChartsRepository,
     private val intradayRepository: IntradayRepository,
     private val analyticsTracker: AnalyticsTracker,
+    metricGlossaryProvider: MetricGlossaryProvider,
+    @ApplicationContext context: Context,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -76,6 +83,20 @@ class AssetDetailViewModel @Inject constructor(
     // hardcoded symbol list -- it already draws exactly this line for exactly this reason.
     private val _selectedChartRange = MutableStateFlow(if (isIntradayEligible) ChartRange.ONE_DAY else ChartRange.ONE_MONTH)
     private val _isChartLoading = MutableStateFlow(false)
+
+    // Only the three sentiment readings have a band list to show. Fear & Greed and Put/Call use
+    // the same `metric_glossary.json` entries Indicators' metric detail reads (the backend
+    // classifies them identically on both screens). VIX does not: Indicators calls it
+    // Calm/Elevated/Panic while Overview reports a five-level Fear/Greed status, so Overview's
+    // page gets its own band list that matches that status.
+    private val glossaryEntry: MetricGlossaryEntry? = when (symbol) {
+        "FEAR_GREED" -> metricGlossaryProvider.get("fear_and_greed")
+        "PUT_CALL" -> metricGlossaryProvider.get("put_call_ratio")
+        "^VIX" -> OverviewSentimentBandsProvider.bandsFor(context, symbol)
+            .takeIf { it.isNotEmpty() }
+            ?.let { MetricGlossaryEntry(whatItIs = "", howToRead = "", bands = it) }
+        else -> null
+    }?.let { entry -> entry.copy(bands = entry.bands.sortedBy { greedToFearOrder(it.label) }) }
 
     private val matchingAsset: Flow<AssetOverview?> = dashboardRepository.getDashboardAssetsStream()
         .map { assets -> assets.filterNotNull().firstOrNull { it.symbol == symbol } }
@@ -120,7 +141,8 @@ class AssetDetailViewModel @Inject constructor(
             isChartLoading = chart.isLoading,
             intradaySeries = chart.intradaySeries,
             availableChartRanges = chart.availableChartRanges,
-            hasTimedOut = hasTimedOut
+            hasTimedOut = hasTimedOut,
+            glossaryEntry = glossaryEntry
         )
     }.stateIn(
         scope = viewModelScope,
@@ -218,3 +240,15 @@ private data class ChartUiSlice(
     val intradaySeries: IntradaySeries?,
     val availableChartRanges: List<ChartRange>
 )
+
+/**
+ * Every sentiment band list on this page reads Extreme Greed -> Extreme Fear, so the three
+ * readings share one structure. The bundled lists don't agree on direction (Fear & Greed's
+ * glossary runs Extreme Fear first, Put/Call's and VIX's run Extreme Greed first), and the
+ * glossary order is what Indicators' own detail page shows, so the ordering is applied here, not
+ * in the data. A label outside the five keeps its relative place after them.
+ */
+internal fun greedToFearOrder(label: String): Int =
+    GREED_TO_FEAR.indexOf(label.trim().lowercase()).let { if (it < 0) GREED_TO_FEAR.size else it }
+
+private val GREED_TO_FEAR = listOf("extreme greed", "greed", "neutral", "fear", "extreme fear")

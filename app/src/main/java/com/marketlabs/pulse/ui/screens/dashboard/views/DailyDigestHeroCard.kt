@@ -1,6 +1,8 @@
 package com.marketlabs.pulse.ui.screens.dashboard.views
 
 import androidx.compose.animation.animateContentSize
+import com.marketlabs.pulse.ui.components.CardExpandAnimationSpec
+import com.marketlabs.pulse.ui.components.cardExpandPulse
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -85,12 +87,12 @@ fun DailyDigestHeroCard(
 
     PulseCard(
         style = PulseCardStyle.SYNTHESIS,
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth().cardExpandPulse(isExpanded),
         onClick = if (hasExpandableContent) {
             { isExpanded = !isExpanded }
         } else null
     ) {
-        Column(modifier = Modifier.animateContentSize()) {
+        Column(modifier = Modifier.animateContentSize(CardExpandAnimationSpec)) {
             Column (modifier = Modifier.padding(paddingLarge)) {
                 CardEyebrowLabel(
                     text = stringResource(id = R.string.dashboard_daily_digest_header),

@@ -1,0 +1,115 @@
+{
+  "version": 3,
+  "lastUpdated": "2026-10-12",
+  "title": "Privacy Policy",
+  "sections": [
+    {
+      "heading": "1. Overview",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "Market Pulse does not require account creation or sign-in. The App does create an anonymous app identifier automatically, with no action from you. This policy explains what limited data the App collects and how it's used."
+        }
+      ]
+    },
+    {
+      "heading": "2. Information We Collect",
+      "blocks": [
+        {
+          "type": "list",
+          "items": [
+            "App preferences (theme, favorite stocks/metrics, legal-acceptance status) are stored on your device. When you add or remove a favorite, an anonymous usage event noting which item changed is sent to our analytics provider.",
+            "Anonymous app identifier (Firebase Authentication): a random identifier created automatically the first time you use the App after accepting these documents, together with the dates it was created and last used. It is not linked to your name, email address, or phone number, and it is sent with requests to the App's servers to operate and secure the service. You can see it in Settings → About.",
+            "Usage analytics (Firebase Analytics): screens and tabs viewed, which stocks, indicators, and articles are opened, time spent, and notification opens — tied to an app-instance identifier, not to you personally. You can turn this off in Settings → Data & Sync.",
+            "Crash diagnostics (Firebase Crashlytics): device model, OS version, app version, the screen in use, and the technical details of a crash."
+          ]
+        },
+        {
+          "type": "paragraph",
+          "text": "The anonymous app identifier is needed for the App to work, so the \"Share anonymous usage data\" toggle in Settings → Data & Sync does not control it."
+        }
+      ]
+    },
+    {
+      "heading": "3. Information We Do Not Collect",
+      "blocks": [
+        {
+          "type": "list",
+          "items": [
+            "No account information, email, or phone number. You are never asked to sign in, and the anonymous app identifier is not linked to any of these.",
+            "No financial account, brokerage, or payment information.",
+            "No precise location data."
+          ]
+        }
+      ]
+    },
+    {
+      "heading": "4. Third-Party Services",
+      "blocks": [
+        {
+          "type": "list",
+          "items": [
+            "Firebase (Google) — analytics, content delivery, and app security (App Check). Governed by Google's own privacy policy.",
+            "Firebase Authentication (Google) — creates and maintains the anonymous app identifier. Governed by Google's own privacy policy.",
+            "Firebase Crashlytics (Google) — crash reporting.",
+            "Google AdMob — displays ads. Ads are non-personalized; AdMob may process device and usage information to serve and measure them, under Google's privacy policy.",
+            "Market data providers — accessed entirely server-side by Market Pulse's backend; these providers never receive information about you or your device."
+          ]
+        }
+      ]
+    },
+    {
+      "heading": "5. Data Retention",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "Locally stored preferences remain on your device until you clear app data or uninstall. Analytics and crash data are kept per Firebase's retention settings (analytics: the property's configured retention period; Crashlytics: 90 days)."
+        },
+        {
+          "type": "paragraph",
+          "text": "The anonymous app identifier is kept until you ask us to delete it. Clearing the App's data or reinstalling the App creates a new identifier."
+        }
+      ]
+    },
+    {
+      "heading": "6. Your Rights",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "You can stop usage analytics at any time in Settings → Data & Sync. Because no account or personal profile exists, most data-subject requests (access, deletion, portability) are satisfied by clearing the App's local storage or uninstalling the App."
+        },
+        {
+          "type": "paragraph",
+          "text": "To request deletion of the data held against your anonymous app identifier, email marketpulse.labs@gmail.com with the App ID shown in Settings → About. For analytics-level requests, contact us at the same address."
+        }
+      ]
+    },
+    {
+      "heading": "7. Children's Privacy",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "Market Pulse is not directed at children under 13 (or the relevant age threshold in your jurisdiction) and does not knowingly collect data from them."
+        }
+      ]
+    },
+    {
+      "heading": "8. Changes to This Policy",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "This policy may be updated from time to time; material changes follow the same re-acceptance mechanism as the Terms & Conditions."
+        }
+      ]
+    },
+    {
+      "heading": "9. Contact",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "text": "marketpulse.labs@gmail.com"
+        }
+      ]
+    }
+  ]
+}

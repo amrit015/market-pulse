@@ -1,6 +1,7 @@
 package com.marketlabs.pulse.core.analytics
 
 import com.marketlabs.pulse.ui.navigation.PulseRoutes
+import com.marketlabs.pulse.ui.screens.summary.views.SummaryTab
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -32,6 +33,13 @@ class ScreenCatalogTest {
     fun tabNamesAreBaseNamePlusLowerSnakeTab() {
         assertEquals("indicators_tactical_momentum", ScreenName.INDICATORS.forTab(Tab.TACTICAL_MOMENTUM).name)
         assertEquals("MARKET_INDICATORS", ScreenName.INDICATORS.forTab(Tab.TACTICAL_MOMENTUM).screenClass)
+    }
+
+    @Test
+    fun summaryTabsReportAsSummaryPulseDriversOutlook() {
+        val names = SummaryTab.entries.map { ScreenName.SUMMARY.forTab(it).name }
+        assertEquals(listOf("summary_pulse", "summary_drivers", "summary_outlook"), names)
+        assertTrue(SummaryTab.entries.all { ScreenName.SUMMARY.forTab(it).screenClass == "MARKET_SUMMARY" })
     }
 
     private enum class Tab { TACTICAL_MOMENTUM }

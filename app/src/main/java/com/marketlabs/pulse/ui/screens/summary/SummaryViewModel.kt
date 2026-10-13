@@ -2,6 +2,8 @@ package com.marketlabs.pulse.ui.screens.summary
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.marketlabs.pulse.core.entitlement.EntitlementRepository
+import com.marketlabs.pulse.core.summary.SummaryPreferencesRepository
 import com.marketlabs.pulse.core.summary.SummaryRepository
 import com.marketlabs.pulse.core.sync.SyncManager
 import com.marketlabs.pulse.utils.enums.ReportType
@@ -25,7 +27,9 @@ import javax.inject.Inject
 @HiltViewModel
 class SummaryViewModel @Inject constructor(
     private val repository: SummaryRepository,
-    private val syncManager: SyncManager
+    private val syncManager: SyncManager,
+    private val preferences: SummaryPreferencesRepository,
+    entitlements: EntitlementRepository
 ) : ViewModel() {
 
     // NY-anchored (see utils/DateExtension.kt) -- computed once per ViewModel instance rather than
@@ -37,6 +41,17 @@ class SummaryViewModel @Inject constructor(
 
     private val _selectedDateId = MutableStateFlow(todayDateId)
     val selectedDateId: StateFlow<String> = _selectedDateId.asStateFlow()
+
+    // Lives here (not in the day content) so picking another day leaves the reader on the same tab.
+    private val _selectedTabIndex = MutableStateFlow(0)
+
+    // The three screen-level inputs that aren't day content, folded into one flow so the main
+    // combine below stays within `combine`'s typed-arity overloads.
+    private data class ScreenSettings(val tabIndex: Int, val expandByDefault: Boolean, val isPro: Boolean)
+
+    private val screenSettings = combine(
+        _selectedTabIndex, preferences.expandItemsByDefault, entitlements.isPro
+    ) { tabIndex, expandByDefault, isPro -> ScreenSettings(tabIndex, expandByDefault, isPro) }
 
     // Set once the user (or the today-empty fallback below) has moved off the initial default --
     // guards the fallback so it only ever fires once per session, not on every emission where
@@ -104,8 +119,8 @@ class SummaryViewModel @Inject constructor(
     fun retryPastDate(dateId: String) = viewModelScope.launch { syncPastDate(dateId) }
 
     val summaryUiState: StateFlow<SummaryUiState> = combine(
-        _selectedDateId, todayStream, pastEntriesByDateId, _failedPastDates
-    ) { selectedDateId, todayData, pastEntries, failedPastDates ->
+        _selectedDateId, todayStream, pastEntriesByDateId, _failedPastDates, screenSettings
+    ) { selectedDateId, todayData, pastEntries, failedPastDates, settings ->
         val contentByDateId = buildMap {
             put(todayDateId, if (todayData != null) DayContent.Available(todayData) else DayContent.TodayNotReady)
             pastDateIds.forEach { dateId ->
@@ -132,7 +147,10 @@ class SummaryViewModel @Inject constructor(
             // read "Weekend Update" whenever that's the day actually on screen, today included.
             // Whatever's rendered for `selectedDateId` and this label always agree (today's content
             // is queried today-scoped; see SummaryRepositoryImpl/LocalSummaryDataSourceImpl).
-            reportType = selectedDateId.toWeekdayReportType()
+            reportType = selectedDateId.toWeekdayReportType(),
+            selectedTabIndex = settings.tabIndex,
+            expandItemsByDefault = settings.expandByDefault,
+            isPro = settings.isPro
         )
     }.stateIn(
         scope = viewModelScope,
@@ -160,7 +178,16 @@ class SummaryViewModel @Inject constructor(
         syncManager.stopListening()
     }
 
-    /** Calendar strip pill tap, or the pager settling on a new page after a swipe. */
+    /** Tab row tap, or the tab pager settling on a new page after a swipe. */
+    fun selectTab(index: Int) {
+        _selectedTabIndex.value = index
+    }
+
+    fun setExpandItemsByDefault(expanded: Boolean) {
+        viewModelScope.launch { preferences.setExpandItemsByDefault(expanded) }
+    }
+
+    /** Calendar strip pill tap -- the only way to change day. */
     fun selectDate(dateId: String) {
         hasAutoFallenBack = true // a manual pick overrides the auto-fallback either way
         _selectedDateId.value = dateId

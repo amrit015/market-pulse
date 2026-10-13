@@ -15,7 +15,10 @@ class HeaderLoggingInterceptor @Inject constructor() : Interceptor {
 
         // Log all headers specifically
         request.headers.forEach { (name, value) ->
-            if (name.equals("X-Firebase-AppCheck", ignoreCase = true)) {
+            // 💡 Both carry bearer-style secrets; a full value in Logcat would leak a usable token.
+            if (name.equals("X-Firebase-AppCheck", ignoreCase = true) ||
+                name.equals("Authorization", ignoreCase = true)
+            ) {
                 Log.d("PulseNetwork", "✅ HEADER: $name = ${value.take(10)}...[TRUNCATED]")
             } else {
                 Log.d("PulseNetwork", "HEADER: $name = $value")

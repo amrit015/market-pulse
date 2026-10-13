@@ -843,6 +843,15 @@ object DatabaseMigrations {
         }
     }
 
+    // Migration from Version 32 to 33: `plain_read` moved from the stock preview to the stock
+    // detail on the backend. The new column starts null and fills on each symbol's next detail fetch.
+    // The preview table's now-unused `plainRead` column is left in place rather than dropped.
+    val MIGRATION_32_33 = object : Migration(32, 33) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE `market_stock_details` ADD COLUMN `plainRead` TEXT")
+        }
+    }
+
     val ALL_MIGRATIONS = arrayOf(
         MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5,
         MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9,
@@ -851,6 +860,6 @@ object DatabaseMigrations {
         MIGRATION_17_18, MIGRATION_18_19, MIGRATION_19_20, MIGRATION_20_21,
         MIGRATION_21_22, MIGRATION_22_23, MIGRATION_23_24, MIGRATION_24_25,
         MIGRATION_25_26, MIGRATION_26_27, MIGRATION_27_28, MIGRATION_28_29,
-        MIGRATION_29_30, MIGRATION_30_31, MIGRATION_31_32
+        MIGRATION_29_30, MIGRATION_30_31, MIGRATION_31_32, MIGRATION_32_33
     )
 }

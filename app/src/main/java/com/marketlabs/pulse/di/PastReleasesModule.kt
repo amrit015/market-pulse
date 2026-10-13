@@ -1,5 +1,7 @@
 package com.marketlabs.pulse.di
 
+import com.marketlabs.pulse.core.pastReleases.PastReleasesPreferencesRepository
+import com.marketlabs.pulse.core.pastReleases.PastReleasesPreferencesRepositoryImpl
 import com.marketlabs.pulse.core.pastReleases.PastReleasesRepository
 import com.marketlabs.pulse.core.pastReleases.PastReleasesRepositoryImpl
 import com.marketlabs.pulse.network.store.pastReleases.RemotePastReleasesDataSource
@@ -33,4 +35,10 @@ object PastReleasesModule {
     fun providePastReleasesRepository(
         pastReleasesRepositoryImpl: PastReleasesRepositoryImpl
     ): PastReleasesRepository = pastReleasesRepositoryImpl
+
+    @Provides
+    @Singleton
+    fun providePastReleasesPreferencesRepository(
+        impl: PastReleasesPreferencesRepositoryImpl
+    ): PastReleasesPreferencesRepository = impl
 }

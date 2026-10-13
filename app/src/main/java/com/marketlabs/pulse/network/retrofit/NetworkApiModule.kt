@@ -13,6 +13,7 @@ import com.marketlabs.pulse.network.api.PastReleasesApi
 import com.marketlabs.pulse.network.api.StocksApi
 import com.marketlabs.pulse.network.api.WeeklyPlaybookApi
 import com.marketlabs.pulse.network.interceptor.AppCheckInterceptor
+import com.marketlabs.pulse.network.interceptor.AuthInterceptor
 import com.marketlabs.pulse.network.interceptor.HeaderLoggingInterceptor
 import com.marketlabs.pulse.utils.Constants.MARKET_PULSE_BASE_URL
 import com.squareup.moshi.Moshi
@@ -46,15 +47,21 @@ object NetworkApiModule {
     @Named("MarketPulseClient")
     fun provideMarketPulseOkHttpClient(
         appCheckInterceptor: AppCheckInterceptor, // Make sure this is injected
+        authInterceptor: AuthInterceptor,
         headerLoggingInterceptor: HeaderLoggingInterceptor // The one we just added
     ): OkHttpClient {
         val httpLoggingInterceptor = HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
+            // BODY level prints every header; keep bearer tokens out of Logcat.
+            redactHeader("Authorization")
+            redactHeader("X-Firebase-AppCheck")
         }
 
         return OkHttpClient.Builder()
             // TURN OFF app check for now
 //            .addInterceptor(appCheckInterceptor) // Add the Firebase app check interceptor here
+            // Before the logging interceptors so they see (and redact) the header it adds.
+            .addInterceptor(authInterceptor)
             .addInterceptor(headerLoggingInterceptor)
             .addInterceptor(httpLoggingInterceptor)
             .build()

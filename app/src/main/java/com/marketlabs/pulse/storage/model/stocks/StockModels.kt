@@ -35,6 +35,7 @@ data class StockPreview(
     val analysisDate: String? = null,
     val price: Double? = null,
     val changePercent: Double? = null,
+    /** No longer sent: the backend moved `plain_read` to the detail doc ([StockDetail.plainRead]). Kept so a row cached before the move still deserializes; the UI reads [dailyDigestHeadline] instead. */
     val plainRead: String? = null,
     val technicalSetup: String? = null,
     val setupNetBias: Int? = null,
@@ -107,6 +108,8 @@ data class StockDetail(
     val watchList: List<DomainWatchItem>? = null,
     val fundamentals: DomainFundamentals? = null,
     val macro: DomainMacro? = null,
+    /** Jargon-free one-sentence read (up to ~170 chars, contains a figure). Moved here from the preview; null until this symbol's next analysis run. */
+    val plainRead: String? = null,
     val technicalRead: String? = null,
     val notCovered: String? = null,
     val scenarios: List<DomainScenario>? = null,

@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.components.PulseCard
@@ -19,33 +20,60 @@ import com.marketlabs.pulse.ui.theme.LocalPulseColors
 import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 
 /**
- * `PulseCard(SYNTHESIS)` from `detail.technicalRead`. Originally named/labeled "Plain Read," but
- * the backend's own prompt schema draws a deliberate line between two
- * separate fields: `plain_read` ("no jargon, for a non-trader") and `technical_read` ("dense with
- * figures, indicator names fine") -- the opposite of plain. `StockDetail` only carries
- * `technicalRead` (the real `plain_read` field lives on `StockPreview`, backing the list card's
- * prose instead), so labeling this section "Plain Read" was describing the wrong field's intent.
- * Renamed to match what it actually is.
- *
- * Header is [CardEyebrowLabel] (the app-wide "ai style card" family -- Market Signal/Today's
- * Read/Insights' Digest), not Stock Detail's own `SynthesisCardHeader` -- the first of this
- * screen's SYNTHESIS cards to converge on that convention.
+ * The jargon-free one-sentence read (`detail.plainRead`, up to ~170 chars, always carries a figure)
+ * shown in Stock Detail's chrome above the tab row. `PulseCard(SYNTHESIS)` -- chrome-level, not a
+ * tab card. Absent on a detail doc written before the backend moved this field from the preview,
+ * in which case nothing renders.
+ */
+@Composable
+fun PlainRead(plainRead: String?, modifier: Modifier = Modifier) {
+    ReadCard(
+        title = stringResource(id = R.string.stock_detail_plain_read_title),
+        text = plainRead,
+        style = PulseCardStyle.SYNTHESIS,
+        bodyStyle = MaterialTheme.typography.bodySmall,
+        modifier = modifier
+    )
+}
+
+/**
+ * The dense, figure-heavy read (`detail.technicalRead`, indicator names fine) -- a Technicals tab
+ * card below Returns, so a `DATA` card like every other card on the tabs. It is the counterpart of
+ * [PlainRead], which says the same kind of thing without jargon.
  */
 @Composable
 fun TechnicalRead(technicalRead: String?, modifier: Modifier = Modifier) {
-    if (technicalRead == null) return
+    ReadCard(
+        title = stringResource(id = R.string.stock_detail_technical_read_title),
+        text = technicalRead,
+        style = PulseCardStyle.DATA,
+        // Same body style as Key Levels' commentary, the card it sits near on the Technicals tab.
+        bodyStyle = MaterialTheme.typography.bodyMedium,
+        modifier = modifier
+    )
+}
+
+@Composable
+private fun ReadCard(
+    title: String,
+    text: String?,
+    style: PulseCardStyle,
+    bodyStyle: TextStyle,
+    modifier: Modifier
+) {
+    if (text == null) return
     val pulseColors = LocalPulseColors.current
 
-    PulseCard(style = PulseCardStyle.SYNTHESIS, modifier = modifier.fillMaxWidth()) {
+    PulseCard(style = style, modifier = modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
             CardEyebrowLabel(
-                text = stringResource(id = R.string.stock_detail_technical_read_title),
+                text = title,
                 color = pulseColors.accentPrimary
             )
             androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
             Text(
-                text = technicalRead,
-                style = MaterialTheme.typography.bodySmall,
+                text = text,
+                style = bodyStyle,
                 color = MaterialTheme.colorScheme.onSurface
             )
         }
@@ -57,6 +85,14 @@ fun TechnicalRead(technicalRead: String?, modifier: Modifier = Modifier) {
 // ============================================================================
 
 private const val MOCK_TEXT = "Amazon's stock sits at \$274.48, trading 16.04% above its 200-day average, while its cash flow yield of 0.78% is barely above the 0.47% risk-free rate."
+
+@Preview(name = "Plain read", showBackground = true)
+@Composable
+private fun PreviewPlainRead() {
+    MarketPulseTheme(theme = MarketPulseTheme.NAVY) {
+        PlainRead(plainRead = MOCK_TEXT)
+    }
+}
 
 @Preview(name = "Light", showBackground = true)
 @Composable

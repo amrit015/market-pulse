@@ -49,7 +49,7 @@ import kotlin.math.abs
 /**
  * The Analysis tab's list card -- one `StockPreview` per tracked symbol. `PulseCard(DATA)`, the
  * same background every other data-display card in the app uses -- was `SYNTHESIS` (this card
- * leads with `plain_read`, an AI-generated interpretation of the day's data), but only a card
+ * leads with the daily digest's headline, an AI-generated interpretation of the day's data), but only a card
  * presenting a direct AI verdict/conclusion (Summary's `VerdictCard`, Indicators' AI Executive
  * Briefing) keeps that darker treatment now; a per-symbol list card reads like this app's other
  * list cards (Equities, News) even though its body text is AI-authored. The glyph+title treatment
@@ -59,7 +59,7 @@ import kotlin.math.abs
  * right (a small "LIVE" label above `price` while `isEquityOpen` -- same
  * `market_overview/market_state.is_equity_open` flag the Dashboard's hero badge reads -- since
  * `intradayPoller` only actually keeps `preview.price` live during regular market hours),
- * `plain_read` prose body, a muted `technical_setup` + chip-delta line, the top-4 condition
+ * `daily_digest.headline` lead line, a muted `technical_setup` + chip-delta line, the top-4 condition
  * chips, and (only when `hasDirectNews` is true) a small NEWS footer line. A live `SparklineChart`
  * sized to `stock_preview_sparkline_space` sits between the symbol/name block and the price/change
  * block, its own fixed-width column in that header row -- `intradayStream` is fed by
@@ -205,10 +205,13 @@ fun StockPreviewCard(
                 }
             }
 
-            preview.plainRead?.let { plainRead ->
+            // Leads with the daily digest's headline -- the backend moved `plain_read` to the detail
+            // doc, so the preview no longer carries it. Absent until the symbol's next analysis run
+            // (or on a quiet day), in which case the line is simply not shown.
+            preview.dailyDigestHeadline?.takeIf { it.isNotBlank() }?.let { headline ->
                 Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
                 Text(
-                    text = plainRead,
+                    text = headline,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )

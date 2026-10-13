@@ -28,6 +28,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.marketlabs.pulse.R
+import com.marketlabs.pulse.core.glossary.MetricGlossaryEntry
+import com.marketlabs.pulse.ui.components.BandRow
+import com.marketlabs.pulse.ui.components.SentimentChange
 import com.marketlabs.pulse.core.glossary.AssetDescriptionProvider
 import com.marketlabs.pulse.core.glossary.DashboardGlossaryProvider
 import com.marketlabs.pulse.storage.model.charts.ChartPoint
@@ -74,7 +77,8 @@ fun AssetDetailScreen(
     availableChartRanges: List<ChartRange>,
     onChartRangeSelected: (ChartRange) -> Unit,
     scaffoldPadding: PaddingValues,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    glossaryEntry: MetricGlossaryEntry? = null
 ) {
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
     val paddingMedium = dimensionResource(id = R.dimen.padding_medium)
@@ -112,6 +116,14 @@ fun AssetDetailScreen(
         ChangeDirection.UP -> pulseColors.signalBullishPill
         ChangeDirection.DOWN -> pulseColors.signalBearishPill
         else -> pulseColors.signalNeutralPill
+    }
+
+    // 💡 The sentiment readings get their change pill from the same shared rules Overview's cards
+    // use, so opening one of those cards never shows a different up/down read than the card did.
+    val sentimentChange = when (asset.symbol) {
+        "FEAR_GREED" -> asset.price?.let { SentimentChange.fearGreed(it, asset.previousClose, pulseColors) }
+        "^VIX", "PUT_CALL" -> changePercent?.let { SentimentChange.percent(it, pulseColors) }
+        else -> null
     }
 
     var showTechnicalGlossary by remember { mutableStateOf(false) }
@@ -189,6 +201,14 @@ fun AssetDetailScreen(
                             direction = direction,
                             pillColor = pillColor,
                             contentColor = priceTextColor
+                        )
+                    } else if (sentimentChange != null) {
+                        Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+                        DirectionalChangePill(
+                            changeText = sentimentChange.text,
+                            direction = sentimentChange.direction,
+                            pillColor = sentimentChange.pillColor,
+                            contentColor = sentimentChange.contentColor
                         )
                     }
                 }
@@ -321,6 +341,25 @@ fun AssetDetailScreen(
                         )
                     )
                 }
+            }
+        }
+
+        // Band list for Fear & Greed / Put-Call / VIX, same rows Indicators' metric detail shows.
+        if (glossaryEntry != null && glossaryEntry.bands.isNotEmpty()) {
+            val currentBandIndex = currentSentimentBandIndex(
+                status = asset.rsiStatus,
+                bands = glossaryEntry.bands
+            )
+            Spacer(modifier = Modifier.height(paddingLarge))
+            Text(
+                text = stringResource(id = R.string.indicators_detail_bands).uppercase(),
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(bottom = paddingMedium)
+            )
+            glossaryEntry.bands.forEachIndexed { index, band ->
+                BandRow(band = band, isCurrent = index == currentBandIndex)
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
             }
         }
 

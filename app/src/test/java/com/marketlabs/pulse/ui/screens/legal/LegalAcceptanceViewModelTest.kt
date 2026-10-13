@@ -36,6 +36,6 @@ class LegalAcceptanceViewModelTest {
         LegalAcceptanceViewModel(FakeLegalRepository(), tracker).acceptCurrentVersion()
 
         val event = tracker.events.single() as AnalyticsEvent.LegalAccept
-        assertEquals(2L, event.params["legal_version"])
+        assertEquals(LegalRepository.CURRENT_LEGAL_VERSION.toLong(), event.params["legal_version"])
     }
 }

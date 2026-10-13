@@ -1,6 +1,8 @@
 package com.marketlabs.pulse.ui.screens.summary.views
 
 import androidx.compose.animation.animateContentSize
+import com.marketlabs.pulse.ui.components.CardExpandAnimationSpec
+import com.marketlabs.pulse.ui.components.cardExpandPulse
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -22,6 +24,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
@@ -33,6 +36,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.key
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -40,20 +45,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.lerp
 import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.summary.DominoEffect
 import com.marketlabs.pulse.storage.model.summary.MacroItem
@@ -69,13 +70,15 @@ import com.marketlabs.pulse.storage.model.summary.WatchItem
 import com.marketlabs.pulse.storage.model.summary.WhatsNewItem
 import com.marketlabs.pulse.ui.components.AnalyzedAtHeader
 import com.marketlabs.pulse.ui.components.DisclaimerFooter
+import com.marketlabs.pulse.ui.components.ExpandCollapseAllToggle
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.components.PulseErrorState
 import com.marketlabs.pulse.ui.components.PulseLoadingIndicator
+import com.marketlabs.pulse.ui.components.PulseTabRow
+import com.marketlabs.pulse.ui.components.rememberPerTabLazyListStates
 import com.marketlabs.pulse.ui.components.bottomSheet.DriversInfoBottomSheet
 import com.marketlabs.pulse.ui.components.bottomSheet.MarketGlossaryBottomSheet
-import com.marketlabs.pulse.ui.components.bottomSheet.MarketReadBottomSheet
 import com.marketlabs.pulse.ui.components.widgets.CardEyebrowLabel
 import com.marketlabs.pulse.ui.components.widgets.SignalPill
 import com.marketlabs.pulse.ui.screens.stocks.detail.ViewMoreRow
@@ -94,32 +97,28 @@ import com.marketlabs.pulse.utils.enums.SignalDirection
 import com.marketlabs.pulse.utils.enums.TechnicalSetup
 import com.marketlabs.pulse.utils.extensions.smartTitleCase
 import com.marketlabs.pulse.utils.toRelativeDayLabel
-import kotlin.math.abs
-
-// A page one full swipe away from center is drawn at this scale/alpha; in between, both follow the
-// drag linearly -- same treatment OnboardingCarouselScreen's slides use, minus the page-indicator
-// dots (the calendar strip above the pager already shows which day is selected).
-private const val PageMinScale = 0.9f
-private const val PageMinAlpha = 0.5f
 
 /**
  * The main screen for displaying the Market Pulse report.
  *
- * Only the calendar strip itself is pinned above the pager -- it never scrolls, and stays the same
- * regardless of which page is mid-swipe. Everything else, including the relative date label and
- * (when loaded) the "Analyzed as of" timestamp, lives one page per calendar day inside a
- * [HorizontalPager] (see [SummaryDayPage]) and scrolls away with the rest of that day's content --
- * each page shows its own date's label/timestamp, not just whichever day is "selected". The pager
- * is swipeable exactly like [SummaryCalendarStrip]'s own pills select a day, kept in sync with it
- * the same way `PulseTabRow` <-> `HorizontalPager` sync works elsewhere in this app (the
- * ViewModel's selected day and the pager's settled page are synced in both directions). Each page
- * implements the same "Safe UI" pattern as before -- sections only render if their data is
- * non-null.
+ * Two things are pinned above the content: the calendar strip and the Pulse / Drivers / Outlook
+ * tab row. The day is chosen only by tapping the strip -- horizontal swipes belong to the tab
+ * pager, so a swipe never changes the day. Each tab is its own scrolling list for the selected day
+ * (see [SummaryTabPage]); the relative date label and the "Analyzed as of" timestamp are the
+ * first item of every tab, so they scroll away with the content.
+ *
+ * Changing day keeps the selected tab, scrolls each tab back to the top, and recreates
+ * [SummaryExpansionState], so anything the reader had expanded collapses again and the Market
+ * Movers / Macro Mix rows go back to following the screen-level expanded/collapsed default.
  *
  * @param contentByDateId What to render for each of [calendarDayIds] -- a loaded report, a
  * confirmed-empty past date, today-not-ready-yet, or a past date still syncing for the first
  * time. See [DayContent]. Always has one entry per [calendarDayIds] entry.
  * @param calendarDayIds The 7 NY dateIds behind the calendar strip, oldest first, last = today.
+ * @param expandItemsByDefault Whether Market Movers and Macro Mix rows start expanded.
+ * @param isPro Whether the user is entitled to the content a paid tier will lock.
+ * @param onSectionExpand Fired once per tap that expands a hidden part (never on collapse), with
+ * the section and the item's position within it.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -130,17 +129,24 @@ fun MarketSummaryScreen(
     onDateSelected: (String) -> Unit,
     scaffoldPadding: PaddingValues,
     onNavigateToIndicators: () -> Unit,
+    selectedTabIndex: Int = 0,
+    onTabSelected: (Int) -> Unit = {},
+    expandItemsByDefault: Boolean = false,
+    onExpandItemsByDefaultChange: (Boolean) -> Unit = {},
+    isPro: Boolean = true,
+    onSectionExpand: (SummarySection, Int) -> Unit = { _, _ -> },
     // The jump from the Market Sentiment card to Posture -- Posture is a tab on the Insights
     // screen, not its own destination, same shape as onNavigateToIndicators above but landing on
     // a specific Insights tab.
     onNavigateToPosture: () -> Unit = {},
     onRetryDate: (String) -> Unit = {},
-    // Pinned between the calendar strip and the day pager; the Route fills it with the
+    // Pinned between the tab row and the pager; the Route fills it with the
     // enable-notifications banner, which renders nothing once answered. Empty by default so the
     // stateless screen (and its previews) needs no Hilt.
     banner: @Composable () -> Unit = {}
 ) {
     val data = (contentByDateId[selectedDateId] as? DayContent.Available)?.data
+    val access = remember(isPro) { SummaryAccess(isPro) }
 
     // 💡 The most recent calendar day that actually HAS a report -- not necessarily today's own
     // dateId. Today's report typically doesn't post until the afternoon, so for a while every
@@ -155,39 +161,54 @@ fun MarketSummaryScreen(
     // 💡 Which glossary sheet (if any) is open, and for which term -- regime/direction, setup,
     // and cycle zone each have their own tap target (a chevron on that one chip) rather than one
     // card-wide tap opening a combined sheet, so this needs to track *which* term was tapped, not
-    // just open/closed. Shared across every page rather than per-page state -- a tap can only
-    // land on the currently-settled page anyway, so this always resolves against `data` (the
-    // selected day's).
+    // just open/closed. Resolves against `data` (the selected day's).
     var glossaryTarget by remember { mutableStateOf<GlossaryTarget?>(null) }
     var showDriversInfo by remember { mutableStateOf(false) }
-    // 💡 The Signal card's flash headline is its own tap target, opening the same
-    // analysis + posture prose TheReadSection renders lower on the page -- a shortcut for the
-    // reader who wants the "why" right away, not a replacement for that card (which stays put).
-    var showMarketRead by remember { mutableStateOf(false) }
 
-    val pagerState = rememberPagerState(
-        initialPage = calendarDayIds.indexOf(selectedDateId).coerceAtLeast(0)
-    ) { calendarDayIds.size }
+    // Per-day: a new instance on every day change is what collapses everything again.
+    val expansion = remember(selectedDateId) { SummaryExpansionState() }
+    // A new default applies to every row, including ones the reader had tapped individually.
+    LaunchedEffect(expansion, expandItemsByDefault) { expansion.clearRowOverrides() }
 
-    LaunchedEffect(selectedDateId) {
-        val targetPage = calendarDayIds.indexOf(selectedDateId)
-        if (targetPage >= 0 && pagerState.currentPage != targetPage) {
-            pagerState.animateScrollToPage(targetPage)
+    val toggleSection: (SummarySection, Int) -> Unit = { section, position ->
+        val allowed = section.feature?.let(access::allows) ?: true
+        if (allowed && expansion.toggle(section, position, expandItemsByDefault)) {
+            onSectionExpand(section, position)
+        }
+    }
+
+    val pagerState = rememberPagerState(initialPage = selectedTabIndex) { SummaryTab.entries.size }
+
+    LaunchedEffect(selectedTabIndex) {
+        if (pagerState.currentPage != selectedTabIndex) {
+            pagerState.animateScrollToPage(selectedTabIndex)
         }
     }
 
     // 💡 `settledPage`, not `currentPage` -- the same fix Indicators/Stock Detail use: keying off
     // `currentPage` pushes an intermediate, still-in-flight page value back to the ViewModel
     // mid-swipe/mid-animation, which the effect above then reads and uses to correct the pager,
-    // fighting whatever gesture is still running. This is also what keeps network syncing lazy --
-    // SummaryViewModel only calls syncPastDate for the page that actually settles, not every page
-    // flicked past mid-swipe.
+    // fighting whatever gesture is still running.
     LaunchedEffect(pagerState.settledPage) {
-        val settledDateId = calendarDayIds.getOrNull(pagerState.settledPage)
-        if (settledDateId != null && settledDateId != selectedDateId) {
-            onDateSelected(settledDateId)
+        val page = pagerState.settledPage
+        if (page != selectedTabIndex) {
+            val locked = SummaryTab.entries[page].lockedBy?.let { !access.allows(it) } ?: false
+            if (locked) pagerState.animateScrollToPage(selectedTabIndex) else onTabSelected(page)
         }
     }
+
+    val listStates = rememberPerTabLazyListStates(SummaryTab.entries.size)
+    // Saveable so a configuration change doesn't look like a day change and throw away the
+    // restored scroll positions.
+    var shownDateId by rememberSaveable { mutableStateOf(selectedDateId) }
+    LaunchedEffect(selectedDateId) {
+        if (shownDateId != selectedDateId) {
+            shownDateId = selectedDateId
+            listStates.forEach { it.scrollToItem(0) }
+        }
+    }
+
+    val tabLabels = SummaryTab.entries.map { stringResource(id = it.labelRes) }
 
     // 💡 Top padding uses `scaffoldPadding`'s top component (the Scaffold's own measurement of
     // the top bar's real rendered height) instead of the raw status bar inset alone -- the raw
@@ -198,22 +219,25 @@ fun MarketSummaryScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // 💡 PINNED ZONE -- only the strip itself. The date label and "Analyzed as of" timestamp
-        // moved into each page's own scrolling content below (SummaryDayPage) -- each page shows
-        // its own date's label/timestamp now, not always the globally "selected" one, which also
-        // means they scroll away with the rest of that day's content instead of camping above it.
         // 💡 No horizontal padding here -- SummaryCalendarStrip applies its own internally (only
         // to the pill row, not its two dividers), so its dividers can span the full width
-        // edge-to-edge while the pills stay inset.
+        // edge-to-edge while the pills stay inset. Tap-only: the strip has no pager to follow.
         SummaryCalendarStrip(
             dayIds = calendarDayIds,
             selectedDateId = selectedDateId,
             onDateSelected = onDateSelected,
-            // Tracks the pager's drag finger-for-finger, same `PulseTabRow` `selectionPosition`
-            // pattern -- the highlight slides continuously as the day page swipes rather than
-            // waiting for it to settle.
-            selectionPosition = { pagerState.currentPage + pagerState.currentPageOffsetFraction },
             modifier = Modifier.padding(top = scaffoldPadding.calculateTopPadding())
+        )
+
+        PulseTabRow(
+            tabs = tabLabels,
+            selectedTabIndex = selectedTabIndex,
+            onTabSelected = { index ->
+                val locked = SummaryTab.entries[index].lockedBy?.let { !access.allows(it) } ?: false
+                if (!locked) onTabSelected(index)
+            },
+            // Tracks the pager's drag finger-for-finger, so the highlight slides with the swipe.
+            selectionPosition = { pagerState.currentPage + pagerState.currentPageOffsetFraction }
         )
 
         banner()
@@ -231,26 +255,25 @@ fun MarketSummaryScreen(
                 state = pagerState,
                 modifier = Modifier.fillMaxSize()
             ) { page ->
-                val pageDateId = calendarDayIds[page]
-                SummaryDayPage(
-                    dateId = pageDateId,
-                    content = contentByDateId[pageDateId] ?: DayContent.Loading,
-                    isLatestWithReport = pageDateId == latestAvailableDateId,
+                val tab = SummaryTab.entries[page]
+                SummaryTabPage(
+                    tab = tab,
+                    dateId = selectedDateId,
+                    content = contentByDateId[selectedDateId] ?: DayContent.Loading,
+                    isLatestWithReport = selectedDateId == latestAvailableDateId,
+                    listState = listStates[page],
                     scaffoldPadding = scaffoldPadding,
-                    // Signed distance of this page from the center of the viewport, in pages --
-                    // same shape as OnboardingCarouselScreen's own `pageOffset`, passed as a lambda
-                    // so it's only read inside `graphicsLayer`, which redraws every drag frame
-                    // without recomposing the page.
-                    pageOffset = {
-                        ((pagerState.currentPage - page) + pagerState.currentPageOffsetFraction).coerceIn(-1f, 1f)
-                    },
+                    expansion = expansion,
+                    expandItemsByDefault = expandItemsByDefault,
+                    showExpandSetting = access.allows(SummaryFeature.EXPAND_SETTING),
+                    onExpandItemsByDefaultChange = onExpandItemsByDefaultChange,
+                    onToggleSection = toggleSection,
                     onNavigateToIndicators = onNavigateToIndicators,
                     onNavigateToPosture = onNavigateToPosture,
                     onRegimeClick = { glossaryTarget = GlossaryTarget.REGIME },
                     onDirectionClick = { glossaryTarget = GlossaryTarget.DIRECTION },
                     onSetupClick = { glossaryTarget = GlossaryTarget.SETUP },
                     onCycleZoneClick = { glossaryTarget = GlossaryTarget.CYCLE_ZONE },
-                    onSignalLineClick = { showMarketRead = true },
                     onDriversInfoClick = { showDriversInfo = true },
                     onRetryDate = onRetryDate
                 )
@@ -297,243 +320,296 @@ fun MarketSummaryScreen(
     if (showDriversInfo) {
         DriversInfoBottomSheet(onDismiss = { showDriversInfo = false })
     }
-
-    if (showMarketRead) {
-        data?.verdict?.let { verdict ->
-            MarketReadBottomSheet(verdict = verdict, onDismiss = { showMarketRead = false })
-        }
-    }
 }
 
 /**
- * One [HorizontalPager] page of [MarketSummaryScreen] -- the scrolling body for one calendar day
- * (the calendar strip sits in the pinned zone above the pager). Renders [content]: a loaded
- * report's full section stack, or one of the confirmed-empty/loading/not-ready states, each just
- * a centered message.
+ * One tab of [MarketSummaryScreen] for the selected day: a scrolling list holding the date header
+ * followed by that tab's cards. Renders [content]: a loaded report's cards for [tab], or one of the
+ * confirmed-empty/loading/not-ready states, each just a centered message.
+ *
+ * | Tab | Cards |
+ * | --- | --- |
+ * | Pulse | Market Signal (with its Market Read), Market Sentiment, Market Position, What's New |
+ * | Drivers | Market Movers, Macro Mix |
+ * | Outlook | Domino Effect, What to Watch, Risks to Market |
  *
  * @param isLatestWithReport Whether [dateId] is the most recent calendar day with an actual
  * report -- not necessarily today's own dateId (see [MarketSummaryScreen]'s `latestAvailableDateId`
  * for why). Gates the live-only Position/whatChanged/whatsNew sections.
- * @param pageOffset This page's signed distance from the pager's center, in pages -- 0 when fully
- * in view, +/-1 once dragged a full page off to either side. Drives the shrink/fade below, same
- * treatment [OnboardingCarouselScreen]'s slides use, minus its page-indicator dots.
  */
 @Composable
-private fun SummaryDayPage(
+private fun SummaryTabPage(
+    tab: SummaryTab,
     dateId: String,
     content: DayContent,
     isLatestWithReport: Boolean,
+    listState: LazyListState,
     scaffoldPadding: PaddingValues,
-    pageOffset: () -> Float,
+    expansion: SummaryExpansionState,
+    expandItemsByDefault: Boolean,
+    showExpandSetting: Boolean,
+    onExpandItemsByDefaultChange: (Boolean) -> Unit,
+    onToggleSection: (SummarySection, Int) -> Unit,
     onNavigateToIndicators: () -> Unit,
     onNavigateToPosture: () -> Unit,
     onRegimeClick: () -> Unit,
     onDirectionClick: () -> Unit,
     onSetupClick: () -> Unit,
     onCycleZoneClick: () -> Unit,
-    onSignalLineClick: () -> Unit,
     onDriversInfoClick: () -> Unit,
     onRetryDate: (String) -> Unit = {}
 ) {
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
 
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .graphicsLayer {
-                val distance = abs(pageOffset())
-                val scale = lerp(1f, PageMinScale, distance)
-                scaleX = scale
-                scaleY = scale
-                alpha = lerp(1f, PageMinAlpha, distance)
-            },
-        contentPadding = PaddingValues(
-            top = paddingLarge,
-            bottom = scaffoldPadding.calculateBottomPadding() + paddingLarge,
-            start = paddingLarge,
-            end = paddingLarge
-        ),
-        verticalArrangement = Arrangement.spacedBy(paddingLarge)
-    ) {
-        // 💡 Each page renders its OWN date's label (and timestamp, once loaded), scrolling away
-        // with the rest of that page's own content rather than sitting in the pinned zone -- so a
-        // page's header always matches what's actually on that page even mid-swipe, before it
-        // settles as "selected".
-
-        item {
-            Column {
-                Text(
-                    text = dateId.toRelativeDayLabel(),
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-
-                Spacer( modifier = Modifier.height(dimensionResource(id = R.dimen.padding_micro)))
-                if (content is DayContent.Available) {
-                    AnalyzedAtHeader(timestamp = content.data.lastUpdated)
-                }
-            }
-        }
-
-        when (content) {
-            is DayContent.NotAvailable -> {
-                item {
-                    Box(
-                        modifier = Modifier.fillParentMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
+    // `key(dateId)` rather than relying on `remember` inside the cards: this list's slots are the
+    // same from one day to the next, so without it a card's own local state (the pulse animation,
+    // for one) would carry over onto the new day's content.
+    key(dateId) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            state = listState,
+            contentPadding = PaddingValues(
+                top = paddingLarge,
+                bottom = scaffoldPadding.calculateBottomPadding() + paddingLarge,
+                start = paddingLarge,
+                end = paddingLarge
+            ),
+            verticalArrangement = Arrangement.spacedBy(paddingLarge)
+        ) {
+            // 💡 Each tab renders the selected day's own label (and timestamp, once loaded) as its
+            // first item, scrolling away with the rest of that tab rather than sitting in the
+            // pinned zone. The expanded/collapsed default sits on the same row, but only on Drivers,
+            // the one tab whose rows it controls.
+            item {
+                Row(verticalAlignment = Alignment.Top) {
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = stringResource(id = R.string.summary_not_available_for_date),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = LocalPulseColors.current.onSurfaceMuted,
-                            textAlign = TextAlign.Center
+                            text = dateId.toRelativeDayLabel(),
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+
+                        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_micro)))
+                        if (content is DayContent.Available) {
+                            AnalyzedAtHeader(timestamp = content.data.lastUpdated)
+                        }
+                    }
+                    if (content is DayContent.Available && showExpandSetting && tab == SummaryTab.DRIVERS) {
+                        ExpandCollapseAllToggle(
+                            expanded = expandItemsByDefault,
+                            onToggle = { onExpandItemsByDefaultChange(!expandItemsByDefault) }
                         )
                     }
                 }
             }
 
-            DayContent.TodayNotReady -> {
-                item {
-                    Box(
-                        modifier = Modifier.fillParentMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.summary_today_not_ready),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = LocalPulseColors.current.onSurfaceMuted,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
-            }
-
-            DayContent.Loading -> {
-                item {
-                    Box(
-                        modifier = Modifier.fillParentMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        PulseLoadingIndicator()
-                    }
-                }
-            }
-
-            is DayContent.Error -> {
-                item {
-                    PulseErrorState(
-                        message = content.message,
-                        onRetry = { onRetryDate(content.dateId) },
-                        modifier = Modifier.fillParentMaxSize()
-                    )
-                }
-            }
-
-            is DayContent.Available -> {
-                val validData = content.data
-
-                // 💡 market_pulse hierarchy: signal -> drivers ->
-                // position -> lead stories -> macro mix -> domino -> watch & risks -> the read.
-                // Signal (top) and The Read (bottom) both bind to the same MarketVerdict --
-                // signalLine at top, verdict_text (analysis) at bottom -- since the backend
-                // delivers signal and the_read as one object.
-                validData.verdict?.let { verdict ->
+            when (content) {
+                is DayContent.NotAvailable -> {
                     item {
-                        SignalSection(
-                            verdict = verdict,
-                            onRegimeClick = onRegimeClick,
-                            onDirectionClick = onDirectionClick,
-                            onSignalLineClick = onSignalLineClick
+                        Box(
+                            modifier = Modifier.fillParentMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.summary_not_available_for_date),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = LocalPulseColors.current.onSurfaceMuted,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                }
+
+                DayContent.TodayNotReady -> {
+                    item {
+                        Box(
+                            modifier = Modifier.fillParentMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.summary_today_not_ready),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = LocalPulseColors.current.onSurfaceMuted,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                }
+
+                DayContent.Loading -> {
+                    item {
+                        Box(
+                            modifier = Modifier.fillParentMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            PulseLoadingIndicator()
+                        }
+                    }
+                }
+
+                is DayContent.Error -> {
+                    item {
+                        PulseErrorState(
+                            message = content.message,
+                            onRetry = { onRetryDate(content.dateId) },
+                            modifier = Modifier.fillParentMaxSize()
                         )
                     }
                 }
 
-                // Placed directly below the primary verdict/read block, grouped with the narrative
-                // sections rather than the trailing watch/risks -- sentiment is context for the
-                // read, not a footnote. No external SectionTitle -- same shape as SignalSection
-                // above, whose "Market Signal" header lives inside the card itself rather than as a
-                // separate list item. The whole card always navigates to Posture (not a per-link
-                // choice) -- Positioning is reachable from there once on Insights.
-                validData.marketSentiment?.let { sentiment ->
-                    item {
-                        MarketSentimentCard(sentiment = sentiment, onClick = onNavigateToPosture)
+                is DayContent.Available -> {
+                    val validData = content.data
+                    var hasCards = false
+
+                    when (tab) {
+                        SummaryTab.PULSE -> {
+                            // 💡 Signal's Market Read expands inside the card; there is no
+                            // separate Read card or sheet. Navigating to Posture is a link at the
+                            // bottom of Market Sentiment, not a whole-card tap, so the two
+                            // interactions don't compete.
+                            validData.verdict?.let { verdict ->
+                                hasCards = true
+                                item {
+                                    SignalSection(
+                                        verdict = verdict,
+                                        onRegimeClick = onRegimeClick,
+                                        onDirectionClick = onDirectionClick,
+                                        readExpanded = expansion.isExpanded(
+                                            SummarySection.MARKET_READ, 0, expandItemsByDefault
+                                        ),
+                                        onReadToggle = { onToggleSection(SummarySection.MARKET_READ, 0) }
+                                    )
+                                }
+                            }
+
+                            validData.marketSentiment?.let { sentiment ->
+                                hasCards = true
+                                item {
+                                    MarketSentimentCard(
+                                        sentiment = sentiment,
+                                        onClick = onNavigateToPosture,
+                                        isExpanded = expansion.isExpanded(
+                                            SummarySection.MARKET_SENTIMENT, 0, expandItemsByDefault
+                                        ),
+                                        onToggleExpanded = { onToggleSection(SummarySection.MARKET_SENTIMENT, 0) }
+                                    )
+                                }
+                            }
+
+                            // Commented out until further action -- the drivers list read as an
+                            // ambiguous signal in practice rather than a useful one. DriversSection
+                            // and its plumbing are left in place in case this gets revisited.
+                            // val drivers = validData.drivers
+                            // if (!drivers.isNullOrEmpty()) {
+                            //     item {
+                            //         DriversSection(
+                            //             drivers = drivers,
+                            //             onClick = onNavigateToIndicators,
+                            //             onInfoClick = onDriversInfoClick
+                            //         )
+                            //     }
+                            // }
+
+                            // 💡 Position/whatChanged/whatsNew are composed by the backend at
+                            // request time regardless of which dateId was requested -- always the
+                            // CURRENT live values, never historically accurate to a past date's
+                            // own report. Gated to whichever calendar day currently has the most
+                            // recent actual report (isLatestWithReport), not strictly "today" --
+                            // today's report usually doesn't post until the afternoon, so these
+                            // sections should keep showing on yesterday's page through that window
+                            // rather than vanishing the moment the calendar rolls over, then jump
+                            // onto today's page the moment today's report actually lands.
+                            if (isLatestWithReport) {
+                                validData.position?.let { position ->
+                                    hasCards = true
+                                    item {
+                                        MarketPositionSection(
+                                            position = position,
+                                            setup = validData.verdict?.setup,
+                                            whatChanged = validData.whatChanged,
+                                            onSetupClick = onSetupClick,
+                                            onCycleZoneClick = onCycleZoneClick,
+                                            onShowIndicatorsClick = onNavigateToIndicators,
+                                            whatChangedExpanded = expansion.isExpanded(
+                                                SummarySection.WHAT_CHANGED, 0, expandItemsByDefault
+                                            ),
+                                            onWhatChangedToggle = { onToggleSection(SummarySection.WHAT_CHANGED, 0) }
+                                        )
+                                    }
+                                }
+
+                                val whatsNew = validData.whatsNew
+                                if (!whatsNew.isNullOrEmpty()) {
+                                    hasCards = true
+                                    item { WhatsNewSection(whatsNew) }
+                                }
+                            }
+                        }
+
+                        SummaryTab.DRIVERS -> {
+                            val stories = validData.leadStories
+                            if (!stories.isNullOrEmpty()) {
+                                hasCards = true
+                                item {
+                                    LeadStoriesSection(
+                                        stories = stories,
+                                        isItemExpanded = { index ->
+                                            expansion.isExpanded(SummarySection.MARKET_MOVERS, index, expandItemsByDefault)
+                                        },
+                                        onToggleItem = { index -> onToggleSection(SummarySection.MARKET_MOVERS, index) }
+                                    )
+                                }
+                            }
+
+                            val macros = validData.macroMix
+                            if (!macros.isNullOrEmpty()) {
+                                hasCards = true
+                                item {
+                                    MacroMixSection(
+                                        macros = macros,
+                                        isItemExpanded = { index ->
+                                            expansion.isExpanded(SummarySection.MACRO_MIX, index, expandItemsByDefault)
+                                        },
+                                        onToggleItem = { index -> onToggleSection(SummarySection.MACRO_MIX, index) }
+                                    )
+                                }
+                            }
+                        }
+
+                        SummaryTab.OUTLOOK -> {
+                            validData.dominoEffect?.let { domino ->
+                                hasCards = true
+                                item { DominoCard(domino) }
+                            }
+
+                            val watch = validData.watch
+                            if (!watch.isNullOrEmpty()) {
+                                hasCards = true
+                                item { WatchSection(watch) }
+                            }
+
+                            val risks = validData.risks
+                            if (!risks.isNullOrEmpty()) {
+                                hasCards = true
+                                item { RisksSection(risks) }
+                            }
+                        }
                     }
-                }
 
-                // Commented out until further action -- the drivers list read as an ambiguous
-                // signal in practice rather than a useful one. DriversSection and its plumbing
-                // are left in place in case this gets revisited.
-                // val drivers = validData.drivers
-                // if (!drivers.isNullOrEmpty()) {
-                //     item {
-                //         DriversSection(
-                //             drivers = drivers,
-                //             onClick = onNavigateToIndicators,
-                //             onInfoClick = onDriversInfoClick
-                //         )
-                //     }
-                // }
-
-                // 💡 Position/whatChanged/whatsNew are composed by the backend at request time
-                // regardless of which dateId was requested -- always the CURRENT live values,
-                // never historically accurate to a past date's own report. Gated to whichever
-                // calendar day currently has the most recent actual report (isLatestWithReport),
-                // not strictly "today" -- today's report usually doesn't post until the afternoon,
-                // so these sections should keep showing on yesterday's page through that window
-                // rather than vanishing the moment the calendar rolls over, then jump onto today's
-                // page the moment today's report actually lands (and disappear from yesterday's).
-                if (isLatestWithReport) {
-                    validData.position?.let { position ->
+                    if (!hasCards) {
                         item {
-                            MarketPositionSection(
-                                position = position,
-                                setup = validData.verdict?.setup,
-                                whatChanged = validData.whatChanged,
-                                onSetupClick = onSetupClick,
-                                onCycleZoneClick = onCycleZoneClick,
-                                onShowIndicatorsClick = onNavigateToIndicators
+                            Text(
+                                text = stringResource(id = R.string.summary_tab_empty),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = LocalPulseColors.current.onSurfaceMuted,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth()
                             )
                         }
                     }
 
-                    // 💡 Placed here as a reasonable default -- no hierarchy slot
-                    // has been assigned for this section yet. See WhatsNewSection's doc comment
-                    // below.
-                    val whatsNew = validData.whatsNew
-                    if (!whatsNew.isNullOrEmpty()) {
-                        item { WhatsNewSection(whatsNew) }
-                    }
+                    item { DisclaimerFooter(showAiDisclosure = true) }
                 }
-
-                val stories = validData.leadStories
-                if (!stories.isNullOrEmpty()) {
-                    item { LeadStoriesSection(stories) }
-                }
-
-                val macros = validData.macroMix
-                if (!macros.isNullOrEmpty()) {
-                    item { MacroMixSection(macros) }
-                }
-
-                validData.dominoEffect?.let { domino ->
-                    item { DominoCard(domino) }
-                }
-
-                val watch = validData.watch
-                if (!watch.isNullOrEmpty()) {
-                    item { WatchSection(watch) }
-                }
-
-                val risks = validData.risks
-                if (!risks.isNullOrEmpty()) {
-                    item { RisksSection(risks) }
-                }
-
-                validData.verdict?.let { verdict ->
-                    item { TheReadSection(verdict) }
-                }
-
-                item { DisclaimerFooter(showAiDisclosure = true) }
             }
         }
     }
@@ -552,13 +628,11 @@ private enum class GlossaryTarget { REGIME, DIRECTION, SETUP, CYCLE_ZONE }
  * phase) and `direction` (RISK_ON/RISK_OFF/MIXED, the code-derived aggregate read) render as two
  * separate pills side by side, each its own tap target with a trailing chevron opening a
  * glossary sheet scoped to just that term -- so direction's own value reads as text, not only as
- * a tint. `signal_line` (the flash headline) is the largest prose on the card and is itself
- * tappable (trailing chevron), opening a bottom sheet with the fuller analysis + posture read
- * (the same content [TheReadSection] renders lower on the page) for a reader who wants the "why"
- * without scrolling. `conviction` + `convictionReason` render together, always inline, never
+ * a tint. `signal_line` (the flash headline) is the largest prose on the card; tapping the card
+ * expands the fuller analysis + posture read ([MarketReadContent]) inside it, for a reader who
+ * wants the "why". `conviction` renders as a label/level row over a meter, always inline, never
  * behind a tap -- this is the field that makes the verdict earned confidence instead of a
- * black-box "trust me," and seeing e.g. "2 of 4" signals aligned is what makes the mixed drivers
- * underneath read as a contested call rather than a contradiction. `setup` lives on the Market
+ * black-box "trust me." `setup` lives on the Market
  * Position card.
  */
 @Composable
@@ -566,17 +640,21 @@ fun SignalSection(
     verdict: MarketVerdict,
     onRegimeClick: () -> Unit,
     onDirectionClick: () -> Unit,
-    onSignalLineClick: () -> Unit
+    readExpanded: Boolean = false,
+    onReadToggle: () -> Unit = {}
 ) {
     val pulseColors = LocalPulseColors.current
     val directionColor = verdict.direction.toSignalColor()
+    // Nothing to reveal when the backend sent neither -- then the card is not tappable at all.
+    val hasRead = verdict.analysis != null || verdict.posture != null
 
     val paddingMedium = dimensionResource(id = R.dimen.padding_medium)
     PulseCard(
         style = PulseCardStyle.SYNTHESIS,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth().cardExpandPulse(readExpanded),
+        onClick = if (hasRead) onReadToggle else null
     ) {
-        Column {
+        Column(modifier = Modifier.animateContentSize(CardExpandAnimationSpec)) {
             Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
                 CardEyebrowLabel(
                     text = stringResource(id = R.string.section_signal),
@@ -613,22 +691,36 @@ fun SignalSection(
                 Spacer(modifier = Modifier.height(paddingMedium))
 
                 // 💡 The flash -- largest prose on the card, no callout box around it; a headline
-                // doesn't need to be quoted. titleMedium/bold, plain text now -- navigation moved
-                // off this row entirely onto its own ViewMoreRow below (same shared "text + chevron"
-                // link every "View More"/"Show ..." CTA in the app uses, see DetailSectionLabels.kt),
-                // rather than a bare trailing chevron implying the whole row is tappable.
+                // doesn't need to be quoted. titleMedium/bold. The trailing arrow (same up/down
+                // arrow Market Sentiment uses) marks the card as tap-to-expand: the Market Read
+                // opens below the conviction meter, inside this same card.
                 verdict.signalLine?.let {
-                    Text(
-                        text = it.smartTitleCase(),
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Spacer(modifier = Modifier.height(paddingMedium))
-                    ViewMoreRow(
-                        text = stringResource(id = R.string.summary_show_market_read),
-                        onClick = onSignalLineClick
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = it.smartTitleCase(),
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.weight(1f)
+                        )
+                        if (hasRead) {
+                            Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+                            Icon(
+                                painter = painterResource(id = if (readExpanded) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(dimensionResource(id = R.dimen.padding_large))
+                            )
+                        }
+                    }
                 }
+            }
+
+            if (readExpanded && hasRead) {
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                    thickness = dimensionResource(id = R.dimen.border_thin)
+                )
+                MarketReadContent(verdict = verdict)
             }
 
             HorizontalDivider(
@@ -638,14 +730,28 @@ fun SignalSection(
 
             Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
                 if (verdict.conviction != null) {
-                    // 💡 Label-above-bar, matching CardStyleShowcase.kt's SYNTHESIS "headline +
-                    // divider + meter" sample -- a full-width continuous fill reads strength at a
-                    // glance better than discrete segments would.
-                    Text(
-                        text = stringResource(id = R.string.label_conviction),
-                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                        color = pulseColors.onSurfaceMuted
-                    )
+                    // 💡 Last in the card: collapsed it follows the headline directly; expanded it
+                    // closes the card after the Market Read and Where Capital's Moving blocks.
+                    // Label and level share one row (level pinned to the card's far edge), with
+                    // the bar underneath -- a full-width continuous fill reads strength at a glance
+                    // better than discrete segments would. The level word is the whole explanation;
+                    // the backend's "N of 4 signals aligned" sentence is deliberately not shown.
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.label_conviction),
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                            color = pulseColors.onSurfaceMuted,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Text(
+                            text = verdict.conviction.name,
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                            color = directionColor.textColor
+                        )
+                    }
                     Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
                     // 💡 .textColor, not .pillColor -- pillColor is tuned to be a soft background a
                     // bolder text color sits on top of, so it read as a near-invisible fill when
@@ -655,43 +761,11 @@ fun SignalSection(
                         conviction = verdict.conviction,
                         filledColor = directionColor.textColor
                     )
-
-                    val reason = verdict.convictionReason?.stripRegimeToken()
-                    Text(
-                        text = buildAnnotatedString {
-                            withStyle(
-                                SpanStyle(
-                                    fontWeight = FontWeight.Bold,
-                                    color = directionColor.textColor
-                                )
-                            ) {
-                                append(verdict.conviction.name)
-                            }
-                            if (!reason.isNullOrBlank()) {
-                                append(" · ")
-                                append(reason)
-                            }
-                        },
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_tiny))
-                    )
                 }
             }
         }
     }
 }
-
-// verdict.convictionReason is code-generated (pulseSignal.ts's deriveConviction():
-// "${agree} of 4 signals aligned ${regimeDoc.regime}...") -- regimeDoc.regime is system/
-// market_regime's own internal snake_case token ("risk_on"/"risk_off"/"neutral"). Stripped here
-// rather than shown or prettified: the regime word is redundant with the chip directly above this
-// text, and "2 of 4 signals aligned" reads as a complete thought on its own without it.
-private fun String.stripRegimeToken(): String = this
-    .replace(Regex("\\s*(risk_on|risk_off|neutral)\\s*", RegexOption.IGNORE_CASE), " ")
-    .replace(Regex("\\s+([.,)])"), "$1")
-    .replace(Regex("\\s{2,}"), " ")
-    .trim()
 
 private fun SignalDirection?.toSignalColor(): SignalColor = when (this) {
     SignalDirection.RISK_ON -> SignalColor.GREEN
@@ -872,15 +946,15 @@ fun MarketPositionSection(
     whatChanged: String?,
     onSetupClick: () -> Unit,
     onCycleZoneClick: () -> Unit,
-    onShowIndicatorsClick: () -> Unit
-) {
+    onShowIndicatorsClick: () -> Unit,
     // 💡 Collapsed to 3 lines by default, tap to read the rest -- the app-wide default for
-    // AI-synthesis body text.
-    // What Changed can run several sentences and this card already carries the position
-    // gauges/pills above it, so an uncollapsed paragraph pushed everything below it (Lead Stories,
-    // Macro Mix, ...) further down the page than its own importance justified.
-    var whatChangedExpanded by remember { mutableStateOf(false) }
-
+    // AI-synthesis body text. What Changed can run several sentences and this card already
+    // carries the position gauges/pills above it, so an uncollapsed paragraph pushed everything
+    // below it further down the page than its own importance justified. Hoisted so the screen can
+    // reset it when the day changes.
+    whatChangedExpanded: Boolean = false,
+    onWhatChangedToggle: () -> Unit = {}
+) {
     PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
         Column {
             Text(
@@ -994,7 +1068,7 @@ fun MarketPositionSection(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { whatChangedExpanded = !whatChangedExpanded }
+                            .clickable(onClick = onWhatChangedToggle)
                     ) {
                         Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
                         Row(
@@ -1020,7 +1094,7 @@ fun MarketPositionSection(
                             color = MaterialTheme.colorScheme.onSurface,
                             maxLines = if (whatChangedExpanded) Int.MAX_VALUE else 3,
                             overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.animateContentSize()
+                            modifier = Modifier.animateContentSize(CardExpandAnimationSpec)
                         )
                     }
                 }
@@ -1038,8 +1112,8 @@ fun MarketPositionSection(
 /**
  * whats_new[] -- a deterministic (non-AI), most-recent-first list of indicators
  * whose data posted in the last 7 days. Styled as one `DATA`-style card holding every row, split
- * by a divider per entry -- same "one card, divided rows" structure [TheReadSection]'s
- * analysis/posture split already uses, one step further since the row count here is dynamic.
+ * by a divider per entry -- same "one card, divided rows" structure [MarketReadContent]'s
+ * analysis/posture split uses, one step further since the row count here is dynamic.
  * Each row is two columns: the indicator's name + its `signalText` read (e.g. "Healthy") on the
  * left, tinted by `signalColor` -- the same pre-classified backend read [MarketPositionSection]'s
  * gauge caption and [RisksSection]'s severity pill already render directly with no client-side
@@ -1233,75 +1307,59 @@ fun RisksSection(risks: List<RiskItem>) {
 }
 
 /**
- * The closing "The Read" card -- [MarketVerdict.analysis] is the verdict_text field,
- * [MarketVerdict.posture] is the renamed-from-action field. posture is descriptive market-stance
- * text, never an instruction -- rendered as a small labeled observation inside this same
- * SYNTHESIS card, never under an "action plan"-style header or its own card.
+ * The Market Read, shown inside the Market Signal card once it is expanded:
+ * [MarketVerdict.analysis] is the verdict_text field, [MarketVerdict.posture] the renamed-from-
+ * action field. posture is descriptive market-stance text, never an instruction -- rendered as a
+ * small labeled observation under its own divider, never under an "action plan"-style header or
+ * its own card.
+ *
+ * Both blocks are separately-padded Columns with the divider between them at this outer level, so
+ * the divider spans the card's full width instead of stopping at the content inset.
  */
 @Composable
-fun TheReadSection(verdict: MarketVerdict) {
+private fun MarketReadContent(verdict: MarketVerdict) {
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
 
-    // 💡 No regime/setup pills here -- regime is already the Signal card's headline chip and
-    // repeating it would be redundant; setup lives on Market Position. The divider sits between
-    // two separately-padded Columns rather than inside one Column padded as a whole -- same
-    // structural idiom LeadStoriesSection/MacroMixSection/DominoStepCard use -- so it spans the
-    // card's full width instead of stopping short at the content inset.
-    PulseCard(
-        style = PulseCardStyle.SYNTHESIS,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = dimensionResource(id = R.dimen.padding_small))
-    ) {
-        Column {
-            Column(
-                modifier = Modifier.padding(
-                    horizontal = paddingLarge,
-                    vertical = paddingLarge,
-                )
-            ) {
+    Column {
+        // 💡 No regime/setup pills here -- regime is already the card's own chip and repeating it
+        // would be redundant; setup lives on Market Position.
+        verdict.analysis?.let { analysis ->
+            Column(modifier = Modifier.padding(paddingLarge)) {
                 CardEyebrowLabel(
                     text = stringResource(id = R.string.market_read),
                     color = MaterialTheme.colorScheme.primary
                 )
-                // 💡 The depth -- the full paragraph, for the user who scrolls this far. Same
-                // eyebrow-to-content gap Market Sentiment uses (padding_medium).
-                verdict.analysis?.let {
-                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
-                    Text(
-                        text = it,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
+                // Same eyebrow-to-content gap Market Sentiment uses (padding_medium).
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                Text(
+                    text = analysis,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
             }
+        }
 
-            // 💡 posture rendered as its own distinct, scannable "positioning" beat -- separated
-            // from verdict_text by the divider rather than tacked on as another paragraph in the
-            // same block, exactly so it doesn't read as a third restatement of the same thesis.
-            verdict.posture?.let { posture ->
+        // 💡 posture rendered as its own distinct, scannable "positioning" beat -- separated
+        // from verdict_text by the divider rather than tacked on as another paragraph in the
+        // same block, exactly so it doesn't read as a third restatement of the same thesis.
+        verdict.posture?.let { posture ->
+            if (verdict.analysis != null) {
                 HorizontalDivider(
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
                     thickness = dimensionResource(id = R.dimen.border_thin)
                 )
-                Column(
-                    modifier = Modifier.padding(
-                        horizontal = paddingLarge,
-                        vertical = paddingLarge
-                    )
-                ) {
-                    CardEyebrowLabel(
-                        text = stringResource(id = R.string.label_posture),
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    // 💡 Same eyebrow-to-content gap Market Sentiment uses (padding_medium).
-                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
-                    Text(
-                        text = posture,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
+            }
+            Column(modifier = Modifier.padding(paddingLarge)) {
+                CardEyebrowLabel(
+                    text = stringResource(id = R.string.label_posture),
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                Text(
+                    text = posture,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
             }
         }
     }
@@ -1319,8 +1377,14 @@ fun TheReadSection(verdict: MarketVerdict) {
  *   have a headline, the whole section renders nothing.
  */
 @Composable
-fun LeadStoriesSection(stories: List<NewsItem>) {
-    val validStories = stories.filter { it.headline != null }
+fun LeadStoriesSection(
+    stories: List<NewsItem>,
+    isItemExpanded: (Int) -> Boolean = { false },
+    onToggleItem: (Int) -> Unit = {}
+) {
+    // Positions index the original list, not the filtered one, so a section/position pair stays
+    // stable if an entry without a headline is skipped.
+    val validStories = stories.withIndex().filter { it.value.headline != null }
     if (validStories.isEmpty()) return
 
     PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
@@ -1340,14 +1404,28 @@ fun LeadStoriesSection(stories: List<NewsItem>) {
             // between two separately-padded Columns" idiom SignalSection/MacroMixSection use, rather
             // than one padded Column wrapping every story (which would inset the divider to stop
             // short at the content margin instead of reaching the card's edges).
-            validStories.forEachIndexed { index, story ->
-                Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
-                    Text(
-                        text = story.headline!!,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    story.summary?.let { summary ->
+            validStories.forEachIndexed { rowIndex, (position, story) ->
+                val expanded = isItemExpanded(position)
+                val summary = story.summary
+                // 💡 Collapsed is the headline alone, no preview lines -- the summary is the part a
+                // paid tier can lock, so hiding it must not change the row's shape.
+                Column(
+                    modifier = Modifier
+                        .animateContentSize(CardExpandAnimationSpec)
+                        .then(if (summary != null) Modifier.clickable { onToggleItem(position) } else Modifier)
+                        .padding(dimensionResource(id = R.dimen.padding_large))
+                ) {
+                    ExpandableRowHeader(
+                        expanded = expanded,
+                        expandable = summary != null
+                    ) {
+                        Text(
+                            text = story.headline!!,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                    if (expanded && summary != null) {
                         Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
                         Text(
                             text = summary,
@@ -1356,7 +1434,7 @@ fun LeadStoriesSection(stories: List<NewsItem>) {
                         )
                     }
                 }
-                if (index != validStories.lastIndex) {
+                if (rowIndex != validStories.lastIndex) {
                     HorizontalDivider(
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
                         thickness = dimensionResource(id = R.dimen.border_thin)
@@ -1381,22 +1459,27 @@ fun LeadStoriesSection(stories: List<NewsItem>) {
  *
  * @param sentiment The [MarketSentiment] to display. Caller (`MarketSummaryScreen`) already omits
  * this card entirely when both headline and summary are blank; either field alone still renders.
+ * @param isExpanded Owned by the screen, which collapses it again when the day changes.
  */
 @Composable
-fun MarketSentimentCard(sentiment: MarketSentiment, onClick: () -> Unit) {
+fun MarketSentimentCard(
+    sentiment: MarketSentiment,
+    onClick: () -> Unit,
+    isExpanded: Boolean = false,
+    onToggleExpanded: () -> Unit = {}
+) {
     val paddingMedium = dimensionResource(id = R.dimen.padding_medium)
-    var isExpanded by remember { mutableStateOf(false) }
     val headline = sentiment.headline
 
     PulseCard(
         style = PulseCardStyle.SYNTHESIS,
-        modifier = Modifier.fillMaxWidth(),
-        onClick = { isExpanded = !isExpanded }
+        modifier = Modifier.fillMaxWidth().cardExpandPulse(isExpanded),
+        onClick = onToggleExpanded
     ) {
         Column(
             modifier = Modifier
                 .padding(dimensionResource(id = R.dimen.padding_large))
-                .animateContentSize()
+                .animateContentSize(CardExpandAnimationSpec)
         ) {
             // 💡 Header lives inside the card, same as SignalSection's "Market Signal" -- not
             // a separate SectionTitle list item. No per-card `AiGeneratedLabel` on Summary --
@@ -1460,8 +1543,12 @@ fun MarketSentimentCard(sentiment: MarketSentiment, onClick: () -> Unit) {
  *   headline, the whole section renders nothing.
  */
 @Composable
-fun MacroMixSection(macros: List<MacroItem>) {
-    val validMacros = macros.filter { it.headline != null }
+fun MacroMixSection(
+    macros: List<MacroItem>,
+    isItemExpanded: (Int) -> Boolean = { false },
+    onToggleItem: (Int) -> Unit = {}
+) {
+    val validMacros = macros.withIndex().filter { it.value.headline != null }
     if (validMacros.isEmpty()) return
 
     PulseCard(style = PulseCardStyle.DATA, modifier = Modifier.fillMaxWidth()) {
@@ -1476,32 +1563,46 @@ fun MacroMixSection(macros: List<MacroItem>) {
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
                 thickness = dimensionResource(id = R.dimen.border_thin)
             )
-            validMacros.forEachIndexed { index, item ->
+            validMacros.forEachIndexed { rowIndex, (position, item) ->
+                val expanded = isItemExpanded(position)
+                val summary = item.summary
                 // 💡 No left-rail accent bar -- plain padded Column, same as every other
                 // merged-card entry (Lead Stories/Watch/Risks). The tag sits on its own line below
                 // the heading rather than sharing a row with it, so a long headline never has to
                 // compete with the tag for width or push it to a cramped corner.
-                Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
-                    Text(
-                        text = item.headline!!,
-                        style = MaterialTheme.typography.titleMedium,
-                        // 💡 Card titles are always onSurface -- see LeadStoriesSection above.
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+                Column(
+                    modifier = Modifier
+                        .animateContentSize(CardExpandAnimationSpec)
+                        .then(if (summary != null) Modifier.clickable { onToggleItem(position) } else Modifier)
+                        .padding(dimensionResource(id = R.dimen.padding_large))
+                ) {
+                    ExpandableRowHeader(
+                        expanded = expanded,
+                        expandable = summary != null
+                    ) {
+                        Text(
+                            text = item.headline!!,
+                            style = MaterialTheme.typography.titleMedium,
+                            // 💡 Card titles are always onSurface -- see LeadStoriesSection above.
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                    // The tag stays visible while collapsed: with the headline it is what the
+                    // reader scans, and it is not part of the summary a paid tier will lock.
                     item.tag?.let { tag ->
                         Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
                         TagPill(text = tag.label)
                     }
-                    item.summary?.let {
+                    if (expanded && summary != null) {
                         Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
                         Text(
-                            text = it,
+                            text = summary,
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
-                if (index != validMacros.lastIndex) {
+                if (rowIndex != validMacros.lastIndex) {
                     HorizontalDivider(
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
                         thickness = dimensionResource(id = R.dimen.border_thin)
@@ -1614,6 +1715,30 @@ private fun DominoTimelineStep(title: String, text: String, isLast: Boolean) {
 
 
 /**
+ * A row headline with the same trailing up/down arrow Market Sentiment uses, shown only when the
+ * row actually has something to reveal ([expandable]).
+ */
+@Composable
+private fun ExpandableRowHeader(
+    expanded: Boolean,
+    expandable: Boolean,
+    headline: @Composable () -> Unit
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Box(modifier = Modifier.weight(1f)) { headline() }
+        if (expandable) {
+            Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_small)))
+            Icon(
+                painter = painterResource(id = if (expanded) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(dimensionResource(id = R.dimen.padding_large))
+            )
+        }
+    }
+}
+
+/**
  * The neutral tag/timeframe pill shared by [MacroMixSection] and [WatchSection] -- one component, not
  * two independently-styled ones, so a Macro Mix tag and a Watch timeframe read as the same visual
  * language rather than two different chips that happen to share a color.
@@ -1677,8 +1802,22 @@ private fun PreviewSignalSection() {
             SignalSection(
                 verdict = previewVerdict,
                 onRegimeClick = {},
+                onDirectionClick = {}
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF121212)
+@Composable
+private fun PreviewSignalSectionReadExpanded() {
+    MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            SignalSection(
+                verdict = previewVerdict,
+                onRegimeClick = {},
                 onDirectionClick = {},
-                onSignalLineClick = {}
+                readExpanded = true
             )
         }
     }
@@ -1843,16 +1982,6 @@ private fun PreviewDominoCard() {
                     outlook = "This is a trend shift toward structurally higher geopolitical risk premiums."
                 )
             )
-        }
-    }
-}
-
-@Preview(showBackground = true, backgroundColor = 0xFF121212)
-@Composable
-private fun PreviewTheReadSection() {
-    MarketPulseTheme(theme = MarketPulseTheme.LILAC) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            TheReadSection(verdict = previewVerdict)
         }
     }
 }

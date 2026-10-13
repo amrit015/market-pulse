@@ -64,7 +64,7 @@ Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)
 ```
 
 **Used by:** `SignalSection` ("Market Signal", :301), `MarketSentimentCard` ("Market Sentiment",
-:1059), `TheReadSection` ("Market Read", :921, and "Where Capital's Moving", :952),
+:1059), the Market Read block inside `SignalSection` (`MarketReadContent`),
 `MarketPositionSection`'s "What Changed" sub-block (:680). All `PulseCardStyle.SYNTHESIS`, or a
 SYNTHESIS-flavored moment inside an otherwise-DATA card (What Changed).
 
@@ -356,8 +356,8 @@ regardless of whether it's a full `PulseCard` or a plain `Surface`. Fixed:
 
 Not touched: `DirectNews`' per-item cards and `ForwardCalls`'/`Fundamentals`' small pill `Surface`s
 (badges, not nested cards) -- see the Fourth step's own notes on those. `DetailSectionLabels.kt`'s
-`OutlinedBadge` and `HighUrgencyAlertRow` are also plain badges/standalone banners, not nested
-inside another card, so out of scope here too.
+`OutlinedBadge` (and, at the time, `HighUrgencyAlertRow`, since removed) are also plain
+badges/standalone banners, not nested inside another card, so out of scope here too.
 
 ## Sixth step (2026-09-06): Indicators' pillar tabs, its Horizons cards, and a rejected line-height experiment
 
@@ -588,15 +588,10 @@ built — not a font-size or `maxLines` fix, purely giving the layout a valid pl
   `DriversSection`/`ScoreGauge` use) but that was dropped the next day (2026-09-07) — redundant once
   the pill text already says "RISK ON"/"RISK OFF"/"MIXED", and the MIXED glyph in particular read as
   a stray dot rather than a meaningful mark.
-- **The flash headline (`signalLine`) is now tappable.** The whole headline row (text + trailing
-  chevron, not just the chevron icon — fixed 2026-09-07, the icon-only tap target was too small)
-  opens a new `MarketReadBottomSheet` (`ui/components/bottomSheet/MarketReadBottomSheet.kt`) showing
-  the headline plus the same `analysis`/`posture` prose `TheReadSection` renders at the bottom of the
-  page — a shortcut for the reader who wants the "why" without scrolling past drivers/position/
-  stories/macro/domino/watch/risks to reach it. `TheReadSection` itself is unchanged and still
-  renders in its usual place; this is an additional entry point, not a replacement. The sheet's own
-  headline recap runs through `smartTitleCase()` too (fixed same day — it hadn't, so the same
-  `signalLine` value showed title-cased on the card and raw-cased in the sheet it opens).
+- **The Signal card expands the Market Read inline (2026-10-12).** This replaced the earlier
+  `MarketReadBottomSheet` shortcut and the standalone closing read card: tapping the card (the
+  headline row carries the same up/down arrow Market Sentiment uses) opens the `analysis`/`posture`
+  prose under the conviction meter, inside the same card, separated by full-width dividers.
 - **Conviction meter is now a continuous bar, not 3 discrete segments.** Matches
   `CardStyleShowcase.kt`'s "11. SYNTHESIS — Headline + divider + meter" sample (which is what this
   redesign was modeled on, in the reverse direction from usual): the "CONVICTION" label sits on its
@@ -684,7 +679,7 @@ tried and rejected before landing on the right one:
 
 Only `MarketGlossaryBottomSheet` was changed — it's the one bottom sheet in the app that nests
 `PulseCard` content (see Twelfth step); `DriversInfoBottomSheet`/`RiskBottomSheet`/
-`StockAnalysisGlossaryBottomSheet`/`MarketReadBottomSheet` render plain text only, so
+`StockAnalysisGlossaryBottomSheet` render plain text only, so
 `surfaceContainerHighest` still works fine for them (no card fill to collide with) and none were
 touched.
 
@@ -867,3 +862,28 @@ case the rest of this doc already tracks, not every clamped `Text` in the app.
    the standard for every SYNTHESIS card going forward). The owner is converting the remaining two
    individually rather than in one sweep — don't convert `DeepStudy`/`Scenarios` without being
    asked, and don't assume they're done just because the norm is written down.
+
+## Latest changes (2026-10-12): DATA cards on Stock Detail tabs and Horizons, reads, and small card tweaks
+
+- **Every card on Stock Detail's tabs is `PulseCardStyle.DATA`** -- `DigestCard`, `DeepStudy` and
+  `Scenarios` moved off `SYNTHESIS` (their headers are unchanged; only the card surface changed).
+  The one remaining `SYNTHESIS` surfaces on that screen are chrome above the tabs: the
+  `DeepDiveCard` banner/pill and `PlainRead`. Earlier notes in this file that call those three
+  "SYNTHESIS cards" describe their state at the time.
+- **Indicators' Horizons cards (the three per-horizon cards) are `DATA`.** The Horizons entry card
+  on the Indicators screen and Today's Read keep `SYNTHESIS`.
+- **Reads:** the chrome above Stock Detail's tabs shows `PlainRead` (`detail.plain_read`); the dense
+  `technical_read` is a `DATA` card on the Technicals tab directly below Returns, in
+  `bodyMedium`/`onSurface` like Key Levels' commentary. The HIGH-urgency alert banner that sat
+  above the tabs (`HighUrgencyAlertRow`) is gone; HIGH items still render in the Technicals tab's
+  `WatchList`.
+- **Deep Dive banner:** the full card until the deep dive has been opened, then a one-line pill
+  sized like the header's setup/regime `SignalPill`s (first line + chevron).
+- **Market Signal:** the Market Read expands inline; Conviction (label left, LOW/MODERATE/HIGH right
+  in the same `labelSmall` style, then the bar) is the last block, after Where Capital's Moving
+  when expanded. The backend's `conviction_reason` sentence is no longer shown.
+- **Today's Read:** each expanded indicator shift sits on its own translucent `onSurface` panel
+  (8% alpha, `corner_radius_small`, no border/shadow) instead of a bare divider-separated block,
+  so rows don't blend into the card's tinted surface.
+- **Stock news labels** were renamed in the app only: "WHAT TO WATCH NEXT" (`forward_implication`)
+  and "HOW IT AFFECTS THIS" (`transmission_mechanism`).

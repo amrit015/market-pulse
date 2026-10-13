@@ -1,0 +1,9 @@
+{
+  "^VIX": {
+    "Extreme Greed": "13 or below. Complacency: options are very cheap and traders expect almost no turbulence.",
+    "Greed": "Above 13, up to 15. Calm and confident, with little demand for downside protection.",
+    "Neutral": "Above 15, below 20. Normal volatility expectations.",
+    "Fear": "20 to below 30. Traders are paying up for protection and the market is nervous.",
+    "Extreme Fear": "30 or above. Panic-level demand for protection -- historically these spikes are short-lived."
+  }
+}

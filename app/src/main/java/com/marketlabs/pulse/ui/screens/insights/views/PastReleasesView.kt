@@ -3,6 +3,8 @@ package com.marketlabs.pulse.ui.screens.insights.views
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,18 +15,26 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -33,6 +43,7 @@ import com.marketlabs.pulse.R
 import com.marketlabs.pulse.storage.model.pastReleases.PastRelease
 import com.marketlabs.pulse.storage.model.pastReleases.PastReleases
 import com.marketlabs.pulse.ui.components.DisclaimerFooter
+import com.marketlabs.pulse.ui.components.ExpandCollapseAllToggle
 import com.marketlabs.pulse.ui.components.PulseCard
 import com.marketlabs.pulse.ui.components.PulseCardStyle
 import com.marketlabs.pulse.ui.theme.LocalPulseColors
@@ -52,12 +63,22 @@ import java.util.Locale
 @Composable
 fun PastReleasesScreen(
     pastReleases: PastReleases,
-    innerPadding: PaddingValues
+    innerPadding: PaddingValues,
+    expandAll: Boolean = false,
+    onExpandAllChange: (Boolean) -> Unit = {}
 ) {
     val paddingLarge = dimensionResource(id = R.dimen.padding_large)
     val releases = remember(pastReleases) {
-        pastReleases.releases?.values?.sortedByDescending { it.resolvedAtSortKey() } ?: emptyList()
+        // Alphabetical by label, case-insensitive; a release with no label sorts last.
+        pastReleases.releases?.values
+            ?.sortedWith(compareBy<PastRelease>({ it.label == null }, { it.label?.lowercase(Locale.ROOT) }))
+            ?: emptyList()
     }
+
+    // [expandAll] is the persisted default (collapsed until the reader changes it). A tap on one
+    // card overrides it for that card only, for this visit; changing the default through Expand
+    // all / Collapse all clears every override.
+    val overrides = remember { mutableStateMapOf<String, Boolean>() }
 
     LazyColumn(
         modifier = Modifier
@@ -78,7 +99,25 @@ fun PastReleasesScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        items(releases, key = { it.id }) { release -> PastReleaseCard(release = release) }
+        item {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                ExpandCollapseAllToggle(
+                    expanded = expandAll,
+                    onToggle = {
+                        onExpandAllChange(!expandAll)
+                        overrides.clear()
+                    }
+                )
+            }
+        }
+        items(releases, key = { it.id }) { release ->
+            val isExpanded = overrides[release.id] ?: expandAll
+            PastReleaseCard(
+                release = release,
+                impactExpanded = isExpanded,
+                onToggleImpact = { overrides[release.id] = !isExpanded }
+            )
+        }
         item { DisclaimerFooter(showAiDisclosure = true) }
     }
 }
@@ -90,71 +129,97 @@ fun PastReleasesScreen(
  * and Estimate/Actual only (no Previous column), unlike `WeeklyEventCard`.
  */
 @Composable
-private fun PastReleaseCard(release: PastRelease) {
+private fun PastReleaseCard(
+    release: PastRelease,
+    impactExpanded: Boolean,
+    onToggleImpact: () -> Unit
+) {
+    val showImpact = isReleaseValueAvailable(release.postReleaseImpact)
+
+    // The whole card toggles, but only when there is an impact to reveal.
     PulseCard(
         style = PulseCardStyle.DATA,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        onClick = if (showImpact) onToggleImpact else null
     ) {
         Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
+            // 💡 The arrow sits vertically centered against the whole title / date / estimate /
+            // actual block (not on the title line), so it reads as belonging to the card.
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = release.label ?: stringResource(id = R.string.unknown_event),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.fillMaxWidth()
+                    )
 
-            Text(
-                text = release.label ?: stringResource(id = R.string.unknown_event),
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.fillMaxWidth()
-            )
+                    release.date?.let { rawDate ->
+                        val formattedDate = remember(rawDate) { formatReleaseDateOnly(rawDate) }
 
-            release.date?.let { rawDate ->
-                val formattedDate = remember(rawDate) { formatReleaseDateOnly(rawDate) }
+                        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
 
-                Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_small)))
-
-                Text(
-                    text = formattedDate,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
-
-            val showEstimate = isReleaseValueAvailable(release.estimate)
-            val showActual = isReleaseValueAvailable(release.actual)
-
-            if (showEstimate || showActual) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_large))
-                ) {
-                    if (showEstimate) {
-                        ReleaseDataColumn(
-                            label = stringResource(id = R.string.label_estimate),
-                            value = release.estimate!!
+                        Text(
+                            text = formattedDate,
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                    if (showActual) {
-                        ReleaseDataColumn(
-                            label = stringResource(id = R.string.label_actual),
-                            value = release.actual!!,
-                            isActual = true
-                        )
+
+                    val showEstimate = isReleaseValueAvailable(release.estimate)
+                    val showActual = isReleaseValueAvailable(release.actual)
+
+                    if (showEstimate || showActual) {
+                        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_large))
+                        ) {
+                            if (showEstimate) {
+                                ReleaseDataColumn(
+                                    label = stringResource(id = R.string.label_estimate),
+                                    value = release.estimate!!
+                                )
+                            }
+                            if (showActual) {
+                                ReleaseDataColumn(
+                                    label = stringResource(id = R.string.label_actual),
+                                    value = release.actual!!,
+                                    isActual = true
+                                )
+                            }
+                        }
                     }
+                }
+
+                if (showImpact) {
+                    Spacer(modifier = Modifier.width(dimensionResource(id = R.dimen.padding_medium)))
+                    Icon(
+                        painter = painterResource(
+                            id = if (impactExpanded) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down
+                        ),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(dimensionResource(id = R.dimen.padding_large))
+                    )
                 }
             }
 
-            Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
-            HorizontalDivider(
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                thickness = dimensionResource(id = R.dimen.border_thin)
-            )
-
-            val showImpact = isReleaseValueAvailable(release.postReleaseImpact)
-
+            // 💡 Collapsed shows nothing below the main block -- no impact and no divider. The
+            // divider only exists to separate the impact from the data above it, so it animates in
+            // and out with the impact instead of sitting there on its own.
             AnimatedVisibility(
-                visible = showImpact,
-                enter = fadeIn() + expandVertically()
+                visible = showImpact && impactExpanded,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically()
             ) {
-                Column(modifier = Modifier.padding(top = dimensionResource(id = R.dimen.padding_medium))) {
+                Column {
+                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                        thickness = dimensionResource(id = R.dimen.border_thin)
+                    )
+                    Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.padding_medium)))
                     Surface(
                         color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
                         shape = RoundedCornerShape(dimensionResource(id = R.dimen.corner_radius_small)),
@@ -233,26 +298,6 @@ private fun formatReleaseDateOnly(rawDate: String): String {
     } else {
         rawDate
     }
-}
-
-/** Epoch millis of [PastRelease.date] for sort ordering (most recent release first), falling back
- *  to [PastRelease.resolvedAt] if the date can't be parsed, then to 0 so an unparseable release
- *  sorts last rather than crashing the sort. */
-private fun PastRelease.resolvedAtSortKey(): Long {
-    val rawDate = this.date
-    if (rawDate != null) {
-        val parsed = try {
-            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US).parse(rawDate)
-        } catch (e: ParseException) {
-            try {
-                SimpleDateFormat("yyyy-MM-dd", Locale.US).parse(rawDate)
-            } catch (e: ParseException) {
-                null
-            }
-        }
-        if (parsed != null) return parsed.time
-    }
-    return this.resolvedAt ?: 0L
 }
 
 private fun isReleaseValueAvailable(value: String?): Boolean {

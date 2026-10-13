@@ -56,6 +56,18 @@ for worked examples):
 no scrolling), a different layout shape for a different job (picking a chart's time range, not
 switching between sibling page sections).
 
+## Settings switch rows
+
+A card-wrapped title + description + `Switch` where the whole row is the tap target (the `Switch`
+itself is display-only so TalkBack reads one control) is `ui/settings/components/SettingsToggleRow`.
+Notifications and Data & Sync both use it; reuse it rather than hand-rolling another.
+
+## Analytics hooks
+
+Every new `composable(...)` destination needs a `TrackScreen(...)` and a `ScreenName` entry
+(`ScreenCatalogTest` fails otherwise). Events fire from tap callbacks, ViewModel actions, or
+`LaunchedEffect` — never from plain composition. Full rules in `@docs/architecture/analytics.md`.
+
 ## Loading and error states
 
 **`ui/components/PulseLoadingIndicator.kt` is the one loading treatment for every screen** — never
@@ -118,6 +130,13 @@ same `core/glossary/` files/loader, not a separate system: `asset_descriptions.j
 entirely) is a `symbol -> description` map for the Dashboard asset-detail screen's per-asset blurb,
 not a term/definition glossary — reuses `loadFlatGlossaryJson` because the shape is identical, not
 because it's conceptually a glossary term.
+
+Not a glossary, but the same "bundled `assets/*.json` + lazily-cached `object` provider" shape:
+the legal documents (`legal_privacy.json`/`legal_terms.json`, `data/legal/LegalDocumentProvider`).
+Their body text is structured blocks (paragraph / list), not strings with embedded bullets, because
+the public web page serves the same files; `LegalSection.toBodyText()` turns a section back into
+the plain-string convention `FormattedBodyText` renders. Don't re-add `privacy_section_*` /
+`terms_section_*` string resources.
 
 Provider access pattern differs by consumer, and this is deliberate, not inconsistent:
 `MetricGlossaryProvider` is a Hilt `@Singleton @Inject constructor(@ApplicationContext context: Context)`
@@ -218,3 +237,26 @@ title-casing it would be a regression, not a fix.
   go through `LocalPulseColors.current`, never `MaterialTheme.colorScheme`, for anything the
   token system defines separately. Cards go through `ui/components/PulseCard.kt`, never a
   hand-rolled `Card(colors = ..., border = ...)`.
+
+## Sentiment change pills (Fear & Greed, VIX, Put/Call)
+
+These three readings appear on Overview, on the asset detail page opened from Overview, and as
+Tactical Momentum cards on Indicators. Their change pill is decided in one place,
+`ui/components/SentimentChange.kt`, and every surface calls it: the triangle follows the raw sign of
+the move, the pill color is the contrarian market read (Fear & Greed: rising = bearish; VIX and
+Put/Call: rising = bullish), the text is unsigned (Fear & Greed integer points; VIX/Put-Call
+percent to two decimals), and an exact zero is a neutral flat bar. One deliberate exception: Indicators' VIX card passes `risingIsBullish = false`, because Indicators
+classifies VIX as Calm/Elevated/Panic with Panic red, so a rising VIX has to read red there to agree
+with the card's own status pill. Don't re-derive these colors in a widget or screen -- a new
+surface for one of these readings should call `SentimentChange`.
+
+The asset detail page for these three readings also lists their bands (the same `BandRow`
+Indicators' metric detail uses, in `ui/components/BandRow.kt`), with the current band highlighted by
+matching the backend's `rsi_status` against each band label (`SentimentBandResolver.kt`), with no
+client-side thresholds. Fear & Greed and Put/Call read `metric_glossary.json` -- the backend
+classifies them identically on Overview and Indicators. VIX does not: Indicators' VIX is Calm /
+Elevated / Panic, Overview's is a five-level Fear/Greed status, so Overview's page reads its own
+list from `assets/overview_sentiment_bands.json` (`OverviewSentimentBandsProvider`), with labels
+written to equal that status. All three lists are shown Extreme Greed -> Extreme Fear on that page
+(sorted in `AssetDetailViewModel`, since Fear & Greed's glossary runs the other way and that order is
+what Indicators' own detail shows).

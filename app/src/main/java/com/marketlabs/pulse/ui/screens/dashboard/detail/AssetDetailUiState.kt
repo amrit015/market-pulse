@@ -1,5 +1,6 @@
 package com.marketlabs.pulse.ui.screens.dashboard.detail
 
+import com.marketlabs.pulse.core.glossary.MetricGlossaryEntry
 import com.marketlabs.pulse.storage.model.charts.ChartRange
 import com.marketlabs.pulse.storage.model.charts.ChartSeries
 import com.marketlabs.pulse.storage.model.dashboard.AssetOverview
@@ -38,5 +39,7 @@ data class AssetDetailUiState(
     val isChartLoading: Boolean = false,
     val intradaySeries: IntradaySeries? = null,
     val availableChartRanges: List<ChartRange> = ChartRange.entries,
-    val hasTimedOut: Boolean = false
+    val hasTimedOut: Boolean = false,
+    /** Band list for the three sentiment readings (Fear & Greed, Put/Call, VIX); null for every other asset. */
+    val glossaryEntry: MetricGlossaryEntry? = null
 )

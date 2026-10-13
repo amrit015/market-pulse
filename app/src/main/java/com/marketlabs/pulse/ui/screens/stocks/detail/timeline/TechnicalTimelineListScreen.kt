@@ -1,6 +1,7 @@
 package com.marketlabs.pulse.ui.screens.stocks.detail.timeline
 
 import androidx.compose.animation.animateContentSize
+import com.marketlabs.pulse.ui.components.CardExpandAnimationSpec
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -83,7 +84,7 @@ fun TechnicalTimelineListScreen(
                     // 💡 `animateContentSize()` here, not on `PulseCard`'s own outer modifier -- see
                     // `PulseCard`'s shadow/clip gotcha. Smooths the card's height when a refresh
                     // changes how many timeline events there are, instead of it snapping to the new size.
-                    Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)).animateContentSize()) {
+                    Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)).animateContentSize(CardExpandAnimationSpec)) {
                         events.forEachIndexed { index, event ->
                             EventRow(event)
                             if (index != events.lastIndex) {

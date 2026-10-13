@@ -1,6 +1,7 @@
 package com.marketlabs.pulse.ui.screens.stocks.detail.timeline
 
 import androidx.compose.animation.animateContentSize
+import com.marketlabs.pulse.ui.components.CardExpandAnimationSpec
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -78,7 +79,7 @@ fun ResolvedCallsListScreen(
                 // 💡 `animateContentSize()` here, not on `PulseCard`'s own outer modifier -- see
                 // `PulseCard`'s shadow/clip gotcha. Smooths the card's height when a refresh
                 // changes how many resolved calls there are, instead of it snapping to the new size.
-                Column(modifier = Modifier.animateContentSize()) {
+                Column(modifier = Modifier.animateContentSize(CardExpandAnimationSpec)) {
                     DataCardSectionHeader(title = stringResource(id = R.string.stock_detail_resolved_calls_title))
                     resolvedCalls.forEachIndexed { index, call ->
                         ResolvedCallCard(call, modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large)))

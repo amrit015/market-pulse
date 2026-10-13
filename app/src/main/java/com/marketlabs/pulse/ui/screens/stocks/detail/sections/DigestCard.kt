@@ -24,7 +24,7 @@ import com.marketlabs.pulse.ui.theme.MarketPulseTheme
 import com.marketlabs.pulse.utils.extensions.smartTitleCase
 
 /**
- * ONE `PulseCard(SYNTHESIS)` for the whole Digest tab (unlike Deep Dive, which is multiple cards)
+ * ONE `PulseCard(DATA)` for the whole Digest tab (unlike Deep Dive, which is multiple cards)
  * -- a small-caps "DAILY DIGEST" header, the headline, then each section's own (model-written, no
  * fixed topic) `heading` rendered small-caps in place of a separate kicker, followed by its body.
  * Consecutive blocks (headline, then each section) are separated by a divider spanning the full
@@ -35,7 +35,7 @@ import com.marketlabs.pulse.utils.extensions.smartTitleCase
 fun DigestCard(headline: String?, sections: List<DomainDigestSection>, modifier: Modifier = Modifier) {
     val pulseColors = LocalPulseColors.current
 
-    PulseCard(style = PulseCardStyle.SYNTHESIS, modifier = modifier.fillMaxWidth()) {
+    PulseCard(style = PulseCardStyle.DATA, modifier = modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))) {
             // 💡 `CardEyebrowLabel`, not `SynthesisCardHeader` -- Digest is an "ai style card" in
             // the app-wide sense (Market Signal/Market Sentiment/Today's Read/Insights' Digest),

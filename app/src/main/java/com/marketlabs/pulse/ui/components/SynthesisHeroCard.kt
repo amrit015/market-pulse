@@ -74,10 +74,10 @@ fun SynthesisHeroCard(
     // shrinks -- the shadow, drawn outside this Column entirely, is untouched by it.
     PulseCard(
         style = PulseCardStyle.SYNTHESIS,
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth().cardExpandPulse(isExpanded),
         onClick = if (detail.isNullOrBlank()) null else { { isExpanded = !isExpanded } }
     ) {
-        Column(modifier = Modifier.padding(paddingLarge).animateContentSize()) {
+        Column(modifier = Modifier.padding(paddingLarge).animateContentSize(CardExpandAnimationSpec)) {
             // 💡 The expand/collapse arrow sits beside the headline (explicitly sized), not in the
             // eyebrow row: an arrow in that row would force the row's height to the icon's own
             // default (unsized) size rather than the eyebrow text's -- taller than Market Signal's

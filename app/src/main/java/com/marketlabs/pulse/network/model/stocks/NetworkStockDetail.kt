@@ -62,6 +62,9 @@ data class NetworkStockDetail(
     @Json(name = "daily_digest")
     val dailyDigest: NetworkDailyDigest? = null,
 
+    @Json(name = "plain_read")
+    val plainRead: String? = null,
+
     @Json(name = "technical_read")
     val technicalRead: String? = null,
 

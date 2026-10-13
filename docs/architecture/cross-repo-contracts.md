@@ -81,6 +81,25 @@ collections, and producers lives there, not here.
   `timestamp` alone drives the executive hero's "Analyzed as of" display. Treat this rule as
   binding for every backend response, not just the two domains named above.
 
+## `Authorization` header (anonymous Firebase ID token)
+
+Every request from the app's Retrofit client carries `Authorization: Bearer <Firebase ID token>`
+for the install's anonymous user, when one exists. The header is **absent** (not empty) before the
+user has accepted the current legal version, while sign-in is still retrying, and whenever the
+token fetch fails or takes longer than 1.5 s. The backend must treat it as optional in v1: a
+request without it is a normal request, and it must not reject one that has it. See
+`@docs/architecture/auth.md`. The `X-Firebase-AppCheck` header it sits beside is described under
+the App Check notes above; both are redacted in client logs.
+
+## Legal documents (shared with the public web page)
+
+`assets/legal_privacy.json` and `assets/legal_terms.json` are the canonical copy of the Privacy
+Policy and Terms & Conditions; the backend's public pages serve a copy. Shape: `version`,
+`lastUpdated` (ISO date), `title`, and `sections[]` of `{heading, blocks[]}` where a block is
+`{type: "paragraph", text}` or `{type: "list", items[]}`. `version` equals
+`LegalRepository.CURRENT_LEGAL_VERSION`, enforced by `LegalDocumentJsonTest`. Changing the text
+materially means bumping both and updating the web copy in the same release.
+
 ## Push notifications (FCM topics)
 
 Topic-based, no auth and no token storage. The client's only obligations are the names below.
@@ -93,10 +112,34 @@ Topic-based, no auth and no token storage. The client's only obligations are the
 - **Channel ids** — `daily_summary`, `stock_updates` (`NotificationChannels`). The backend sets
   `android.notification.channelId`; an id with no matching channel silently falls back to FCM's
   "Miscellaneous" channel.
-- **Payload** — `notification {title, body}` + `data {type, screen}`. `data.screen` is
+- **Payload** — `notification {title, body}` + `data {type, screen, key}`. `data.screen` is
   `market_summary` | `stocks` and is the only field routing reads (`PushNavigation`); an unknown or
-  missing value opens the app home. `data.type` (`market_summary` | `stock_analysis`) is logged
-  only. Title and body are server-owned and vary (the summary is "Weekend Summary" on weekends) —
+  missing value opens the app home. `data.type` (`market_summary` | `stock_analysis`) and the
+  optional `data.key` (an identifier for the specific push, e.g. the report date) are sent to
+  analytics as `push_open`'s `push_type` / `push_key`; older pushes without `key` simply omit
+  `push_key`. Keep `key` short (analytics string values are capped at 100 chars) and never put
+  free text in it. Title and body are server-owned and vary (the summary is "Weekend Summary" on weekends) —
   never parse or assert on them.
 - **Tap delivery** — the tray's tap intent carries `data` as launch-intent extras;
   `MainActivity` is `singleTop` so a running instance gets them in `onNewIntent`.
+
+## `plain_read` moved from the stock preview to the stock detail
+
+`GET /stocks/:symbol` (preview, `market_stocks/{symbol}`) no longer carries `plain_read`; the list
+card's lead line is `daily_digest.headline`. `GET /stocks/:symbol/detail` carries `plain_read` (a
+jargon-free sentence, up to 170 chars, always with a figure) alongside the unchanged
+`technical_read`. Each symbol switches shape on its next analysis run, so **both are nullable** and
+a stale doc may still have the old shape. `GET /stocks/:symbol/history` still returns `plain_read`
+per day. The client's preview `plainRead` is retained only so an old cached row deserializes; the
+UI never reads it. Detail adds a nullable `plainRead` column (Room v33).
+
+## Sentiment `rsi_status` on the dashboard assets
+
+`market_overview` rows for `FEAR_GREED`, `PUT_CALL` and `^VIX` carry `rsi_status`, which Overview
+shows as the status word and the Overview detail page matches against its band labels. Fear &
+Greed and Put/Call are meant to use the same classifier as Indicators (`classifierLogic.ts`),
+returned uppercase (`EXTREME FEAR` / `FEAR` / `NEUTRAL` / `GREED` / `EXTREME GREED`) so the client
+can match them to the glossary bands by label. VIX is deliberately different: a five-level
+Fear/Greed status on Overview (the same five strings), while Indicators classifies it Calm /
+Elevated / Panic. The client holds no thresholds for any of these; see
+`@docs/architecture/known-gaps.md` for the backend alignment still outstanding.

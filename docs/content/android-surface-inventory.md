@@ -380,7 +380,7 @@ Functions v2 HTTP endpoint (see each screen's "Source" line below for the exact 
   ACCUMULATION/DISTRIBUTION/RANGE BOUND.
 - **Existing explainer**: `deep_dive_card_description` ("Structural read: profile, standing, risks,
   outlook, consensus, so on.") is Deep Dive's, not this list's.
-- **AI tag**: none directly on this screen — the AI-written one-line technical read shown per card
+- **AI tag**: none directly on this screen — the AI-written one-line lead (the daily digest headline) shown per card
   has no `AiGeneratedLabel` of its own at list-row scale (it inherits the Screen Guide's disclosure
   instead, per `screen_guide_analysis_how_to_interpret`).
 - **⚠ Gap (item 6)**: confirmed via `StockAnalysisScreen.kt` — the only `onClick` on each row is
@@ -401,9 +401,9 @@ Functions v2 HTTP endpoint (see each screen's "Source" line below for the exact 
   MEAN_REVERSION/RANGE_BOUND) and `regimeAtAnalysis` (risk_on/risk_off/neutral) are BOTH
   tap-to-explain (`DetailHeader.kt:68-78`), opening `MarketGlossaryBottomSheet` with
   `currentStockSetup`/`currentDirection` — confirmed NOT a gap, unlike the list screen above.
-- **Existing explainer**: `TechnicalRead` section carries its own AI-written paragraph (no
+- **Existing explainer**: the `PlainRead`/`TechnicalRead` cards carry their own AI-written paragraph (no
   additional explainer string beyond the AI tag itself).
-- **AI tag**: `TechnicalRead.kt:57` (technical read paragraph), `DigestCard.kt:61` (digest/summary
+- **AI tag**: `TechnicalRead.kt` (`PlainRead` in the chrome above the tabs, `TechnicalRead` on the Technicals tab below Returns), `DigestCard.kt:61` (digest/summary
   section).
 
 ### Deep Dive (pushed from Stock Detail)
@@ -420,9 +420,14 @@ Functions v2 HTTP endpoint (see each screen's "Source" line below for the exact 
 - **Rows**: Notifications, Data & Sync, About, Terms & Conditions, Privacy Policy, Tutorials (all
   real destinations). Now card-wrapped (§ prior work this session).
 - **Gap**: no Screen Guide "?" wired — arguably doesn't need one (no data to interpret).
+- **Data & Sync**: opens with a "Share anonymous usage data" switch (default on, persisted via
+  `AnalyticsConsentRepository`) and a link to the Privacy Policy, above the static copy.
 
 ### Legal Acceptance / Terms & Conditions / Privacy Policy
-- **Source**: none — static legal copy (`LegalAcceptanceScreen.kt`, `DocumentSectionsScreen.kt`).
+- **Source**: Terms & Conditions and Privacy Policy are bundled JSON (`assets/legal_terms.json`,
+  `assets/legal_privacy.json`, loaded by `LegalDocumentProvider`, rendered by
+  `DocumentSectionsScreen.kt`); the acceptance screen's own paragraphs stay string resources
+  (`LegalAcceptanceScreen.kt`).
 - **Gap**: no Screen Guide "?" wired.
 
 ---
@@ -438,7 +443,7 @@ Functions v2 HTTP endpoint (see each screen's "Source" line below for the exact 
   1. `IndicatorsScreen.kt:594` — "Today's Read" card
   2. `IndicatorsScreen.kt:912` — `PillarScorecardCard` (×4 pillar instances)
   3. `DeepDiveRoute.kt:134` — once per Deep Dive page
-  4. `TechnicalRead.kt:57` — Stock Detail's technical read section
+  4. `TechnicalRead.kt` — Stock Detail's plain read (chrome) and technical read (Technicals tab)
   5. `DigestCard.kt:61` — Stock Detail's digest section
   6. `DailyDigestHeroCard.kt:108` — Dashboard's Daily Digest hero card
   7. `SynthesisHeroCard.kt:101` — shared by Positioning/Posture/Risks/Weekly Playbook (Insights tab)

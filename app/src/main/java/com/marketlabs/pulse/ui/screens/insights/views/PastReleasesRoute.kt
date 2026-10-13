@@ -24,6 +24,7 @@ import com.marketlabs.pulse.R
 import com.marketlabs.pulse.ui.components.PulseErrorState
 import com.marketlabs.pulse.ui.components.PulseLoadingIndicator
 import com.marketlabs.pulse.ui.screens.insights.InsightsViewModel
+import com.marketlabs.pulse.ui.screens.insights.PastReleasesViewModel
 
 /**
  * Stateful -- pushed destination (see PulseRoutes.PAST_RELEASES), not a bottom-nav tab, so it owns
@@ -38,9 +39,11 @@ import com.marketlabs.pulse.ui.screens.insights.InsightsViewModel
 @Composable
 fun PastReleasesRoute(
     onNavigateUp: () -> Unit,
-    viewModel: InsightsViewModel = hiltViewModel()
+    viewModel: InsightsViewModel = hiltViewModel(),
+    preferencesViewModel: PastReleasesViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val expandImpactByDefault by preferencesViewModel.expandImpactByDefault.collectAsStateWithLifecycle()
     val pastReleases = uiState.pastReleases
 
     Scaffold(
@@ -69,7 +72,9 @@ fun PastReleasesRoute(
         if (!pastReleases?.releases.isNullOrEmpty()) {
             PastReleasesScreen(
                 pastReleases = pastReleases!!,
-                innerPadding = innerPadding
+                innerPadding = innerPadding,
+                expandAll = expandImpactByDefault,
+                onExpandAllChange = preferencesViewModel::setExpandImpactByDefault
             )
         } else {
             Box(
